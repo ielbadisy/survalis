@@ -28,9 +28,24 @@ Key design choices:
 - tidy output: returns a consistent tiblle with metrics by fold, ready for summarization and plotting
 
 
-
 ### cv design metrics 
 
 - `evaluate_survlearner()`: provides a unified interface to compute survival probabilities at user-defined time points. 
+
+
+
+### Rational behind learners 
+
+- `aftgee`: semi-parametric AFT model via GEE
+
+`fit_aftgee`
+This learner implements a semiparametric accelerated failure time (AFT) model using generalized estimating equations via the aftgee package.
+It allows robust estimation of survival models without specifying the full error distribution. This make it well suited for time-to-event with complex
+structures, violation of PH assumption, and longitudinal or clustered survival data (although this implementation disables clustering for compatibility by fixing id = NULL)
+
+`predict_aftgee`
+The model output (TO CHECK) log-transformed survival time predictions, which are back-transformed to generate approximate survival probability
+curves under a log-normal assumption. 
+
 
 
