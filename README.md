@@ -12,3 +12,25 @@
 - Prediction functions are composable
 
 
+
+
+
+### CV design rational
+
+
+`cv_survlearner`: is concise CV engine for survival learners, designed to support all learners with `fit_*` and `predict_*.
+
+Key design choices: 
+
+- formula-first interface: aligns with base R modeling conventions and avoids manual specification of time/status
+- flexible event handling: supports both raw status and filtered events
+- automatic missing data handling: drops rows with NA in any variables used in the formula 
+- tidy output: returns a consistent tiblle with metrics by fold, ready for summarization and plotting
+
+
+
+### cv design metrics 
+
+- `evaluate_survlearner()`: provides a unified interface to compute survival probabilities at user-defined time points. 
+
+
