@@ -144,3 +144,21 @@ best_survlearner <- function(benchmark_results, metric, maximize = NULL) {
 
 ### TO POLISH table names (maybe unify columns names like learner_name -> survlearner)
 best_survlearner(benchmark_results, "ibs")
+
+#************** for more
+
+learners <- tibble::tibble(
+  learner_name = c("aareg", "aftgee", "mboost"),
+  fit_fun = list(fit_aareg, fit_aftgee, fit_mboost),
+  pred_fun = list(predict_aareg, predict_aftgee, predict_mboost)
+)
+
+benchmark_results <- benchmark_survlearners(
+  learners = learners,
+  formula = Surv(Time, status) ~ x1 + x2,
+  data = dat,
+  times = c(10, 20, 40),
+  metrics = c("cindex", "ibs"),
+  folds = 5
+)
+
