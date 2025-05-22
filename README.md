@@ -47,5 +47,45 @@ structures, violation of PH assumption, and longitudinal or clustered survival d
 The model output (TO CHECK) log-transformed survival time predictions, which are back-transformed to generate approximate survival probability
 curves under a log-normal assumption. 
 
+- `fit_art`
+
+...
+
+
+## standardization of git commits fo
+
+
+**Model API**
+
+- `refactor: unify fit_* function signatures across learners`
+- `feat: add consistent predict_* interface with times argument`
+- `refactor: use Surv parsing logic to auto-detect time/status vars`
+- `fix: ensure all predict_* return consistent t= colnames`
+
+**Learners**
+
+- `feat: add engine attribute to all fitted model objects`
+- `feat: implement generic predict_survml() dispatcher`
+- `refactor: standardize model object structure for mlsurv_model class`
+- `feat: auto-handle status == event encoding in cv_survlearner()`
+
+- **Evaluation and CV**
+
+- `feat: integrate evaluate_survlearner() with internal Surv construction`
+- `feat: add unified cv_survlearner() for all engines`
+- `refactor: drop evaluate_survmodel(), merge logic into CV loop`
+- `feat: add support for multiple metrics in benchmark_survlearners()`
+
+
+**Usability**
+
+- `feat: add survlearners() registry for listing available learners`
+- `feat: add select_best() for learner comparison by metric`
+- `refactor: standardize colnames in prediction output (t= format)`
+- `docs: document design rationale for standardized survival learners`
+- `docs: add usage examples for fit_*, predict_*, and cv_* wrappers`
+
+
+
 
 
