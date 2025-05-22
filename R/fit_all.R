@@ -79,3 +79,42 @@ print(benchmark_results)
 
 
 
+
+#****** summarise benchmark results across folds
+
+summarise_benchmark <- function(benchmark_results) {
+  benchmark_results |>
+    dplyr::group_by(learner_name, metric) |>
+    dplyr::summarise(
+      mean = mean(value, na.rm = TRUE),
+      sd   = sd(value, na.rm = TRUE),
+      n    = dplyr::n(),
+      se   = sd / sqrt(n),
+      lower = mean - 1.96 * se,
+      upper = mean + 1.96 * se,
+      .groups = "drop"
+    )
+}
+
+
+# plot benchmark results
+
+plot_benchmark <- function(benchmark_results) {
+  ggplot2::ggplot(benchmark_results, ggplot2::aes(x = learner_name, y = value)) +
+    ggplot2::geom_boxplot(fill = "lightblue", alpha = 0.4, outlier.shape = NA) +
+    ggplot2::geom_jitter(width = 0.1, size = 2, alpha = 0.6) +
+    ggplot2::facet_wrap(~ metric, scales = "free_y") +
+    ggplot2::labs(
+      title = "Cross-Validated Performance of Survival Learners",
+      x = "Learner",
+      y = "Metric Value"
+    ) +
+    ggplot2::theme_minimal(base_size = 14)
+}
+
+
+## TEST
+summarise_benchmark(benchmark_results)
+plot_benchmark(benchmark_results)
+
+
