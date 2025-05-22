@@ -117,4 +117,30 @@ plot_benchmark <- function(benchmark_results) {
 summarise_benchmark(benchmark_results)
 plot_benchmark(benchmark_results)
 
+#***************** helper to select the best survleanrer
 
+# select the best survival learner per metric
+
+best_survlearner <- function(benchmark_results, metric, maximize = NULL) {
+  if (!metric %in% benchmark_results$metric) {
+    stop("Metric not found in results: ", metric)
+  }
+
+  if (is.null(maximize)) {
+    # default: maximize cindex, minimize others
+    maximize <- !(metric %in% c("ibs", "brier", "iae", "ise"))
+  }
+
+  summary <- benchmark_results |>
+    dplyr::filter(metric == !!metric) |>
+    dplyr::group_by(learner_name, metric) |>
+    dplyr::summarise(value = mean(value, na.rm = TRUE), .groups = "drop")
+
+  best <- summary |>
+    dplyr::filter(if (maximize) value == max(value) else value == min(value))
+
+  return(best)
+}
+
+### TO POLISH table names (maybe unify columns names like learner_name -> survlearner)
+best_survlearner(benchmark_results, "ibs")
