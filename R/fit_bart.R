@@ -56,12 +56,12 @@ predict_bart <- function(object, newdata, times, ...) {
   pred <- predict(object$model, newdata = newx_expanded)$surv.test.mean
   prob_matrix <- matrix(pred, nrow = nrow(newx), ncol = K, byrow = TRUE)
 
-  # Align internal BART times to requested times via nearest neighbor match
-  idx <- sapply(times, function(t) which.min(abs(object$eval_times - t)))
-  result <- prob_matrix[, idx, drop = FALSE]
+  # align internal BART times to requested times via nearest neighbor match
+  mapped_times <- sapply(times, function(t) which.min(abs(object$eval_times - t)))
+  closest_times <- object$eval_times[mapped_times]
+  result <- prob_matrix[, mapped_times, drop = FALSE]
+  colnames(result) <- paste0("t=", times)  # preserve user intent
 
-  # Standardize column and row names
-  colnames(result) <- paste0("t=", times)
   rownames(result) <- paste0("ID_", seq_len(nrow(newx)))
 
   return(as.data.frame(result))
@@ -81,12 +81,16 @@ names(veteran2)[names(veteran2) == "status"] <- "Event"
 # Fit and CV
 mod_bart <- fit_bart(Surv(Time, Event) ~ age + karno + celltype, data = veteran2)
 
+
+
+
+
 cv_results_bart <- cv_survlearner(
   formula = Surv(Time, Event) ~ age + karno + celltype,
   data = veteran2,
   fit_fun = fit_bart,
   pred_fun = predict_bart,
-  times = c(100, 200, 300),
+  times = c(5, 10, 40),
   metrics = c("cindex", "ibs"),
   folds = 5,
   seed = 42
