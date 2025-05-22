@@ -66,8 +66,8 @@ This causes inconsistencies and errors when evaluating metrics such as the c-ind
 
 To ensure consistency across folds and learners, we update `predict_mboost()` to: 
 
-* extend the survival curve with the last know survival probability (flat extrapolation) if any `times` go beyond the model's range. This will avoid the metric computation failures due to missing time columns. 
-
+* extend (DONE) the survival curve with the last know survival probability (flat extrapolation) if any `times` go beyond the model's range. This will avoid the metric computation failures due to missing time columns. 
+* add (DONE) logic to handle times outside survFit$time via padding
 
 ## standardization of git commits fo
 
