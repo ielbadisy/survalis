@@ -47,9 +47,26 @@ structures, violation of PH assumption, and longitudinal or clustered survival d
 The model output (TO CHECK) log-transformed survival time predictions, which are back-transformed to generate approximate survival probability
 curves under a log-normal assumption. 
 
-- `fit_art`
+
+---
+
+- `bart`
+
+NEED TO UPDATE THIS IMPLEMENTATION 
 
 ...
+
+
+---
+
+- `mboost`
+
+benchmarking through CV , `mboost::blackboost` may produce survival curves with time grid (`survFit$time`) that doesn't fully cover the user-specified `times`.
+This causes inconsistencies and errors when evaluating metrics such as the c-index at fixed prediction times. 
+
+To ensure consistency across folds and learners, we update `predict_mboost()` to: 
+
+* extend the survival curve with the last know survival probability (flat extrapolation) if any `times` go beyond the model's range. This will avoid the metric computation failures due to missing time columns. 
 
 
 ## standardization of git commits fo
