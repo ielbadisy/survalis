@@ -68,21 +68,33 @@ predict_mboost <- function(object, newdata, times, ...) {
 
   surv_fit <- mboost::survFit(object$model, newdata = newdata)
 
-  # ensure `times` is within the range of surv_fit$time
-  max_time <- max(surv_fit$time)
-  if (any(times > max_time)) {
-    warning("Some prediction times exceed the range of survFit$time. Truncating.")
-    times <- times[times <= max_time]
+  sf_time <- surv_fit$time
+  sf_surv <- surv_fit$surv  # rows = time, cols = obs
+
+  # if max(eval times) > max(sf_time), pad with last survival value
+  if (max(times) > max(sf_time)) {
+    last_time <- max(sf_time)
+    extra_times <- sort(setdiff(times, sf_time))
+    extra_times <- extra_times[extra_times > last_time]
+
+    if (length(extra_times) > 0) {
+      pad_vals <- matrix(
+        rep(tail(sf_surv, 1), each = length(extra_times)),
+        nrow = length(extra_times), byrow = TRUE
+      )
+      sf_time <- c(sf_time, extra_times)
+      sf_surv <- rbind(sf_surv, pad_vals)
+    }
   }
 
-  if (length(times) == 0) stop("No valid `times` for prediction after filtering.")
+  # add boundaries to support interpolation
+  sf_time_ext <- c(-Inf, sf_time)
+  sf_surv_ext <- rbind(1, sf_surv)
 
-  # transpose so individuals are rows
-  surv_probs <- t(survival_curve_to_prob(
-    eval_time = times,
-    event_times = surv_fit$time,
-    survival_prob = surv_fit$surv
-  ))
+  # interpolate at requested times (constant survival interpolation)
+  idx <- findInterval(times, sf_time_ext)
+  surv_probs <- sf_surv_ext[idx, , drop = FALSE]
+  surv_probs <- t(surv_probs)
 
   colnames(surv_probs) <- paste0("t=", times)
   rownames(surv_probs) <- rownames(newdata)
@@ -98,7 +110,7 @@ data("veteran", package = "survival")
 
 mod_mboost <- fit_mboost(Surv(time, status) ~ age + karno + celltype, data = veteran)
 
-predict_mboost(mod_mboost, newdata = veteran[1:5, ], times = c(100, 200, 300))
+predict_mboost(mod_mboost, newdata = veteran[1:5, ], times = c(5, 10, 40))
 
 
 
@@ -113,7 +125,7 @@ cv_results_mboost <- cv_survlearner(
   data = veteran,
   fit_fun = fit_mboost,
   pred_fun = predict_mboost,
-  times = c(100, 200, 300),
+  times = c(5, 10, 40),
   metrics = c("cindex", "ibs"),
   folds = 5,
   seed = 42
