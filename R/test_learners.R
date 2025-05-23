@@ -1,7 +1,8 @@
+
 learners <- tibble::tibble(
-  learner_name = c("aareg", "aftgee", "mboost"),
-  fit_fun = list(fit_aareg, fit_aftgee, fit_mboost),
-  pred_fun = list(predict_aareg, predict_aftgee, predict_mboost)
+  learner_name = c("aareg", "aftgee", "mboost", "ranger", "orsf", "glmnet"),
+  fit_fun = list(fit_aareg, fit_aftgee, fit_mboost, fit_ranger, fit_orsf, fit_glmnet),
+  pred_fun = list(predict_aareg, predict_aftgee, predict_mboost, predict_ranger, predict_orsf, predict_glmnet)
 )
 
 
@@ -17,7 +18,7 @@ results_by_learner <- purrr::pmap_dfr(
         pred_fun = pred_fun,
         times = c(10, 20, 40),
         metrics = c("cindex", "ibs"),
-        folds = 5,
+        folds = 6,
         seed = 123
       )
       dplyr::mutate(res, learner_name = learner_name)
