@@ -83,7 +83,7 @@ cv_results_cforest <- cv_survlearner(
   pred_fun = predict_cforest,
   times = c(100, 200, 300),
   metrics = c("cindex", "ibs"),
-  folds = 5,
+  folds = 10,
   seed = 42
 )
 
