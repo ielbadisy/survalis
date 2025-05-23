@@ -55,10 +55,18 @@ Brier <- function(object, pre_sp, t_star) {
   time <- object[, 1]
   status <- object[, 2]
   km_fit <- survfit(Surv(time, 1 - status) ~ 1)
-  G_all <- summary(km_fit, times = sort(unique(c(t_star, time))), extend = TRUE)$surv
-  names(G_all) <- as.character(sort(unique(c(t_star, time))))
+
+  all_times <- sort(unique(c(t_star, time)))
+  G_all <- summary(km_fit, times = all_times, extend = TRUE)$surv
+  names(G_all) <- as.character(all_times)
+
   Gt <- G_all[as.character(t_star)]
-  if (is.na(Gt) || Gt == 0) stop("Gt(t_star) is NA or zero")
+
+  # instead of stopping, return NA and warn if Gt is NA or zero ++++
+  if (is.na(Gt) || Gt == 0) {
+    warning("Brier: Gt(t_star) is NA or zero at t = ", t_star, "; returning NA.")
+    return(NA_real_)
+  }
 
   early_event <- which(time < t_star & status == 1)
   later_risk  <- which(time >= t_star)
@@ -69,6 +77,7 @@ Brier <- function(object, pre_sp, t_star) {
     valid <- which(!is.na(Gti) & Gti > 0)
     score_vec[early_event[valid]] <- (pre_sp[early_event[valid]]^2) / Gti[valid]
   }
+
   if (Gt > 0 && length(later_risk) > 0) {
     score_vec[later_risk] <- ((1 - pre_sp[later_risk])^2) / Gt
   }
