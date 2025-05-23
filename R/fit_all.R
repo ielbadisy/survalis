@@ -1,3 +1,4 @@
+library(dplyr)
 # Lists all learners with matching `fit_*` and `predict_*` functions
 survlearners <- function() {
   fits <- ls(pattern = "^fit_", envir = .GlobalEnv)
@@ -148,9 +149,9 @@ best_survlearner(benchmark_results, "ibs")
 #************** for more
 
 learners <- tibble::tibble(
-  learner_name = c("aareg", "aftgee", "mboost"),
-  fit_fun = list(fit_aareg, fit_aftgee, fit_mboost),
-  pred_fun = list(predict_aareg, predict_aftgee, predict_mboost)
+  learner_name = c("aareg", "aftgee", "mboost", "ranger", "orsf", "glmnet"),
+  fit_fun = list(fit_aareg, fit_aftgee, fit_mboost, fit_ranger, fit_orsf, fit_glmnet),
+  pred_fun = list(predict_aareg, predict_aftgee, predict_mboost, predict_ranger, predict_orsf, predict_glmnet)
 )
 
 benchmark_results <- benchmark_survlearners(
@@ -162,3 +163,6 @@ benchmark_results <- benchmark_survlearners(
   folds = 5
 )
 
+
+summarise_benchmark(benchmark_results)
+best_survlearner(benchmark_results, "cindex")
