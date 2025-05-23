@@ -1,7 +1,7 @@
 learners <- tibble::tibble(
-  learner_name = c("aareg", "aftgee", "bart", "mboost"),
-  fit_fun = list(fit_aareg, fit_aftgee, fit_bart, fit_mboost),
-  pred_fun = list(predict_aareg, predict_aftgee, predict_bart, predict_mboost)
+  learner_name = c("aareg", "aftgee", "mboost"),
+  fit_fun = list(fit_aareg, fit_aftgee, fit_mboost),
+  pred_fun = list(predict_aareg, predict_aftgee, predict_mboost)
 )
 
 
