@@ -30,8 +30,17 @@ Key design choices:
 
 ### cv design metrics 
 
-- `evaluate_survlearner()`: provides a unified interface to compute survival probabilities at user-defined time points. 
+[X] `evaluate_survlearner()`: provides a unified interface to compute survival probabilities at user-defined time points. 
 
+[] fix warning in Brier related to empty folds in small sample size
+
+[] build modular `cv_survlearner()`
+
+[] build `benchmark_survleanrer()`  each learner tested via `purrr::pmap_dfr()`
+
+[] build utilities for CV result summarization and best learner selection (`select_best()` + `cv_summary()` + `cv_plot()`)
+
+[] handle edge case in Brier score when G(t) is NA or zero
 
 
 ### Rational behind learners 
@@ -52,12 +61,10 @@ curves under a log-normal assumption.
 
 - `bart`
 
-NEED TO UPDATE THIS IMPLEMENTATION 
-
-...
-
+[] update the implementation (actual fit is to verbose)
 
 ---
+
 
 - `mboost`
 
@@ -66,8 +73,43 @@ This causes inconsistencies and errors when evaluating metrics such as the c-ind
 
 To ensure consistency across folds and learners, we update `predict_mboost()` to: 
 
-* extend (DONE) the survival curve with the last know survival probability (flat extrapolation) if any `times` go beyond the model's range. This will avoid the metric computation failures due to missing time columns. 
-* add (DONE) logic to handle times outside survFit$time via padding
+[X] extend  the survival curve with the last know survival probability (flat extrapolation) if any `times` go beyond the model's range. This will avoid the metric computation failures due to missing time columns. 
+[X] add logic to handle times outside survFit$time via padding
+
+
+---
+
+- `cforest`
+
+[X] add conditional survival forest (`party:cforest`)
+[X] use interpolation to generate full survival matrices
+
+--- 
+
+- `ranger`
+
+[] add random survival forest from `ranger`
+[] ensure time alignment by nearest match 
+
+---
+
+- `orsf`
+
+[] add oblique RF from aorsf 
+[] use native `pred_horizon` and `pred_type = "surv"`
+
+
+---
+
+- `glmnet`
+
+[] fit penalized cox (lasso/ridge) via via glmnet
+
+[] manual estimated baseline hazard using `basehaz()`
+
+
+---
+
 
 ## standardization of git commits fo
 
