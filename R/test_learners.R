@@ -1,8 +1,8 @@
 
 learners <- tibble::tibble(
-  learner_name = c("aareg", "aftgee", "mboost", "ranger", "orsf", "glmnet"),
-  fit_fun = list(fit_aareg, fit_aftgee, fit_mboost, fit_ranger, fit_orsf, fit_glmnet),
-  pred_fun = list(predict_aareg, predict_aftgee, predict_mboost, predict_ranger, predict_orsf, predict_glmnet)
+  learner_name = c("aareg", "aftgee", "mboost", "ranger", "orsf", "glmnet", "flexsurv"),
+  fit_fun = list(fit_aareg, fit_aftgee, fit_mboost, fit_ranger, fit_orsf, fit_glmnet, fit_flexsurv),
+  pred_fun = list(predict_aareg, predict_aftgee, predict_mboost, predict_ranger, predict_orsf, predict_glmnet, predict_flexsurv)
 )
 
 
