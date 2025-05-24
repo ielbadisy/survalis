@@ -1,10 +1,25 @@
 
-fit_bnnsurv <- function(formula, data, ...) {
+fit_bnnsurv <- function(formula, data,
+                        k = 20,
+                        num_base_learners = 50,
+                        num_features_per_base_learner = NULL,
+                        metric = "mahalanobis",
+                        weighting_function = function(x) x * 0 + 1,
+                        replace = TRUE,
+                        sample_fraction = NULL,
+                        ...) {
   stopifnot(requireNamespace("bnnSurvival", quietly = TRUE))
 
   model <- bnnSurvival::bnnSurvival(
     formula = formula,
     data = data,
+    k = k,
+    num_base_learners = num_base_learners,
+    num_features_per_base_learner = num_features_per_base_learner,
+    metric = metric,
+    weighting_function = weighting_function,
+    replace = replace,
+    sample_fraction = sample_fraction,
     ...
   )
 
@@ -15,7 +30,7 @@ fit_bnnsurv <- function(formula, data, ...) {
     data = data,
     time = all.vars(formula)[[2]],
     status = all.vars(formula)[[3]]
-  ), class = "mlsurv_model")
+  ), class = "mlsurv_model", engine = "bnnsurv")
 }
 
 
@@ -23,29 +38,30 @@ predict_bnnsurv <- function(object, newdata, times, ...) {
   stopifnot(object$learner == "bnnsurv")
   stopifnot(requireNamespace("bnnSurvival", quietly = TRUE))
 
-  result <- predict(object$model, newdata)
+  newdata <- as.data.frame(newdata)
 
-  all_times <- bnnSurvival::timepoints(result)
-  pred_mat <- bnnSurvival::predictions(result)
+  # predict full survival curves
+  pred <- predict(object$model, newdata)
 
-  # interpolate to requested times
-  interp_mat <- t(apply(pred_mat, 1, function(row) {
-    approx(x = all_times, y = row, xout = times, method = "linear", rule = 2)$y
+  # extract prediction grid
+  pred_times <- bnnSurvival::timepoints(pred)
+  pred_matrix <- bnnSurvival::predictions(pred)
+
+  surv_probs <- t(apply(pred_matrix, 1, function(row) {
+    approx(x = pred_times, y = row, xout = times, method = "linear", rule = 2)$y
   }))
 
-  colnames(interp_mat) <- paste0("t=", times)
-  rownames(interp_mat) <- paste0("ID_", seq_len(nrow(newdata)))
+  colnames(surv_probs) <- paste0("t=", times)
+  rownames(surv_probs) <- paste0("ID_", seq_len(nrow(newdata)))
 
-  as.data.frame(interp_mat)
+  return(as.data.frame(surv_probs))
 }
 
 
 library(survival)
 library(bnnSurvival)
 
-set.seed(123)
 mod_bnnsurv <- fit_bnnsurv(Surv(time, status) ~ age + trt + karno + diagtime + prior, data = veteran)
 
-pred <- predict_bnnsurv(mod_bnnsurv, newdata = veteran[1:5, ], times = c(100, 200, 300))
-print(round(pred, 3))
-
+pred_bnnsurv <- predict_bnnsurv(mod_bnnsurv, newdata = veteran[1:5, ], times = c(100, 200, 300))
+print(round(pred_bnnsurv, 3))
