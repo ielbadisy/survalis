@@ -120,11 +120,20 @@ The `flexsurv` learner fits fully parametric survival models (e.g. weibull, log-
 
 - `bnnsurv` 
 
-Bagged Neared Neighbors for survival analysis implements an ensemble of nearest-neighbor survival estimators using the `bnnSurvival` package. Each base learner uses a randomly seletect subset of features and training data to estimate individual survival curves.
+Bagged Nearest Neighbors for survival analysis implements an ensemble of nearest-neighbor survival estimators using the `bnnSurvival` package. Each base learner uses a randomly seletect subset of features and training data to estimate individual survival curves.
 
 This method is particularly well-suited for non-linear patterns and does not rely on PH assumptions. Predictions are interpolated over requested time points for full compatibility with the unified benchmarking pipeline.
 
 ## standardization of git commits fo
+
+
+---
+
+- `coxaalen` (additive-multiplicative hazards model)
+
+This learner fits a cox-aalen model using `timereg::cox.aalen()` function, which combines both proportional hazards and additive effects. It allows for flexible modleing of time-varying and time-invariante covariates. 
+
+_Preprocessing nots_: The initial `cox.aalen()` function requires explicit handling of covariates via `prop()` or `const()` to define how each covariates enters the model (as roportional hazards or additive effects). To avoid cruptic error like `Error: invalid type (NULL) for variable 'Z'`, our `fit_coxaalen()` wraps automatically all covariates with `prop()`, in order to ensure robust and concistent model fitting, enven if the user does not specify it manually. This ensure compatibility with bith simple and complex formulas. 
 
 
 **Model API**
