@@ -116,6 +116,14 @@ The `flexsurv` learner fits fully parametric survival models (e.g. weibull, log-
 
 ---
 
+
+
+- `bnnsurv` 
+
+Bagged Neared Neighbors for survival analysis implements an ensemble of nearest-neighbor survival estimators using the `bnnSurvival` package. Each base learner uses a randomly seletect subset of features and training data to estimate individual survival curves.
+
+This method is particularly well-suited for non-linear patterns and does not rely on PH assumptions. Predictions are interpolated over requested time points for full compatibility with the unified benchmarking pipeline.
+
 ## standardization of git commits fo
 
 
