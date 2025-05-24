@@ -88,28 +88,33 @@ To ensure consistency across folds and learners, we update `predict_mboost()` to
 
 - `ranger`
 
-[] add random survival forest from `ranger`
-[] ensure time alignment by nearest match 
+[X] add random survival forest from `ranger`
+[X] ensure time alignment by nearest match 
 
 ---
 
 - `orsf`
 
-[] add oblique RF from aorsf 
-[] use native `pred_horizon` and `pred_type = "surv"`
+[X] add oblique RF from aorsf 
+[X] use native `pred_horizon` and `pred_type = "surv"`
 
 
 ---
 
 - `glmnet`
 
-[] fit penalized cox (lasso/ridge) via via glmnet
+[X] fit penalized cox (lasso/ridge) via via glmnet
 
-[] manual estimated baseline hazard using `basehaz()`
+[X] manual estimated baseline hazard using `basehaz()`
 
 
 ---
 
+- `flexsurv`
+
+The `flexsurv` learner fits fully parametric survival models (e.g. weibull, log-normal, gompertz) using the `flexsurvreg()` function the `flexsurv` packagE. It provides smooth and flexible survival curves with closed-form expressions for prediction.
+
+---
 
 ## standardization of git commits fo
 
