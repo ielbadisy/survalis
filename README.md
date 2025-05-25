@@ -164,6 +164,45 @@ This approach ensures uniform prediction output across all learners and maintain
 
 _Note_: for now, we retain the exponentia-time approximation for simplicity and maintain consistency with other learners. 
 
+
+---
+
+- `rfsrc` (random survival forest)
+
+Implements breiman's random forest methodology adapted for right-censored survival data.
+Each tree is grown using a log-rank splitting rule, and survival probabilities are obtained by averaging ensemble kaplan-meier estimates across trees.
+Predictions return interpolated survival probabilities at specified evaluation times. 
+
+
+--- 
+
+- `survivalsvm` (support vector machine for survival analysis)
+
+This learner uses the `survivalsvm` package to fit a support vector machine model for survival data, using ranking or regression approach to estimate survival times. Since the model does not natively output survival probabilities, a workaround is applied by assuming a parametric form (exponential or weibull) to convert predicted survival times into survival probability curves. 
+
+_Note_: this introduces an approximation that depends on the distributional assumption. The exponential model is the default, but a weibul shape can also be specified. 
+
+
+
+---
+
+- `xgboost` (extreme gradient boosting for survival)
+
+This learner integrates the popular `xgboost` library to model survival data using either the Accelerated Failure Time (AFT) objective or the Cox PH hazards objective. It supports both right-censored outcomes and flexible distributions (`normal`, `logistic`, `extreme`) for AFT. 
+
+Predictions are returned as survival probabilities at specified time points, computed by analytically transforming the model output margins usong the assumed distribution.
+
+_Note_: The AFT model estimates the log-time to event, so survival probabilities are derived using parametric approximation (`1 - CDF(log(time))`). 
+
+
+
+---
+
+
+
+
+
+
 **Model API**
 
 - `refactor: unify fit_* function signatures across learners`
