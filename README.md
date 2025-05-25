@@ -43,6 +43,12 @@ Key design choices:
 [] handle edge case in Brier score when G(t) is NA or zero
 
 
+### Learners implementation structure 
+
+[] adds the `engine` attribute (`engine = <learner>`)
+[] use consistent object structure (class = `"mlsurv_model"`)
+[] keeps all naming conventions and time/status extraction compatible with the framework of this package 
+
 ### Rational behind learners 
 
 - `aftgee`: semi-parametric AFT model via GEE
@@ -133,8 +139,30 @@ This method is particularly well-suited for non-linear patterns and does not rel
 
 This learner fits a cox-aalen model using `timereg::cox.aalen()` function, which combines both proportional hazards and additive effects. It allows for flexible modleing of time-varying and time-invariante covariates. 
 
-_Preprocessing nots_: The initial `cox.aalen()` function requires explicit handling of covariates via `prop()` or `const()` to define how each covariates enters the model (as roportional hazards or additive effects). To avoid cruptic error like `Error: invalid type (NULL) for variable 'Z'`, our `fit_coxaalen()` wraps automatically all covariates with `prop()`, in order to ensure robust and concistent model fitting, enven if the user does not specify it manually. This ensure compatibility with bith simple and complex formulas. 
+_Preprocessing nots_: The initial `cox.aalen()` function requires explicit handling of covariates via `prop()` or `const()` to define how each covariates enters the model (as roportional hazards or additive effects). To avoid cruptic error like `Error: invalid type (NULL) for variable 'Z'`, our `fit_coxaalen()` wraps automatically all covariates with `prop()`, in order to ensure robust and concistent model fitting, enven if the user does not specify it manually. This ensure compatibility with bith simple and complex formulas.
 
+
+--- 
+
+
+- `rstpm2` (flexible parametric models)
+
+This learner uses natural cubis splines on the log cumulative hazard scale for flexible survival modleing. 
+It allows smoth survival function estimation and interpretable effects. The prediction method expands `newdata` over evaluation times and reshapes results into standard survival probability matrics.
+
+_Note_: survival times ust be passed via the `newtime` argument of `predict()`, and expanded before calling the prediction method.
+
+
+--- 
+
+
+- `rpart` (survival tree)
+
+This learner implement survival tree modeling using the `rpart` package with exponential survival (`method = "exp"`). 
+For prediction, we approximate individual survival probabilities by assuming an exponential distribution for the predicted survival time per leaf node, then converting predicted node-level times into survival probabilities at user-specified evaluation times. 
+This approach ensures uniform prediction output across all learners and maintains computational speed. Alternative KM-based similar to the approach implemented in `pec::pecRpart` may be considered in future updates if performance benchmarking or calibration tests suggest a meaningful benefit. 
+
+_Note_: for now, we retain the exponentia-time approximation for simplicity and maintain consistency with other learners. 
 
 **Model API**
 
@@ -165,8 +193,4 @@ _Preprocessing nots_: The initial `cox.aalen()` function requires explicit handl
 - `refactor: standardize colnames in prediction output (t= format)`
 - `docs: document design rationale for standardized survival learners`
 - `docs: add usage examples for fit_*, predict_*, and cv_* wrappers`
-
-
-
-
 
