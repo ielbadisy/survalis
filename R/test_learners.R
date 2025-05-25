@@ -1,10 +1,9 @@
 
 learners <- tibble::tibble(
-  learner_name = c("aareg", "aftgee", "mboost", "ranger", "orsf", "glmnet", "flexsurv", "bnnsurv", "coxaalen"),
-  fit_fun = list(fit_aareg, fit_aftgee, fit_mboost, fit_ranger, fit_orsf, fit_glmnet, fit_flexsurv, fit_bnnsurv, fit_coxaalen),
-  pred_fun = list(predict_aareg, predict_aftgee, predict_mboost, predict_ranger, predict_orsf, predict_glmnet, predict_flexsurv, predict_bnnsurv, predict_coxaalen)
+  learner_name = c("aareg", "aftgee", "mboost", "ranger", "orsf", "glmnet", "flexsurv", "bnnsurv", "coxaalen", "rstpm2", "rpart"),
+  fit_fun = list(fit_aareg, fit_aftgee, fit_mboost, fit_ranger, fit_orsf, fit_glmnet, fit_flexsurv, fit_bnnsurv, fit_coxaalen, fit_rstpm2, fit_rpart),
+  pred_fun = list(predict_aareg, predict_aftgee, predict_mboost, predict_ranger, predict_orsf, predict_glmnet, predict_flexsurv, predict_bnnsurv, predict_coxaalen, predict_rstpm2, predict_rpart)
 )
-
 
 results_by_learner <- purrr::pmap_dfr(
   learners,
