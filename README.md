@@ -198,8 +198,15 @@ _Note_: The AFT model estimates the log-time to event, so survival probabilities
 
 ---
 
+- `survreg` (parametric accelerated failure time AFT) 
+
+This learner use the `rms::psm()` function to fit parametric accelerated failure time (AFT) survival models with flexible distributions (weibul, exponential, log-normal). 
+Predictions returns survival probabilities at user specified time points. 
 
 
+
+
+---
 
 
 
