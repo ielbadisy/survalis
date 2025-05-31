@@ -209,7 +209,53 @@ Predictions returns survival probabilities at user specified time points.
 ---
 
 
+## Intepretability Methods
 
+This package contains modular implementations of interpretablity techniques for survival models.
+Each methos is organized in a separate `.R` script and includes: 
+
+- `compute_*')`: function to generate interpretability data (e.g., partial dependence, ICE curves).
+- `plot_*()`: functions to visualize the outputs using `ggplot2`.
+
+### Currently implemented
+
+[X] pdp + ice
+[] ale 
+[] local surrogate model
+[] tree surrogate
+[] varimp
+[] shap 
+[] interaction 
+
+---
+
+### PDP: Partial Dependence Plots for survival models (methodological note)
+
+This implementation adapt partial dependence (pdp) and individual conditional expextation (ice) techniques to time-to-event data.
+
+**Survival specific adaptation**
+
+- The target fucntion is the survival probability $S(t|x)$ at a set of user defined time poits $t$.
+- For each value `v` in the grid of a feature $X_j$, the model is used to compute $S(t | X[-j], X_j =v$ for all individuals. 
+
+**PDP estimates**
+
+- Mean survival probab accross individuals at each $(t, X_j = v)$.
+- Displayed as time specific curves (facet) or summarized via numerical integratio over time ("integrated pdp").
+
+**ICE estimates**
+
+- individual-level survival predictions at each $(t, X_j = v)$.
+- Useful to inspect heterogeneity in the effect of $X_j$ on survival.
+
+**Integration strategy**
+
+- For each feature value, we compute the integral of the predicted survival curve $S(t | X_j = v)$ across time. 
+- This provides a summary score analogous to RMST, indicating the average survival time conditional on $X_j = v$. 
+- Numerical integration is done using the trapezoidal rule. 
+
+
+---
 **Model API**
 
 - `refactor: unify fit_* function signatures across learners`
