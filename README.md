@@ -13,9 +13,17 @@
 
 
 
-
-
 ### CV design rational
+
+- `feat: integrate evaluate_survlearner() with internal Surv construction`
+- `feat: add unified cv_survlearner() for all engines`
+- `refactor: drop evaluate_survmodel(), merge logic into CV loop`
+- `feat: add support for multiple metrics in benchmark_survlearners()`
+- `feat: add engine attribute to all fitted model objects`
+- `feat: implement generic predict_survml() dispatcher`
+- `refactor: standardize model object structure for mlsurv_model class`
+- `feat: auto-handle status == event encoding in cv_survlearner()`
+
 
 
 `cv_survlearner`: is concise CV engine for survival learners, designed to support all learners with `fit_*` and `predict_*.
@@ -44,6 +52,21 @@ Key design choices:
 
 
 ### Learners implementation structure 
+
+
+
+- `refactor: unify fit_* function signatures across learners`
+- `feat: add consistent predict_* interface with times argument`
+- `refactor: use Surv parsing logic to auto-detect time/status vars`
+- `fix: ensure all predict_* return consistent t= colnames`
+
+- `feat: add survlearners() registry for listing available learners`
+- `feat: add select_best() for learner comparison by metric`
+- `refactor: standardize colnames in prediction output (t= format)`
+- `docs: document design rationale for standardized survival learners`
+- `docs: add usage examples for fit_*, predict_*, and cv_* wrappers`
+
+
 
 [] adds the `engine` attribute (`engine = <learner>`)
 [] use consistent object structure (class = `"mlsurv_model"`)
@@ -221,7 +244,7 @@ Each methos is organized in a separate `.R` script and includes:
 
 [X] pdp + ice
 [] ale 
-[] local surrogate model
+[x] local surrogate model
 [] tree surrogate
 [] varimp
 [] shap 
@@ -230,6 +253,18 @@ Each methos is organized in a separate `.R` script and includes:
 ---
 
 ### PDP: Partial Dependence Plots for survival models (methodological note)
+
+
+- `feat: add compute_pdp() for PDP and ICE computation with survival predictions`
+- `feat: add plot_pdp() for time-dependent and integrated PDP/ICE visualization`
+- `feat: support both categorical and continuous features in compute_pdp()`
+- `feat: implement integrated survival PDP using trapezoidal rule`
+- `refactor: isolate compute_pdp() and plot_pdp() into separate interpretability files`
+- `fix: handle single-row survival predictions in compute_pdp() robustly`
+- `docs: add README note on survival-adapted PDP methodology`
+- `test: add example usage of compute_pdp() with ranger on veteran dataset`
+- `refactor: drop data.table dependency in compute_pdp() using base R reshape`
+
 
 This implementation adapt partial dependence (pdp) and individual conditional expextation (ice) techniques to time-to-event data.
 
@@ -254,35 +289,73 @@ This implementation adapt partial dependence (pdp) and individual conditional ex
 - This provides a summary score analogous to RMST, indicating the average survival time conditional on $X_j = v$. 
 - Numerical integration is done using the trapezoidal rule. 
 
-
 ---
-**Model API**
 
-- `refactor: unify fit_* function signatures across learners`
-- `feat: add consistent predict_* interface with times argument`
-- `refactor: use Surv parsing logic to auto-detect time/status vars`
-- `fix: ensure all predict_* return consistent t= colnames`
+### Local surrogate interpretability (methodological note) 
 
-**Learners**
+- `feat: add penalized argument to compute_surrogate() with Lasso as default`
+- `feat: support unpenalized local linear model when penalized = FALSE`
+- `fix: robust exclusion of time/status using model formula`
+- `feat: add exclude argument to manually specify variables to omit from surrogate fit`
 
-- `feat: add engine attribute to all fitted model objects`
-- `feat: implement generic predict_survml() dispatcher`
-- `refactor: standardize model object structure for mlsurv_model class`
-- `feat: auto-handle status == event encoding in cv_survlearner()`
+This implementation provides a model-agnositic approach to locally explain survival predictions using a penalized linear surrogate model, inspired by LIME. 
 
-- **Evaluation and CV**
+For a given individual and target prediction time $t$, the methods: 
 
-- `feat: integrate evaluate_survlearner() with internal Surv construction`
-- `feat: add unified cv_survlearner() for all engines`
-- `refactor: drop evaluate_survmodel(), merge logic into CV loop`
-- `feat: add support for multiple metrics in benchmark_survlearners()`
+1) selects a local neighborhood from the training data using a gowerèbased distance kernel. 
+2) predicts survival probabilities at time $t$ for each neighbor. 
+3) encodes features relative to the invidual of interest (binary match for categorical, ra value for numeric).
+4) Fits a sparse linear model (lasso or ols) to approximate the local behavior of the black-box model. 
+5) Computes local feature effects as the product of the coefficients and the individual's encoded values. 
+
+The output is a ranked list of the most influential features for the prediction, which enables interpretability inspection at the individual level. 
+
+_Note_: options include control over the number of features selected $k$, distance metric, kernel, sharpness, and penalization.
 
 
-**Usability**
+### Tree surrogate interpretability (methodological note)
 
-- `feat: add survlearners() registry for listing available learners`
-- `feat: add select_best() for learner comparison by metric`
-- `refactor: standardize colnames in prediction output (t= format)`
-- `docs: document design rationale for standardized survival learners`
-- `docs: add usage examples for fit_*, predict_*, and cv_* wrappers`
+- feat: add compute_tree_surrogate() to fit surrogate trees for survival models
+
+- feat: add plot_tree_surrogate() for visualizing tree structure or split-count importance
+
+- fix: ensure predict_ranger() handles one-time interpolation with consistent dimensions
+
+- feat: support dynamic multi-time interpretation with tree surrogate summaries
+
+- fix: robust check of prediction output in compute_tree_surrogate()
+
+- feat: compute R² and split frequency as interpretability metrics
+
+This implementation supports time-specific interpretability using surrogate decision trees.
+
+- `compute_tree_surrogate()`: Learns surrogate tree(s) that approximate survival predictions at specific time points.
+- `plot_tree_surrogate()`: Visualizes decision trees (`type = "tree"`) or displays global feature importance via split counts (`type = "importance"`).
+
+**Some main features**
+- Compatible with any survival learner that returns a `data.frame` of survival probabilities.
+- Supports both single and multiple time points (`times`) for dynamic model introspection.
+- Computes R2 for surrogate fidelity and split frequency for feature importance.
+- Relies on `rpart` (fitting) and `partykit` (visualization).
+
+
+This approach builds a simple regression tree that approximates the predicted survival probability at a given time point $t$. The tree is fit using predicted survival probabilities as the response, and original covariates as predictors.
+
+Let:
+- $\hat{S}(t \mid X)$ be the predicted survival probability from a complex model at time $t$
+- $X \in \mathbb{R}^p$ be the vector of input features
+
+We define a surrogate model:
+
+$$
+\hat{S}(t \mid X) \approx f_{\text{tree}}(X)
+$$
+
+where $f_{\text{tree}}$ is a decision tree trained to predict $\hat{S}(t \mid X)$.
+
+**Some advantages**
+
+- Captures non-linear feature effects and interactions via tree splits
+- Allows computation of surrogate $R^2$  to assess fidelity
+- Global importance scores (via split frequency) can be aggregated across time
 
