@@ -315,17 +315,17 @@ _Note_: options include control over the number of features selected $k$, distan
 
 ### Tree surrogate interpretability (methodological note)
 
-- feat: add compute_tree_surrogate() to fit surrogate trees for survival models
+- `feat: add compute_tree_surrogate() to fit surrogate trees for survival models`
 
-- feat: add plot_tree_surrogate() for visualizing tree structure or split-count importance
+- `feat: add plot_tree_surrogate() for visualizing tree structure or split-count importance`
 
-- fix: ensure predict_ranger() handles one-time interpolation with consistent dimensions
+- `fix: ensure predict_ranger() handles one-time interpolation with consistent dimensions`
 
-- feat: support dynamic multi-time interpretation with tree surrogate summaries
+- `feat: support dynamic multi-time interpretation with tree surrogate summaries`
 
-- fix: robust check of prediction output in compute_tree_surrogate()
+- `fix: robust check of prediction output in compute_tree_surrogate()`
 
-- feat: compute R² and split frequency as interpretability metrics
+- `feat: compute R² and split frequency as interpretability metrics`
 
 This implementation supports time-specific interpretability using surrogate decision trees.
 
@@ -358,4 +358,16 @@ where $f_{\text{tree}}$ is a decision tree trained to predict $\hat{S}(t \mid X)
 - Captures non-linear feature effects and interactions via tree splits
 - Allows computation of surrogate $R^2$  to assess fidelity
 - Global importance scores (via split frequency) can be aggregated across time
+
+---
+
+### Counterfactual explanation for survival models 
+
+The compute_counterfactual() implements a method that identifies feature changes that would increase a patient's predicted survival probability at a specified time point. It supports both numeric and categorical features and uses a penalized gain objective: 
+
+- survival gain: improvement in predicted survival probability from modifying a feature.
+- change cost: size or effort of modifying the feature (absolute distance or 1 for categorical switch).
+- penalized gain = survival gain - (penalty x change cost)
+
+The function searches over a grid of possible feature values and selects the change that maximizes penalized gain. This enables actionable and interpretable "what-if" reasoning in clinical settings.
 
