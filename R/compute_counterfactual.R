@@ -1,10 +1,17 @@
-counterfactual_surv_v3 <- function(model, predict_function, newdata, times, target_time,
+compute_counterfactual <- function(model, predict_function, newdata, times, target_time,
                                    features_to_change = NULL, grid.size = 100,
                                    max.change = NULL, cost_penalty = 0.01) {
   requireNamespace("data.table")
 
   if (nrow(newdata) != 1) {
     stop("newdata must contain exactly one row.")
+  }
+
+  # automatically convert newdata columns to factors if needed
+  for (col in names(newdata)) {
+    if (is.factor(model$data[[col]]) && !is.factor(newdata[[col]])) {
+      newdata[[col]] <- factor(newdata[[col]], levels = levels(model$data[[col]]))
+    }
   }
 
   feature_names <- setdiff(colnames(newdata), c(model$time, model$status))
@@ -28,7 +35,7 @@ counterfactual_surv_v3 <- function(model, predict_function, newdata, times, targ
   for (feature in feature_names) {
     value_orig <- newdata[[feature]]
 
-    # grid generation
+    # generate candidate values
     if (is.numeric(value_orig)) {
       observed_min <- min(model$data[[feature]], na.rm = TRUE)
       observed_max <- max(model$data[[feature]], na.rm = TRUE)
@@ -40,20 +47,31 @@ counterfactual_surv_v3 <- function(model, predict_function, newdata, times, targ
       }
       candidate_values <- seq(lower, upper, length.out = grid.size)
     } else if (is.factor(value_orig) || is.character(value_orig)) {
-      candidate_values <- unique(newdata[[feature]])
-      candidate_values <- setdiff(candidate_values, value_orig)
+      levels_full <- if (is.factor(model$data[[feature]])) {
+        levels(model$data[[feature]])
+      } else {
+        unique(model$data[[feature]])
+      }
+
+      candidate_values <- setdiff(levels_full, as.character(value_orig))
       if (length(candidate_values) == 0) next
     } else {
       next
     }
 
-    n_candidates <- length(candidate_values)
-    surv_gains <- numeric(n_candidates)
-    change_costs <- numeric(n_candidates)
+    surv_gains <- numeric(length(candidate_values))
+    change_costs <- numeric(length(candidate_values))
 
     for (i in seq_along(candidate_values)) {
       newdata_mod <- newdata
-      newdata_mod[[feature]] <- candidate_values[i]
+
+      # handle categorical levels properly
+      if (is.factor(model$data[[feature]])) {
+        newdata_mod[[feature]] <- factor(candidate_values[i],
+                                         levels = levels(model$data[[feature]]))
+      } else {
+        newdata_mod[[feature]] <- candidate_values[i]
+      }
 
       pred_mod <- predict_function(model, newdata_mod, times = times)
       if (is.null(dim(pred_mod))) pred_mod <- matrix(pred_mod, nrow = 1)
@@ -61,24 +79,21 @@ counterfactual_surv_v3 <- function(model, predict_function, newdata, times, targ
       surv_mod_value <- pred_mod[1, idx_time]
       surv_gains[i] <- surv_mod_value - surv_orig_value
 
-      # Cost
+      # change cost
       if (is.numeric(value_orig)) {
         change_costs[i] <- abs(as.numeric(candidate_values[i]) - as.numeric(value_orig))
       } else {
-        # categorical change cost = 1 (switch)
-        change_costs[i] <- 1
+        change_costs[i] <- 1  # constant for categorical
       }
     }
 
-    # Penalized objective
     penalized_gain <- surv_gains - cost_penalty * change_costs
-
     best_idx <- which.max(penalized_gain)
 
     results[[feature]] <- data.frame(
       feature = feature,
-      original_value = value_orig,
-      suggested_value = candidate_values[best_idx],
+      original_value = as.character(value_orig),
+      suggested_value = as.character(candidate_values[best_idx]),
       survival_gain = surv_gains[best_idx],
       change_cost = change_costs[best_idx],
       penalized_gain = penalized_gain[best_idx],
@@ -88,70 +103,32 @@ counterfactual_surv_v3 <- function(model, predict_function, newdata, times, targ
 
   final_result <- do.call(rbind, results)
   rownames(final_result) <- NULL
-  final_result
+  return(final_result)
 }
 
 
+#*** test
+library(ranger)
+library(survival)
+data(veteran)
 
-#***********
+# Convert categorical if needed
+veteran$trt <- factor(veteran$trt)
+veteran$celltype <- factor(veteran$celltype)
 
-predict_ranger <- function(object, newdata, times, ...) {
-  stopifnot(object$learner == "ranger")
-  stopifnot(requireNamespace("ranger", quietly = TRUE))
+mod_ranger <- fit_ranger(Surv(time, status) ~ trt + age + karno, data = veteran)
 
-  pred <- predict(object$model, data = newdata, type = "response")
+obs <- veteran[1, , drop = FALSE]
 
-  surv_mat <- pred$survival
-  model_times <- pred$unique.death.times
-
-  if (is.null(times)) {
-    times <- model_times
-  }
-
-  # Ensure matrix shape even if only one row
-  if (is.null(dim(surv_mat))) {
-    surv_mat <- matrix(surv_mat, nrow = 1)
-  }
-
-  # Interpolate survival probabilities
-  surv_probs <- apply(surv_mat, 1, function(row_surv) {
-    stats::approx(
-      x = model_times,
-      y = row_surv,
-      xout = times,
-      method = "linear",
-      rule = 2
-    )$y
-  })
-
-  # Ensure correct orientation
-  if (length(times) == 1) {
-    surv_probs <- matrix(surv_probs, ncol = 1)
-  } else {
-    surv_probs <- t(surv_probs)
-  }
-
-  colnames(surv_probs) <- paste0("t=", times)
-  rownames(surv_probs) <- paste0("ID_", seq_len(nrow(newdata)))
-
-  as.data.frame(surv_probs)
-}
-
-
-#test
-
-cf_result <- counterfactual_surv_v3(
+cf_result <- compute_counterfactual(
   model = mod_ranger,
   predict_function = predict_ranger,
-  newdata = sim_data[1, , drop = FALSE],
+  newdata = obs,
   times = c(50, 100, 150),
-  target_time = 300,
+  target_time = 100,
   features_to_change = c("trt", "karno"),
-  grid.size = 100,
-  max.change = list(age = 20, karno = 30),
+  grid.size = 50,
   cost_penalty = 0.001
 )
 
 print(cf_result)
-
-
