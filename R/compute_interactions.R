@@ -1,0 +1,188 @@
+# compute Interaction Effects in Survival Models
+
+compute_interactions <- function(model, predict_function, data, times,
+                                 target_time = NULL,
+                                 features = NULL,
+                                 type = c("1way", "heatmap", "time"),
+                                 grid.size = 30,
+                                 batch.size = 100,
+                                 parallel = TRUE) {
+  type <- match.arg(type)
+  if (type != "time" && is.null(target_time)) stop("target_time must be specified for type = '1way' or 'heatmap'")
+  if (is.null(features)) {
+    features <- setdiff(colnames(data), c(model$time, model$status))
+  }
+
+  idx_time <- function(t) which.min(abs(times - t))
+
+  if (type == "1way") {
+    compute_feature_interaction <- function(feature) {
+      grid <- unique(data[[feature]])
+      grid <- sort(sample(grid, min(length(grid), grid.size)))
+      rows <- data[sample(1:nrow(data), grid.size), , drop = FALSE]
+      full <- predict_function(model, rows, times = times)[, idx_time(target_time)]
+      marg_j <- rowMeans(replicate(grid.size, {
+        rows[[feature]] <- sample(grid, nrow(rows), replace = TRUE)
+        predict_function(model, rows, times = times)[, idx_time(target_time)]
+      }))
+      marg_rest <- rowMeans(replicate(grid.size, {
+        others <- setdiff(features, feature)
+        for (f in others) rows[[f]] <- sample(unique(data[[f]]), nrow(rows), replace = TRUE)
+        predict_function(model, rows, times = times)[, idx_time(target_time)]
+      }))
+      h <- sqrt(sum((full - (marg_j + marg_rest))^2) / sum(full^2)) ## Friedman's H-statistic
+      data.frame(feature = feature, interaction = h)
+    }
+    if (parallel) {
+      future::plan(future::multisession)
+      res <- future.apply::future_lapply(features, compute_feature_interaction)
+    } else {
+      res <- lapply(features, compute_feature_interaction)
+    }
+    return(do.call(rbind, res))
+  }
+
+  if (type == "heatmap") {
+    pairs <- t(combn(features, 2))
+    compute_pair <- function(pair) {
+      f1 <- pair[1]; f2 <- pair[2]
+      grid1 <- sort(sample(unique(data[[f1]]), min(length(unique(data[[f1]])), grid.size)))
+      grid2 <- sort(sample(unique(data[[f2]]), min(length(unique(data[[f2]])), grid.size)))
+      rows <- data[sample(1:nrow(data), grid.size), , drop = FALSE]
+      full <- predict_function(model, rows, times = times)[, idx_time(target_time)]
+      m1 <- rowMeans(replicate(grid.size, {
+        rows[[f1]] <- sample(grid1, nrow(rows), replace = TRUE)
+        predict_function(model, rows, times = times)[, idx_time(target_time)]
+      }))
+      m2 <- rowMeans(replicate(grid.size, {
+        rows[[f2]] <- sample(grid2, nrow(rows), replace = TRUE)
+        predict_function(model, rows, times = times)[, idx_time(target_time)]
+      }))
+      h <- sqrt(sum((full - (m1 + m2))^2) / sum(full^2))
+      data.frame(feature1 = f1, feature2 = f2, interaction = h)
+    }
+    if (parallel) {
+      future::plan(future::multisession)
+      res <- future.apply::future_lapply(seq_len(nrow(pairs)), function(i) compute_pair(pairs[i, ]))
+    } else {
+      res <- lapply(seq_len(nrow(pairs)), function(i) compute_pair(pairs[i, ]))
+    }
+    df <- do.call(rbind, res)
+    df_sym <- rbind(
+      df,
+      data.frame(feature1 = df$feature2, feature2 = df$feature1, interaction = df$interaction),
+      data.frame(feature1 = features, feature2 = features, interaction = 0)
+    )
+    return(df_sym)
+  }
+
+  if (type == "time") {
+    compute_time_feature <- function(t) {
+      lapply(features, function(f) {
+        grid <- unique(data[[f]])
+        grid <- sort(sample(grid, min(length(grid), grid.size)))
+        rows <- data[sample(1:nrow(data), grid.size), , drop = FALSE]
+        full <- predict_function(model, rows, times = times)[, idx_time(t)]
+        marg_j <- rowMeans(replicate(grid.size, {
+          rows[[f]] <- sample(grid, nrow(rows), replace = TRUE)
+          predict_function(model, rows, times = times)[, idx_time(t)]
+        }))
+        marg_rest <- rowMeans(replicate(grid.size, {
+          others <- setdiff(features, f)
+          for (k in others) rows[[k]] <- sample(unique(data[[k]]), nrow(rows), replace = TRUE)
+          predict_function(model, rows, times = times)[, idx_time(t)]
+        }))
+        h <- sqrt(sum((full - (marg_j + marg_rest))^2) / sum(full^2))
+        data.frame(feature = f, time = t, interaction = h)
+      })
+    }
+    if (parallel) {
+      future::plan(future::multisession)
+      res <- future.apply::future_lapply(times, compute_time_feature)
+    } else {
+      res <- lapply(times, compute_time_feature)
+    }
+    return(do.call(rbind, unlist(res, recursive = FALSE)))
+  }
+}
+
+#plot interactions
+
+plot_interactions <- function(object, type = c("1way", "heatmap", "time")) {
+  type <- match.arg(type)
+  if (type == "1way") {
+    ggplot2::ggplot(object, ggplot2::aes(x = interaction, y = reorder(feature, interaction))) +
+      ggplot2::geom_col(fill = "steelblue") +
+      ggplot2::theme_minimal() +
+      ggplot2::labs(x = "Interaction strength (H)", y = "Feature")
+  } else if (type == "heatmap") {
+    ggplot2::ggplot(object, ggplot2::aes(x = feature1, y = feature2, fill = interaction)) +
+      ggplot2::geom_tile() +
+      ggplot2::scale_fill_gradient(low = "white", high = "steelblue") +
+      ggplot2::theme_minimal() +
+      ggplot2::labs(title = "Pairwise Interaction Heatmap")
+  } else {
+    ggplot2::ggplot(object, ggplot2::aes(x = time, y = interaction, color = feature)) +
+      ggplot2::geom_line(size = 1.2) +
+      ggplot2::geom_point(size = 2) +
+      ggplot2::theme_minimal() +
+      ggplot2::labs(title = "Time-Varying Feature Interactions", x = "Time", y = "Interaction Strength")
+  }
+}
+
+
+
+# packages
+library(survival)
+library(ranger)
+library(ggplot2)
+
+# fit model
+data(veteran, package = "survival")
+mod_ranger <- fit_ranger(
+  Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  num.trees = 300
+)
+
+times <- c(50, 100, 150, 200, 250, 300, 350)
+target_time <- 200
+features <- c("age", "karno", "celltype")
+
+#univariate interaction test
+interaction_1way <- compute_interactions(
+  model = mod_ranger,
+  predict_function = predict_ranger,
+  data = veteran,
+  times = times,
+  target_time = target_time,
+  features = features,
+  type = "1way"
+)
+print(interaction_1way)
+plot_interactions(interaction_1way)
+
+#pairwise heatmap interaction test
+interaction_heatmap <- compute_interactions(
+  model = mod_ranger,
+  predict_function = predict_ranger,
+  data = veteran,
+  times = times,
+  target_time = target_time,
+  features = features,
+  type = "heatmap"
+)
+print(interaction_heatmap)
+plot_interactions(interaction_heatmap, type = "heatmap")
+
+#tv interaction test
+interaction_time <- compute_interactions(
+  model = mod_ranger,
+  predict_function = predict_ranger,
+  data = veteran,
+  times = times,
+  features = features,
+  type = "time"
+)
+print(interaction_time)
+plot_interactions(interaction_time, type = "time")
