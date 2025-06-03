@@ -31,6 +31,7 @@ compute_interactions <- function(model, predict_function, data, times,
         predict_function(model, rows, times = times)[, idx_time(target_time)]
       }))
       h <- sqrt(sum((full - (marg_j + marg_rest))^2) / sum(full^2)) ## Friedman's H-statistic
+      h <- pmin(h, 1) ## cap H at 1
       data.frame(feature = feature, interaction = h)
     }
     if (parallel) {
@@ -93,6 +94,7 @@ compute_interactions <- function(model, predict_function, data, times,
           predict_function(model, rows, times = times)[, idx_time(t)]
         }))
         h <- sqrt(sum((full - (marg_j + marg_rest))^2) / sum(full^2))
+        h <- pmin(h, 1) ## cap H at 1
         data.frame(feature = f, time = t, interaction = h)
       })
     }
