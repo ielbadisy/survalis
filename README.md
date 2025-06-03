@@ -371,3 +371,26 @@ The compute_counterfactual() implements a method that identifies feature changes
 
 The function searches over a grid of possible feature values and selects the change that maximizes penalized gain. This enables actionable and interpretable "what-if" reasoning in clinical settings.
 
+---
+
+### Feature interaction diagnostics 
+
+The `compute_interactions()` implements compute feature interaction strength using Freidman's H-statistic, extented to survival models with predicted survival probabilities at specific time points. 
+
+Intraction stength is estimated using three approaches: 
+
+- `1way`: each feature's total interaction with the rest (univariate H-statistic)
+- `heatmap`: pairwise interactions visualized as a symmetric heatmap. 
+- `time`: time-varying interaction strength per feature across time points. 
+
+**Interpretation**
+
+- A higher H-statistic (closer to 1) indicates stronger interaction (i.e., the feature's effect on survival depends more on other variables).
+- Time-varying interaction results reveal how dependency structures evolve across observation period.
+
+
+**Use cases**
+
+- One can identify features with strong interactions to model them usong non-additive effects or interactions terms.
+- Support time-varying effect modleing when interactions changes across time. 
+- This may, in some extend, informs feature selection. 
