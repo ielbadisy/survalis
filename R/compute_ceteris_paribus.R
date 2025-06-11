@@ -1,4 +1,3 @@
-
 compute_ceteris_paribus <- function(model, predict_function, data, instances, feature, times, grid.size = 20) {
   stopifnot(feature %in% names(data))
 
@@ -36,7 +35,7 @@ compute_ceteris_paribus <- function(model, predict_function, data, instances, fe
   return(all_profiles)
 }
 
-plot_ceteris_paribus <- function(cp_data, feature, alpha = 0.4) {
+plot_ceteris_paribus <- function(cp_data, feature, alpha = 0.4, facet = FALSE) {
   library(ggplot2)
   is_categorical <- is.factor(cp_data[[feature]]) || is.character(cp_data[[feature]])
 
@@ -50,9 +49,12 @@ plot_ceteris_paribus <- function(cp_data, feature, alpha = 0.4) {
     ) +
     theme_minimal()
 
+  if (facet) {
+    p <- p + facet_wrap(~ time)
+  }
+
   return(p)
 }
-
 
 # select multiple individuals
 subset_rows <- veteran[1:200, ]
@@ -67,3 +69,5 @@ cp_result <- compute_ceteris_paribus(
 )
 
 plot_ceteris_paribus(cp_result, feature = "age")
+
+plot_ceteris_paribus(cp_result, feature = "age", facet = TRUE)
