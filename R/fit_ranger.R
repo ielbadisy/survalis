@@ -52,3 +52,53 @@ mod <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
 pred <- predict_ranger(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 
 pred
+
+#----------------- add tuner
+
+tune_ranger <- function(formula, data, times,
+                        param_grid = expand.grid(
+                          num.trees = c(100, 300),
+                          mtry = c(1, 2, 3),
+                          min.node.size = c(3, 5)
+                        ),
+                        metrics = c("cindex", "ibs"),
+                        folds = 5, seed = 123, ...) {
+
+  purrr::pmap_dfr(param_grid, function(num.trees, mtry, min.node.size) {
+    cv_results <- cv_survlearner(
+      formula = formula,
+      data = data,
+      fit_fun = fit_ranger,
+      pred_fun = predict_ranger,
+      times = times,
+      metrics = metrics,
+      folds = folds,
+      seed = seed,
+      num.trees = num.trees,
+      mtry = mtry,
+      min.node.size = min.node.size,
+      ...
+    )
+
+    summary <- cv_summary(cv_results)
+    tibble::tibble(num.trees, mtry, min.node.size) |>
+      bind_cols(tidyr::pivot_wider(summary[, c("metric", "mean")], names_from = metric, values_from = mean))
+  }) |> arrange(dplyr::across(any_of(metrics[1])))
+}
+
+
+res_ranger <- tune_ranger(
+  formula = Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  times = c(100, 200, 300),
+  param_grid = expand.grid(
+    num.trees = c(100, 300),
+    mtry = c(1, 2),
+    min.node.size = c(3, 5)
+  ),
+  metrics = c("cindex", "ibs"),
+  folds = 3
+)
+
+print(res_ranger)
+
