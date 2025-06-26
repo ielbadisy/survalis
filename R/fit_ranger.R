@@ -18,50 +18,26 @@ fit_ranger <- function(formula, data, ...) {
 }
 
 
-predict_ranger <- function(object, newdata, times, ...) {
-  # check that the model is from the expected 'ranger' learner
-  stopifnot(object$learner == "ranger")
-  stopifnot(requireNamespace("ranger", quietly = TRUE))
+predict_ranger <- function(model, newdata, times) {
+  requireNamespace("ranger")
 
-  # predict survival curve using ranger
-  pred <- predict(object$model, data = newdata, type = "response")
+  # get full survival curve estimates
+  pred <- predict(model$model, data = newdata)$survival
+  model_times <- model$model$unique.death.times
 
-  surv_mat <- pred$survival            # matrix of survival probabilities over time
-  model_times <- pred$unique.death.times  # corresponding time points
+  # handle missing survival matrix (can happen with 1-row input)
+  if (is.null(dim(pred))) pred <- matrix(pred, nrow = 1)
 
-  if (is.null(times)) {
-    times <- model_times               # if not specified, return all default prediction times
-  }
+  # interpolate survival probabilities at desired time points
+  surv_mat <- t(apply(pred, 1, function(row_surv) {
+    stats::approx(x = model_times, y = row_surv, xout = times,
+                  method = "linear", rule = 2)$y
+  }))
 
-  # interpolate survival probabilities at requested times using linear interpolation
-  surv_probs <- apply(surv_mat, 1, function(row_surv) {
-    stats::approx(
-      x = model_times,
-      y = row_surv,
-      xout = times,
-      method = "linear",
-      rule = 2                     # rule = 2 ensures extrapolation is allowed if time > max
-    )$y
-  })
-
-  # --- FIX: Ensure consistent output shape for 1 time point ---
-  # when 'times' has length 1, 'apply' returns a vector instead of a matrix.
-  # wrap it into a matrix to maintain consistent dimensions (rows = observations)
-  if (length(times) == 1) {
-    surv_probs <- matrix(surv_probs, ncol = 1)
-  } else {
-    surv_probs <- t(surv_probs)   # otherwise, transpose the result to get one row per obs
-  }
-
-  # add readable column and row names
-  colnames(surv_probs) <- paste0("t=", times)
-  rownames(surv_probs) <- paste0("ID_", seq_len(nrow(newdata)))
-
-  # return as a tidy data.frame
-  as.data.frame(surv_probs)
+  colnames(surv_mat) <- paste0("t=", times)
+  rownames(surv_mat) <- paste0("ID_", seq_len(nrow(surv_mat)))
+  return(surv_mat)
 }
-
-
 
 # example test
 library(survival)
