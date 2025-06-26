@@ -64,3 +64,77 @@ mod_rpart <- fit_rpart(Surv(time, status) ~ age + karno + celltype, data = veter
 
 pred_rpart <- predict_rpart(mod_rpart, newdata = veteran[1:5, ], times = c(100, 200, 300, 400, 500))
 
+
+cv_results_rpart <- cv_survlearner(
+  formula = Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  fit_fun = fit_rpart,
+  pred_fun = predict_rpart,
+  times = c(100, 200, 300),
+  metrics = c("cindex", "ibs"),
+  folds = 5,
+  seed = 42
+)
+
+print(cv_results_rpart)
+cv_summary(cv_results_rpart)
+cv_plot(cv_results_rpart)
+
+#------------- add tuner
+
+tune_rpart <- function(formula, data, times,
+                       param_grid = expand.grid(
+                         minsplit = c(10, 20),
+                         cp = c(0.001, 0.01),
+                         maxdepth = c(10, 30)
+                       ),
+                       metrics = c("cindex", "ibs"),
+                       folds = 5,
+                       seed = 123,
+                       ...) {
+
+  purrr::pmap_dfr(param_grid, function(minsplit, cp, maxdepth) {
+    cv_results <- cv_survlearner(
+      formula = formula,
+      data = data,
+      fit_fun = fit_rpart,
+      pred_fun = predict_rpart,
+      times = times,
+      metrics = metrics,
+      folds = folds,
+      seed = seed,
+      minsplit = minsplit,
+      cp = cp,
+      maxdepth = maxdepth,
+      ...
+    )
+
+    summary <- cv_summary(cv_results)
+
+    tibble::tibble(
+      minsplit = minsplit,
+      cp = cp,
+      maxdepth = maxdepth
+    ) |>
+      dplyr::bind_cols(
+        tidyr::pivot_wider(summary[, c("metric", "mean")],
+                           names_from = metric, values_from = mean)
+      )
+  }) |> dplyr::arrange(dplyr::across(any_of(metrics[1])))
+}
+
+
+res_rpart <- tune_rpart(
+  formula = Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  param_grid = expand.grid(
+    minsplit = c(10, 20),
+    cp = c(0.001, 0.01),
+    maxdepth = c(10, 30)
+  ),
+  times = c(100, 200, 300),
+  metrics = c("cindex", "ibs"),
+  folds = 3
+)
+
+res_rpart
