@@ -1,11 +1,11 @@
 # ---- cv_survlearner ----
 cv_survlearner <- function(formula, data,
-  fit_fun, pred_fun,
-  times,
-  metrics = c("cindex", "ibs"),
-  folds = 5,
-  seed = 123,
-  ...) {
+                           fit_fun, pred_fun,
+                           times,
+                           metrics = c("cindex", "ibs"),
+                           folds = 5,
+                           seed = 123,
+                           ...) {
 
   # warn if '.' is used in formul
   if ("." %in% all.vars(update(formula, . ~ 0))) {
@@ -84,16 +84,16 @@ cv_survlearner <- function(formula, data,
       tibble::tibble(metric = metrics) |>
         dplyr::mutate(value = purrr::map(metric, function(metric) {
           switch(metric,
-            "cindex" = Cindex_survmat(surv_obj, predicted = pred, t_star = max(times)),
-            ## keep it for the moment but likely it should be removed
-            "brier"  = {
-              if (length(times) != 1) stop("Brier requires a single time point.")
-              Brier(surv_obj, pre_sp = pred[, 1], t_star = times)
-            },
-            "ibs"    = Brier_IBS_survmat(surv_obj, sp_matrix = pred, times = times),
-            "iae"    = IAEISE_survmat(surv_obj, sp_matrix = pred, times = times)["IAE"],
-            "ise"    = IAEISE_survmat(surv_obj, sp_matrix = pred, times = times)["ISE"],
-            stop("Unknown metric: ", metric)
+                 "cindex" = Cindex_survmat(surv_obj, predicted = pred, t_star = max(times)),
+                 ## keep it for the moment but likely it should be removed
+                 "brier"  = {
+                   if (length(times) != 1) stop("Brier requires a single time point.")
+                   Brier(surv_obj, pre_sp = pred[, 1], t_star = times)
+                 },
+                 "ibs"    = Brier_IBS_survmat(surv_obj, sp_matrix = pred, times = times),
+                 "iae"    = IAEISE_survmat(surv_obj, sp_matrix = pred, times = times)["IAE"],
+                 "ise"    = IAEISE_survmat(surv_obj, sp_matrix = pred, times = times)["ISE"],
+                 stop("Unknown metric: ", metric)
           )
         })) |>
         tidyr::unnest(cols = value) |>
@@ -125,7 +125,7 @@ cv_results <- cv_survlearner(
   pred_fun = predict_aareg,
   times = c(100, 300, 500),
   metrics = c("cindex", "ibs", "iae", "ise"),
-  folds = 5
+  folds = 50
 )
 
 # View output
