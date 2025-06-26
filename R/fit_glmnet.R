@@ -62,3 +62,59 @@ pred_probs <- predict_glmnet(mod_glmnet, newdata = veteran[1:5, ], times = c(100
 
 print(round(pred_probs, 3))
 
+
+#--------- add tuner
+
+#' Tune glmnet Cox model over alpha
+#'
+#' @param formula A survival formula (e.g., Surv(time, status) ~ x1 + x2)
+#' @param data A data.frame
+#' @param times Vector of time points for evaluation
+#' @param param_grid A data.frame with values of alpha (default = 0 to 1)
+#' @param metrics Vector of metrics (e.g., "cindex", "ibs")
+#' @param folds Number of CV folds
+#' @param seed Random seed for reproducibility
+#' @param ... Additional arguments passed to fit_glmnet
+#' @return A tibble with average metric scores per alpha
+#' @export
+tune_glmnet <- function(formula, data, times,
+                        param_grid = expand.grid(alpha = seq(0, 1, by = 0.25)),
+                        metrics = c("cindex", "ibs"),
+                        folds = 5,
+                        seed = 123, ...) {
+
+  purrr::pmap_dfr(param_grid, function(alpha) {
+    cv_results <- cv_survlearner(
+      formula = formula,
+      data = data,
+      fit_fun = fit_glmnet,
+      pred_fun = predict_glmnet,
+      times = times,
+      metrics = metrics,
+      folds = folds,
+      seed = seed,
+      alpha = alpha,
+      ...
+    )
+
+    summary <- cv_summary(cv_results)
+    tibble::tibble(alpha = alpha) |>
+      dplyr::bind_cols(
+        tidyr::pivot_wider(summary[, c("metric", "mean")],
+                           names_from = metric, values_from = mean)
+      )
+  }) |> arrange(dplyr::across(any_of(metrics[1])))
+}
+
+
+
+
+
+res_glmnet <- tune_glmnet(
+  formula = Surv(time, status) ~ age + karno + celltype,
+  param_grid = expand.grid(alpha = seq(0, 5, by = 0.25)),
+  data = veteran,
+  times = c(100, 200, 300),
+  metrics = c("cindex", "ibs"),
+  folds = 5
+)
