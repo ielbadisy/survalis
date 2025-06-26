@@ -59,7 +59,7 @@ plot_survival_curves_iptw <- function(res) {
 
 
 
-# Simulate data
+# simulate data
 set.seed(42)
 n <- 500
 X1 <- rnorm(n)
@@ -73,11 +73,11 @@ status <- as.integer(time <= cens)
 time <- pmin(time, cens)
 df <- data.frame(time, status, A, X1, X2)
 
-# Fit model and predict
+# fit model and predict
 model <- fit_xgboost(Surv(time, status) ~ A + X1 + X2, data = df)
 times <- seq(0, 5, by = 0.1)
 
-# Compute and plot
+# compute and plot
 res <- compute_survdiff_iptw(model, df, df$A, df[, c("X1", "X2")], times, predict_xgboost)
 plot_survdiff_iptw(res)
 
