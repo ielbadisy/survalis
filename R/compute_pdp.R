@@ -91,8 +91,12 @@ compute_pdp <- function(model, predict_function, data, feature, times,
 }
 
 
+
 library(survival)
 data(veteran, package = "survival")
+
+mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
+
 
 ## test
 pdp_ice_result <- compute_pdp(
@@ -117,8 +121,8 @@ pdp_ice_result <- compute_pdp(
   method = "pdp+ice"
 )
 
-plot_pdp(pdp_cat_result, feature = "celltype", which = "per_time")
-plot_pdp(pdp_cat_result, feature = "celltype", which = "integrated")
+plot_pdp(pdp_ice_result, feature = "celltype", which = "per_time")
+plot_pdp(pdp_ice_result, feature = "celltype", which = "integrated")
 
 
 
