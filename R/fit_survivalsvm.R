@@ -65,3 +65,25 @@ times <- c(100, 300, 500)
 predict_survivalsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "exp")
 predict_survivalsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "weibull", shape = 1.5)
 
+#-------------------
+
+cv_results_svm <- cv_survlearner(
+  formula = Surv(time, status) ~ age + celltype + karno,
+  data = veteran,
+  fit_fun = fit_survivalsvm,
+  pred_fun = predict_survivalsvm,
+  times = c(100, 300, 500),
+  metrics = c("cindex", "ibs"),
+  folds = 5,
+  seed = 42,
+  gamma.mu = 0.1,
+  kernel = "lin_kernel")
+
+print(cv_results_svm)
+cv_summary(cv_results_svm)
+cv_plot(cv_results_svm)
+
+
+#------- add tuner
+
+## survivalsvm is not robust for hyperparameter tuning
