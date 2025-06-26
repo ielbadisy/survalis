@@ -133,4 +133,76 @@ cv_results_mboost <- cv_survlearner(
 
 # Summary and visualization
 print(cv_results_mboost)
-cv_summary_
+
+#----------- add tuner
+
+#' Tune mboost CoxPH learner
+#'
+#' @param formula Survival formula
+#' @param data Training data
+#' @param times Time points to evaluate survival probability
+#' @param param_grid A data.frame of tuning parameters (mstop, nu, maxdepth, etc.)
+#' @param metrics Evaluation metrics (e.g., "cindex", "ibs")
+#' @param folds Number of CV folds
+#' @param seed Random seed
+#' @param ... Additional arguments passed to fit_mboost()
+#'
+#' @return A tibble of performance scores per hyperparameter combination
+#' @export
+tune_mboost <- function(formula, data, times,
+                        param_grid = expand.grid(
+                          mstop = c(50, 100, 200),
+                          nu = c(0.05, 0.1),
+                          maxdepth = c(2, 3)
+                        ),
+                        metrics = c("cindex", "ibs"),
+                        folds = 5,
+                        seed = 123, ...) {
+
+  purrr::pmap_dfr(param_grid, function(mstop, nu, maxdepth) {
+    # Cross-validated performance
+    cv_results <- cv_survlearner(
+      formula = formula,
+      data = data,
+      fit_fun = fit_mboost,
+      pred_fun = predict_mboost,
+      times = times,
+      metrics = metrics,
+      folds = folds,
+      seed = seed,
+      mstop = mstop,
+      nu = nu,
+      maxdepth = maxdepth,
+      ...
+    )
+
+    # Summarize and return with parameter tags
+    summary <- cv_summary(cv_results)
+
+    tibble::tibble(
+      mstop = mstop,
+      nu = nu,
+      maxdepth = maxdepth
+    ) |>
+      dplyr::bind_cols(
+        tidyr::pivot_wider(summary[, c("metric", "mean")],
+                           names_from = metric, values_from = mean)
+      )
+  }) |> dplyr::arrange(dplyr::across(any_of(metrics[1])))
+}
+
+
+res_mboost <- tune_mboost(
+  formula = Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  param_grid = expand.grid(
+    mstop = c(100, 1000),
+    nu = c(0.05, 0.1),
+    maxdepth = c(2, 9)
+  ),
+  times = c(5, 10, 40),
+  metrics = c("cindex", "ibs"),
+  folds = 3
+)
+
+print(res_mboost)
