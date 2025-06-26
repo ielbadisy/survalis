@@ -394,3 +394,81 @@ Intraction stength is estimated using three approaches:
 - One can identify features with strong interactions to model them usong non-additive effects or interactions terms.
 - Support time-varying effect modleing when interactions changes across time. 
 - This may, in some extend, informs feature selection. 
+
+
+---
+
+## Tuning notes 
+
+
+### Pattern for evaluating final model 
+
+This pattern generalizes to all learners:
+
+* `best_row <- res_* |> arrange(...) |> slice(1)`
+* `final_model <- fit_*()` using those params
+* Use `predict_*()` or `evaluate_survlearner()` as needed
+
+**1. Extract the best row**
+
+Assume you want to optimize for highest **C-index** (or lowest **IBS**, etc.):
+
+```{r}
+best_row <- res_cforest |>
+  arrange(desc(cindex)) |>  # or arrange(ibs) if optimizing for IBS
+  slice(1)
+```
+
+
+**2. Fit the final `cforest` model**
+
+You pass the optimal parameters back into `fit_cforest()`:
+
+```{r}
+final_model_cforest <- fit_cforest(
+  formula = Surv(time, status) ~ age + celltype + karno,
+  data = veteran,
+  ntree = best_row$ntree,
+  mtry = best_row$mtry,
+  mincriterion = best_row$mincriterion,
+  fraction = best_row$fraction
+)
+```
+
+**3. Evaluate final model**
+
+You can validate on the full dataset or on an external test set:
+
+```{r}
+evaluate_survlearner(
+  model = final_model_cforest,
+  metrics = c("cindex", "ibs", "iae", "ise"),
+  times = c(100, 200, 300)
+)
+```
+---
+
+### No tuning for Aalen's Additive Model
+
+We chose not to tune the max.time parameter for the Aalen additive hazards model (timereg::aalen) for methodological consistency. Unlike other learners, varying max.time changes the prediction horizon, leading to survival curves of different lengths and making metric comparisons unfair across models.
+
+Additionally, timereg::aalen requires internal resampling for prediction, and tuning max.time can cause dimension mismatches in cross-validation outputs. To ensure stable and comparable evaluations, we fix max.time to the maximum follow-up time in the data and exclude it from hyperparameter tuning.
+
+
+--
+
+### No tuning for cox.aalen Model
+We do not tune cox.aalen due to instability during cross-validation. 
+Varying max.time alters the prediction grid, and low n.sim values lead to degenerate or missing predictions. As these parameters do not consistently improve predictive performance, we fix them to defaults and exclude this model from tuning.
+
+---
+
+### No tuning for survivalsvm 
+
+We did not perform hyperparameter tuning for survivalsvm due to frequent optimization failures and unstable predictions across parameter combinations. The model was retained with default settings (gamma.mu = 0.1, kernel = "add_kernel", opt.meth = "ipop"), as tuning did not yield reliable improvements.
+
+---
+
+### No paramteric AFT model
+
+We implemented the accelerated failure time (AFT) model using the rms::psm() function with a Weibull distribution. This learner provides stable and interpretable survival estimates, and supports direct estimation of survival probabilities at user-specified time points via survest(). No hyperparameter tuning was necessary as parametric models are fully specified once the distribution is chosen.
