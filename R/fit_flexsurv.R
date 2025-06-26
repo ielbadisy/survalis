@@ -57,3 +57,46 @@ predicted_surv <- predict_flexsurv(mod_flex, newdata = veteran[1:5, ], times = t
 print(round(predicted_surv, 3))
 
 
+
+#------------ add tuner
+
+tune_flexsurv <- function(formula, data, times,
+                          dist_grid = c("weibull", "exponential", "lognormal"),
+                          metrics = c("cindex", "ibs"),
+                          folds = 5, seed = 123, ...) {
+
+  purrr::map_dfr(dist_grid, function(d) {
+    cv_results <- cv_survlearner(
+      formula = formula,
+      data = data,
+      fit_fun = fit_flexsurv,
+      pred_fun = predict_flexsurv,
+      times = times,
+      metrics = metrics,
+      folds = folds,
+      seed = seed,
+      dist = d,
+      ...
+    )
+
+    summary <- cv_summary(cv_results)
+    tibble::tibble(dist = d) |>
+      bind_cols(tidyr::pivot_wider(summary[, c("metric", "mean")], names_from = metric, values_from = mean))
+  }) |> arrange(dplyr::across(any_of(metrics[1])))
+}
+
+
+library(survival)
+data(veteran, package = "survival")
+
+res_flex <- tune_flexsurv(
+  formula = Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  times = c(100, 200, 300),
+  dist_grid = c("weibull", "exponential", "lognormal"),
+  metrics = c("cindex", "ibs"),
+  folds = 3  # for speed
+)
+
+print(res_flex)
+
