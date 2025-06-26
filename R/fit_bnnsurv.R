@@ -1,6 +1,6 @@
 
 fit_bnnsurv <- function(formula, data,
-                        k = 20,
+                        k = 2,
                         num_base_learners = 50,
                         num_features_per_base_learner = NULL,
                         metric = "mahalanobis",
@@ -61,7 +61,7 @@ predict_bnnsurv <- function(object, newdata, times, ...) {
 library(survival)
 library(bnnSurvival)
 
-mod_bnnsurv <- fit_bnnsurv(Surv(time, status) ~ age + trt + karno + diagtime + prior, data = veteran)
+mod_bnnsurv <- fit_bnnsurv(Surv(time, status) ~ age + karno + diagtime + prior, data = veteran)
 
 pred_bnnsurv <- predict_bnnsurv(mod_bnnsurv, newdata = veteran[1:5, ], times = c(100, 200, 300))
 print(round(pred_bnnsurv, 3))
