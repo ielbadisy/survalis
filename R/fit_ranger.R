@@ -21,23 +21,28 @@ fit_ranger <- function(formula, data, ...) {
 predict_ranger <- function(model, newdata, times) {
   requireNamespace("ranger")
 
-  # get full survival curve estimates
-  pred <- predict(model$model, data = newdata)$survival
+  pred_obj <- predict(model$model, data = newdata)
+  pred <- pred_obj$survival
   model_times <- model$model$unique.death.times
 
-  # handle missing survival matrix (can happen with 1-row input)
-  if (is.null(dim(pred))) pred <- matrix(pred, nrow = 1)
+  if (is.null(pred)) stop("Prediction returned NULL survival matrix.")
+  if (is.null(dim(pred))) pred <- matrix(pred, nrow = 1)  # ensure matrix for single row
 
-  # interpolate survival probabilities at desired time points
-  surv_mat <- t(apply(pred, 1, function(row_surv) {
-    stats::approx(x = model_times, y = row_surv, xout = times,
-                  method = "linear", rule = 2)$y
-  }))
+  # preallocate output
+  surv_mat <- matrix(NA_real_, nrow = nrow(pred), ncol = length(times))
+  for (i in seq_len(nrow(pred))) {
+    y <- pred[i, ]
+    surv_mat[i, ] <- stats::approx(
+      x = model_times, y = y, xout = times,
+      method = "linear", rule = 2, ties = "ordered"
+    )$y
+  }
 
   colnames(surv_mat) <- paste0("t=", times)
   rownames(surv_mat) <- paste0("ID_", seq_len(nrow(surv_mat)))
-  return(surv_mat)
+  return(as.data.frame(surv_mat))
 }
+
 
 # example test
 library(survival)
