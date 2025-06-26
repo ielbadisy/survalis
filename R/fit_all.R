@@ -159,10 +159,10 @@ benchmark_results <- benchmark_survlearners(
   formula = Surv(Time, status) ~ x1 + x2,
   data = dat,
   times = c(10, 20, 40),
-  metrics = c("cindex", "ibs"),
+  metrics = c("ibs"),
   folds = 5
 )
 
 
 summarise_benchmark(benchmark_results)
-best_survlearner(benchmark_results, "cindex")
+best_survlearner(benchmark_results, "ibs")
