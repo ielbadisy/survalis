@@ -92,3 +92,89 @@ predict_xgboost <- function(object, newdata, times = NULL) {
 mod_xgb <- fit_xgboost(Surv(time, status) ~ age + karno + celltype, data = veteran)
 
 predict_xgboost(mod_xgb, newdata = veteran[1:5, ], times = c(100, 200, 300))
+
+
+#--------- add tuner
+
+tune_xgboost <- function(formula, data, times,
+                         param_grid = expand.grid(
+                           nrounds = c(50, 100),
+                           max_depth = c(3, 6),
+                           eta = c(0.01, 0.1),
+                           aft_loss_distribution = c("extreme", "logistic"),
+                           aft_loss_distribution_scale = c(0.5, 1),
+                           objective = "survival:aft"
+                         ),
+                         metrics = c("cindex", "ibs"),
+                         folds = 5,
+                         seed = 123,
+                         ...) {
+
+  purrr::pmap_dfr(param_grid, function(nrounds, max_depth, eta,
+                                       aft_loss_distribution,
+                                       aft_loss_distribution_scale,
+                                       objective) {
+
+    cv_results <- tryCatch({
+      cv_survlearner(
+        formula = formula,
+        data = data,
+        fit_fun = fit_xgboost,
+        pred_fun = predict_xgboost,
+        times = times,
+        metrics = metrics,
+        folds = folds,
+        seed = seed,
+        booster = "gbtree",
+        objective = objective,
+        aft_loss_distribution = aft_loss_distribution,
+        aft_loss_distribution_scale = aft_loss_distribution_scale,
+        nrounds = nrounds,
+        max_depth = max_depth,
+        eta = eta,
+        ...
+      )
+    }, error = function(e) {
+      return(NULL)
+    })
+
+    if (is.null(cv_results)) {
+      return(tibble::tibble(
+        nrounds = nrounds,
+        max_depth = max_depth,
+        eta = eta,
+        aft_loss_distribution = aft_loss_distribution,
+        aft_loss_distribution_scale = aft_loss_distribution_scale,
+        objective = objective,
+        failed = TRUE
+      ))
+    }
+
+    summary <- cv_summary(cv_results)
+
+    tibble::tibble(
+      nrounds = nrounds,
+      max_depth = max_depth,
+      eta = eta,
+      aft_loss_distribution = aft_loss_distribution,
+      aft_loss_distribution_scale = aft_loss_distribution_scale,
+      objective = objective,
+      failed = FALSE
+    ) |>
+      dplyr::bind_cols(
+        tidyr::pivot_wider(summary[, c("metric", "mean")],
+                           names_from = metric, values_from = mean)
+      )
+  }) |> dplyr::arrange(dplyr::across(any_of(metrics[1])))
+}
+
+
+res_xgb <- tune_xgboost(
+  formula = Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  times = c(100, 200, 300),
+  metrics = c("cindex", "ibs"),
+  folds = 3
+)
+
+print(res_xgb)
