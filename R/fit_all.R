@@ -149,9 +149,9 @@ best_survlearner(benchmark_results, "ibs")
 #************** for more
 
 learners <- tibble::tibble(
-  learner_name = c("aareg", "aftgee", "mboost", "ranger", "orsf", "glmnet"),
-  fit_fun = list(fit_aareg, fit_aftgee, fit_mboost, fit_ranger, fit_orsf, fit_glmnet),
-  pred_fun = list(predict_aareg, predict_aftgee, predict_mboost, predict_ranger, predict_orsf, predict_glmnet)
+  learner_name = c("aareg", "aftgee", "mboost", "ranger", "orsf", "glmnet", "bart", "cforest"),
+  fit_fun = list(fit_aareg, fit_aftgee, fit_mboost, fit_ranger, fit_orsf, fit_glmnet, fit_bart, fit_cforest),
+  pred_fun = list(predict_aareg, predict_aftgee, predict_mboost, predict_ranger, predict_orsf, predict_glmnet, predict_bart, predict_cforest)
 )
 
 benchmark_results <- benchmark_survlearners(
@@ -159,10 +159,10 @@ benchmark_results <- benchmark_survlearners(
   formula = Surv(Time, status) ~ x1 + x2,
   data = dat,
   times = c(10, 20, 40),
-  metrics = c("ibs"),
+  metrics = c("cindex"),
   folds = 5
 )
 
 
 summarise_benchmark(benchmark_results)
-best_survlearner(benchmark_results, "ibs")
+best_survlearner(benchmark_results, "cindex")
