@@ -56,3 +56,5 @@ mod_weib <- fit_survreg(Surv(time, status) ~ age + karno + celltype,
 
 pred <- predict_survreg(mod_weib, newdata = veteran[1:5, ], times = c(100, 200, 300))
 print(round(pred, 3))
+
+## NOT TUNABLE
