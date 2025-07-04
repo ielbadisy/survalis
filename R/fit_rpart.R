@@ -56,6 +56,9 @@ predict_rpart <- function(object, newdata, times, ...) {
 
   return(as.data.frame(surv_mat))
 }
+
+
+
 library(survival)
 library(rpart)
 library(partykit)
@@ -63,6 +66,12 @@ library(partykit)
 mod_rpart <- fit_rpart(Surv(time, status) ~ age + karno + celltype, data = veteran)
 
 pred_rpart <- predict_rpart(mod_rpart, newdata = veteran[1:5, ], times = c(100, 200, 300, 400, 500))
+
+
+## predict_rpart has a weird behavior: predicted probs are repetitives -> maybe this came from the fact that this learner predict one single prob for all individuals in the same node
+
+pred_rpart
+
 
 
 cv_results_rpart <- cv_survlearner(
