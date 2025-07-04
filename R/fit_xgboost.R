@@ -87,7 +87,8 @@ predict_xgboost <- function(object, newdata, times = NULL) {
   as.data.frame(surv_probs)
 }
 
-
+library(dplyr)
+library(survival)
 
 mod_xgb <- fit_xgboost(Surv(time, status) ~ age + karno + celltype, data = veteran)
 
