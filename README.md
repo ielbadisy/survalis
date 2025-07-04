@@ -472,3 +472,162 @@ We did not perform hyperparameter tuning for survivalsvm due to frequent optimiz
 ### No paramteric AFT model
 
 We implemented the accelerated failure time (AFT) model using the rms::psm() function with a Weibull distribution. This learner provides stable and interpretable survival estimates, and supports direct estimation of survival probabilities at user-specified time points via survest(). No hyperparameter tuning was necessary as parametric models are fully specified once the distribution is chosen.
+
+--------------------------------------------------------------------------------
+
+# TODO
+
+
+## STRUCTURE & METADATA
+
+* [ ] Complete the `DESCRIPTION` file (title, description, version, authors, imports).
+* [ ] Add `.onLoad()` in `zzz.R` to define package defaults.
+* [ ] Ensure folder structure includes `R/`, `man/`, `tests/`, and `vignettes/`.
+* [ ] Configure `.Rbuildignore` for non-package files (e.g., ZIPs, README\_files/).
+
+---
+
+## CORE IMPLEMENTATION
+
+### Core infrastructure
+
+* [ ] Review `fast_metrics.R` for speed and vectorization.
+* [ ] Standardize input/output for `evaluate_survlearner()`.
+* [ ] Modularize metric integration in `evaluate_survlearner()`.
+* [ ] Add seed support to `cv_learner.R`.
+* [ ] Add split validation and error checks to `cv_learner.R`.
+
+---
+
+### Learners
+
+* [ ] Refactor `fit_all.R` to clean and centralize learner calls.
+* [ ] Review and finalize `fit_coxaalen.R`.
+* [ ] Review and finalize `fit_flexsurv.R`.
+* [ ] Review and finalize `fit_mboost.R`.
+* [ ] Review and finalize `fit_bart.R`.
+* [ ] Review and finalize `fit_bnnsurv.R`.
+* [ ] Review and finalize `fit_aareg.R`.
+* [ ] Review and finalize `fit_aftgee.R`.
+* [ ] Review and finalize `fit_cforest.R`.
+* [ ] Review and finalize `fit_glmnet.R`.
+* [ ] Ensure all `fit_*()` functions return `n x t` survival probability matrices.
+* [ ] Add missing `predict_*()` functions for any `fit_*()` functions.
+* [ ] Ensure all `predict_*()` functions handle both `data.frame` and `tibble`.
+
+---
+
+### Meta-learning
+
+* [ ] Finalize `fit_metalearner()` function.
+* [ ] Finalize `predict_metalearner()` function.
+* [ ] Implement stacking and blending modes in `fit_metalearner()`.
+* [ ] Add support for NNLS weights in meta-learner.
+* [ ] Add support for ridge regression in meta-learner.
+* [ ] Validate meta-learner predictions against base learners.
+
+---
+
+### Interpretability
+
+* [ ] Finalize `compute_shap.R` implementation.
+* [ ] Finalize `compute_ale.R` implementation.
+* [ ] Finalize `compute_pdp.R` implementation.
+* [ ] Finalize `compute_ceteris_paribus.R` implementation.
+* [ ] Finalize `compute_varimp.R` implementation.
+* [ ] Finalize `compute_interactions.R` implementation.
+* [ ] Finalize `compute_surrogate.R` implementation.
+* [ ] Finalize `compute_tree_surrogate.R` implementation.
+* [ ] Implement `plot_shap()` for SHAP values.
+* [ ] Implement `plot_ale()` for ALE curves.
+* [ ] Implement `plot_pdp()` for PDPs.
+* [ ] Implement `plot_varimp()` for feature importance.
+* [ ] Implement `plot_ceteris_paribus()` for individual sensitivity.
+
+---
+
+### Causal Survival
+
+* [ ] Finalize `compute_rmst.R` for RMST estimation.
+* [ ] Finalize `compute_rmstdiff_tmle.R` for RMST diff with TMLE.
+* [ ] Finalize `compute_rmstdiff_iptw.R` for RMST diff with IPTW.
+* [ ] Finalize `compute_survdiff_gformula.R` for g-formula survival diff.
+* [ ] Finalize `compute_survdiff_iptw.R` for IPTW survival diff.
+* [ ] Finalize `compute_counterfactual.R` for counterfactual survival curves.
+* [ ] Finalize `compute_iptw_weights.R` for stabilized weights.
+* [ ] Finalize `compute_cate_rmst.R` for CATE via RMST.
+* [ ] Finalize `compute_shap_cate.R` for CATE decomposition with SHAP.
+* [ ] Implement `plot_shap_cate()` for causal SHAP visualization.
+
+---
+
+## DOCUMENTATION
+
+* [ ] Write full Roxygen2 documentation for each exported function.
+* [ ] Include `@param`, `@return`, `@examples`, and `@export` tags in each file.
+* [ ] Tag internal helpers with `@keywords internal`.
+* [ ] Create a package-level file `R/survalis-package.R`.
+* [ ] Run `devtools::document()` after each module is finalized.
+
+---
+
+## TESTING
+
+* [ ] Set up testing framework with `usethis::use_testthat()`.
+* [ ] Write tests for all `fit_*()` functions.
+* [ ] Write tests for all `predict_*()` functions.
+* [ ] Write tests for `evaluate_survlearner()` and `cv_learner()`.
+* [ ] Write tests for `fit_metalearner()` and `predict_metalearner()`.
+* [ ] Write tests for interpretability functions (`compute_shap()`, etc.).
+* [ ] Write tests for causal survival methods.
+* [ ] Check test coverage with `covr::report()`.
+
+---
+
+## VIGNETTES & EXAMPLES
+
+* [ ] Create vignette: “Getting Started with `survalis`”.
+* [ ] Create vignette: “Model Evaluation & Meta-learners”.
+* [ ] Create vignette: “Causal Survival & Interpretability”.
+* [ ] Add examples to `README.Rmd` using minimal working code.
+
+---
+
+## 🧹 FINAL CHECKS & RELEASE
+
+* [ ] Run `devtools::check()` and fix all warnings, errors, and notes.
+* [ ] Run `R CMD check --as-cran` and verify.
+* [ ] Run `goodpractice::gp()` for quality suggestions.
+* [ ] Run `devtools::spell_check()` to fix typos.
+* [ ] Finalize `NEWS.md` with full changelog for v0.1.0.
+* [ ] Tag GitHub release as `v0.1.0`.
+
+---
+
+## VERSIONING & PUBLICATION
+
+* [ ] Start development version as `0.0.0.9000`.
+* [ ] Mark first stable CRAN release as `0.1.0`.
+* [ ] Add `Lifecycle: experimental` badge to README.
+* [ ] Tag `v1.0.0` once stable and CRAN-released.
+* [ ] Submit JOSS paper after CRAN release is live.
+
+---
+
+## PROOFREADING, CONSISTENCY & FINAL CHECKS
+
+* [ ] Review all function names and ensure consistent naming conventions.
+* [ ] Check for duplicated logic or redundant functions across files.
+* [ ] Ensure consistent argument names across all `fit_*()` and `predict_*()` functions.
+* [ ] Verify that all `predict_*()` functions return properly formatted survival matrices.
+* [ ] Cross-check that all `compute_*()` functions work with standardized inputs: `model`, `newdata`, `times`.
+* [ ] Verify that all `plot_*()` functions accept output from the corresponding `compute_*()` functions.
+* [ ] Manually run all example code in Roxygen `@examples` to ensure they execute cleanly.
+* [ ] Rebuild documentation with `devtools::document()` and inspect generated `.Rd` files.
+* [ ] Run a full test suite with `devtools::test()` and ensure no failures.
+* [ ] Run a final `devtools::check()` and resolve all errors, warnings, and notes.
+* [ ] Verify vignette builds with `devtools::build_vignettes()` and `pkgdown::build_site()`.
+* [ ] Confirm CRAN readiness with `R CMD check --as-cran` on local machine.
+* [ ] Perform a final spell check using `devtools::spell_check()`.
+* [ ] Review README, vignettes, and NEWS.md for accuracy, formatting, and coherence.
+* [ ] Cross-check all internal functions are unexported and tagged `@keywords internal`.
