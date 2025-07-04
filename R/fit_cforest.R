@@ -172,4 +172,4 @@ evaluate_survlearner(
   times = c(100, 200, 300)
 )
 
-
+## should be silent
