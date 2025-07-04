@@ -131,7 +131,7 @@ res_bnnsurv <- tune_bnnsurv(
   param_grid = expand.grid(
     k = c(2, 20),
     num_base_learners = c(10, 50),
-    sample_fraction = c(0.5, 0.75)
+    sample_fraction = c(0.25, 0.5, 0.75)
   ),
   folds = 3,
   metrics = c("cindex", "ibs")
