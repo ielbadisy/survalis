@@ -54,6 +54,7 @@ predict_survivalsvm <- function(object, newdata, times, dist = "exp", shape = 1)
 
 library(survival)
 library(survivalsvm)
+library(ggplot2)
 
 mod_svm <- fit_survivalsvm(Surv(time, status) ~ age + celltype + karno,
                            data = veteran,
@@ -86,4 +87,4 @@ cv_plot(cv_results_svm)
 
 #------- add tuner
 
-## survivalsvm is not robust for hyperparameter tuning
+## NOT TUNABLE
