@@ -1,10 +1,10 @@
 
 fit_cox <- function(formula, data, ...) {
+
+  ## this should parametrized in loading function
   stopifnot(requireNamespace("survival", quietly = TRUE))
   stopifnot(requireNamespace("pec", quietly = TRUE))
-
   model <- survival::coxph(formula, data = data, x = TRUE, y = TRUE, ...)
-
   time_status <- all.vars(formula[[2]])
   structure(list(
     model = model,
@@ -30,8 +30,10 @@ predict_cox <- function(object, newdata, times) {
 }
 
 
-library(survival)
-data(veteran)
+
+#-------- TEST
+
+veteran <- survival::veteran
 
 mod_cox <- fit_cox(Surv(time, status) ~ age + karno + celltype, data = veteran)
 pred_cox <- predict_cox(mod_cox, newdata = veteran[1:5, ], times = c(100, 200, 300))
