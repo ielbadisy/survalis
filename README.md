@@ -8,8 +8,8 @@
 * [X] `fit_aareg()`, `predict_aareg()`, `cv_survlearner()`, not tunable
 * [X] `fit_aftgee()`, `predict_aftgee()`, `cv_survlearner()`, not tunable
 * [X] `fit_bart()`, `predict_bart()`, `tune_bart()`
-* [] `fit_bnnsurv()`, `predict_bnnsurv()`, `tune_bnnsurv()`
-* [] `fit_cforest()`, `predict_cforest()`, `tune_cforest()`
+* [X] `fit_bnnsurv()`, `predict_bnnsurv()`, `tune_bnnsurv()`
+* [X] `fit_cforest()`, `predict_cforest()`, `tune_cforest()`
 * [] `fit_coxaalen()`, `predict_coxaalen()`, `tune_coxaalen()`
 * [] `fit_cox()`, `predict_cox()`, `tune_coxph()`
 * [] `fit_flexsurv()`, `predict_flexsurv()`, `tune_flexsurv()`
