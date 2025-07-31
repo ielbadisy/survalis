@@ -1,4 +1,72 @@
-# isurvml
+# survalis
+
+
+
+## survalis Learner Validation Checklist
+
+
+* [] `fit_aareg()`, `predict_aareg()`, `tune_aareg()`
+* [] `fit_aftgee()`, `predict_aftgee()`, `tune_aftgee()`
+* [] `fit_bart()`, `predict_bart()`, `tune_bart()`
+* [] `fit_bnnsurv()`, `predict_bnnsurv()`, `tune_bnnsurv()`
+* [] `fit_cforest()`, `predict_cforest()`, `tune_cforest()`
+* [] `fit_coxaalen()`, `predict_coxaalen()`, `tune_coxaalen()`
+* [] `fit_cox()`, `predict_cox()`, `tune_coxph()`
+* [] `fit_flexsurv()`, `predict_flexsurv()`, `tune_flexsurv()`
+* [] `fit_glmnet()`, `predict_glmnet()`, `tune_glmnet()`
+* [] `fit_mboost()`, `predict_mboost()`, `tune_mboost()`
+* [] `fit_orsf()`, `predict_orsf()`, `tune_orsf()`
+* [] `fit_ranger()`, `predict_ranger()`, `tune_ranger()`
+* [] `fit_rfsrc()`, `predict_rfsrc()`, `tune_rfsrc()`
+* [] `fit_rpart()`, `predict_rpart()`, `tune_rpart()`
+* [] `fit_rstpm2()`, `predict_rstpm2()`, `tune_rstpm2()`
+* [] `fit_selectcox()`, `predict_selectcox()`, `tune_selectcox()`
+* [] `fit_survdnn()`, `predict_survdnn()`, `tune_survdnn()`
+* [] `fit_survivalsvm()`, `predict_survivalsvm()`, `tune_survivalsvm()`
+* [] `fit_survreg()`, `predict_survreg()`, `tune_survreg()`
+* [] `fit_xgboost()`, `predict_xgboost()`, `tune_xgboost()`
+
+---
+
+### Remaining Tasks
+
+* [ ] Validate `predict_*()` output: dimensions (`n x T`), column names (`t=...`), no NAs
+* [ ] Validate `summary()` method for all learners
+* [ ] Ensure all `tune_*()` functions use internal `cv_survlearner()` and return best model
+* [ ] Verify all learners are registered in:
+  * `cv_survlearner()`
+  * `evaluate_survlearner()`
+  * `benchmark_survlearners()`
+  * Interpretation tools (`plot_shap`, `plot_pdp`, etc.)
+* [ ] Add learners table to documentation: learner, engine, type, tuning
+* [ ] Auto-test all learners via GitHub Actions
+
+
+
+## `{survalis}` learners summary table 
+
+
+
+
+| Learner        | Fit Function     | Predict Function     | Tuning Function   | Engine            | Type                       |
+| -------------- | ---------------- | -------------------- | ----------------- | ----------------- | -------------------------- |
+| coxph          | `fit_cox()`      | `predict_cox()`      | `tune_cox()`      | `survival`        | Semi-parametric (PH)       |
+| aalen additive | `fit_aareg()`    | `predict_aareg()`    | `tune_aareg()`    | `survival`        | Additive hazards           |
+| rsf            | `fit_rfsrc()`    | `predict_rfsrc()`    | `tune_rfsrc()`    | `randomForestSRC` | Tree ensemble              |
+| cforest        | `fit_cforest()`  | `predict_cforest()`  | `tune_cforest()`  | `party`           | Tree ensemble              |
+| rpart          | `fit_rpart()`    | `predict_rpart()`    | `tune_rpart()`    | `rpart`           | Single tree                |
+| xgboost        | `fit_xgboost()`  | `predict_xgboost()`  | `tune_xgboost()`  | `xgboost`         | Boosted trees (AFT/Cox)    |
+| gbm            | `fit_gbm()`      | `predict_gbm()`      | `tune_gbm()`      | `gbm`             | Boosted trees (Cox)        |
+| flexsurv       | `fit_flexsurv()` | `predict_flexsurv()` | `tune_flexsurv()` | `flexsurv`        | Parametric (Weibull, etc.) |
+| survreg        | `fit_survreg()`  | `predict_survreg()`  | `tune_survreg()`  | `survival/rms`    | Parametric AFT             |
+| rstmp2         | `fit_rstpm2()`   | `predict_rstpm2()`   | `tune_rstpm2()`   | `rstpm2`          | Royston-Parmar (spline)    |
+| mboost         | `fit_mboost()`   | `predict_mboost()`   | `tune_mboost()`   | `mboost`          | Boosted base-learners      |
+| bart           | `fit_bart()`     | `predict_bart()`     | `tune_bart()`     | `BART`            | Bayesian Trees             |
+| cox aalen      | `fit_coxaalen()` | `predict_coxaalen()` | `tune_coxaalen()` | `timereg`         | Cox + Additive             |
+| survdnn        | `fit_survdnn()`  | `predict_survdnn()`  | `tune_survdnn()`  | `torch`           | Deep Neural Net (modular)  |
+
+
+
 
 
 ## Principales 
@@ -38,7 +106,7 @@ Key design choices:
 
 ### cv design metrics 
 
-[X] `evaluate_survlearner()`: provides a unified interface to compute survival probabilities at user-defined time points. 
+[] `evaluate_survlearner()`: provides a unified interface to compute survival probabilities at user-defined time points. 
 
 [] fix warning in Brier related to empty folds in small sample size
 
@@ -102,39 +170,39 @@ This causes inconsistencies and errors when evaluating metrics such as the c-ind
 
 To ensure consistency across folds and learners, we update `predict_mboost()` to: 
 
-[X] extend  the survival curve with the last know survival probability (flat extrapolation) if any `times` go beyond the model's range. This will avoid the metric computation failures due to missing time columns. 
-[X] add logic to handle times outside survFit$time via padding
+[] extend  the survival curve with the last know survival probability (flat extrapolation) if any `times` go beyond the model's range. This will avoid the metric computation failures due to missing time columns. 
+[] add logic to handle times outside survFit$time via padding
 
 
 ---
 
 - `cforest`
 
-[X] add conditional survival forest (`party:cforest`)
-[X] use interpolation to generate full survival matrices
+[] add conditional survival forest (`party:cforest`)
+[] use interpolation to generate full survival matrices
 
 --- 
 
 - `ranger`
 
-[X] add random survival forest from `ranger`
-[X] ensure time alignment by nearest match 
+[] add random survival forest from `ranger`
+[] ensure time alignment by nearest match 
 
 ---
 
 - `orsf`
 
-[X] add oblique RF from aorsf 
-[X] use native `pred_horizon` and `pred_type = "surv"`
+[] add oblique RF from aorsf 
+[] use native `pred_horizon` and `pred_type = "surv"`
 
 
 ---
 
 - `glmnet`
 
-[X] fit penalized cox (lasso/ridge) via via glmnet
+[] fit penalized cox (lasso/ridge) via via glmnet
 
-[X] manual estimated baseline hazard using `basehaz()`
+[] manual estimated baseline hazard using `basehaz()`
 
 
 ---
@@ -242,9 +310,9 @@ Each methos is organized in a separate `.R` script and includes:
 
 ### Currently implemented
 
-[X] pdp + ice
+[] pdp + ice
 [] ale 
-[x] local surrogate model
+[] local surrogate model
 [] tree surrogate
 [] varimp
 [] shap 
