@@ -71,9 +71,10 @@ tune_rfsrc <- function(formula, data, times,
                        metrics = c("cindex", "ibs"),
                        folds = 5,
                        seed = 123,
-                       refit_best = TRUE,
+                       refit_best = FALSE,
                        ...) {
-  res <- purrr::pmap_dfr(param_grid, function(ntree, mtry, nodesize) {
+
+  results <- purrr::pmap_dfr(param_grid, function(ntree, mtry, nodesize) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -102,24 +103,26 @@ tune_rfsrc <- function(formula, data, times,
       )
   })
 
-  res <- dplyr::arrange(res, dplyr::desc(!!sym(metrics[1])))
+  results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
 
-  if (refit_best) {
-    best_params <- res[1, ]
-    model <- fit_rfsrc(
+  if (!refit_best) {
+    class(results) <- c("tuned_surv", class(results))  # like other learners
+    attr(results, "metrics") <- metrics
+    attr(results, "formula") <- formula
+    return(results)
+  } else {
+    best_row <- results[1, ]
+    best_model <- fit_rfsrc(
       formula = formula,
       data = tidyr::drop_na(data, all.vars(formula)),
-      ntree = best_params$ntree,
-      mtry = best_params$mtry,
-      nodesize = best_params$nodesize,
+      ntree = best_row$ntree,
+      mtry = best_row$mtry,
+      nodesize = best_row$nodesize,
       ...
     )
-    attr(model, "tuning_results") <- res
-    class(model) <- c("tune_surv", class(model))
-    return(model)
+    attr(best_model, "tuning_results") <- results  # optional metadata
+    return(best_model)
   }
-
-  return(res)
 }
 
 
