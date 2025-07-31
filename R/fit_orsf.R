@@ -77,7 +77,8 @@ cv_results_orsf <- cv_survlearner(
   times = c(100, 200, 300),
   metrics = c("cindex", "ibs"),
   folds = 5,
-  seed = 42
+  seed = 42,
+  verbose = FALSE
 )
 
 cv_summary(cv_results_orsf)
