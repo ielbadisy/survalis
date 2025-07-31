@@ -5,7 +5,7 @@ cv_survlearner <- function(formula, data,
                            metrics = c("cindex", "ibs"),
                            folds = 5,
                            seed = 123,
-                           verbose = TRUE,
+                           verbose = FALSE,
                            ...) {
 
   # warn if '.' is used in formul
