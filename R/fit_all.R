@@ -1,3 +1,4 @@
+
 library(dplyr)
 # Lists all learners with matching `fit_*` and `predict_*` functions
 survlearners <- function() {
@@ -149,20 +150,20 @@ best_survlearner(benchmark_results, "ibs")
 #************** for more
 
 learners <- tibble::tibble(
-  learner_name = c("aareg", "aftgee", "mboost", "ranger", "orsf", "glmnet", "bart", "cforest"),
-  fit_fun = list(fit_aareg, fit_aftgee, fit_mboost, fit_ranger, fit_orsf, fit_glmnet, fit_bart, fit_cforest),
-  pred_fun = list(predict_aareg, predict_aftgee, predict_mboost, predict_ranger, predict_orsf, predict_glmnet, predict_bart, predict_cforest)
+  learner_name = c("aareg", "aftgee", "mboost", "ranger", "orsf", "glmnet", "bart", "cforest", "survdnn", "cox"),
+  fit_fun = list(fit_aareg, fit_aftgee, fit_mboost, fit_ranger, fit_orsf, fit_glmnet, fit_bart, fit_cforest, fit_survdnn, fit_cox),
+  pred_fun = list(predict_aareg, predict_aftgee, predict_mboost, predict_ranger, predict_orsf, predict_glmnet, predict_bart, predict_cforest, predict_survdnn, predict_cox)
 )
 
 benchmark_results <- benchmark_survlearners(
   learners = learners,
   formula = Surv(Time, status) ~ x1 + x2,
   data = dat,
-  times = c(10, 20, 40),
-  metrics = c("cindex"),
+  times = c(10, 20, 30, 40, 50, 60, 70),
+  metrics = c("ibs"),
   folds = 5
 )
 
 
 summarise_benchmark(benchmark_results)
-best_survlearner(benchmark_results, "cindex")
+best_survlearner(benchmark_results, "ibs")
