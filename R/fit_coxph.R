@@ -8,12 +8,12 @@ fit_cox <- function(formula, data, ...) {
   time_status <- all.vars(formula[[2]])
   structure(list(
     model = model,
-    learner = "cox",
+    learner = "coxph",
     formula = formula,
     data = data,
     time = time_status[1],
     status = time_status[2]
-  ), class = "mlsurv_model", engine = "cox")
+  ), class = "mlsurv_model", engine = "coxph")
 }
 
 
@@ -26,7 +26,7 @@ fit_cox <- function(formula, data, ...) {
 #' @return A data.frame of survival probabilities (rows: subjects, cols: times).
 #' @export
 predict_cox <- function(object, newdata, times) {
-  stopifnot(object$learner == "cox")
+  stopifnot(object$learner == "coxph")
   stopifnot(requireNamespace("pec", quietly = TRUE))
 
   survmat <- pec::predictSurvProb(object$model, newdata = newdata, times = times)
