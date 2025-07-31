@@ -49,24 +49,39 @@ predict_aareg <- function(model, newdata, times = NULL, ...) {
   }
 
   colnames(surv_probs) <- paste0("t=", pout$time)
-  rownames(surv_probs) <- paste0("ID_", seq_len(nrow(surv_probs)))
+  rownames(surv_probs) <- paste0("id_", seq_len(nrow(surv_probs)))
 
   as.data.frame(surv_probs)
 }
 
 
-library(survival)
 library(timereg)
 
-data(sTRACE)
 
-mod <- fit_aareg(Surv(time, status == 9) ~ sex + diabetes + chf + vf,
-                 data = sTRACE, max.time = 7)
+library(survival)
+
+times <- c(0, 100, 300, 500)
+
+mod <- fit_aareg(Surv(time, status) ~ trt + karno + age,
+                 data = veteran, max.time = 600)
 
 
 
-pred2 <- predict_aareg(mod, newdata = sTRACE[1:3, ], times = c(0, 1, 3, 5))
-pred2
+pred <- predict_aareg(mod, newdata = veteran, times = times)
+pred
+
+
+
+cv_survlearner(
+  formula = Surv(time, status) ~ trt + karno + age,
+  data = veteran,
+  fit_fun = fit_aareg,
+  pred_fun = predict_aareg,
+  times = times,
+  metrics = c("cindex", "ibs"),
+  folds = 5
+  )
+
 ##------------- add tuner
 
-## fix max.time = max(data$time) and remove tuning. Otherwise this will gives inconsistent prediction horizons -> harder to compare within model
+# NOT TUNABLE
