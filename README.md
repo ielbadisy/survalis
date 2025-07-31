@@ -5,8 +5,8 @@
 ## survalis Learner Validation Checklist
 
 
-* [] `fit_aareg()`, `predict_aareg()`, `tune_aareg()`
-* [] `fit_aftgee()`, `predict_aftgee()`, `tune_aftgee()`
+* [X] `fit_aareg()`, `predict_aareg()`, `cv_survlearner()`, not tunable
+* [] `fit_aftgee()`, `predict_aftgee()`, `cv_survlearner()`, not tunable
 * [] `fit_bart()`, `predict_bart()`, `tune_bart()`
 * [] `fit_bnnsurv()`, `predict_bnnsurv()`, `tune_bnnsurv()`
 * [] `fit_cforest()`, `predict_cforest()`, `tune_cforest()`
@@ -40,6 +40,18 @@
   * Interpretation tools (`plot_shap`, `plot_pdp`, etc.)
 * [ ] Add learners table to documentation: learner, engine, type, tuning
 * [ ] Auto-test all learners via GitHub Actions
+
+
+
+## NOTES 
+
+
+- `aareg`
+
+- fix max.time = max(data$time) and remove tuning. Otherwise this will gives inconsistent prediction horizons -> harder to compare within model
+
+
+
 
 
 
