@@ -29,9 +29,12 @@ predict_selectcox <- function(object, newdata, times) {
 tune_selectcox <- function(formula, data, times,
                            rules = c("aic", "p"),
                            metrics = c("cindex", "ibs"),
-                           folds = 5, seed = 123, ...) {
+                           folds = 5,
+                           seed = 123,
+                           refit_best = TRUE,
+                           ...) {
 
-  purrr::map_dfr(rules, function(rule) {
+  results <- purrr::map_dfr(rules, function(rule) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -46,10 +49,33 @@ tune_selectcox <- function(formula, data, times,
     )
 
     summary <- cv_summary(cv_results)
+
     tibble::tibble(rule = rule) |>
-      dplyr::bind_cols(tidyr::pivot_wider(summary[, c("metric", "mean")], names_from = metric, values_from = mean))
-  }) |> arrange(dplyr::across(any_of(metrics[1])))
+      dplyr::bind_cols(
+        tidyr::pivot_wider(summary[, c("metric", "mean")],
+                           names_from = metric, values_from = mean)
+      )
+  })
+
+  results <- dplyr::arrange(results, dplyr::desc(!!sym(metrics[1])))
+
+  if (refit_best) {
+    best_rule <- results$rule[1]
+    model <- fit_selectcox(
+      formula = formula,
+      data = tidyr::drop_na(data, all.vars(formula)),
+      rule = best_rule,
+      ...
+    )
+    attr(model, "tuning_results") <- results
+    return(model)
+  }
+
+  class(results) <- c("tuned_surv", class(results))
+  return(results)
 }
+
+
 
 res_selectcox <- tune_selectcox(
   formula = Surv(time, status) ~ age + karno + celltype,
@@ -57,8 +83,21 @@ res_selectcox <- tune_selectcox(
   times = c(100, 200, 300),
   rules = c("aic", "p"),
   metrics = c("cindex", "ibs", "ise"),
-  folds = 3
+  folds = 3,
+  refit_best = FALSE
 )
-
 print(res_selectcox)
+class(res_selectcox)  # Should show "tuned_surv"
+
+mod_selectcox <- tune_selectcox(
+  formula = Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  times = c(100, 200, 300),
+  rules = c("aic", "p"),
+  metrics = c("cindex", "ibs", "ise"),
+  folds = 3,
+  refit_best = TRUE
+)
+summary(mod_selectcox)
+
 
