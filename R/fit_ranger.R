@@ -1,3 +1,4 @@
+
 fit_ranger <- function(formula, data, ...) {
   stopifnot(requireNamespace("ranger", quietly = TRUE))
 
@@ -9,12 +10,16 @@ fit_ranger <- function(formula, data, ...) {
     case.weights = NULL
   )
 
-  structure(list(
-    model = model,
-    learner = "ranger",
-    formula = formula,
-    data = data
-  ), class = "mlsurv_model", engine = "ranger")
+  structure(
+    list(
+      model = model,
+      learner = "ranger",
+      formula = formula,
+      data = data
+    ),
+    class = "mlsurv_model",
+    engine = "ranger"
+  )
 }
 
 
@@ -26,9 +31,8 @@ predict_ranger <- function(model, newdata, times) {
   model_times <- model$model$unique.death.times
 
   if (is.null(pred)) stop("Prediction returned NULL survival matrix.")
-  if (is.null(dim(pred))) pred <- matrix(pred, nrow = 1)  # ensure matrix for single row
+  if (is.null(dim(pred))) pred <- matrix(pred, nrow = 1)
 
-  # preallocate output
   surv_mat <- matrix(NA_real_, nrow = nrow(pred), ncol = length(times))
   for (i in seq_len(nrow(pred))) {
     y <- pred[i, ]
@@ -40,20 +44,13 @@ predict_ranger <- function(model, newdata, times) {
 
   colnames(surv_mat) <- paste0("t=", times)
   rownames(surv_mat) <- paste0("ID_", seq_len(nrow(surv_mat)))
-  return(as.data.frame(surv_mat))
+  as.data.frame(surv_mat)
 }
 
 
-# example test
-library(survival)
-data(veteran, package = "survival")
 
 mod <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
-pred <- predict_ranger(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
-
-pred
-
-#----------------- add tuner
+summary(mod)
 
 tune_ranger <- function(formula, data, times,
                         param_grid = expand.grid(
@@ -62,9 +59,12 @@ tune_ranger <- function(formula, data, times,
                           min.node.size = c(3, 5)
                         ),
                         metrics = c("cindex", "ibs"),
-                        folds = 5, seed = 123, ...) {
+                        folds = 5, seed = 123,
+                        refit_best = FALSE,
+                        ...) {
 
-  purrr::pmap_dfr(param_grid, function(num.trees, mtry, min.node.size) {
+  # cv loop
+  res <- purrr::pmap_dfr(param_grid, function(num.trees, mtry, min.node.size) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -82,12 +82,35 @@ tune_ranger <- function(formula, data, times,
 
     summary <- cv_summary(cv_results)
     tibble::tibble(num.trees, mtry, min.node.size) |>
-      bind_cols(tidyr::pivot_wider(summary[, c("metric", "mean")], names_from = metric, values_from = mean))
-  }) |> arrange(dplyr::across(any_of(metrics[1])))
+      dplyr::bind_cols(
+        tidyr::pivot_wider(summary[, c("metric", "mean")],
+                           names_from = metric, values_from = mean)
+      )
+  })
+
+  res <- dplyr::arrange(res, dplyr::across(dplyr::any_of(metrics[1])))
+
+  if (refit_best) {
+    best <- res[1, ]
+    mod <- fit_ranger(
+      formula = formula,
+      data = tidyr::drop_na(data, all.vars(formula)),
+      num.trees = best$num.trees,
+      mtry = best$mtry,
+      min.node.size = best$min.node.size,
+      ...
+    )
+    attr(mod, "tuning_results") <- res
+    class(mod) <- c("tune_surv", class(mod))  # this line enables summary()
+    return(mod)
+  }
+
+  return(res)
 }
 
 
-res_ranger <- tune_ranger(
+
+mod_ranger_best <- tune_ranger(
   formula = Surv(time, status) ~ age + karno + celltype,
   data = veteran,
   times = c(100, 200, 300),
@@ -97,8 +120,30 @@ res_ranger <- tune_ranger(
     min.node.size = c(3, 5)
   ),
   metrics = c("cindex", "ibs"),
-  folds = 3
+  folds = 3,
+  refit_best = TRUE
 )
 
-print(res_ranger)
+# This now works and gives structured summary output:
+summary(mod_ranger_best)
+
+
+
+
+mod_ranger <- tune_ranger(
+  formula = Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  times = c(100, 200, 300),
+  param_grid = expand.grid(
+    num.trees = c(100, 300),
+    mtry = c(1, 2),
+    min.node.size = c(3, 5)
+  ),
+  metrics = c("cindex", "ibs"),
+  folds = 3,
+  refit_best = FALSE
+)
+
+mod_ranger
+
 
