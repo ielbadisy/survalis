@@ -92,6 +92,121 @@ compute_pdp <- function(model, predict_function, data, feature, times,
 
 
 
+plot_pdp <- function(pdp_ice_output, feature,
+                     method = "pdp+ice", ids = NULL,
+                     which = c("per_time", "integrated"),
+                     alpha_ice = 0.2, smooth = FALSE) {
+  requireNamespace("ggplot2")
+  requireNamespace("data.table")
+
+  which <- match.arg(which)
+  results <- data.table::as.data.table(pdp_ice_output$results)
+  feature_data <- results[[feature]]
+  is_categorical <- is.factor(feature_data) || is.character(feature_data)
+
+  if (which == "integrated") {
+
+    if (is.null(pdp_ice_output$pdp_integrated)) stop("No integrated PDP found.")
+
+    if (!"integrated_surv" %in% names(pdp_ice_output$pdp_integrated)) stop("Invalid integrated PDP.")
+
+    ice_data <- results[type == "ice"]
+    ice_integrated <- ice_data[, .(
+      integrated_surv = sum((head(surv_prob, -1) + tail(surv_prob, -1)) / 2 * diff(head(time, -1))),
+      time_n = .N
+    ), by = c(".id", feature)]
+
+    pdp_integrated <- pdp_ice_output$pdp_integrated
+
+    if (is_categorical) {
+      p <- ggplot2::ggplot() +
+        ggplot2::geom_boxplot(data = ice_integrated, ggplot2::aes_string(x = feature, y = "integrated_surv"),
+                              alpha = alpha_ice, fill = "pink") +
+        ggplot2::geom_point(data = pdp_integrated, ggplot2::aes_string(x = feature, y = "integrated_surv"),
+                            shape = 21, size = 3, fill = "black") +
+        ggplot2::theme_minimal(base_size = 13) +
+        ggplot2::labs(
+          title = paste("Integrated PDP with ICE Boxplot for", feature),
+          x = feature,
+          y = "Integrated Survival"
+        )
+      return(p)
+    } else {
+      p <- ggplot2::ggplot(pdp_integrated, ggplot2::aes_string(x = feature, y = "integrated_surv")) +
+        ggplot2::theme_minimal(base_size = 13) +
+        ggplot2::labs(
+          title = paste("Integrated PDP over Survival Time:", feature),
+          x = feature,
+          y = "Integrated Survival"
+        )
+      if (smooth) {
+        p <- p + ggplot2::geom_smooth(method = "loess", se = FALSE, color = "steelblue", size = 1.2)
+      } else {
+        p <- p + ggplot2::geom_line(color = "steelblue", size = 1.2)
+      }
+      return(p)
+    }
+  }
+
+  # Per-time PDP/ICE plot (unchanged)
+  plot_data <- results[type %in% switch(method,
+                                        "pdp" = "pdp",
+                                        "ice" = "ice",
+                                        "pdp+ice" = c("pdp", "ice"),
+                                        stop("Invalid method"))]
+
+  if (!is.null(ids) && "ice" %in% plot_data$type) {
+    plot_data <- plot_data[type != "ice" | .id %in% ids]
+  }
+
+  if (is_categorical) {
+    p <- ggplot2::ggplot(plot_data, ggplot2::aes_string(x = feature, y = "surv_prob", fill = "type")) +
+      ggplot2::theme_minimal(base_size = 13) +
+      ggplot2::facet_wrap(~ time, scales = "free_y") +
+      ggplot2::labs(
+        title = paste("Survival", toupper(method), "for", feature),
+        x = feature,
+        y = "Survival Probability",
+        fill = "Type"
+      )
+
+    if ("ice" %in% plot_data$type) {
+      p <- p + ggplot2::geom_boxplot(data = plot_data[type == "ice"], alpha = alpha_ice, position = "dodge")
+    }
+
+    if ("pdp" %in% plot_data$type) {
+      p <- p + ggplot2::stat_summary(data = plot_data[type == "pdp"],
+                                     fun = mean, geom = "point",
+                                     shape = 21, fill = "black", size = 3,
+                                     position = ggplot2::position_dodge(width = 0.75))
+    }
+
+  } else {
+    p <- ggplot2::ggplot(plot_data, ggplot2::aes_string(x = feature, y = "surv_prob",
+                                                        group = "interaction(.id, time)", color = "type")) +
+      ggplot2::theme_minimal(base_size = 13) +
+      ggplot2::facet_wrap(~ time, scales = "free_y") +
+      ggplot2::labs(
+        title = paste("Survival", toupper(method), "for", feature),
+        x = feature,
+        y = "Survival Probability",
+        color = NULL
+      ) +
+      ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(alpha = 1)))
+
+    if ("ice" %in% plot_data$type) {
+      p <- p + ggplot2::geom_line(data = plot_data[type == "ice"], alpha = alpha_ice)
+    }
+
+    if ("pdp" %in% plot_data$type) {
+      p <- p + ggplot2::geom_line(data = plot_data[type == "pdp"], size = 1.2)
+    }
+  }
+
+  return(p)
+}
+
+
 library(survival)
 data(veteran, package = "survival")
 
@@ -122,7 +237,6 @@ pdp_ice_result <- compute_pdp(
 )
 
 plot_pdp(pdp_ice_result, feature = "celltype", which = "per_time")
-plot_pdp(pdp_ice_result, feature = "celltype", which = "integrated")
 
 
 
