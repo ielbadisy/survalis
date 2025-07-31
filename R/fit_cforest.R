@@ -44,7 +44,9 @@ predict_cforest <- function(object, newdata, times, ...) {
   newdata <- as.data.frame(newdata)
 
   # get survival predictions from cforest
-  survlist <- predict(object$model, newdata = newdata, type = "prob")
+  survlist <- suppressMessages(suppressWarnings(
+    predict(object$model, newdata = newdata, type = "prob")
+  ))
 
   # interpolate at requested times
   prob_matrix <- t(sapply(survlist, function(sfit) {
@@ -102,9 +104,10 @@ tune_cforest <- function(formula, data, times,
                            fraction = c(0.5, 0.632)
                          ),
                          metrics = c("cindex", "ibs"),
-                         folds = 5, seed = 123, ...) {
+                         folds = 5, seed = 123,
+                         refit_best = FALSE, ...) {
 
-  purrr::pmap_dfr(param_grid, function(ntree, mtry, mincriterion, fraction) {
+  results <- purrr::pmap_dfr(param_grid, function(ntree, mtry, mincriterion, fraction) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -122,54 +125,75 @@ tune_cforest <- function(formula, data, times,
     )
 
     summary <- cv_summary(cv_results)
-    tibble::tibble(ntree, mtry, mincriterion, fraction) |>
-      bind_cols(tidyr::pivot_wider(summary[, c("metric", "mean")], names_from = metric, values_from = mean))
-  }) |> arrange(dplyr::across(any_of(metrics[1])))
+
+    tibble::tibble(ntree = ntree,
+                   mtry = mtry,
+                   mincriterion = mincriterion,
+                   fraction = fraction) |>
+      dplyr::bind_cols(
+        tidyr::pivot_wider(summary[, c("metric", "mean")],
+                           names_from = metric,
+                           values_from = mean)
+      )
+  })
+
+  results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
+
+  if (!refit_best) {
+    class(results) <- c("tuned_surv", class(results))
+    attr(results, "metrics") <- metrics
+    attr(results, "formula") <- formula
+    return(results)
+  } else {
+    best_row <- results[1, ]
+    best_model <- fit_cforest(
+      formula = formula,
+      data = data,
+      ntree = best_row$ntree,
+      mtry = best_row$mtry,
+      mincriterion = best_row$mincriterion,
+      fraction = best_row$fraction,
+      ...
+    )
+    return(best_model)
+  }
 }
 
 
-## test tuner
+# Define parameter grid
+param_grid <- expand.grid(
+  ntree = c(100),
+  mtry = c(2),
+  mincriterion = c(0),
+  fraction = c(0.632)
+)
 
+# Return CV results only
 res_cforest <- tune_cforest(
   formula = Surv(time, status) ~ age + celltype + karno,
   data = veteran,
   times = c(100, 200, 300),
-  param_grid = expand.grid(
-    ntree = c(100, 300),
-    mtry = c(2, 3),
-    mincriterion = c(0, 0.95),
-    fraction = c(0.5, 0.632)
-  ),
+  param_grid = param_grid,
   metrics = c("cindex", "ibs"),
-  folds = 3
+  folds = 3,
+  refit_best = FALSE
 )
 
 print(res_cforest)
 
-
-### extract best row
-best_row <- res_cforest |>
-  arrange(desc(cindex)) |>  # or arrange(ibs) if optimizing for IBS
-  slice(1)
-best_row
-
-
-### re-fit the final model
-final_model_cforest <- fit_cforest(
+# Return best fitted model directly (mlsurv_model)
+mod_cforest <- tune_cforest(
   formula = Surv(time, status) ~ age + celltype + karno,
   data = veteran,
-  ntree = best_row$ntree,
-  mtry = best_row$mtry,
-  mincriterion = best_row$mincriterion,
-  fraction = best_row$fraction
+  times = c(100, 200, 300),
+  param_grid = param_grid,
+  metrics = c("cindex", "ibs"),
+  folds = 3,
+  refit_best = TRUE
 )
 
+summary(mod_cforest)
+predict_cforest(mod_cforest, newdata = veteran[1:5, ], times = c(100, 200, 300))
 
-### evaluate the final model
-evaluate_survlearner(
-  model = final_model_cforest,
-  metrics = c("cindex", "ibs", "iae", "ise"),
-  times = c(100, 200, 300)
-)
 
-## should be silent
+
