@@ -91,23 +91,23 @@ library(survival)
 data(veteran, package = "survival")
 
 # fit a survival model
-mod <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
+mod <- fit_cox(Surv(time, status) ~ age + karno + celltype, data = veteran)
 
 # Compute ALE for continuous feature 'age' at multiple time points
 ale_result <- compute_ale(
   model = mod,
-  predict_function = predict_ranger,
+  predict_function = predict_cox,
   newdata = veteran,
   feature = "age",
   times = c(100, 200, 300)
 )
 
 # plot per-time ALE
-#plot_ale(ale_result, feature = "age", which = "per_time")
+plot_ale(ale_result, feature = "age", which = "per_time")
 
 # plot integrated ALE with smoothing
-#plot_ale(ale_result, feature = "age", which = "integrated", smooth = TRUE)
+plot_ale(ale_result, feature = "age", which = "integrated", smooth = TRUE)
 
 # attempting ALE on a categorical feature (should error)
-#try({compute_ale(mod, predict_ranger, veteran, feature = "celltype", times = 100)})
+try({compute_ale(mod, predict_ranger, veteran, feature = "celltype", times = 100)})
 
