@@ -1,4 +1,3 @@
-library(data.table)
 fit_bart <- function(formula, data, K = 3, ...) {
   stopifnot(requireNamespace("BART", quietly = TRUE))
 
@@ -10,17 +9,20 @@ fit_bart <- function(formula, data, K = 3, ...) {
 
   time_vec   <- y[, "time"]
   status_vec <- y[, "status"]
+  x <- model.matrix(formula, data = mf)[, -1, drop = FALSE]
 
-  x <- model.matrix(formula, data = mf)[, -1, drop = FALSE]  # drop intercept
-
-  ## need to update re-implment the new version of this algorithm
-  bart_fit <- BART::surv.bart(
-    x.train = x,
-    times = time_vec,
-    delta = status_vec,
-    K = K,
-    printevery = 10000, # or Inf
-    ...
+  # silence verbose output
+  invisible(
+    capture.output({
+      bart_fit <- BART::surv.bart(
+        x.train = x,
+        times = time_vec,
+        delta = status_vec,
+        K = K,
+        printevery = Inf,  # optional
+        ...
+      )
+    })
   )
 
   structure(
@@ -35,7 +37,6 @@ fit_bart <- function(formula, data, K = 3, ...) {
     engine = "bart"
   )
 }
-
 
 predict_bart <- function(object, newdata, times, ...) {
   if (object$learner != "bart") {
@@ -53,15 +54,17 @@ predict_bart <- function(object, newdata, times, ...) {
     newx[rep(seq_len(nrow(newx)), each = K), ]
   )
 
-  pred <- predict(object$model, newdata = newx_expanded)$surv.test.mean
-  prob_matrix <- matrix(pred, nrow = nrow(newx), ncol = K, byrow = TRUE)
+  # silently run prediction (suppresses C++ output)
+  invisible(capture.output(
+    pred_values <- predict(object$model, newdata = newx_expanded)$surv.test.mean
+  ))
+
+  prob_matrix <- matrix(pred_values, nrow = nrow(newx), ncol = K, byrow = TRUE)
 
   # align internal BART times to requested times via nearest neighbor match
   mapped_times <- sapply(times, function(t) which.min(abs(object$eval_times - t)))
-  closest_times <- object$eval_times[mapped_times]
   result <- prob_matrix[, mapped_times, drop = FALSE]
-  colnames(result) <- paste0("t=", times)  # preserve user intent
-
+  colnames(result) <- paste0("t=", times)
   rownames(result) <- paste0("ID_", seq_len(nrow(newx)))
 
   return(as.data.frame(result))
@@ -72,17 +75,17 @@ predict_bart <- function(object, newdata, times, ...) {
 library(survival)
 library(BART)
 
-# Simulated example dataset
+# simulated example dataset
 data(veteran)
 veteran2 <- veteran
 names(veteran2)[names(veteran2) == "time"] <- "Time"
 names(veteran2)[names(veteran2) == "status"] <- "Event"
 
-# Fit and CV
+# fit and CV
 mod_bart <- fit_bart(Surv(Time, Event) ~ age + karno + celltype, data = veteran2)
 
-
-
+pred_bart <- predict_bart(mod_bart, newdata = veteran2[1:5, ], times = c(10, 30, 60))
+print(round(pred_bart, 3))
 
 
 cv_results_bart <- cv_survlearner(
@@ -95,6 +98,14 @@ cv_results_bart <- cv_survlearner(
   folds = 5,
   seed = 42
 )
+
+# summary and plot
+print(cv_results_bart)
+
+
+
+
+
 
 # Summary and plot
 print(cv_results_bart)
