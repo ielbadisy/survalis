@@ -1,4 +1,3 @@
-
 compute_varimp <- function(model, times,
                            metric = "ibs",
                            n_repetitions = 10,
@@ -7,14 +6,24 @@ compute_varimp <- function(model, times,
                            importance_type = c("mean", "delta")) {
   importance_type <- match.arg(importance_type)
 
-  if (!inherits(model, "list") || is.null(model$data)) stop("Model must include training data.")
-  if (!("engine" %in% names(attributes(model)))) stop("Model must have 'engine' attribute.")
+  if (!is.list(model)) stop("Model must be a list-like object.")
 
-  data <- model$data
+  # Try to retrieve training data robustly
+  data <- NULL
+  if (!is.null(model$data)) {
+    data <- model$data
+  } else if (!is.null(model$fit) && !is.null(model$fit$data)) {
+    data <- model$fit$data
+  } else {
+    stop("Model must include training data (e.g., model$data or model$fit$data).")
+  }
+
+  engine <- attr(model, "engine")
+  if (is.null(engine)) stop("Model must have 'engine' attribute.")
+  pred_fun <- get(paste0("predict_", engine))
   formula <- model$formula
-  pred_fun <- get(paste0("predict_", attr(model, "engine")))
 
-  # subsampling if requested
+  # Optional subsampling
   if (!is.null(subset)) {
     if (!is.numeric(subset) || subset < 10 || subset >= nrow(data)) {
       stop("subset must be a number between 10 and nrow(data)-1")
@@ -23,7 +32,7 @@ compute_varimp <- function(model, times,
     data <- data[sample(seq_len(nrow(data)), subset), , drop = FALSE]
   }
 
-  # extract outcome
+  # Parse formula to extract time and status
   tf <- terms(formula, data = data)
   outcome <- attr(tf, "variables")[[2]]
   time_col <- as.character(outcome[[2]])
@@ -40,11 +49,11 @@ compute_varimp <- function(model, times,
 
   surv_obj <- survival::Surv(time = data[[time_col]], event = status_vector)
 
-  # base score
+  # Baseline metric
   sp_base <- pred_fun(model, newdata = data, times = times)
   original_loss <- evaluate_survmodel(surv_obj, sp_base, times = times, metrics = metric)[[1]]
 
-  # variables
+  # Compute permutation scores
   exclude_vars <- c(time_col, status_col)
   covariates <- setdiff(names(data), exclude_vars)
   if (!is.null(seed)) set.seed(seed)
@@ -57,11 +66,9 @@ compute_varimp <- function(model, times,
       evaluate_survmodel(surv_obj, sp_perm, times = times, metrics = metric)[[1]]
     })
 
-    # importance
     imp <- switch(importance_type,
                   "mean" = mean(scores),
-                  "delta" = mean(scores - original_loss)
-    )
+                  "delta" = mean(scores - original_loss))
 
     imp_05 <- quantile(scores, 0.05)
     imp_95 <- quantile(scores, 0.95)
@@ -76,16 +83,13 @@ compute_varimp <- function(model, times,
 
   result <- dplyr::bind_rows(results)
 
-  # scaled version
   result$scaled_importance <- switch(importance_type,
                                      "mean" = 100 * (result$importance - original_loss) / original_loss,
                                      "delta" = 100 * abs(result$importance) / max(abs(result$importance), na.rm = TRUE)
   )
 
-  result <- result |> dplyr::arrange(desc(scaled_importance))
-  return(result)
+  dplyr::arrange(result, desc(scaled_importance))
 }
-
 
 
 plot_varimp <- function(varimp_df, use_scaled = TRUE) {
@@ -99,7 +103,6 @@ plot_varimp <- function(varimp_df, use_scaled = TRUE) {
   p <- ggplot2::ggplot(varimp_df, ggplot2::aes(y = reorder(feature, !!sym(aes_x)), x = !!sym(aes_x))) +
     ggplot2::geom_point(size = 3)
 
-  # add error bars only for unscaled display
   if (!use_scaled) {
     p <- p + ggplot2::geom_errorbar(ggplot2::aes(xmin = importance_05, xmax = importance_95), width = 0.3)
   }
@@ -115,14 +118,11 @@ plot_varimp <- function(varimp_df, use_scaled = TRUE) {
 
 
 imp <- compute_varimp(
-  model = mod,
+  model = mod_bart,
   times = c(1, 3, 5),
   metric = "ibs",
   n_repetitions = 5,
-  importance_type = "mean"  # or "delta"
+  importance_type = "mean"
 )
 
 plot_varimp(imp, use_scaled = TRUE)
-
-## more notes for discussion can be found here: https://koalaverse.github.io/vip/articles/vip.html
-
