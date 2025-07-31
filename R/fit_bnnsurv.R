@@ -69,72 +69,30 @@ print(round(pred_bnnsurv, 3))
 
 #-------- add tuner()
 
-#' Tune bnnSurvival learner
-#'
-#' @param formula Survival formula (e.g., Surv(time, status) ~ x1 + x2)
-#' @param data Training dataset
-#' @param times Time points at which to evaluate predictions
-#' @param param_grid A data.frame of hyperparameter combinations
-#' @param metrics Metrics to evaluate (e.g., "cindex", "ibs")
-#' @param folds Number of CV folds
-#' @param seed Random seed
-#' @param ... Additional args passed to fit_bnnsurv()
-#'
-#' @return Tibble summarizing average performance per parameter setting
-#' @export
-tune_bnnsurv <- function(formula, data, times,
-                         param_grid = expand.grid(
-                           k = c(2, 5),
-                           num_base_learners = c(30, 50),
-                           sample_fraction = c(0.5, 1)
-                         ),
-                         metrics = c("cindex", "ibs"),
-                         folds = 5,
-                         seed = 123, ...) {
+param_grid = expand.grid(
+  k = c(2),
+  num_base_learners = c(30),
+  sample_fraction = c(0.5, 1)
+)
 
-  purrr::pmap_dfr(param_grid, function(k, num_base_learners, sample_fraction) {
-    cv_results <- cv_survlearner(
-      formula = formula,
-      data = data,
-      fit_fun = fit_bnnsurv,
-      pred_fun = predict_bnnsurv,
-      times = times,
-      metrics = metrics,
-      folds = folds,
-      seed = seed,
-      k = k,
-      num_base_learners = num_base_learners,
-      sample_fraction = sample_fraction,
-      ...
-    )
-
-    summary <- cv_summary(cv_results)
-
-    tibble::tibble(
-      k = k,
-      num_base_learners = num_base_learners,
-      sample_fraction = sample_fraction
-    ) |>
-      dplyr::bind_cols(
-        tidyr::pivot_wider(summary[, c("metric", "mean")],
-                           names_from = metric, values_from = mean)
-      )
-  }) |> arrange(dplyr::across(any_of(metrics[1])))
-}
-
-
-
+# Return performance table
 res_bnnsurv <- tune_bnnsurv(
   formula = Surv(time, status) ~ age + karno + diagtime + prior,
   data = veteran,
-  times = c(100, 200, 300),
-  param_grid = expand.grid(
-    k = c(2, 20),
-    num_base_learners = c(10, 50),
-    sample_fraction = c(0.25, 0.5, 0.75)
-  ),
-  folds = 3,
-  metrics = c("cindex", "ibs")
+  times = c(100, 200),
+  param_grid = param_grid,
+  refit_best = FALSE
+)
+print(res_bnnsurv)
+
+# Return best model (mlsurv_model class)
+mod_bnnsurv <- tune_bnnsurv(
+  formula = Surv(time, status) ~ age + karno + diagtime + prior,
+  data = veteran,
+  times = c(100, 200),
+  param_grid = param_grid,
+  refit_best = TRUE
 )
 
-print(res_bnnsurv)
+summary(mod_bnnsurv)
+predict_bnnsurv(mod_bnnsurv, newdata = veteran[1:5, ], times = c(100, 200))
