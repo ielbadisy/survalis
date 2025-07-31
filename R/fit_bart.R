@@ -102,32 +102,12 @@ cv_results_bart <- cv_survlearner(
 # summary and plot
 print(cv_results_bart)
 
-
-
-
-
-
 # Summary and plot
 print(cv_results_bart)
 cv_summary(cv_results_bart)
 cv_plot(cv_results_bart)
 
 #---------------------- add tuner
-
-
-#' Tune Bayesian Additive Regression Trees for Survival (BART)
-#'
-#' @param formula A survival formula
-#' @param data A data.frame
-#' @param times Time points to evaluate survival probabilities
-#' @param param_grid A data.frame of tuning grid (K, ntree, etc.)
-#' @param metrics Vector of evaluation metrics (e.g., "cindex", "ibs")
-#' @param folds Number of CV folds
-#' @param seed Seed for reproducibility
-#' @param ... Extra arguments passed to `fit_bart()`
-#'
-#' @return A tibble with average performance across CV folds
-#' @export
 tune_bart <- function(formula, data, times,
                       param_grid = expand.grid(
                         K = c(3, 5),
@@ -136,10 +116,10 @@ tune_bart <- function(formula, data, times,
                         base = c(0.75, 0.95)
                       ),
                       metrics = c("cindex", "ibs"),
-                      folds = 5, seed = 123, ...) {
+                      folds = 5, seed = 123,
+                      refit_best = FALSE, ...) {
 
-  purrr::pmap_dfr(param_grid, function(K, ntree, power, base) {
-
+  results <- purrr::pmap_dfr(param_grid, function(K, ntree, power, base) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -149,39 +129,69 @@ tune_bart <- function(formula, data, times,
       metrics = metrics,
       folds = folds,
       seed = seed,
-      K = K,
-      ntree = ntree,
-      power = power,
-      base = base,
+      K = K, ntree = ntree, power = power, base = base,
       ...
     )
 
     summary <- cv_summary(cv_results)
 
     tibble::tibble(K = K, ntree = ntree, power = power, base = base) |>
-      bind_cols(
+      dplyr::bind_cols(
         tidyr::pivot_wider(summary[, c("metric", "mean")],
                            names_from = metric,
                            values_from = mean)
       )
-  }) |> arrange(dplyr::across(any_of(metrics[1])))
+  })
+
+  results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
+
+  if (!refit_best) {
+    class(results) <- c("tuned_surv", class(results))
+    attr(results, "metrics") <- metrics
+    attr(results, "formula") <- formula
+    return(results)
+  } else {
+    best_row <- results[1, ]
+    best_model <- fit_bart(
+      formula = formula,
+      data = data,
+      K = best_row$K,
+      ntree = best_row$ntree,
+      power = best_row$power,
+      base = best_row$base,
+      ...
+    )
+    return(best_model)  # clean mlsurv_model
+  }
 }
 
 
-
-res_bart <- tune_bart(
-  formula = Surv(Time, Event) ~ age + karno + celltype,
-  data = veteran2,
-  times = c(10, 60),
-  param_grid = expand.grid(
-    K = c(5, 10),
-    ntree = c(10),
-    power = c(3),
-    base = c(0.95)
-  ),
-  folds = 3,
-  metrics = c("cindex", "ibs")
+param_grid = expand.grid(
+  K = c(3),
+  ntree = c(50),
+  power = c(2),
+  base = c(0.75, 0.95)
 )
 
-print(res_bart)
+res <- tune_bart(
+  formula = Surv(Time, Event) ~ age + karno + celltype,
+  data = veteran2,
+  param_grid = param_grid,
+  times = c(10, 60),
+  refit_best = FALSE
+)
 
+print(res)
+
+
+
+mod <- tune_bart(
+  formula = Surv(Time, Event) ~ age + karno + celltype,
+  data = veteran2,
+  param_grid = param_grid,
+  times = c(10, 60),
+  refit_best = TRUE
+)
+
+summary(mod)
+predict_bart(mod, newdata = veteran2[1:5, ], times = c(30, 60))
