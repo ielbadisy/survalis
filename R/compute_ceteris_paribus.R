@@ -60,8 +60,8 @@ plot_ceteris_paribus <- function(cp_data, feature, alpha = 0.4, facet = FALSE) {
 subset_rows <- veteran[1:200, ]
 
 cp_result <- compute_ceteris_paribus(
-  model = mod_ranger,
-  predict_function = predict_ranger,
+  model = mod_cox,
+  predict_function = predict_cox,
   data = veteran,
   instances = subset_rows,
   feature = "age",
