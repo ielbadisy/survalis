@@ -1,12 +1,4 @@
-#' Fit a flexible parametric survival model using rstpm2
-#'
-#' @param formula A survival formula (e.g., Surv(time, status) ~ x1 + x2)
-#' @param data A data.frame with variables
-#' @param df Degrees of freedom for spline basis (default = 3)
-#' @param ... Additional arguments passed to rstpm2::stpm2
-#'
-#' @return An object of class 'mlsurv_model'
-#' @export
+
 fit_rstpm2 <- function(formula, data, df = 3, ...) {
   stopifnot(requireNamespace("rstpm2", quietly = TRUE))
 
