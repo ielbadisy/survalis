@@ -47,6 +47,7 @@ predict_rfsrc <- function(object, newdata, times = NULL, ...) {
 }
 
 
+
 library(survival)
 library(randomForestSRC)
 
@@ -61,19 +62,6 @@ print(round(pred_probs, 3))
 
 #------------- add tuner
 
-#' Tune Random Survival Forest (rfsrc) learner
-#'
-#' @param formula Survival formula
-#' @param data Training data
-#' @param times Time points to evaluate survival probability
-#' @param param_grid A data.frame with tuning values for ntree, mtry, nodesize
-#' @param metrics Evaluation metrics (e.g., "cindex", "ibs")
-#' @param folds Number of CV folds
-#' @param seed Random seed
-#' @param ... Additional arguments passed to fit_rfsrc
-#'
-#' @return A tibble of average performance for each hyperparameter setting
-#' @export
 tune_rfsrc <- function(formula, data, times,
                        param_grid = expand.grid(
                          ntree = c(200, 500),
@@ -83,9 +71,9 @@ tune_rfsrc <- function(formula, data, times,
                        metrics = c("cindex", "ibs"),
                        folds = 5,
                        seed = 123,
+                       refit_best = TRUE,
                        ...) {
-
-  purrr::pmap_dfr(param_grid, function(ntree, mtry, nodesize) {
+  res <- purrr::pmap_dfr(param_grid, function(ntree, mtry, nodesize) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -112,24 +100,41 @@ tune_rfsrc <- function(formula, data, times,
         tidyr::pivot_wider(summary[, c("metric", "mean")],
                            names_from = metric, values_from = mean)
       )
-  }) |> dplyr::arrange(dplyr::across(any_of(metrics[1])))
+  })
+
+  res <- dplyr::arrange(res, dplyr::desc(!!sym(metrics[1])))
+
+  if (refit_best) {
+    best_params <- res[1, ]
+    model <- fit_rfsrc(
+      formula = formula,
+      data = tidyr::drop_na(data, all.vars(formula)),
+      ntree = best_params$ntree,
+      mtry = best_params$mtry,
+      nodesize = best_params$nodesize,
+      ...
+    )
+    attr(model, "tuning_results") <- res
+    class(model) <- c("tune_surv", class(model))
+    return(model)
+  }
+
+  return(res)
 }
 
-res_rfsrc <- tune_rfsrc(
+
+mod_rfsrc_best <- tune_rfsrc(
   formula = Surv(time, status) ~ age + celltype + karno,
   data = veteran,
-  expand.grid(
+  times = c(100, 200, 300),
+  param_grid = expand.grid(
     ntree = c(200, 500),
     mtry = c(1, 2, 3),
-    nodesize = c(5, 20)
+    nodesize = c(5, 15)
   ),
-  times = c(100, 200, 300),
   metrics = c("cindex", "ibs"),
-  folds = 3
+  folds = 3,
+  refit_best = TRUE
 )
 
-best_rfsrc <- res_rfsrc |>
-  dplyr::arrange(dplyr::desc(cindex)) |>
-  dplyr::slice(1)
-
-print(best_rfsrc)
+summary(mod_rfsrc_best)
