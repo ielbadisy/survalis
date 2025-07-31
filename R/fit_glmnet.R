@@ -65,25 +65,17 @@ print(round(pred_probs, 3))
 
 #--------- add tuner
 
-#' Tune glmnet Cox model over alpha
-#'
-#' @param formula A survival formula (e.g., Surv(time, status) ~ x1 + x2)
-#' @param data A data.frame
-#' @param times Vector of time points for evaluation
-#' @param param_grid A data.frame with values of alpha (default = 0 to 1)
-#' @param metrics Vector of metrics (e.g., "cindex", "ibs")
-#' @param folds Number of CV folds
-#' @param seed Random seed for reproducibility
-#' @param ... Additional arguments passed to fit_glmnet
-#' @return A tibble with average metric scores per alpha
-#' @export
 tune_glmnet <- function(formula, data, times,
-                        param_grid = expand.grid(alpha = seq(0, 1, by = 0.25)),
+                        param_grid = c(alpha = seq(0, 1, by = 0.25)),
                         metrics = c("cindex", "ibs"),
                         folds = 5,
-                        seed = 123, ...) {
+                        seed = 123,
+                        refit_best = FALSE,
+                        ...) {
 
-  purrr::pmap_dfr(param_grid, function(alpha) {
+  grid_df <- tidyr::crossing(!!!param_grid)
+
+  results <- purrr::pmap_dfr(grid_df, function(alpha) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -100,21 +92,53 @@ tune_glmnet <- function(formula, data, times,
     summary <- cv_summary(cv_results)
     tibble::tibble(alpha = alpha) |>
       dplyr::bind_cols(
-        tidyr::pivot_wider(summary[, c("metric", "mean")],
-                           names_from = metric, values_from = mean)
+        tidyr::pivot_wider(
+          summary[, c("metric", "mean")],
+          names_from = metric,
+          values_from = mean
+        )
       )
-  }) |> arrange(dplyr::across(any_of(metrics[1])))
+  })
+
+  results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
+
+  if (!refit_best) {
+    class(results) <- c("tuned_surv", class(results))
+    attr(results, "metrics") <- metrics
+    attr(results, "formula") <- formula
+    return(results)
+  } else {
+    best_row <- results[1, ]
+    best_model <- fit_glmnet(
+      formula = formula,
+      data = data,
+      alpha = best_row$alpha,
+      ...
+    )
+    return(best_model)
+  }
 }
 
 
+param_grid = expand.grid(alpha = seq(0, 1, by = 0.25))
 
-
-
+# Grid and evaluation without refitting
 res_glmnet <- tune_glmnet(
   formula = Surv(time, status) ~ age + karno + celltype,
-  param_grid = expand.grid(alpha = seq(0, 5, by = 0.25)),
   data = veteran,
   times = c(100, 200, 300),
+  param_grid = param_grid,
   metrics = c("cindex", "ibs"),
-  folds = 5
+  folds = 3
 )
+print(res_glmnet)
+
+# Refit best model directly
+mod_glmnet_best <- tune_glmnet(
+  formula = Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  times = c(100, 200, 300),
+  param_grid = param_grid,
+  refit_best = TRUE
+)
+summary(mod_glmnet_best)
