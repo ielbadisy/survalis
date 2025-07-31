@@ -5,6 +5,7 @@ cv_survlearner <- function(formula, data,
                            metrics = c("cindex", "ibs"),
                            folds = 5,
                            seed = 123,
+                           verbose = TRUE,
                            ...) {
 
   # warn if '.' is used in formul
@@ -43,7 +44,7 @@ cv_survlearner <- function(formula, data,
 
 
   ## not sure to keep it here, it is informative but it depend on the workload
-  if (n_after < n_before) {
+  if (verbose && n_after < n_before) {
     message("Dropped ", n_before - n_after, " rows with missing values (from ", n_before, " to ", n_after, ").")
   }
 
