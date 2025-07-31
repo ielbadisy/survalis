@@ -1,5 +1,4 @@
 # compute Interaction Effects in Survival Models
-
 compute_interactions <- function(model, predict_function, data, times,
                                  target_time = NULL,
                                  features = NULL,

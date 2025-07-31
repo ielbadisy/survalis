@@ -102,6 +102,30 @@ compute_surrogate <- function(model, predict_function, newdata, baseline_data,
   result
 }
 
+plot_surrogate <- function(surrogate_df, top_n = NULL) {
+  library(ggplot2)
+
+  df <- surrogate_df
+  if (!is.null(top_n)) {
+    df <- df[seq_len(min(top_n, nrow(df))), ]
+  }
+
+  df$feature_label <- paste0(df$feature, " = ", df$feature_value)
+  df$sign <- ifelse(df$effect >= 0, "Positive", "Negative")
+
+  ggplot(df, aes(x = reorder(feature_label, abs(effect)), y = effect, fill = sign)) +
+    geom_col(width = 0.6) +
+    coord_flip() +
+    labs(
+      x = NULL,
+      y = "Local Effect (β * x)",
+      title = "Surrogate Explanation at Target Time"
+    ) +
+    scale_fill_manual(values = c("Positive" = "#4CAF50", "Negative" = "#F44336")) +
+    theme_minimal() +
+    theme(legend.position = "none")
+}
+
 
 local_model_result <- compute_surrogate(
   model = mod_ranger,
@@ -118,4 +142,4 @@ local_model_result <- compute_surrogate(
 
 
 plot_surrogate(local_model_result)
-plot_surrogate(local_model_result, top_n = 2)
+plot_surrogate(local_model_result, top_n = 3)

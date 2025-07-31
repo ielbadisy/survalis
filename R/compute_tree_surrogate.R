@@ -97,9 +97,3 @@ mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = vet
 tree_ranger <- compute_tree_surrogate(mod_ranger, predict_ranger, data = veteran, times = c(100, 200, 300))
 plot_tree_surrogate(tree_ranger, type = "tree")
 plot_tree_surrogate(tree_ranger, type = "importance")
-
-# coxaalen test
-mod_coxaalen <- fit_coxaalen(Surv(time, status == 9) ~ age + sex + vf + chf + diabetes, data = sTRACE)
-tree_coxaalen <- compute_tree_surrogate(mod_coxaalen, predict_coxaalen, data = sTRACE, times = c(4, 6, 8))
-plot_tree_surrogate(tree_coxaalen, type = "tree")
-plot_tree_surrogate(tree_coxaalen, type = "importance")
