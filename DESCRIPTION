@@ -1,15 +1,17 @@
 Package: survalis
 Type: Package
-Title: Interpretable Machine Learning Methods for Survival Analysis
+Title: Interpretable and Causal Machine Learning Methods for Survival Analysis
 Version: 0.5.0
 Author: Imad El Badisy [aut, cre]
-Maintainer: Imad El Badisy <imad.elbadisy@protonmail.com>
-Description: A modular toolkit for interpretable survival machine learning. 
-    Provides model-agnostic methods such as SHAP, PDP, ALE, surrogate models,
-    and counterfactual explanations for any compatible survival learner.
-    Also supports estimation of conditional treatment effects and causal 
-    interpretation in survival settings. Fully compatible with custom survival
-    learners returning survival probability matrices over time.
+Maintainer: Imad El Badisy <elbadisyimad@gmail.com>
+Description: A modular toolkit for interpretable and causal survival machine learning. 
+    Includes many built-in learners (e.g., statistical models, tree-based models, deep leanring models) and supports 
+    user-defined models that return time-indexed survival 
+    probability matrices. Provides model-agnostic interpretability methods such as SHAP, 
+    PDP, ALE, surrogate models, feature importance, and counterfactual explanations. 
+    Also enables causal survival inference including average treatment effects, RMST, 
+    and conditional treatment effects (CATE) with visualization tools. Designed to integrate 
+    seamlessly via a unified fit and predict interface.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
