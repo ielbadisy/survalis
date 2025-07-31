@@ -1,6 +1,6 @@
 
 compute_calibration <- function(model, predict_function, data, time, status,
-                                     eval_time, n_bins = 10, n_boot = 100, seed = 123) {
+                                eval_time, n_bins = 10, n_boot = 100, seed = 123) {
   library(dplyr)
   library(survival)
 
@@ -75,7 +75,7 @@ compute_calibration <- function(model, predict_function, data, time, status,
 }
 
 
-plot_calibration_surv <- function(calib_output, smooth = TRUE) {
+plot_calibration <- function(calib_output, smooth = TRUE) {
   library(ggplot2)
   ct <- calib_output$calibration_table
   etime <- calib_output$eval_time
@@ -103,9 +103,9 @@ plot_calibration_surv <- function(calib_output, smooth = TRUE) {
 }
 
 
-calib_result <- compute_calibration_surv(
-  model = mod_ranger,
-  predict_function = predict_ranger,
+calib_result <- compute_calibration(
+  model = mod_cox,
+  predict_function = predict_cox,
   data = veteran,
   time = "time",
   status = "status",
@@ -114,6 +114,7 @@ calib_result <- compute_calibration_surv(
   n_boot = 30
 )
 
-plot_calibration_surv(calib_result)
+
+plot_calibration(calib_result)
 
 ## may be interesting to think about time varying calibration plot!!!
