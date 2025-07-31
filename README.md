@@ -10,10 +10,10 @@
 * [X] `fit_bart()`, `predict_bart()`, `tune_bart()`
 * [X] `fit_bnnsurv()`, `predict_bnnsurv()`, `tune_bnnsurv()`
 * [X] `fit_cforest()`, `predict_cforest()`, `tune_cforest()`
-* [] `fit_coxaalen()`, `predict_coxaalen()`, `tune_coxaalen()`
-* [] `fit_cox()`, `predict_cox()`, `tune_coxph()`
-* [] `fit_flexsurv()`, `predict_flexsurv()`, `tune_flexsurv()`
-* [] `fit_glmnet()`, `predict_glmnet()`, `tune_glmnet()`
+* [X] `fit_coxaalen()`, `predict_coxaalen()`, `tune_coxaalen()`
+* [X] `fit_cox()`, `predict_cox()`, `tune_coxph()`
+* [X] `fit_flexsurv()`, `predict_flexsurv()`, `tune_flexsurv()`
+* [X] `fit_glmnet()`, `predict_glmnet()`, `tune_glmnet()`
 * [] `fit_mboost()`, `predict_mboost()`, `tune_mboost()`
 * [] `fit_orsf()`, `predict_orsf()`, `tune_orsf()`
 * [] `fit_ranger()`, `predict_ranger()`, `tune_ranger()`
