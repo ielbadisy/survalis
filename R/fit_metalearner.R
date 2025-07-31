@@ -1,7 +1,6 @@
-fit_metalearner_nnls_multi <- function(base_preds, time, status, times,
+fit_metalearner <- function(base_preds, time, status, times,
                                        base_models, formula, data) {
   stopifnot(is.list(base_preds), is.list(base_models), is.data.frame(data))
-
   base_preds <- lapply(base_preds, function(x) {
     if (!is.matrix(x)) as.matrix(x) else x
   })
@@ -33,8 +32,7 @@ fit_metalearner_nnls_multi <- function(base_preds, time, status, times,
     engine = "metalearner_nnls_multi"
   )
 }
-
-predict_metalearner_nnls_multi <- function(model, newdata, times) {
+predict_metalearner <- function(model, newdata, times) {
   stopifnot(inherits(model, "metalearner_nnls_multi"))
 
   learners <- model$learners
@@ -67,7 +65,7 @@ predict_metalearner_nnls_multi <- function(model, newdata, times) {
   as.data.frame(out)
 }
 
-plot_weights <- function(model) {
+plot_metalearner_weights <- function(model) {
   stopifnot(inherits(model, "metalearner_nnls_multi"))
   library(ggplot2); library(tidyr); library(dplyr)
 
@@ -84,16 +82,19 @@ plot_weights <- function(model) {
     theme_minimal(base_size = 14)
 }
 
-times <- c(1, 3, 5)
+times <- c(1, 2, 3, 4, 5, 7)
+
 mod_aareg  <- fit_aareg(Surv(time, status == 9) ~ sex + diabetes + chf + vf, data = sTRACE)
 mod_rpart  <- fit_rpart(Surv(time, status == 9) ~ sex + diabetes + chf + vf, data = sTRACE)
 mod_ranger <- fit_ranger(Surv(time, status == 9) ~ sex + diabetes + chf + vf, data = sTRACE)
+
 base_preds <- list(
   aareg  = predict_aareg(mod_aareg, sTRACE, times),
   rpart  = predict_rpart(mod_rpart, sTRACE, times),
   ranger = predict_ranger(mod_ranger, sTRACE, times)
 )
-meta_model <- fit_metalearner_nnls_multi(
+
+meta_model <- fit_metalearner(
   base_preds, sTRACE$time, sTRACE$status == 9, times,
   base_models = list(aareg = mod_aareg, rpart = mod_rpart, ranger = mod_ranger),
   formula = mod_aareg$formula, data = sTRACE
@@ -107,7 +108,7 @@ eval_all <- list(
 )
 
 do.call(rbind, eval_all)
-plot_weights(meta_model)
+plot_metalearner_weights(meta_model)
 
 
 
@@ -135,7 +136,7 @@ base_models <- list(
   aareg = mod_aareg, rpart = mod_rpart, ranger = mod_ranger, cforest = mod_cforest,
   xgboost = mod_xgboost )
 
-meta_model <- fit_metalearner_nnls_multi(
+meta_model <- fit_metalearner(
   base_preds, sTRACE$time, sTRACE$status == 9, times,
   base_models = base_models,
   formula = formula, data = sTRACE
@@ -147,14 +148,16 @@ eval_all <- lapply(base_models, function(mod) {
 eval_all$meta <- evaluate_survlearner(meta_model, metrics = c("cindex", "ibs", "iae", "ise"), times = times)
 
 do.call(rbind, eval_all)
-plot_weights(meta_model)
+plot_metalearner_weights(meta_model)
 
 eval_all
 
 library(dplyr)
-tibble::tibble(
+library(tidyr)
+library(purrr)
+
+tibble(
   learner = names(eval_all),
-  cindex = lapply(eval_all, `[[`, "cindex")
+  cindex = map_dbl(eval_all, ~ .x$value[.x$metric == "iae"])
 ) %>%
-  tidyr::unnest(cols = cindex) %>%
   arrange(desc(cindex))
