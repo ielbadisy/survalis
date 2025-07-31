@@ -59,13 +59,13 @@ print(round(predicted_surv, 3))
 
 
 #------------ add tuner
-
 tune_flexsurv <- function(formula, data, times,
-                          dist_grid = c("weibull", "exponential", "lognormal"),
+                          param_grid = c("weibull", "exponential", "lognormal"),
                           metrics = c("cindex", "ibs"),
-                          folds = 5, seed = 123, ...) {
+                          folds = 5, seed = 123,
+                          refit_best = FALSE, ...) {
 
-  purrr::map_dfr(dist_grid, function(d) {
+  results <- purrr::map_dfr(param_grid, function(d) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -81,22 +81,61 @@ tune_flexsurv <- function(formula, data, times,
 
     summary <- cv_summary(cv_results)
     tibble::tibble(dist = d) |>
-      bind_cols(tidyr::pivot_wider(summary[, c("metric", "mean")], names_from = metric, values_from = mean))
-  }) |> arrange(dplyr::across(any_of(metrics[1])))
+      dplyr::bind_cols(
+        tidyr::pivot_wider(
+          summary[, c("metric", "mean")],
+          names_from = metric,
+          values_from = mean
+        )
+      )
+  })
+
+  results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
+
+  if (!refit_best) {
+    class(results) <- c("tuned_surv", class(results))
+    attr(results, "metrics") <- metrics
+    attr(results, "formula") <- formula
+    return(results)
+  } else {
+    best_row <- results[1, ]
+    best_model <- fit_flexsurv(
+      formula = formula,
+      data = data,
+      dist = best_row$dist,
+      ...
+    )
+    return(best_model)  # will be of class mlsurv_model
+  }
 }
 
 
 library(survival)
 data(veteran, package = "survival")
 
-res_flex <- tune_flexsurv(
+
+param_grid = c("weibull", "exponential", "lognormal")
+
+
+# Get best dist only
+res <- tune_flexsurv(
   formula = Surv(time, status) ~ age + karno + celltype,
   data = veteran,
+  param_grid = param_grid,
   times = c(100, 200, 300),
-  dist_grid = c("weibull", "exponential", "lognormal"),
-  metrics = c("cindex", "ibs"),
-  folds = 3  # for speed
+  refit_best = FALSE
 )
 
-print(res_flex)
+print(res)
 
+# Fit and get best model (ready for predict(), summary())
+mod <- tune_flexsurv(
+  formula = Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  param_grid = param_grid,
+  times = c(100, 200, 300),
+  refit_best = TRUE
+)
+
+summary(mod)
+predict_flexsurv(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
