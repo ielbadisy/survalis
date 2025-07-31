@@ -136,19 +136,7 @@ print(cv_results_mboost)
 
 #----------- add tuner
 
-#' Tune mboost CoxPH learner
-#'
-#' @param formula Survival formula
-#' @param data Training data
-#' @param times Time points to evaluate survival probability
-#' @param param_grid A data.frame of tuning parameters (mstop, nu, maxdepth, etc.)
-#' @param metrics Evaluation metrics (e.g., "cindex", "ibs")
-#' @param folds Number of CV folds
-#' @param seed Random seed
-#' @param ... Additional arguments passed to fit_mboost()
-#'
-#' @return A tibble of performance scores per hyperparameter combination
-#' @export
+
 tune_mboost <- function(formula, data, times,
                         param_grid = expand.grid(
                           mstop = c(50, 100, 200),
@@ -157,10 +145,11 @@ tune_mboost <- function(formula, data, times,
                         ),
                         metrics = c("cindex", "ibs"),
                         folds = 5,
-                        seed = 123, ...) {
+                        seed = 123,
+                        refit_best = FALSE,
+                        ...) {
 
-  purrr::pmap_dfr(param_grid, function(mstop, nu, maxdepth) {
-    # Cross-validated performance
+  results <- purrr::pmap_dfr(param_grid, function(mstop, nu, maxdepth) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -176,7 +165,6 @@ tune_mboost <- function(formula, data, times,
       ...
     )
 
-    # Summarize and return with parameter tags
     summary <- cv_summary(cv_results)
 
     tibble::tibble(
@@ -188,21 +176,57 @@ tune_mboost <- function(formula, data, times,
         tidyr::pivot_wider(summary[, c("metric", "mean")],
                            names_from = metric, values_from = mean)
       )
-  }) |> dplyr::arrange(dplyr::across(any_of(metrics[1])))
+  })
+
+  results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
+
+  if (!refit_best) {
+    class(results) <- c("tuned_surv", class(results))
+    attr(results, "metrics") <- metrics
+    attr(results, "formula") <- formula
+    return(results)
+  } else {
+    best_row <- results[1, ]
+    best_model <- fit_mboost(
+      formula = formula,
+      data = data,
+      mstop = best_row$mstop,
+      nu = best_row$nu,
+      maxdepth = best_row$maxdepth,
+      ...
+    )
+    return(best_model)
+  }
 }
 
-
+# Grid search only
 res_mboost <- tune_mboost(
   formula = Surv(time, status) ~ age + karno + celltype,
   data = veteran,
-  param_grid = expand.grid(
-    mstop = c(100, 1000),
-    nu = c(0.05, 0.1),
-    maxdepth = c(2, 9)
-  ),
   times = c(5, 10, 40),
+  param_grid = expand.grid(
+    mstop = c(100, 200),
+    nu = c(0.05, 0.1),
+    maxdepth = c(2, 3)
+  ),
   metrics = c("cindex", "ibs"),
   folds = 3
 )
-
 print(res_mboost)
+
+# Refit best model
+mod_mboost_best <- tune_mboost(
+  formula = Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  times = c(5, 10, 40),
+  param_grid = expand.grid(
+    mstop = c(100, 200),
+    nu = c(0.05, 0.1),
+    maxdepth = c(2, 3)
+  ),
+  metrics = c("cindex", "ibs"),
+  folds = 3,
+  refit_best = TRUE
+)
+summary(mod_mboost_best)
+
