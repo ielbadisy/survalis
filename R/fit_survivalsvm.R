@@ -87,4 +87,113 @@ cv_plot(cv_results_svm)
 
 #------- add tuner
 
-## NOT TUNABLE
+tune_survivalsvm <- function(formula, data, times,
+                             metrics = "cindex",
+                             param_grid,
+                             folds = 5, seed = 42,
+                             refit_best = FALSE,
+                             dist = "exp", shape = 1) {
+  stopifnot(is.list(param_grid))
+  param_df <- tidyr::crossing(!!!param_grid)
+
+  # Fixed safe defaults
+  fixed_type <- "regression"
+  fixed_opt_meth <- "quadprog"
+  fixed_diff_meth <- NULL
+
+  results <- purrr::pmap_dfr(param_df, function(gamma.mu, kernel) {
+    set.seed(seed)
+    tryCatch({
+      res_cv <- cv_survlearner(
+        formula = formula,
+        data = data,
+        fit_fun = fit_survivalsvm,
+        pred_fun = function(...) predict_survivalsvm(..., dist = dist, shape = shape),
+        times = times,
+        metrics = metrics,
+        folds = folds,
+        seed = seed,
+        gamma.mu = gamma.mu,
+        kernel = kernel,
+        type = fixed_type,
+        opt.meth = fixed_opt_meth,
+        diff.meth = fixed_diff_meth
+      )
+
+      summary <- cv_summary(res_cv)
+
+      tibble::tibble(
+        gamma.mu = gamma.mu,
+        kernel = kernel
+      ) |>
+        dplyr::bind_cols(
+          tidyr::pivot_wider(summary[, c("metric", "mean")],
+                             names_from = metric, values_from = mean)
+        )
+    }, error = function(e) {
+      message(glue::glue("Skipping (gamma.mu={gamma.mu}, kernel={kernel}): {e$message}"))
+      NULL
+    })
+  })
+
+  if (nrow(results) == 0) {
+    warning("All tuning combinations failed.")
+    return(NULL)
+  }
+
+  results <- dplyr::arrange(results, dplyr::desc(.data[[metrics[1]]]))
+
+  if (refit_best) {
+    best <- results[1, ]
+    model <- fit_survivalsvm(
+      formula = formula,
+      data = data,
+      gamma.mu = best$gamma.mu,
+      kernel = best$kernel,
+      type = fixed_type,
+      opt.meth = fixed_opt_meth,
+      diff.meth = fixed_diff_meth
+    )
+    attr(model, "tuning_results") <- results
+    class(model) <- c("tune_surv", class(model))
+    return(model)
+  }
+
+  class(results) <- c("tune_surv", class(results))
+  return(results)
+}
+
+
+
+
+grid <- list(
+  gamma.mu = c(0.01, 0.1),
+  kernel = c("lin_kernel", "add_kernel")
+)
+
+
+res_svm <- tune_survivalsvm(
+  formula = Surv(time, status) ~ age + celltype + karno,
+  data = veteran,
+  times = c(100, 300, 500),
+  metrics = c("cindex", "ibs"),
+  param_grid = grid,
+  folds = 3,
+  refit_best = TRUE
+)
+
+summary(res_svm)
+
+
+
+res_svm <- tune_survivalsvm(
+  formula = Surv(time, status) ~ age + celltype + karno,
+  data = veteran,
+  times = c(100, 300, 500),
+  metrics = c("cindex", "ibs"),
+  param_grid = grid,
+  folds = 3,
+  refit_best = FALSE
+)
+
+res_svm
