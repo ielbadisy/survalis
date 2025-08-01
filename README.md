@@ -53,6 +53,11 @@
 
 
 
+- `survivalsvm`
+
+
+
+
 
 
 ## `{survalis}` learners summary table 
