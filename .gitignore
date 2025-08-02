@@ -13,3 +13,7 @@
 .Rhistory
 .RData
 .Ruserdata
+*.swp
+*.save
+.Rcheck/
+*.tar.gz
