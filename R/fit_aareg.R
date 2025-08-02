@@ -54,6 +54,7 @@ predict_aareg <- function(object, newdata, times, ...) {
 
   surv_probs <- pout$S0
   colnames(surv_probs) <- paste0("t=", pout$time)
+  #rownames(survmat) <- paste0("id", seq_len(nrow(newdata)))
   as.data.frame(surv_probs)
 }
 
