@@ -19,7 +19,7 @@ fit_bart <- function(formula, data, K = 3, ...) {
         times = time_vec,
         delta = status_vec,
         K = K,
-        printevery = Inf,  # optional
+        printevery = 1,
         ...
       )
     })
