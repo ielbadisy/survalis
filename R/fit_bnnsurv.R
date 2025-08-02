@@ -69,6 +69,85 @@ print(round(pred_bnnsurv, 3))
 
 #-------- add tuner()
 
+tune_bnnsurv <- function(formula, data, times,
+                         param_grid = expand.grid(
+                           k = c(2, 3),
+                           num_base_learners = c(30, 50),
+                           sample_fraction = c(0.5, 1),
+                           stringsAsFactors = FALSE
+                         ),
+                         metrics = c("cindex", "ibs"),
+                         folds = 5,
+                         seed = 123,
+                         refit_best = FALSE,
+                         ...) {
+  results <- purrr::pmap_dfr(param_grid, function(k, num_base_learners, sample_fraction) {
+    cv_result <- tryCatch({
+      cv_survlearner(
+        formula = formula,
+        data = data,
+        fit_fun = fit_bnnsurv,
+        pred_fun = predict_bnnsurv,
+        times = times,
+        metrics = metrics,
+        folds = folds,
+        seed = seed,
+        k = k,
+        num_base_learners = num_base_learners,
+        sample_fraction = sample_fraction,
+        ...
+      )
+    }, error = function(e) NULL)
+
+    if (is.null(cv_result)) {
+      return(tibble::tibble(
+        k = k,
+        num_base_learners = num_base_learners,
+        sample_fraction = sample_fraction,
+        failed = TRUE
+      ))
+    }
+
+    summary <- cv_summary(cv_result)
+
+    tibble::tibble(
+      k = k,
+      num_base_learners = num_base_learners,
+      sample_fraction = sample_fraction,
+      failed = FALSE
+    ) |>
+      dplyr::bind_cols(
+        tidyr::pivot_wider(summary[, c("metric", "mean")],
+                           names_from = metric, values_from = mean)
+      )
+  })
+
+  results <- results |> dplyr::filter(!failed)
+
+  if (nrow(results) == 0) {
+    warning("All tuning combinations failed.")
+    return(tibble::tibble())
+  }
+
+  results <- dplyr::arrange(results, dplyr::desc(.data[[metrics[1]]]))
+
+  if (refit_best) {
+    best <- results[1, ]
+    model <- fit_bnnsurv(
+      formula = formula,
+      data = data,
+      k = best$k,
+      num_base_learners = best$num_base_learners,
+      sample_fraction = best$sample_fraction,
+      ...
+    )
+    return(model)
+  }
+
+  return(results)
+}
+
+
 param_grid = expand.grid(
   k = c(2),
   num_base_learners = c(30),
