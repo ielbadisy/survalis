@@ -31,7 +31,7 @@ predict_coxph <- function(object, newdata, times) {
 
   survmat <- pec::predictSurvProb(object$model, newdata = newdata, times = times)
   colnames(survmat) <- paste0("t=", times)
-  rownames(survmat) <- paste0("ID_", seq_len(nrow(newdata)))
+  #rownames(survmat) <- paste0("id", seq_len(nrow(newdata)))
   as.data.frame(survmat)
 }
 
