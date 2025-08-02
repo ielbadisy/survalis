@@ -61,7 +61,7 @@ subset_rows <- veteran[1:200, ]
 
 cp_result <- compute_ceteris_paribus(
   model = mod_cox,
-  predict_function = predict_cox,
+  predict_function = predict_coxph,
   data = veteran,
   instances = subset_rows,
   feature = "age",
