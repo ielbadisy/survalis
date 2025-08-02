@@ -105,7 +105,7 @@ plot_calibration <- function(calib_output, smooth = TRUE) {
 
 calib_result <- compute_calibration(
   model = mod_cox,
-  predict_function = predict_cox,
+  predict_function = predict_coxph,
   data = veteran,
   time = "time",
   status = "status",
