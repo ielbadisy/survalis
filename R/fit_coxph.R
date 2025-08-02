@@ -1,5 +1,5 @@
 
-fit_cox <- function(formula, data, ...) {
+fit_coxph <- function(formula, data, ...) {
   stopifnot(requireNamespace("survival", quietly = TRUE))
   stopifnot(requireNamespace("pec", quietly = TRUE))
 
@@ -25,7 +25,7 @@ fit_cox <- function(formula, data, ...) {
 #'
 #' @return A data.frame of survival probabilities (rows: subjects, cols: times).
 #' @export
-predict_cox <- function(object, newdata, times) {
+predict_coxph <- function(object, newdata, times) {
   stopifnot(object$learner == "coxph")
   stopifnot(requireNamespace("pec", quietly = TRUE))
 
@@ -39,8 +39,8 @@ predict_cox <- function(object, newdata, times) {
 library(survival)
 data(veteran)
 
-mod_cox <- fit_cox(Surv(time, status) ~ age + karno + celltype, data = veteran)
-pred_cox <- predict_cox(mod_cox, newdata = veteran[1:5, ], times = c(100, 200, 300))
+mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+pred_cox <- predict_coxph(mod_cox, newdata = veteran[1:5, ], times = c(100, 200, 300))
 print(round(pred_cox, 3))
 
 
