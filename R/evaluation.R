@@ -224,7 +224,7 @@ evaluate_survlearner <- function(model,
     tidyr::unnest(cols = value)
 }
 
-mod <- fit_cox(Surv(time, status == 9) ~ sex + diabetes + chf + vf, data = sTRACE)
+mod <- fit_coxph(Surv(time, status == 9) ~ sex + diabetes + chf + vf, data = sTRACE)
 
 evaluate_survlearner(
   model = mod,
