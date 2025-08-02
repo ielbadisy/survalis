@@ -91,12 +91,12 @@ library(survival)
 data(veteran, package = "survival")
 
 # fit a survival model
-mod <- fit_cox(Surv(time, status) ~ age + karno + celltype, data = veteran)
+mod <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
 
 # Compute ALE for continuous feature 'age' at multiple time points
 ale_result <- compute_ale(
   model = mod,
-  predict_function = predict_cox,
+  predict_function = predict_coxph,
   newdata = veteran,
   feature = "age",
   times = c(100, 200, 300)
