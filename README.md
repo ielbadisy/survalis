@@ -14,17 +14,17 @@
 * [X] `fit_cox()`, `predict_cox()`, `tune_coxph()`
 * [X] `fit_flexsurv()`, `predict_flexsurv()`, `tune_flexsurv()`
 * [X] `fit_glmnet()`, `predict_glmnet()`, `tune_glmnet()`
-* [] `fit_mboost()`, `predict_mboost()`, `tune_mboost()`
-* [] `fit_orsf()`, `predict_orsf()`, `tune_orsf()`
-* [] `fit_ranger()`, `predict_ranger()`, `tune_ranger()`
-* [] `fit_rfsrc()`, `predict_rfsrc()`, `tune_rfsrc()`
-* [] `fit_rpart()`, `predict_rpart()`, `tune_rpart()`
-* [] `fit_rstpm2()`, `predict_rstpm2()`, `tune_rstpm2()`
-* [] `fit_selectcox()`, `predict_selectcox()`, `tune_selectcox()`
-* [] `fit_survdnn()`, `predict_survdnn()`, `tune_survdnn()`
-* [] `fit_survivalsvm()`, `predict_survivalsvm()`, `tune_survivalsvm()`
-* [] `fit_survreg()`, `predict_survreg()`, `tune_survreg()`
-* [] `fit_xgboost()`, `predict_xgboost()`, `tune_xgboost()`
+* [X] `fit_mboost()`, `predict_mboost()`, `tune_mboost()`
+* [X] `fit_orsf()`, `predict_orsf()`, `tune_orsf()`
+* [X] `fit_ranger()`, `predict_ranger()`, `tune_ranger()`
+* [X] `fit_rfsrc()`, `predict_rfsrc()`, `tune_rfsrc()`
+* [X] `fit_rpart()`, `predict_rpart()`, `tune_rpart()`
+* [X] `fit_rstpm2()`, `predict_rstpm2()`, `tune_rstpm2()`
+* [X] `fit_selectcox()`, `predict_selectcox()`, `tune_selectcox()`
+* [X] `fit_survdnn()`, `predict_survdnn()`, `tune_survdnn()`
+* [X] `fit_survivalsvm()`, `predict_survivalsvm()`, `tune_survivalsvm()`
+* [X] `fit_survreg()`, `predict_survreg()`, `tune_survreg()`
+* [X] `fit_xgboost()`, `predict_xgboost()`, `tune_xgboost()`
 
 ---
 
@@ -59,6 +59,12 @@
 
 
 
+- survival prob pUsing tibble::as_tibble() can silently introduce class attributes or non-numeric columns, especially when variables come from prediction methods that return nredictions 
+
+We standardize the return type of all predict_*() methods to a plain data.frame with numeric columns, rather than tibble or matrix.
+
+Using tibble::as_tibble() can silently introduce class attributes or non-numeric columns. These breaks when metrics expect matrix-like structures.
+
 
 ## `{survalis}` learners summary table 
 
@@ -83,6 +89,78 @@
 | survdnn        | `fit_survdnn()`  | `predict_survdnn()`  | `tune_survdnn()`  | `torch`           | Deep Neural Net (modular)  |
 
 
+
+## Add new learners 
+
+```{r}
+#' Fit a survival model using <LEARNER>
+#'
+#' @param formula A survival formula (e.g., Surv(time, status) ~ x1 + x2)
+#' @param data A data.frame containing the variables
+#' @param ... Additional learner-specific hyperparameters
+#'
+#' @return A list of class 'mlsurv_model' with attributes for unified prediction
+#' @export
+fit_<learner> <- function(formula, data, ...) {
+  stopifnot(requireNamespace("<PACKAGE>", quietly = TRUE))
+
+  # Fit model using the specific survival learner
+  model <- <PACKAGE>::<learner_function>(
+    formula = formula,
+    data = data,
+    ...
+  )
+
+  structure(list(
+    model = model,
+    learner = "<learner>",     # short name, e.g., "aareg", "ranger", etc.
+    formula = formula,
+    data = data
+  ), class = "mlsurv_model", engine = "<learner>")
+}
+
+
+
+#' Predict survival probabilities using a <LEARNER> model
+#'
+#' @param object A model fitted with fit_<learner>()
+#' @param newdata A new data.frame for prediction
+#' @param times A numeric vector of time points for prediction
+#' @param ... Extra arguments passed to the prediction method
+#'
+#' @return A data.frame: rows = individuals, columns = t=100, t=200, ...
+#' @export
+predict_<learner> <- function(object, newdata, times, ...) {
+  stopifnot(object$learner == "<learner>")
+  stopifnot(requireNamespace("<PACKAGE>", quietly = TRUE))
+
+  # === Core prediction logic ===
+  pred_output <- <PACKAGE>::<predict_function>(
+    object$model,
+    newdata = newdata,
+    ...
+  )
+
+  # === Extract or interpolate survival probabilities ===
+  # Ensure you return a matrix or data.frame of shape [nrow(newdata), length(times)]
+  surv_probs <- <custom code for extracting or interpolating predicted survival>
+
+    # === Format output ===
+    colnames(surv_probs) <- paste0("t=", times)
+  rownames(surv_probs) <- paste0("ID_", seq_len(nrow(newdata)))
+
+
+  as.data.frame(surv_probs)
+}
+
+
+
+mod <- fit_<learner>(Surv(time, status) ~ x1 + x2, data = your_data)
+pred <- predict_<learner>(mod, newdata = your_data[1:5, ], times = c(100, 200, 300))
+print(pred)
+
+
+```
 
 
 
