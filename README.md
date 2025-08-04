@@ -199,6 +199,19 @@ Key design choices:
 - tidy output: returns a consistent tiblle with metrics by fold, ready for summarization and plotting
 
 
+
+
+We use parallelizing only the `cv_survlearner()` function, while keeping all other layers, including the parameter tuning loop (e.g., in `tune_bart()`), sequential.
+
+This design choice offers several key advantages. First, it eliminates the risk of nested parallelism (e.g., running `multisession` inside another `multisession` plan), which can lead to CPU oversubscription and unpredictable behavior. 
+
+Second, it provides a simpler mental model for users and developers by localizing concurrency within a single, well-contained function. 
+
+Third, this design centralizes parallel control parallelism needs to be configured only once, within `cv_survlearner()`, rather than across multiple layers. It also facilitates profiling and performance analysis, as the cross-validation step is clearly the computational bottleneck and can be monitored directly. 
+
+
+
+
 ### cv design metrics 
 
 [] `evaluate_survlearner()`: provides a unified interface to compute survival probabilities at user-defined time points. 
