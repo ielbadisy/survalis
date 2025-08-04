@@ -10,19 +10,26 @@ fit_selectcox <- function(formula, data, rule = "aic") {
     data = data,
     rule = rule
   ), class = "mlsurv_model", engine = "selectCox")
-}
+  }
 
 predict_selectcox <- function(object, newdata, times) {
+
+
+  if (!is.null(object$learner) && object$learner != "selectcox") {
+    warning("Object passed to predict_selectcox() may not come from fit_selectcox().")
+  }
+
+
   stopifnot(requireNamespace("pec", quietly = TRUE))
 
   pred <- pec::predictSurvProb(object$model, newdata = newdata, times = times)
-  pred <- as.matrix(pred)
+  survmat <- as.matrix(pred)
 
-  colnames(pred) <- paste0("t=", times)
-  rownames(pred) <- paste0("ID_", seq_len(nrow(pred)))
+  colnames(survmat) <- paste0("t=", times)
 
-  as.data.frame(pred)
-}
+  as.data.frame(survmat)
+
+  }
 
 
 
@@ -69,13 +76,11 @@ tune_selectcox <- function(formula, data, times,
     )
     attr(model, "tuning_results") <- results
     return(model)
-  }
+    }
 
   class(results) <- c("tuned_surv", class(results))
   return(results)
-}
-
-
+  }
 
 res_selectcox <- tune_selectcox(
   formula = Surv(time, status) ~ age + karno + celltype,
@@ -85,9 +90,11 @@ res_selectcox <- tune_selectcox(
   metrics = c("cindex", "ibs", "ise"),
   folds = 3,
   refit_best = FALSE
-)
+  )
+
 print(res_selectcox)
-class(res_selectcox)  # Should show "tuned_surv"
+
+class(res_selectcox)
 
 mod_selectcox <- tune_selectcox(
   formula = Surv(time, status) ~ age + karno + celltype,
@@ -97,7 +104,8 @@ mod_selectcox <- tune_selectcox(
   metrics = c("cindex", "ibs", "ise"),
   folds = 3,
   refit_best = TRUE
-)
+  )
+
 summary(mod_selectcox)
 
 
