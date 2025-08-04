@@ -1,5 +1,6 @@
 
 fit_coxaalen <- function(formula, data, max.time = NULL, n.sim = 100, ...) {
+
   stopifnot(requireNamespace("timereg", quietly = TRUE))
 
   terms_rhs <- attr(terms(formula), "term.labels")
@@ -17,35 +18,38 @@ fit_coxaalen <- function(formula, data, max.time = NULL, n.sim = 100, ...) {
 
   structure(list(
     model = model,
-    learner = "cox.aalen",
+    learner = "coxaalen",
     formula = new_formula,
     data = data
-  ), class = "mlsurv_model", engine = "cox.aalen")
+  ), class = "mlsurv_model", engine = "timreg")
 }
 
 
 
 
 predict_coxaalen <- function(object, newdata, times = NULL, ...) {
-  stopifnot(object$learner == "cox.aalen")
+
+  if (!is.null(object$learner) && object$learner != "coxaalen") {
+    warning("Object passed to predict_coxaalen() may not come from fit_coxaalen().")
+  }
+
   stopifnot(requireNamespace("timereg", quietly = TRUE))
 
   pred <- predict(object$model, newdata = newdata, times = times, se = FALSE, uniform = FALSE, ...)
 
-  surv_probs <- pred$S0
-  if (is.null(surv_probs)) stop("No survival probabilities returned.")
+  survmat <- pred$S0
+  if (is.null(survmat)) stop("No survival probabilities returned.")
 
   if (!is.null(times)) {
-    keep_cols <- which(round(pred$time, 4) %in% round(times, 4))
+    keep_cols <- which(pred$time %in% times)
     if (length(keep_cols) == 0) stop("None of the requested times matched prediction grid.")
-    surv_probs <- surv_probs[, keep_cols, drop = FALSE]
-    colnames(surv_probs) <- paste0("t=", round(pred$time[keep_cols], 3))
+    survmat <- survmat[, keep_cols, drop = FALSE]
+    colnames(survmat) <- paste0("t=", pred$time[keep_cols])
   } else {
-    colnames(surv_probs) <- paste0("t=", round(pred$time, 3))
+    colnames(survmat) <- paste0("t=", pred$time)
   }
 
-  rownames(surv_probs) <- paste0("ID_", seq_len(nrow(newdata)))
-  return(as.data.frame(surv_probs))
+  as.data.frame(survmat)
 }
 
 
@@ -57,6 +61,6 @@ mod_caalen <- fit_coxaalen(
   data = sTRACE
 )
 
-pred_surv <- predict_coxaalen(mod_caalen, newdata = sTRACE[1:5, ], times = 4:7)
+pred_surv <- predict_coxaalen(mod_caalen, newdata = sTRACE[1:5, ], times = 0:10)
 
-print(round(pred_surv, 3))
+pred_surv
