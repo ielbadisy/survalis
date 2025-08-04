@@ -9,18 +9,20 @@ fit_cforest <- function(formula, data,
                         ...) {
   stopifnot(requireNamespace("party", quietly = TRUE))
 
-  model <- party::cforest(
-    formula = formula,
-    data = data,
-    controls = party::cforest_control(
-      teststat = teststat,
-      testtype = testtype,
-      mincriterion = mincriterion,
-      ntree = ntree,
-      mtry = mtry,
-      replace = replace,
-      fraction = fraction,
-      ...
+  model <- suppressWarnings(
+    party::cforest(
+      formula = formula,
+      data = data,
+      controls = party::cforest_control(
+        teststat = teststat,
+        testtype = testtype,
+        mincriterion = mincriterion,
+        ntree = ntree,
+        mtry = mtry,
+        replace = replace,
+        fraction = fraction,
+        ...
+      )
     )
   )
 
@@ -32,13 +34,22 @@ fit_cforest <- function(formula, data,
       data = data
     ),
     class = "mlsurv_model",
-    engine = "cforest"
+    engine = "party"
   )
 }
 
 
+
 predict_cforest <- function(object, newdata, times, ...) {
-  stopifnot(object$learner == "cforest")
+
+
+
+  if (!is.null(object$learner) && object$learner != "cforest") {
+    warning("Object passed to predict_cforest() may not come from fit_cforest().")
+  }
+
+
+
   stopifnot(requireNamespace("party", quietly = TRUE))
 
   newdata <- as.data.frame(newdata)
@@ -49,7 +60,7 @@ predict_cforest <- function(object, newdata, times, ...) {
   ))
 
   # interpolate at requested times
-  prob_matrix <- t(sapply(survlist, function(sfit) {
+  survmat <- t(sapply(survlist, function(sfit) {
     s_time <- sfit$time
     s_surv <- sfit$surv
 
@@ -57,15 +68,11 @@ predict_cforest <- function(object, newdata, times, ...) {
       return(rep(NA, length(times)))
     }
 
-    # Linear interpolation with rule = 2 for extrapolation
     approx(x = s_time, y = s_surv, xout = times, method = "linear", rule = 2)$y
   }))
 
-  # label columns and rows as in other learners
-  colnames(prob_matrix) <- paste0("t=", times)
-  rownames(prob_matrix) <- paste0("ID_", seq_len(nrow(newdata)))
-
-  return(as.data.frame(prob_matrix))
+  colnames(survmat) <- paste0("t=", times)
+  as.data.frame(survmat)
 }
 
 
@@ -162,9 +169,9 @@ tune_cforest <- function(formula, data, times,
 
 # Define parameter grid
 param_grid <- expand.grid(
-  ntree = c(100),
-  mtry = c(2),
-  mincriterion = c(0),
+  ntree = c(5, 100),
+  mtry = c(0, 2, 4),
+  mincriterion = c(0, 5),
   fraction = c(0.632)
 )
 
@@ -181,7 +188,7 @@ res_cforest <- tune_cforest(
 
 print(res_cforest)
 
-# Return best fitted model directly (mlsurv_model)
+
 mod_cforest <- tune_cforest(
   formula = Surv(time, status) ~ age + celltype + karno,
   data = veteran,
@@ -194,6 +201,6 @@ mod_cforest <- tune_cforest(
 
 summary(mod_cforest)
 predict_cforest(mod_cforest, newdata = veteran[1:5, ], times = c(100, 200, 300))
-
+summary(mod_cforest)
 
 
