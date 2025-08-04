@@ -1,8 +1,7 @@
 
 compute_calibration <- function(model, predict_function, data, time, status,
-                                eval_time, n_bins = 10, n_boot = 100, seed = 123) {
-  library(dplyr)
-  library(survival)
+                                eval_time, n_bins = 10, n_boot = 100, seed = 123, learner_name = NULL) {
+
 
   set.seed(seed)
 
@@ -37,7 +36,8 @@ compute_calibration <- function(model, predict_function, data, time, status,
     summarise(
       mean_pred_surv = mean(pred_surv, na.rm = TRUE),
       observed_surv = {
-        surv_fit <- survfit(Surv(time, status) ~ 1, data = cur_data())
+        surv_fit <- survfit(Surv(time, status) ~ 1, data = pick(everything()))
+
         surv_summary <- summary(surv_fit, times = eval_time, extend = TRUE)
         if (length(surv_summary$surv) == 0) NA else surv_summary$surv
       },
@@ -70,7 +70,8 @@ compute_calibration <- function(model, predict_function, data, time, status,
     calibration_table = calibration_table,
     eval_time = eval_time,
     n_bins = n_bins,
-    n_boot = n_boot
+    n_boot = n_boot,
+    learner = learner_name
   )
 }
 
@@ -88,10 +89,11 @@ plot_calibration <- function(calib_output, smooth = TRUE) {
     geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
     coord_fixed(ratio = 1, xlim = c(0, 1), ylim = c(0, 1)) +
     labs(
-      x = "Mean Predicted Survival",
+      x = "Predicted Survival",
       y = "Observed Survival",
-      title = paste0("Calibration at t = ", etime)#,
-      #subtitle = paste0("n_bins = ", nbins, ", Bootstrap = ", nboot, " resamples")
+      title = paste0("Calibration at t = ", etime,
+                     if (!is.null(calib_output$learner)) paste0(" (", calib_output$learner, ")") else ""),
+      subtitle = paste0("bins = ", nbins, ", bootstrap = ", nboot, " resamples")
     ) +
     theme_minimal()
 
@@ -111,10 +113,10 @@ calib_result <- compute_calibration(
   status = "status",
   eval_time = 80,
   n_bins = 10,
-  n_boot = 30
+  n_boot = 30,
+  learner_name = "coxph"
 )
 
 
 plot_calibration(calib_result)
 
-## may be interesting to think about time varying calibration plot!!!
