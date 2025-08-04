@@ -28,8 +28,8 @@ fit_metalearner <- function(base_preds, time, status, times,
     data = data,
     time = time,
     status = status,
-    learners = learners  # ✅ FIXED: store learners
-  ), class = "metalearner", learner = "metalearner", engine = "metalearner")
+    learners = learners
+  ), class = "metalearner", learner = "metalearner", engine = "survalis")
 }
 
 
@@ -62,7 +62,7 @@ predict_metalearner <- function(model, newdata, times) {
     out[, j] <- pred_array[, , j] %*% W[, j]
   }
 
-  colnames(out) <- requested_tnames
+  #colnames(out) <- requested_tnames
   as.data.frame(out)
 }
 
