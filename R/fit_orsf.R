@@ -11,7 +11,8 @@ fit_orsf <- function(formula, data, ...) {
 
   structure(list(
     model = model,
-    learner = "aorsf",
+    learner = "orsf", # Oblique Random Survival Forests
+
     formula = formula,
     data = data,
     time = all.vars(formula)[[2]],
@@ -21,12 +22,17 @@ fit_orsf <- function(formula, data, ...) {
 
 
 predict_orsf <- function(object, newdata, times, ...) {
-  stopifnot(object$learner == "aorsf")
+
+
+  if (!is.null(object$learner) && object$learner != "orsf") {
+    warning("Object passed to predict_orsf() may not come from fit_orsf().")
+  }
+
   stopifnot(requireNamespace("aorsf", quietly = TRUE))
 
   newdata <- as.data.frame(newdata)
 
-  pred <- predict(
+  survmat <- predict(
     object$model,
     new_data = newdata,
     pred_horizon = times,
@@ -36,14 +42,13 @@ predict_orsf <- function(object, newdata, times, ...) {
     ...
   )
 
-  if (is.vector(pred)) {
-    pred <- matrix(pred, nrow = 1)
+  if (is.vector(survmat)) {
+    survmat <- matrix(survmat, nrow = 1)
   }
 
-  colnames(pred) <- paste0("t=", times)
-  rownames(pred) <- paste0("ID_", seq_len(nrow(newdata)))
+  colnames(survmat) <- paste0("t=", times)
 
-  as.data.frame(pred)
+  as.data.frame(survmat)
 }
 
 library(aorsf)
@@ -69,23 +74,6 @@ cv_summary(cv_results_orsf)
 cv_plot(cv_results_orsf)
 
 
-#----------- add tuner
-
-
-#' Tune ORSF (Oblique Random Survival Forest) model using cross-validation
-#'
-#' @param formula A survival formula (e.g., Surv(time, status) ~ x1 + x2)
-#' @param data A data.frame with survival outcome and predictors
-#' @param times Time points for survival prediction
-#' @param param_grid A data.frame with tuning grid: n_tree, mtry, min_events
-#' @param metrics Performance metrics to evaluate (e.g., "cindex", "ibs")
-#' @param folds Number of folds for cross-validation
-#' @param seed Random seed for reproducibility
-#' @param refit_best Logical. If TRUE, returns best fitted model. Else, returns CV scores.
-#' @param ... Additional arguments passed to `fit_orsf()`
-#'
-#' @return A tibble of scores (if `refit_best = FALSE`) or best model (if `refit_best = TRUE`)
-#' @export
 tune_orsf <- function(formula, data, times,
                       param_grid = expand.grid(
                         n_tree = c(100, 300),
@@ -150,7 +138,6 @@ tune_orsf <- function(formula, data, times,
 
 
 
-# Grid search only
 res_orsf <- tune_orsf(
   formula = Surv(time, status) ~ age + ph.ecog,
   data = lung,
@@ -166,7 +153,6 @@ res_orsf <- tune_orsf(
 
 print(res_orsf)
 
-# Refit best
 mod_orsf_best <- tune_orsf(
   formula = Surv(time, status) ~ age + ph.ecog,
   data = lung,
