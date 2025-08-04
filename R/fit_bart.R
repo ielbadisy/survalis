@@ -1,4 +1,5 @@
 fit_bart <- function(formula, data, K = 3, ...) {
+
   stopifnot(requireNamespace("BART", quietly = TRUE))
 
   mf <- model.frame(formula, data)
@@ -34,16 +35,18 @@ fit_bart <- function(formula, data, K = 3, ...) {
       eval_times = bart_fit$times
     ),
     class = "mlsurv_model",
-    engine = "bart"
+    engine = "BART"
   )
 }
 
 predict_bart <- function(object, newdata, times, ...) {
-  if (object$learner != "bart") {
-    stop("This model is not a BART model.")
+
+
+  if (!is.null(object$learner) && object$learner != "bart") {
+    warning("Object passed to predict_bart() may not come from fit_bart().")
   }
 
-  if (missing(times)) stop("Please provide `times` for prediction.")
+
   stopifnot(requireNamespace("BART", quietly = TRUE))
 
   newx <- model.matrix(object$formula, data = newdata)[, -1, drop = FALSE]
@@ -63,34 +66,33 @@ predict_bart <- function(object, newdata, times, ...) {
 
   # align internal BART times to requested times via nearest neighbor match
   mapped_times <- sapply(times, function(t) which.min(abs(object$eval_times - t)))
-  result <- prob_matrix[, mapped_times, drop = FALSE]
-  colnames(result) <- paste0("t=", times)
-  rownames(result) <- paste0("ID_", seq_len(nrow(newx)))
+  survmat <- prob_matrix[, mapped_times, drop = FALSE]
+  colnames(survmat) <- paste0("t=", times)
 
-  return(as.data.frame(result))
+  as.data.frame(survmat)
+
 }
 
 
 
+
+#----------- TEST
+
 library(survival)
 library(BART)
 
-# simulated example dataset
-data(veteran)
-veteran2 <- veteran
-names(veteran2)[names(veteran2) == "time"] <- "Time"
-names(veteran2)[names(veteran2) == "status"] <- "Event"
+veteran <- survival::veteran
 
 # fit and CV
-mod_bart <- fit_bart(Surv(Time, Event) ~ age + karno + celltype, data = veteran2)
+mod_bart <- fit_bart(Surv(time, status) ~ age + karno + celltype, data = veteran)
 
-pred_bart <- predict_bart(mod_bart, newdata = veteran2[1:5, ], times = c(10, 30, 60))
+pred_bart <- predict_bart(mod_bart, newdata = veteran[1:5, ], times = c(10, 30, 60))
 print(round(pred_bart, 3))
 
 
 cv_results_bart <- cv_survlearner(
-  formula = Surv(Time, Event) ~ age + karno + celltype,
-  data = veteran2,
+  formula = Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
   fit_fun = fit_bart,
   pred_fun = predict_bart,
   times = c(5, 10, 40),
@@ -102,8 +104,6 @@ cv_results_bart <- cv_survlearner(
 # summary and plot
 print(cv_results_bart)
 
-# Summary and plot
-print(cv_results_bart)
 cv_summary(cv_results_bart)
 cv_plot(cv_results_bart)
 
@@ -161,9 +161,10 @@ tune_bart <- function(formula, data, times,
       base = best_row$base,
       ...
     )
-    return(best_model)  # clean mlsurv_model
+    return(best_model)
   }
 }
+
 
 
 param_grid = expand.grid(
@@ -171,27 +172,26 @@ param_grid = expand.grid(
   ntree = c(50),
   power = c(2),
   base = c(0.75, 0.95)
-)
+  )
 
 res <- tune_bart(
-  formula = Surv(Time, Event) ~ age + karno + celltype,
-  data = veteran2,
+  formula = Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
   param_grid = param_grid,
   times = c(10, 60),
   refit_best = FALSE
-)
+  )
 
 print(res)
 
 
-
 mod <- tune_bart(
-  formula = Surv(Time, Event) ~ age + karno + celltype,
-  data = veteran2,
+  formula = Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
   param_grid = param_grid,
   times = c(10, 60),
   refit_best = TRUE
 )
 
 summary(mod)
-predict_bart(mod, newdata = veteran2[1:5, ], times = c(30, 60))
+predict_bart(mod, newdata = veteran[1:5, ], times = c(30, 60))
