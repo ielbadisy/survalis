@@ -1,18 +1,16 @@
-
 fit_survdnn <- function(formula, data,
                         loss = "cox",
                         hidden = c(32L, 32L, 16L),
                         activation = "relu",
                         lr = 1e-4,
                         epochs = 300L,
-                        verbose = TRUE,
+                        verbose = FALSE,
                         ...) {
 
   stopifnot(requireNamespace("survdnn", quietly = TRUE))
   stopifnot(requireNamespace("torch", quietly = TRUE))
 
-
-  model <- survdnn(
+  model <- survdnn::survdnn(
     formula = formula,
     data = data,
     loss = loss,
@@ -23,30 +21,30 @@ fit_survdnn <- function(formula, data,
     verbose = verbose
   )
 
-  result <- list(
+  time_status <- all.vars(formula[[2]])
+
+  structure(list(
     model = model,
+    learner = "survdnn",
     formula = formula,
-    data = data
-  )
-
-  attr(result, "engine") <- "survdnn"
-  class(result) <- "mlsurv_model"
-  return(result)
-}
+    data = data,
+    time = time_status[1],
+    status = time_status[2]
+  ), class = "mlsurv_model", engine = "survdnn")
+  }
 
 
 
-#' Predict Survival Probabilities from survdnn Model
-#'
-#' @param model A model fitted with `fit_survdnn`
-#' @param newdata A data frame with covariates
-#' @param times A numeric vector of prediction time points
-#' @param ... Not used
-#'
-#' @return A data frame (nrow = nrow(newdata), ncol = length(times)) of survival probs
-#' @export
-predict_survdnn <- function(model, newdata, times, ...) {
-  predict(model$model, newdata = newdata, type = "survival", times = times)
+
+
+predict_survdnn <- function(object, newdata, times, ...) {
+
+
+  if (!is.null(object$learner) && object$learner != "survdnn") {
+    warning("Object passed to predict_survdnn() may not come from fit_survdnn().")
+  }
+
+  predict(object$model, newdata = newdata, type = "survival", times = times)
 }
 
 
@@ -60,58 +58,88 @@ mod <- fit_survdnn(Surv(time, status) ~ age + karno + celltype,
 pred <- predict_survdnn(mod, newdata = veteran[1:5, ], times = c(30, 90, 180))
 print(pred)
 
-# Evaluate C-index, IBS, IAE, ISE (multi-time OK)
-evaluate_survlearner(
-  model = mod,
-  metrics = c("cindex", "ibs", "iae", "ise"),
-  times = c(30, 90, 180)
-)
-
-# Evaluate Brier (must use only one time point)
-evaluate_survlearner(
-  model = mod,
-  metrics = "brier",
-  times = 90
-)
 
 
+tune_survdnn <- function(formula, data, times,
+                         param_grid = list(
+                           hidden = list(c(32, 16), c(64, 32, 16)),
+                           lr = c(1e-3, 5e-4),
+                           activation = c("relu", "gelu"),
+                           epochs = c(100, 200),
+                           loss = c("cox", "aft")
+                         ),
+                         metrics = c("cindex", "ibs"),
+                         folds = 3,
+                         seed = 42,
+                         refit_best = FALSE,
+                         ...) {
 
-
-tune_survdnn <- function(formula, data, times, metrics = "cindex",
-                         param_grid, cv = 3, seed = 42) {
   stopifnot(!missing(formula), !missing(data), !missing(times), !missing(param_grid))
-  stopifnot(is.list(param_grid), "hidden" %in% names(param_grid), "lr" %in% names(param_grid))
+  stopifnot(is.list(param_grid))
 
   param_df <- tidyr::crossing(!!!param_grid)
 
-  results <- purrr::pmap_dfr(param_df, function(hidden, lr, activation, epochs, loss = "cox") {
+  results <- purrr::pmap_dfr(param_df, function(hidden, lr, activation, epochs, loss) {
     set.seed(seed)
-    mod <- fit_survdnn(
+    cv_results <- cv_survlearner(
       formula = formula,
       data = data,
+      fit_fun = fit_survdnn,
+      pred_fun = predict_survdnn,
+      times = times,
+      metrics = metrics,
+      folds = folds,
+      seed = seed,
       hidden = hidden,
       lr = lr,
       activation = activation,
       epochs = epochs,
       loss = loss,
-      verbose = FALSE
+      verbose = FALSE,
+      ...
     )
 
-    metrics_tbl <- evaluate_survlearner(mod, metrics = metrics, times = times)
+    summary <- cv_summary(cv_results)
 
     tibble::tibble(
       hidden = list(hidden),
       lr = lr,
       activation = activation,
       epochs = epochs,
-      loss = loss,
-      metric = metrics_tbl$metric,
-      value = metrics_tbl$value
-    )
+      loss = loss
+    ) |>
+      dplyr::bind_cols(
+        tidyr::pivot_wider(summary[, c("metric", "mean")],
+                           names_from = metric,
+                           values_from = mean)
+      )
   })
 
-  results %>% dplyr::arrange(metric, dplyr::desc(value))
+  results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
+
+  if (!refit_best) {
+    class(results) <- c("tuned_surv", class(results))
+    attr(results, "metrics") <- metrics
+    attr(results, "formula") <- formula
+    return(results)
+  } else {
+    best_row <- results[1, ]
+    best_model <- fit_survdnn(
+      formula = formula,
+      data = tidyr::drop_na(data, all.vars(formula)),
+      hidden = best_row$hidden[[1]],
+      lr = best_row$lr,
+      activation = best_row$activation,
+      epochs = best_row$epochs,
+      loss = best_row$loss,
+      verbose = FALSE,
+      ...
+    )
+    attr(best_model, "tuning_results") <- results
+    return(best_model)
+  }
 }
+
 
 
 library(survival)
@@ -123,16 +151,21 @@ grid <- list(
   activation = c("relu", "tanh"),
   epochs = c(300),
   loss = c("cox", "coxtime")
-)
 
-tune_survdnn(
+  )
+
+
+
+mod <- tune_survdnn(
   formula = Surv(time, status) ~ age + karno + celltype,
   data = veteran,
   times = c(90),
   metrics = c("cindex", "ibs"),
-  param_grid = grid
+  param_grid = grid,
+  refit_best = TRUE
 )
 
 
+summary(mod)
 
 
