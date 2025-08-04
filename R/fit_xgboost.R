@@ -64,7 +64,15 @@ fit_xgboost <- function(formula, data,
 
 
 predict_xgboost <- function(object, newdata, times) {
-  stopifnot(inherits(object, "mlsurv_model"))
+
+
+  if (!is.null(object$learner) && object$learner != "xgboost") {
+    warning("Object passed to predict_xgboost() may not come from fit_xgboost().")
+  }
+
+  stopifnot(requireNamespace("xgboost", quietly = TRUE))
+
+
   xmat <- model.matrix(terms(object$formula), newdata)[, object$xnames, drop = FALSE]
 
   if (object$objective == "survival:aft") {
@@ -72,7 +80,7 @@ predict_xgboost <- function(object, newdata, times) {
     sigma <- object$model$params$aft_loss_distribution_scale %||% 1.0
     dist <- object$model$params$aft_loss_distribution %||% "normal"
 
-    surv_probs <- switch(dist,
+    survmat <- switch(dist,
                          "normal" = outer(mu, times, function(m, t) pnorm((log(t) - m) / sigma, lower.tail = FALSE)),
                          "logistic" = outer(mu, times, function(m, t) plogis((log(t) - m) / sigma, lower.tail = FALSE)),
                          "extreme" = outer(mu, times, function(m, t) exp(-exp((log(t) - m) / sigma))),
@@ -82,14 +90,14 @@ predict_xgboost <- function(object, newdata, times) {
     lp <- predict(object$model, newdata = xmat)
     basehaz <- survfit(coxph(Surv(rep(1, length(lp)), rep(1, length(lp))) ~ lp))
     bh_fun <- stepfun(basehaz$time, c(0, basehaz$cumhaz))
-    surv_probs <- sapply(times, function(t) exp(-bh_fun(t) * exp(lp)))
-    surv_probs <- t(surv_probs)
+    survmat <- sapply(times, function(t) exp(-bh_fun(t) * exp(lp)))
+    survmat <- t(survmat)
   } else {
     stop("Unsupported objective for prediction")
   }
 
-  colnames(surv_probs) <- paste0("t=", times)
-  return(surv_probs)
+  colnames(survmat) <- paste0("t=", times)
+  as.data.frame(survmat)
 }
 
 tune_xgboost <- function(formula, data, times,
@@ -152,54 +160,14 @@ tune_xgboost <- function(formula, data, times,
 
 
 
+mod_xgboost <- fit_xgboost(
+  Surv(time, status == 9) ~ age + sex + vf + chf + diabetes,
+  data = sTRACE
+)
 
-Cindex_survmat <- function(object, predicted, t_star = NULL) {
-  if (!inherits(object, "Surv")) stop("object must be a survival object (from Surv())")
-  time <- object[, 1]
-  status <- object[, 2]
+pred_surv <- predict_xgboost(mod_xgboost, newdata = sTRACE[1:5, ], times = 0:100)
 
-  # Extract column for the given time point
-  if (!is.null(t_star)) {
-    t_name <- paste0("t=", t_star)
-    if (!(t_name %in% colnames(predicted))) {
-      stop("t_star = ", t_star, " not found in predicted survival matrix.")
-    }
-    surv_prob <- if (is.matrix(predicted)) predicted[, t_name] else predicted[[t_name]]
-  } else {
-    surv_prob <- if (is.matrix(predicted)) predicted[, ncol(predicted)] else predicted[[ncol(predicted)]]
-  }
-
-  risk_score <- 1 - surv_prob
-  permissible <- 0
-  concord <- 0
-  par_concord <- 0
-  n <- length(time)
-
-  for (i in 1:(n - 1)) {
-    for (j in (i + 1):n) {
-      if ((time[i] < time[j] & status[i] == 0) | (time[j] < time[i] & status[j] == 0)) next
-      if (time[i] == time[j] & status[i] == 0 & status[j] == 0) next
-      permissible <- permissible + 1
-      if (time[i] != time[j]) {
-        if ((time[i] < time[j] & risk_score[i] > risk_score[j]) |
-            (time[j] < time[i] & risk_score[j] > risk_score[i])) {
-          concord <- concord + 1
-        } else if (risk_score[i] == risk_score[j]) {
-          par_concord <- par_concord + 0.5
-        }
-      } else {
-        if (status[i] + status[j] > 0) {
-          if (risk_score[i] == risk_score[j]) concord <- concord + 1
-          else par_concord <- par_concord + 0.5
-        }
-      }
-    }
-  }
-
-  C_index <- (concord + par_concord) / permissible
-  names(C_index) <- "C index"
-  return(round(C_index, 6))
-}
+pred_surv
 
 
 
