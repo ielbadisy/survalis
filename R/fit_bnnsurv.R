@@ -30,13 +30,19 @@ fit_bnnsurv <- function(formula, data,
     data = data,
     time = all.vars(formula)[[2]],
     status = all.vars(formula)[[3]]
-  ), class = "mlsurv_model", engine = "bnnsurv")
+  ), class = "mlsurv_model", engine = "bnnSurvival")
 }
 
 
 predict_bnnsurv <- function(object, newdata, times, ...) {
-  stopifnot(object$learner == "bnnsurv")
+
+  if (!is.null(object$learner) && object$learner != "bnnsurv") {
+    warning("Object passed to predict_bnnsurv() may not come from fit_bnnsurv().")
+  }
+
   stopifnot(requireNamespace("bnnSurvival", quietly = TRUE))
+
+
 
   newdata <- as.data.frame(newdata)
 
@@ -47,14 +53,13 @@ predict_bnnsurv <- function(object, newdata, times, ...) {
   pred_times <- bnnSurvival::timepoints(pred)
   pred_matrix <- bnnSurvival::predictions(pred)
 
-  surv_probs <- t(apply(pred_matrix, 1, function(row) {
+  survmat <- t(apply(pred_matrix, 1, function(row) {
     approx(x = pred_times, y = row, xout = times, method = "linear", rule = 2)$y
   }))
 
-  colnames(surv_probs) <- paste0("t=", times)
-  rownames(surv_probs) <- paste0("ID_", seq_len(nrow(newdata)))
+  colnames(survmat) <- paste0("t=", times)
 
-  return(as.data.frame(surv_probs))
+  as.data.frame(survmat)
 }
 
 
@@ -174,4 +179,4 @@ mod_bnnsurv <- tune_bnnsurv(
 )
 
 summary(mod_bnnsurv)
-predict_bnnsurv(mod_bnnsurv, newdata = veteran[1:5, ], times = c(100, 200))
+predict_bnnsurv(mod_bnnsurv, newdata = veteran[1:5, ], times = 0:100)
