@@ -1,11 +1,12 @@
-fit_flexsurv <- function(formula, data, dist = "weibull", ...) {
+fit_flexsurvreg <- function(formula, data, dist = "weibull", ...) {
+
   stopifnot(requireNamespace("flexsurv", quietly = TRUE))
 
   model <- flexsurv::flexsurvreg(formula = formula, data = data, dist = dist, ...)
 
   structure(list(
     model = model,
-    learner = "flexsurv",
+    learner = "flexsurvreg",
     formula = formula,
     data = data,
     time = all.vars(formula)[[2]],
@@ -13,8 +14,13 @@ fit_flexsurv <- function(formula, data, dist = "weibull", ...) {
   ), class = "mlsurv_model", engine = "flexsurv")
 }
 
-predict_flexsurv <- function(object, newdata, times, ...) {
-  stopifnot(object$learner == "flexsurv")
+predict_flexsurvreg <- function(object, newdata, times, ...) {
+
+  if (!is.null(object$learner) && object$learner != "flexsurvreg") {
+    warning("Object passed to predict_flexsurvreg() may not come from fit_flexsurvreg().")
+  }
+
+
   stopifnot(requireNamespace("flexsurv", quietly = TRUE))
 
   pred <- predict(
@@ -28,15 +34,14 @@ predict_flexsurv <- function(object, newdata, times, ...) {
   .pred <- pred$.pred
   n <- nrow(newdata)
   k <- length(times)
-  mat <- matrix(NA_real_, nrow = n, ncol = k)
-  rownames(mat) <- paste0("ID_", seq_len(n))
-  colnames(mat) <- paste0("t=", times)
+  survmat <- matrix(NA_real_, nrow = n, ncol = k)
+  colnames(survmat) <- paste0("t=", times)
 
   for (i in seq_len(n)) {
-    mat[i, ] <- .pred[[i]]$.pred_survival
-  }
+    survmat[i, ] <- .pred[[i]]$.pred_survival
+    }
 
-  return(as.data.frame(mat))
+  as.data.frame(survmat)
 }
 
 library(survival)
@@ -45,21 +50,20 @@ library(flexsurv)
 data(veteran, package = "survival")
 
 # Fit the model
-mod_flex <- fit_flexsurv(Surv(time, status) ~ age + celltype + karno,
+mod_flex <- fit_flexsurvreg(Surv(time, status) ~ age + celltype + karno,
                          data = veteran,
                          dist = "weibull")
 
 # Predict survival probabilities at given time points
 times <- c(100, 200, 300)
-predicted_surv <- predict_flexsurv(mod_flex, newdata = veteran[1:5, ], times = times)
+predicted_surv <- predict_flexsurvreg(mod_flex, newdata = veteran[1:5, ], times = times)
 
-# View result
-print(round(predicted_surv, 3))
+predicted_surv
 
 
 
 #------------ add tuner
-tune_flexsurv <- function(formula, data, times,
+tune_flexsurvreg <- function(formula, data, times,
                           param_grid = c("weibull", "exponential", "lognormal"),
                           metrics = c("cindex", "ibs"),
                           folds = 5, seed = 123,
@@ -69,8 +73,8 @@ tune_flexsurv <- function(formula, data, times,
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
-      fit_fun = fit_flexsurv,
-      pred_fun = predict_flexsurv,
+      fit_fun = fit_flexsurvreg,
+      pred_fun = predict_flexsurvreg,
       times = times,
       metrics = metrics,
       folds = folds,
@@ -99,7 +103,7 @@ tune_flexsurv <- function(formula, data, times,
     return(results)
   } else {
     best_row <- results[1, ]
-    best_model <- fit_flexsurv(
+    best_model <- fit_flexsurvreg(
       formula = formula,
       data = data,
       dist = best_row$dist,
@@ -111,25 +115,26 @@ tune_flexsurv <- function(formula, data, times,
 
 
 library(survival)
-data(veteran, package = "survival")
+
+veteran <- survival::veteran
 
 
 param_grid = c("weibull", "exponential", "lognormal")
 
 
 # Get best dist only
-res <- tune_flexsurv(
+res <- tune_flexsurvreg(
   formula = Surv(time, status) ~ age + karno + celltype,
   data = veteran,
   param_grid = param_grid,
   times = c(100, 200, 300),
   refit_best = FALSE
-)
+  )
 
 print(res)
 
 # Fit and get best model (ready for predict(), summary())
-mod <- tune_flexsurv(
+mod <- tune_flexsurvreg(
   formula = Surv(time, status) ~ age + karno + celltype,
   data = veteran,
   param_grid = param_grid,
@@ -138,4 +143,4 @@ mod <- tune_flexsurv(
 )
 
 summary(mod)
-predict_flexsurv(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
+predict_flexsurvreg(mod, newdata = veteran[1:5, ], times = 1:100)
