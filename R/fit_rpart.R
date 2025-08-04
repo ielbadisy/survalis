@@ -36,6 +36,11 @@ fit_rpart <- function(formula, data,
 }
 
 predict_rpart <- function(object, newdata, times, ...) {
+
+  if (!is.null(object$learner) && object$learner != "rpart") {
+    warning("Object passed to predict_rpart() may not come from fit_rpart().")
+  }
+
   stopifnot(object$learner == "rpart")
   stopifnot(requireNamespace("partykit", quietly = TRUE))
 
@@ -45,16 +50,14 @@ predict_rpart <- function(object, newdata, times, ...) {
   predicted_times <- stats::predict(model_party, newdata = newdata, type = "response")
 
   # convert predicted survival times to survival probabilities using exponential assumption
-  surv_mat <- sapply(times, function(t) {
+  survmat <- sapply(times, function(t) {
     exp(-t / predicted_times)
   })
 
-  if (is.vector(surv_mat)) surv_mat <- matrix(surv_mat, ncol = length(times))
+  if (is.vector(survmat)) survmat <- matrix(survmat, ncol = length(times))
 
-  rownames(surv_mat) <- paste0("ID_", seq_len(nrow(newdata)))
-  colnames(surv_mat) <- paste0("t=", times)
-
-  return(as.data.frame(surv_mat))
+  colnames(survmat) <- paste0("t=", times)
+  as.data.frame(survmat)
 }
 
 
@@ -163,11 +166,12 @@ library(dplyr)
 # Assuming your definitions are already loaded
 
 # Load the dataset
-data(veteran, package = "survival")
 
+
+veteran <- survival::veteran
 # Set up a formula and time points
 form <- Surv(time, status) ~ age + karno + celltype
-times <- c(100, 200, 300)
+times <-1:100
 
 # 1. Test tuning WITHOUT refitting
 res_rpart <- tune_rpart(
