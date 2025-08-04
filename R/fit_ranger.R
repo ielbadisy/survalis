@@ -23,28 +23,34 @@ fit_ranger <- function(formula, data, ...) {
 }
 
 
-predict_ranger <- function(model, newdata, times) {
-  requireNamespace("ranger")
+predict_ranger <- function(object, newdata, times) {
 
-  pred_obj <- predict(model$model, data = newdata)
+
+
+  if (!is.null(object$learner) && object$learner != "ranger") {
+    warning("Object passed to predict_ranger() may not come from fit_ranger().")
+  }
+
+  stopifnot(requireNamespace("ranger", quietly = TRUE))
+
+  pred_obj <- predict(object$model, data = newdata)
   pred <- pred_obj$survival
-  model_times <- model$model$unique.death.times
+  model_times <- object$model$unique.death.times
 
   if (is.null(pred)) stop("Prediction returned NULL survival matrix.")
   if (is.null(dim(pred))) pred <- matrix(pred, nrow = 1)
 
-  surv_mat <- matrix(NA_real_, nrow = nrow(pred), ncol = length(times))
+  survmat <- matrix(NA_real_, nrow = nrow(pred), ncol = length(times))
   for (i in seq_len(nrow(pred))) {
     y <- pred[i, ]
-    surv_mat[i, ] <- stats::approx(
+    survmat[i, ] <- stats::approx(
       x = model_times, y = y, xout = times,
       method = "linear", rule = 2, ties = "ordered"
     )$y
   }
 
-  colnames(surv_mat) <- paste0("t=", times)
-  rownames(surv_mat) <- paste0("ID_", seq_len(nrow(surv_mat)))
-  as.data.frame(surv_mat)
+  colnames(survmat) <- paste0("t=", times)
+  as.data.frame(survmat)
 }
 
 
