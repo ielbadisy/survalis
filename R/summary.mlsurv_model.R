@@ -38,7 +38,7 @@ summary.mlsurv_model <- function(object, ...) {
   class(out) <- "summary.mlsurv_model"
 
   # styled output
-  cli::cli_h1(paste("Summary of", out$learner, "survival model"))
+  cli::cli_h1(paste(out$learner, "summary"))
 
   cli::cli_text("Formula:")
   cli::cli_code(deparse(out$formula))
