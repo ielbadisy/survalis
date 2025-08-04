@@ -1,5 +1,4 @@
-# ---- metrics-cindex.R ----
-cindex_survmat <- function(object, predicted, t_star = NULL) {
+cindex_survmat0 <- function(object, predicted, t_star = NULL) {
   if (!inherits(object, "Surv")) stop("object must be a survival object (from Surv())")
   time <- object[, 1]
   status <- object[, 2]
@@ -47,7 +46,58 @@ cindex_survmat <- function(object, predicted, t_star = NULL) {
   return(round(c_index, 6))
 }
 
-# ---- metrics-brier.R ----
+
+
+
+cindex_survmat <- function(object, predicted, t_star = NULL) {
+  if (!inherits(object, "Surv")) stop("object must be a survival object (from Surv())")
+  time <- object[, 1]
+  status <- object[, 2]
+
+  # Extract column for the given time point
+  if (!is.null(t_star)) {
+    t_name <- paste0("t=", t_star)
+    if (!(t_name %in% colnames(predicted))) {
+      stop("t_star = ", t_star, " not found in predicted survival matrix.")
+    }
+    surv_prob <- if (is.matrix(predicted)) predicted[, t_name] else predicted[[t_name]]
+  } else {
+    surv_prob <- if (is.matrix(predicted)) predicted[, ncol(predicted)] else predicted[[ncol(predicted)]]
+  }
+
+  risk_score <- 1 - surv_prob
+  permissible <- 0
+  concord <- 0
+  par_concord <- 0
+  n <- length(time)
+
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
+      if ((time[i] < time[j] & status[i] == 0) | (time[j] < time[i] & status[j] == 0)) next
+      if (time[i] == time[j] & status[i] == 0 & status[j] == 0) next
+      permissible <- permissible + 1
+      if (time[i] != time[j]) {
+        if ((time[i] < time[j] & risk_score[i] > risk_score[j]) |
+            (time[j] < time[i] & risk_score[j] > risk_score[i])) {
+          concord <- concord + 1
+        } else if (risk_score[i] == risk_score[j]) {
+          par_concord <- par_concord + 0.5
+        }
+      } else {
+        if (status[i] + status[j] > 0) {
+          if (risk_score[i] == risk_score[j]) concord <- concord + 1
+          else par_concord <- par_concord + 0.5
+        }
+      }
+    }
+  }
+
+  C_index <- (concord + par_concord) / permissible
+  names(C_index) <- "C index"
+  return(round(C_index, 6))
+}
+
+
 brier <- function(object, pre_sp, t_star) {
   if (!inherits(object, "Surv")) stop("object must be a survival object")
   if (length(pre_sp) != nrow(object)) stop("Length of predictions must match number of observations")
@@ -105,7 +155,6 @@ ibs_survmat <- function(object, sp_matrix, times) {
   return(round(ibs_value, 6))
 }
 
-# ---- metrics-iaeise.R ----
 iae_survmat <- function(object, sp_matrix, times) {
   if (!inherits(object, "Surv")) stop("object must be a survival object")
   if (length(times) != ncol(sp_matrix)) stop("Length of times must match sp_matrix columns")
@@ -145,8 +194,10 @@ ise_survmat <- function(object, sp_matrix, times) {
 }
 
 
-# ---- evaluate-survmodel.R ----
-evaluate_survmodel <- function(object, sp_matrix, times,
+
+
+## TO REMOVE!
+evaluate_survmodel0 <- function(object, sp_matrix, times,
                                metrics = c("cindex", "ibs", "iae", "ise", "brier")) {
   results <- list()
   if ("cindex" %in% metrics) {
@@ -167,7 +218,9 @@ evaluate_survmodel <- function(object, sp_matrix, times,
   return(results)
 }
 
-evaluate_survlearner <- function(model,
+
+#### TO REMOVE!
+evaluate_survlearner0 <- function(model,
                                  metrics = c("cindex", "ibs", "iae", "ise", "brier"),
                                  times) {
   if (missing(model) || !is.list(model)) stop("Must provide a fitted model object.")
@@ -362,7 +415,7 @@ cv_results <- cv_survlearner(
   fit_fun = fit_aareg,
   pred_fun = predict_aareg,
   times = c(100, 300, 500),
-  metrics = c("cindex", "ibs", "iae", "ise"),
+  metrics = c("cindex", "ibs"),
   folds = 5
 )
 
@@ -373,11 +426,7 @@ print(cv_results)
 
 mod <- fit_coxph(Surv(time, status) ~ age + karno, data = veteran)
 
-evaluate_survlearner(
-  model = mod,
-  metrics = c("cindex", "ibs", "iae", "ise"),
-  times = c(1, 5)
-)
+
 
 # Results
 cv_summary(cv_results)
