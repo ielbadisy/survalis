@@ -52,13 +52,14 @@ compute_calibration <- function(model, predict_function, data, time, status,
       group_by(bin) %>%
       summarise(
         observed_surv = {
-          surv_fit <- survfit(Surv(time, status) ~ 1, data = cur_data())
+          surv_fit <- survfit(Surv(time, status) ~ 1, data = pick(everything()))
           surv_summary <- summary(surv_fit, times = eval_time, extend = TRUE)
           if (length(surv_summary$surv) == 0) NA else surv_summary$surv
         }, .groups = "drop"
       ) %>%
       pull(observed_surv)
   }, simplify = "matrix")
+
 
   boot_ci <- apply(boot_results, 1, function(x) {
     quantile(x, probs = c(0.025, 0.975), na.rm = TRUE)
