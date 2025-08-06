@@ -651,6 +651,61 @@ We implemented the accelerated failure time (AFT) model using the rms::psm() fun
 
 --------------------------------------------------------------------------------
 
+## Methodological Note: Distinguishing `cv_survlearner()` from `score_survmodel()` in Survival Modeling
+
+In the `survalis` framework, two distinct functions serve the purpose of evaluating survival prediction performance: `cv_survlearner()` and `score_survmodel()`. Although both return evaluation metrics (e.g., C-index, IBS, Brier), they operate on different inputs and are used at different stages of the modeling pipeline.
+
+### 1. `cv_survlearner()`: Learner-Centric Evaluation
+
+`cv_survlearner()` performs cross-validated evaluation of a survival learner. It takes as input:
+
+* A survival formula and dataset
+* A `fit_*` function implementing the learning algorithm
+* A corresponding `predict_*` function to generate survival probabilities
+
+Internally, this function handles model training and prediction across resampled folds. The learner here is a blueprint: an unfitted algorithm with hyperparameters, not tied to any data.
+
+**Key point**: `cv_survlearner()` automates both the fitting and evaluation of the learner using repeated subsampling.
+
+### 2. `score_survmodel()`: Model-Centric Evaluation
+
+In contrast, `score_survmodel()` evaluates a **fitted model object**. This object must already contain the training formula, data, and metadata (e.g., learner name, engine). It assumes the model was previously created using a `fit_*` function.
+
+* `score_survmodel()` does **not** refit anything.
+* It simply calls the corresponding `predict_*` method based on the learner name and evaluates the predictions on the original data.
+
+### 3. Learner vs. Model: Conceptual Distinction
+
+* A **learner** (e.g., "xgboost", "cox", "survsvm") is a general algorithmic procedure capable of being fitted to data.
+* A **model** is a trained instance of a learner, produced by applying a `fit_*()` function to specific data and formula.
+
+### Summary Table
+
+| Function            | Input Type            | Fits Model? | Purpose                            |
+| ------------------- | --------------------- | ----------- | ---------------------------------- |
+| `cv_survlearner()`  | Learner (fit/predict) | Yes         | Cross-validated performance        |
+| `score_survmodel()` | Model object          | No          | Post-hoc evaluation of predictions |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------
 # TODO
 
 
