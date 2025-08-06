@@ -185,7 +185,7 @@ res <- tune_bart(
 print(res)
 
 
-mod <- tune_bart(
+mod_bart <- tune_bart(
   formula = Surv(time, status) ~ age + karno + celltype,
   data = veteran,
   param_grid = param_grid,
@@ -193,5 +193,5 @@ mod <- tune_bart(
   refit_best = TRUE
 )
 
-summary(mod)
-predict_bart(mod, newdata = veteran[1:5, ], times = c(30, 60))
+summary(mod_bart)
+predict_bart(mod_bart, newdata = veteran[1:5, ], times = c(30, 60))
