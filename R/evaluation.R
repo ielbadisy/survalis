@@ -1,51 +1,3 @@
-cindex_survmat0 <- function(object, predicted, t_star = NULL) {
-  if (!inherits(object, "Surv")) stop("object must be a survival object (from Surv())")
-  time <- object[, 1]
-  status <- object[, 2]
-
-  if (!is.null(t_star)) {
-    t_name <- paste0("t=", t_star)
-    if (!(t_name %in% colnames(predicted))) {
-      stop("t_star = ", t_star, " not found in predicted survival matrix.")
-    }
-    surv_prob <- predicted[[t_name]]
-  } else {
-    surv_prob <- predicted[[ncol(predicted)]]
-  }
-
-  risk_score <- 1 - surv_prob
-
-  permissible <- 0
-  concord <- 0
-  par_concord <- 0
-  n <- length(time)
-
-  for (i in 1:(n - 1)) {
-    for (j in (i + 1):n) {
-      if ((time[i] < time[j] & status[i] == 0) | (time[j] < time[i] & status[j] == 0)) next
-      if (time[i] == time[j] & status[i] == 0 & status[j] == 0) next
-      permissible <- permissible + 1
-      if (time[i] != time[j]) {
-        if ((time[i] < time[j] & risk_score[i] > risk_score[j]) |
-            (time[j] < time[i] & risk_score[j] > risk_score[i])) {
-          concord <- concord + 1
-        } else if (risk_score[i] == risk_score[j]) {
-          par_concord <- par_concord + 0.5
-        }
-      } else {
-        if (status[i] + status[j] > 0) {
-          if (risk_score[i] == risk_score[j]) concord <- concord + 1
-          else par_concord <- par_concord + 0.5
-        }
-      }
-    }
-  }
-
-  c_index <- (concord + par_concord) / permissible
-  names(c_index) <- "cindex"
-  return(round(c_index, 6))
-}
-
 
 
 
@@ -96,7 +48,6 @@ cindex_survmat <- function(object, predicted, t_star = NULL) {
   names(C_index) <- "C index"
   return(round(C_index, 6))
 }
-
 
 brier <- function(object, pre_sp, t_star) {
   if (!inherits(object, "Surv")) stop("object must be a survival object")
@@ -194,86 +145,6 @@ ise_survmat <- function(object, sp_matrix, times) {
 }
 
 
-
-
-## TO REMOVE!
-evaluate_survmodel0 <- function(object, sp_matrix, times,
-                               metrics = c("cindex", "ibs", "iae", "ise", "brier")) {
-  results <- list()
-  if ("cindex" %in% metrics) {
-    results$cindex <- cindex_survmat(object, predicted = sp_matrix, t_star = max(times))
-  }
-  if ("brier" %in% metrics && length(times) == 1) {
-    results$brier <- brier(object, pre_sp = sp_matrix[, 1], t_star = times)
-  }
-  if ("ibs" %in% metrics && length(times) > 1) {
-    results$ibs <- ibs_survmat(object, sp_matrix = sp_matrix, times = times)
-  }
-  if ("iae" %in% metrics) {
-    results$iae <- iae_survmat(object, sp_matrix, times)
-  }
-  if ("ise" %in% metrics) {
-    results$ise <- ise_survmat(object, sp_matrix, times)
-  }
-  return(results)
-}
-
-
-#### TO REMOVE!
-evaluate_survlearner0 <- function(model,
-                                 metrics = c("cindex", "ibs", "iae", "ise", "brier"),
-                                 times) {
-  if (missing(model) || !is.list(model)) stop("Must provide a fitted model object.")
-  if (missing(times)) stop("Must provide time points for evaluation.")
-
-  formula <- model$formula
-  data    <- model$data
-  engine  <- attr(model, "engine")
-
-  if (is.null(engine)) stop("Model object must have an 'engine' attribute.")
-
-  pred_fun_name <- paste0("predict_", engine)
-  if (!exists(pred_fun_name, mode = "function")) {
-    stop("Prediction function not found: ", pred_fun_name)
-  }
-
-  pred_fun <- get(pred_fun_name, mode = "function")
-  sp_matrix <- pred_fun(model, newdata = data, times = times)
-
-  tf <- terms(formula, data = data)
-  outcome <- attr(tf, "variables")[[2]]
-  time_col <- as.character(outcome[[2]])
-  status_expr <- outcome[[3]]
-
-  if (is.call(status_expr) && status_expr[[1]] == as.name("==")) {
-    status_col <- as.character(status_expr[[2]])
-    event_value <- eval(status_expr[[3]], data)
-    status_vector <- as.integer(data[[status_col]] == event_value)
-  } else {
-    status_col <- as.character(status_expr)
-    event_value <- 1
-    status_vector <- data[[status_col]]
-  }
-
-  surv_obj <- survival::Surv(time = data[[time_col]], event = status_vector)
-
-  tibble::tibble(metric = metrics) |>
-    dplyr::mutate(value = purrr::map(metric, function(metric) {
-      switch(metric,
-             "cindex" = cindex_survmat(surv_obj, predicted = sp_matrix, t_star = max(times)),
-             "brier"  = {
-               if (length(times) != 1) stop("Brier requires a single time point.")
-               brier(surv_obj, pre_sp = sp_matrix[, 1], t_star = times)
-             },
-             "ibs"    = ibs_survmat(surv_obj, sp_matrix, times),
-             "iae"    = iae_survmat(surv_obj, sp_matrix, times),
-             "ise"    = ise_survmat(surv_obj, sp_matrix, times),
-             stop("Unknown metric: ", metric)
-      )
-    })) |>
-    tidyr::unnest(cols = value)
-}
-
 cv_survlearner <- function(formula, data,
                            fit_fun, pred_fun,
                            times,
@@ -282,6 +153,7 @@ cv_survlearner <- function(formula, data,
                            seed = 123,
                            verbose = FALSE,
                            ...) {
+
 
   if ("." %in% all.vars(update(formula, . ~ 0))) {
     warning("Please avoid using '.' in the formula. Specify all predictors explicitly.")
@@ -371,8 +243,6 @@ cv_survlearner <- function(formula, data,
 }
 
 
-
-
 cv_summary <- function(cv_results) {
   cv_results |>
     group_by(metric) |>
@@ -386,6 +256,7 @@ cv_summary <- function(cv_results) {
       .groups = "drop"
     )
 }
+
 
 cv_plot <- function(cv_results) {
   ggplot(cv_results, aes(x = metric, y = value)) +
@@ -408,24 +279,20 @@ library(tidyr)
 library(ggplot2)
 library(tibble)
 
-
 cv_results <- cv_survlearner(
   formula = Surv(time, status) ~ karno,
   data = veteran,
-  fit_fun = fit_aareg,
-  pred_fun = predict_aareg,
-  times = c(100, 300, 500),
+  fit_fun = fit_xgboost,
+  pred_fun = predict_xgboost,
+  times = 999,
   metrics = c("cindex", "ibs"),
-  folds = 5
+  folds = 4
 )
 
-print(cv_results)
-
-
+cv_summary(cv_results)
 
 
 mod <- fit_coxph(Surv(time, status) ~ age + karno, data = veteran)
-
 
 
 # Results
@@ -433,8 +300,68 @@ cv_summary(cv_results)
 cv_plot(cv_results)
 
 
+score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", "iae", "ise")) {
+  stopifnot(inherits(model, "mlsurv_model"))
+  stopifnot(!missing(times))
+
+  # check brier with multiple times
+  if ("brier" %in% metrics && length(times) != 1) {
+    stop("The Brier score requires a single evaluation time.\n",
+         "Please use `times = t` with a single value or remove 'brier' from the metric list.")
+  }
+
+  # extract model fields
+  learner <- model$learner
+  formula <- model$formula
+  data    <- model$data
+
+  if (is.null(learner)) stop("Model object must have a 'learner' field.")
+
+  # get prediction function
+  pred_fun_name <- paste0("predict_", learner)
+  if (!exists(pred_fun_name, mode = "function")) {
+    stop("Prediction function not found: ", pred_fun_name)
+  }
+  pred_fun <- get(pred_fun_name, mode = "function")
+  sp_matrix <- pred_fun(model, newdata = data, times = times)
+
+  # extract Surv object
+  tf <- terms(formula, data = data)
+  outcome <- attr(tf, "variables")[[2]]
+  time_col <- as.character(outcome[[2]])
+  status_expr <- outcome[[3]]
+
+  if (is.call(status_expr) && status_expr[[1]] == as.name("==")) {
+    status_col <- as.character(status_expr[[2]])
+    event_value <- eval(status_expr[[3]], data)
+    status_vector <- as.integer(data[[status_col]] == event_value)
+  } else {
+    status_col <- as.character(status_expr)
+    event_value <- 1
+    status_vector <- data[[status_col]]
+  }
+
+  surv_obj <- survival::Surv(time = data[[time_col]], event = status_vector)
+
+  # score each metric
+  tibble::tibble(metric = metrics) |>
+    dplyr::mutate(value = purrr::map(metric, function(metric) {
+      switch(metric,
+             "cindex" = cindex_survmat(surv_obj, predicted = sp_matrix, t_star = max(times)),
+             "brier"  = brier(surv_obj, pre_sp = sp_matrix[, 1], t_star = times),
+             "ibs"    = ibs_survmat(surv_obj, sp_matrix, times),
+             "iae"    = iae_survmat(surv_obj, sp_matrix, times),
+             "ise"    = ise_survmat(surv_obj, sp_matrix, times),
+             stop("Unknown metric: ", metric)
+      )
+    })) |>
+
+    tidyr::unnest(cols = value)
+  }
 
 
+### test the survmodel scoring
+form <- Surv(time, status) ~ age + trt + karno
+mod <- fit_aalen(form, veteran)
 
-
-
+score_survmodel(mod, times = c(100, 300, 900), metrics = c("ibs"))
