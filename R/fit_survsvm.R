@@ -60,15 +60,15 @@ library(survival)
 library(survivalsvm)
 library(ggplot2)
 
-mod_svm <- fit_survivalsvm(Surv(time, status) ~ age + celltype + karno,
+mod_svm <- fit_survsvm(Surv(time, status) ~ age + celltype + karno,
                            data = veteran,
                            type = "regression",
                            gamma.mu = 0.1,
                            kernel = "lin_kernel")
 
 times <- c(100, 300, 500)
-predict_survivalsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "exp")
-predict_survivalsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "weibull", shape = 1.5)
+predict_survsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "exp")
+predict_survsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "weibull", shape = 1.5)
 
 #-------------------
 
