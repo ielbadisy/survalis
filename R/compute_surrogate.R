@@ -1,4 +1,4 @@
-compute_surrogate <- function(model, predict_function, newdata, baseline_data,
+compute_surrogate <- function(model, newdata, baseline_data,
                               times, target_time,
                               k = 5,
                               dist.fun = "gower",
@@ -6,12 +6,18 @@ compute_surrogate <- function(model, predict_function, newdata, baseline_data,
                               kernel.width = NULL,
                               penalized = TRUE,
                               exclude = NULL) {
+  stopifnot(nrow(newdata) == 1)
+
+  # check predict function
+  if (is.null(model$learner) || !exists(paste0("predict_", model$learner))) {
+    stop("Could not infer prediction function. Ensure model was created using fit_*() and includes a valid 'learner'.")
+  }
+  predict_function <- get(paste0("predict_", model$learner))
+
   requireNamespace("glmnet")
   requireNamespace("gower")
 
-  stopifnot(nrow(newdata) == 1)
-
-  # exclude time/status and user specified vars
+  # exclude time/status and user-specified vars
   response_vars <- all.vars(model$formula)[1:2]
   exclude_vars <- unique(c(response_vars, exclude))
   features <- setdiff(colnames(baseline_data), exclude_vars)
@@ -23,7 +29,7 @@ compute_surrogate <- function(model, predict_function, newdata, baseline_data,
   if (is.null(dim(baseline_preds))) baseline_preds <- matrix(baseline_preds, nrow = 1)
   y <- baseline_preds[, idx_time]
 
-  # recode X: binary for factors / numeric otherwise
+  # recode X for interpretable linear modeling
   recode_data <- function(X, reference) {
     X <- as.data.frame(X)
     reference <- as.data.frame(reference)
@@ -43,7 +49,7 @@ compute_surrogate <- function(model, predict_function, newdata, baseline_data,
   X_recode <- recode_data(baseline_data[, features, drop = FALSE], newdata[, features, drop = FALSE])
   x_interest_recode <- recode_data(newdata[, features, drop = FALSE], newdata[, features, drop = FALSE])
 
-  # compute w_i based on similarity
+  # compute weights based on similarity
   if (dist.fun == "gower") {
     distances <- gower::gower_dist(baseline_data[, features, drop = FALSE], newdata[, features, drop = FALSE])
     weights <- (1 - distances)^gower.power
@@ -54,8 +60,8 @@ compute_surrogate <- function(model, predict_function, newdata, baseline_data,
     weights <- sqrt(exp(-(dists^2) / (kernel.width^2)))
   }
 
+  # fit surrogate model (lasso or unpenalized)
   if (penalized) {
-    # lasso with penalty
     fit <- glmnet::glmnet(
       x = as.matrix(X_recode),
       y = y,
@@ -78,7 +84,6 @@ compute_surrogate <- function(model, predict_function, newdata, baseline_data,
     coefs <- coefs[coefs$feature != "(Intercept)" & coefs$beta != 0, ]
 
   } else {
-    # unpenalized linear model
     df <- cbind(y = y, X_recode)
     fit <- lm(y ~ ., data = df, weights = weights)
     coefs <- coef(fit)
@@ -86,7 +91,7 @@ compute_surrogate <- function(model, predict_function, newdata, baseline_data,
     coefs <- coefs[coefs$feature != "(Intercept)" & coefs$beta != 0, ]
   }
 
-  # compute effects = beta * X
+  # compute effects = beta * x
   effects <- sapply(coefs$feature, function(f) {
     as.numeric(x_interest_recode[[f]] * coefs$beta[coefs$feature == f])
   })
@@ -94,7 +99,8 @@ compute_surrogate <- function(model, predict_function, newdata, baseline_data,
   result <- data.frame(
     feature = coefs$feature,
     feature_value = sapply(coefs$feature, function(f) as.character(newdata[[f]])),
-    effect = effects
+    effect = effects,
+    target_time = target_time  # added for plotting title
   )
 
   result <- result[order(-abs(result$effect)), ]
@@ -113,33 +119,32 @@ plot_surrogate <- function(surrogate_df, top_n = NULL) {
   df$feature_label <- paste0(df$feature, " = ", df$feature_value)
   df$sign <- ifelse(df$effect >= 0, "Positive", "Negative")
 
+  target_time <- if ("target_time" %in% names(surrogate_df)) surrogate_df$target_time[1] else NA
+
   ggplot(df, aes(x = reorder(feature_label, abs(effect)), y = effect, fill = sign)) +
     geom_col(width = 0.6) +
     coord_flip() +
     labs(
       x = NULL,
       y = "Local Effect (β * x)",
-      title = "Surrogate Explanation at Target Time"
+      title = paste0("Surrogate Explanation at Target Time = ", target_time)
     ) +
     scale_fill_manual(values = c("Positive" = "#4CAF50", "Negative" = "#F44336")) +
     theme_minimal() +
     theme(legend.position = "none")
 }
 
+mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
 
 local_model_result <- compute_surrogate(
   model = mod_ranger,
-  predict_function = predict_ranger,
   newdata = veteran[2, ],
   baseline_data = veteran,
   times = c(100, 200, 300),
   target_time = 100,
-  k = 3,
-  dist.fun = "gower",
-  gower.power = 2,
-  penalized = TRUE
+  k = 5
 )
 
-
 plot_surrogate(local_model_result)
-plot_surrogate(local_model_result, top_n = 3)
+
+
