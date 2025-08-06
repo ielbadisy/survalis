@@ -1,7 +1,10 @@
-## possible error when time is single value
-## ADD A DESCRIPTION NOTE ON THE METHODOLOGICAL CHOICE ADOPTED FOR PDP ADAPTED TO SURVIVAL OUTCOME
-compute_pdp <- function(model, predict_function, data, feature, times,
+compute_pdp <- function(model, data, feature, times,
                         method = "pdp+ice", grid.size = 20) {
+  # Automatically determine prediction function
+  if (is.null(model$learner) || !exists(paste0("predict_", model$learner))) {
+    stop("Could not infer prediction function. Ensure model has a valid `learner` and was created using `fit_*()`.")
+  }
+  predict_function <- get(paste0("predict_", model$learner))
 
   if (!feature %in% names(data)) stop("Feature not found in data.")
 
@@ -89,6 +92,7 @@ compute_pdp <- function(model, predict_function, data, feature, times,
     pdp_integrated = pdp_integrated
   )
 }
+
 
 
 
@@ -206,37 +210,34 @@ plot_pdp <- function(pdp_ice_output, feature,
   return(p)
 }
 
-
 library(survival)
-data(veteran, package = "survival")
+data(veteran)
+veteran$celltype <- as.factor(veteran$celltype)
 
 mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
 
-
-## test
-pdp_ice_result <- compute_pdp(
+# Numerical variable
+pdp_ice_result1 <- compute_pdp(
   model = mod_ranger,
-  predict_function = predict_ranger,
   data = veteran,
-  feature = "age",  # try "celltype" too
+  feature = "age",
   times = c(100, 200, 300),
   method = "pdp+ice"
 )
 
-plot_pdp(pdp_ice_result, feature = "age", which = "per_time")
-plot_pdp(pdp_ice_result, feature = "age", which = "integrated", smooth = TRUE)
+plot_pdp(pdp_ice_result1, feature = "age", which = "per_time")
+plot_pdp(pdp_ice_result1, feature = "age", which = "integrated", smooth = TRUE)
 
-
-pdp_ice_result <- compute_pdp(
+# Categorical variable
+pdp_ice_result2 <- compute_pdp(
   model = mod_ranger,
-  predict_function = predict_ranger,
   data = veteran,
-  feature = "celltype",  # try "celltype" too
+  feature = "celltype",
   times = c(100, 300),
   method = "pdp+ice"
 )
 
-plot_pdp(pdp_ice_result, feature = "celltype", which = "per_time")
+plot_pdp(pdp_ice_result2, feature = "celltype", which = "per_time")
 
 
 
