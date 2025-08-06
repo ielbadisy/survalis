@@ -1,11 +1,17 @@
-
-compute_ale <- function(model, predict_function, newdata, feature, times, grid.size = 20) {
+compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
   if (!feature %in% names(newdata)) stop("Feature not found in data.")
 
   if (is.factor(newdata[[feature]]) || is.character(newdata[[feature]])) {
     stop("ALE is only defined for numeric continuous features. For categorical features, use PDP instead.")
   }
 
+  # Infer prediction function from model$learner
+  if (is.null(model$learner) || !exists(paste0("predict_", model$learner))) {
+    stop("Invalid or missing 'learner' in model. Make sure model was created using fit_*() functions.")
+  }
+  predict_function <- get(paste0("predict_", model$learner))
+
+  # Create quantile grid
   grid <- quantile(newdata[[feature]], probs = seq(0, 1, length.out = grid.size), na.rm = TRUE)
   grid <- unique(grid)
   K <- length(grid) - 1
@@ -40,74 +46,25 @@ compute_ale <- function(model, predict_function, newdata, feature, times, grid.s
 }
 
 
-#' Plot ALE result
-#'
-#' @param ale_result A list returned by `compute_ale()`
-#' @param feature Name of the feature used (for labeling)
-#' @param which Type of ALE plot: "per_time" or "integrated"
-#' @param smooth Whether to add a smoothed line (only for numeric)
-#' @export
-plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), smooth = FALSE) {
-  which <- match.arg(which)
-  library(ggplot2)
-
-  if (which == "per_time") {
-    df <- ale_result$ale
-    df_long <- reshape(
-      df,
-      varying = names(df)[-1],
-      v.names = "ale",
-      timevar = "time",
-      times = names(df)[-1],
-      idvar = "feature_value",
-      direction = "long"
-    )
-    df_long$time <- gsub("t=", "", df_long$time)
-
-    p <- ggplot(df_long, aes(x = feature_value, y = ale, color = time, group = time)) +
-      geom_line() +
-      labs(title = paste("ALE curves for", feature), x = feature, y = "ALE effect") +
-      theme_minimal()
-    if (smooth) p <- p + geom_smooth(se = FALSE, method = "loess")
-    return(p)
-  }
-
-  if (which == "integrated" && !is.null(ale_result$integrated)) {
-    df <- ale_result$integrated
-    p <- ggplot(df, aes(x = feature_value, y = integrated_ale)) +
-      geom_line() +
-      geom_point() +
-      labs(title = paste("Integrated ALE curve for", feature), x = feature, y = "Integrated ALE") +
-      theme_minimal()
-    if (smooth) p <- p + geom_smooth(se = FALSE, method = "loess")
-    return(p)
-  }
-
-  stop("Invalid 'which' argument or missing integrated data.")
-}
-
 
 library(survival)
-data(veteran, package = "survival")
+data(veteran)
 
-# fit a survival model
-mod <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+# Fit a model
+mod_coxph <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
 
-# Compute ALE for continuous feature 'age' at multiple time points
+# Compute ALE
 ale_result <- compute_ale(
-  model = mod,
-  predict_function = predict_coxph,
+  model = mod_coxph,
   newdata = veteran,
-  feature = "age",
+  feature = "karno",
   times = c(100, 200, 300)
 )
 
-# plot per-time ALE
-plot_ale(ale_result, feature = "age", which = "per_time")
+# Plot per-time
+plot_ale(ale_result, feature = "karno", which = "per_time")
 
-# plot integrated ALE with smoothing
-plot_ale(ale_result, feature = "age", which = "integrated", smooth = TRUE)
+# Plot integrated ALE
+plot_ale(ale_result, feature = "karno", which = "integrated", smooth = TRUE)
 
-# attempting ALE on a categorical feature (should error)
-try({compute_ale(mod, predict_ranger, veteran, feature = "celltype", times = 100)})
 
