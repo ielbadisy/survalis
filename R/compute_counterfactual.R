@@ -1,13 +1,15 @@
-compute_counterfactual <- function(model, predict_function, newdata, times, target_time,
+compute_counterfactual <- function(model, newdata, times, target_time,
                                    features_to_change = NULL, grid.size = 100,
                                    max.change = NULL, cost_penalty = 0.01) {
-  requireNamespace("data.table")
-
   if (nrow(newdata) != 1) {
     stop("newdata must contain exactly one row.")
   }
 
-  # automatically convert newdata columns to factors if needed
+  # Auto-predictor from model
+  learner <- model$learner
+  pred_fun <- get(paste0("predict_", learner))
+
+  # Convert newdata columns to factors if needed
   for (col in names(newdata)) {
     if (is.factor(model$data[[col]]) && !is.factor(newdata[[col]])) {
       newdata[[col]] <- factor(newdata[[col]], levels = levels(model$data[[col]]))
@@ -26,7 +28,7 @@ compute_counterfactual <- function(model, predict_function, newdata, times, targ
 
   idx_time <- which.min(abs(times - target_time))
 
-  surv_orig <- predict_function(model, newdata, times = times)
+  surv_orig <- pred_fun(model, newdata, times = times)
   if (is.null(dim(surv_orig))) surv_orig <- matrix(surv_orig, nrow = 1)
   surv_orig_value <- surv_orig[1, idx_time]
 
@@ -35,7 +37,7 @@ compute_counterfactual <- function(model, predict_function, newdata, times, targ
   for (feature in feature_names) {
     value_orig <- newdata[[feature]]
 
-    # generate candidate values
+    # Generate candidate values
     if (is.numeric(value_orig)) {
       observed_min <- min(model$data[[feature]], na.rm = TRUE)
       observed_max <- max(model$data[[feature]], na.rm = TRUE)
@@ -52,7 +54,6 @@ compute_counterfactual <- function(model, predict_function, newdata, times, targ
       } else {
         unique(model$data[[feature]])
       }
-
       candidate_values <- setdiff(levels_full, as.character(value_orig))
       if (length(candidate_values) == 0) next
     } else {
@@ -64,26 +65,24 @@ compute_counterfactual <- function(model, predict_function, newdata, times, targ
 
     for (i in seq_along(candidate_values)) {
       newdata_mod <- newdata
-
-      # handle categorical levels properly
+      # Handle categorical
       if (is.factor(model$data[[feature]])) {
-        newdata_mod[[feature]] <- factor(candidate_values[i],
-                                         levels = levels(model$data[[feature]]))
+        newdata_mod[[feature]] <- factor(candidate_values[i], levels = levels(model$data[[feature]]))
       } else {
         newdata_mod[[feature]] <- candidate_values[i]
       }
 
-      pred_mod <- predict_function(model, newdata_mod, times = times)
+      pred_mod <- pred_fun(model, newdata_mod, times = times)
       if (is.null(dim(pred_mod))) pred_mod <- matrix(pred_mod, nrow = 1)
 
       surv_mod_value <- pred_mod[1, idx_time]
       surv_gains[i] <- surv_mod_value - surv_orig_value
 
-      # change cost
+      # Cost calculation
       if (is.numeric(value_orig)) {
         change_costs[i] <- abs(as.numeric(candidate_values[i]) - as.numeric(value_orig))
       } else {
-        change_costs[i] <- 1  # constant for categorical
+        change_costs[i] <- 1  # flat cost for categorical
       }
     }
 
@@ -93,10 +92,14 @@ compute_counterfactual <- function(model, predict_function, newdata, times, targ
     results[[feature]] <- data.frame(
       feature = feature,
       original_value = as.character(value_orig),
-      suggested_value = as.character(candidate_values[best_idx]),
-      survival_gain = surv_gains[best_idx],
-      change_cost = change_costs[best_idx],
-      penalized_gain = penalized_gain[best_idx],
+      suggested_value = if (is.numeric(value_orig)) {
+        as.character(round(candidate_values[best_idx], 4))
+      } else {
+        as.character(candidate_values[best_idx])
+      },
+      survival_gain = round(surv_gains[best_idx], 4),
+      change_cost = round(change_costs[best_idx], 4),
+      penalized_gain = round(penalized_gain[best_idx], 4),
       stringsAsFactors = FALSE
     )
   }
@@ -107,12 +110,11 @@ compute_counterfactual <- function(model, predict_function, newdata, times, targ
 }
 
 
-#*** test
+
 library(ranger)
 library(survival)
-data(veteran)
 
-# Convert categorical if needed
+data(veteran)
 veteran$trt <- factor(veteran$trt)
 veteran$celltype <- factor(veteran$celltype)
 
@@ -122,7 +124,6 @@ obs <- veteran[1, , drop = FALSE]
 
 cf_result <- compute_counterfactual(
   model = mod_ranger,
-  predict_function = predict_ranger,
   newdata = obs,
   times = c(50, 100, 150),
   target_time = 100,
@@ -132,3 +133,5 @@ cf_result <- compute_counterfactual(
 )
 
 print(cf_result)
+
+
