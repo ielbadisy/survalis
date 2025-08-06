@@ -20,9 +20,7 @@ fit_coxph <- function(formula, data, ...) {
 
 predict_coxph <- function(object, newdata, times) {
 
-  if (!is.null(object$learner) && object$learner != "coxph") {
-    warning("Object passed to predict_coxph() may not come from fit_coxph().")
-  }
+  if (!is.null(object$learner) && object$learner != "coxph") {warning("Object passed to predict_coxph() may not come from fit_coxph().")}
 
   stopifnot(requireNamespace("pec", quietly = TRUE))
 
@@ -40,3 +38,4 @@ pred_cox <- predict_coxph(mod_cox, newdata = veteran[1:5, ], times = 0:100)
 pred_cox
 
 
+summary(mod_cox)
