@@ -55,6 +55,7 @@ fit_xgboost <- function(formula, data,
 
   structure(list(
     model = bst,
+    data = data,
     learner = "xgboost",
     formula = formula,
     xnames = colnames(x),
@@ -66,9 +67,7 @@ fit_xgboost <- function(formula, data,
 predict_xgboost <- function(object, newdata, times) {
 
 
-  if (!is.null(object$learner) && object$learner != "xgboost") {
-    warning("Object passed to predict_xgboost() may not come from fit_xgboost().")
-  }
+  if (!is.null(object$learner) && object$learner != "xgboost") {warning("Object passed to predict_xgboost() may not come from fit_xgboost().")}
 
   stopifnot(requireNamespace("xgboost", quietly = TRUE))
 
@@ -125,7 +124,7 @@ tune_xgboost <- function(formula, data, times,
     res_cv <- cv_survlearner(
       formula = formula,
       data = data,
-      fit_fun = fit_fun,
+      fit_fun = fit_xgboost,
       pred_fun = predict_xgboost,
       times = times,
       metrics = metrics,
@@ -161,11 +160,11 @@ tune_xgboost <- function(formula, data, times,
 
 
 mod_xgboost <- fit_xgboost(
-  Surv(time, status == 9) ~ age + sex + vf + chf + diabetes,
-  data = sTRACE
+  Surv(time, status) ~ age + karno + celltype,
+  data = veteran
 )
 
-pred_surv <- predict_xgboost(mod_xgboost, newdata = sTRACE[1:5, ], times = 0:100)
+pred_surv <- predict_xgboost(mod_xgboost, newdata = veteran, times = 0:100)
 
 pred_surv
 
