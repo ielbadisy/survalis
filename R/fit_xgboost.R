@@ -1,5 +1,4 @@
 
-
 fit_xgboost <- function(formula, data,
                         objective = "survival:aft",
                         nrounds = 100,
@@ -8,7 +7,10 @@ fit_xgboost <- function(formula, data,
                         aft_loss_distribution = "normal",
                         aft_loss_distribution_scale = 1.0,
                         ...) {
-  stopifnot(requireNamespace("xgboost"))
+
+  stopifnot(requireNamespace("xgboost", quietly = TRUE))
+
+
   mf <- model.frame(formula, data)
   y <- model.response(mf)
 
@@ -37,6 +39,7 @@ fit_xgboost <- function(formula, data,
     dtrain$setinfo("label_upper_bound", time)
     dtrain$setinfo("label", time)
     dtrain$setinfo("event", status)
+
     params <- list(
       objective = "survival:cox",
       max_depth = max_depth,
@@ -70,7 +73,7 @@ predict_xgboost <- function(object, newdata, times) {
   if (!is.null(object$learner) && object$learner != "xgboost") {warning("Object passed to predict_xgboost() may not come from fit_xgboost().")}
 
   stopifnot(requireNamespace("xgboost", quietly = TRUE))
-
+  
 
   xmat <- model.matrix(terms(object$formula), newdata)[, object$xnames, drop = FALSE]
 
