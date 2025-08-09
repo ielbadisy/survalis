@@ -118,7 +118,7 @@ data(veteran)
 veteran$trt <- factor(veteran$trt)
 veteran$celltype <- factor(veteran$celltype)
 
-mod_ranger <- fit_ranger(Surv(time, status) ~ trt + age + karno, data = veteran)
+mod_ranger <- fit_ranger(Surv(time, status) ~ trt + age + karno + celltype, data = veteran)
 
 obs <- veteran[1, , drop = FALSE]
 
@@ -127,7 +127,7 @@ cf_result <- compute_counterfactual(
   newdata = obs,
   times = c(50, 100, 150),
   target_time = 100,
-  features_to_change = c("trt", "karno"),
+  features_to_change = c("trt", "karno", "celltype"),
   grid.size = 50,
   cost_penalty = 0.001
 )
