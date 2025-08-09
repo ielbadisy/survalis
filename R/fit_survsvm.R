@@ -6,7 +6,9 @@ fit_survsvm <- function(formula, data,
                             diff.meth = NULL,
                             ...) {
 
-  stopifnot(requireNamespace("survivalsvm", quietly = TRUE))
+
+
+  stopifnot(requireNamespace("survivalsvm", quietly = TRUE)) ## need also to install quadprog
 
   model <- survivalsvm::survivalsvm(
     formula = formula,
