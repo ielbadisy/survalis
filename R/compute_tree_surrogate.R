@@ -61,6 +61,44 @@ compute_tree_surrogate <- function(model, data, times, minsplit = 10, cp = 0.01)
 }
 
 
+
+plot_tree_surrogate <- function(tree_surrogate, type = c("tree", "importance"), top_n = 10) {
+  if (!requireNamespace("partykit", quietly = TRUE)) stop("Please install 'partykit'.")
+  if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Please install 'ggplot2'.")
+  type <- match.arg(type)
+
+  results <- tree_surrogate$results
+
+  if (type == "tree") {
+    for (res in results) {
+      party_tree <- partykit::as.party(res$tree)
+      plot(
+        party_tree,
+        main = paste0("Surrogate Tree at time = ", res$time, ", R² = ", round(res$r_squared, 2))
+      )
+    }
+  } else if (type == "importance") {
+    importances <- lapply(results, function(res) {
+      sc <- res$split_count
+      data.frame(feature = names(sc), count = as.integer(sc), time = res$time)
+    })
+    all_importance <- do.call(rbind, importances)
+    avg_importance <- aggregate(count ~ feature, data = all_importance, FUN = sum)
+    avg_importance <- avg_importance[order(-avg_importance$count), ][1:min(top_n, nrow(avg_importance)), ]
+
+    ggplot2::ggplot(avg_importance, ggplot2::aes(x = reorder(feature, count), y = count)) +
+      ggplot2::geom_bar(stat = "identity", fill = "steelblue") +
+      ggplot2::coord_flip() +
+      ggplot2::labs(
+        title = "Top Features by Split Count (All Times)",
+        x = "Feature",
+        y = "Split Count"
+      ) +
+      ggplot2::theme_minimal()
+  }
+}
+
+
 mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
 
 tree_ranger <- compute_tree_surrogate(
