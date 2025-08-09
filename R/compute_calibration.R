@@ -79,6 +79,37 @@ compute_calibration <- function(model, data, time, status,
   )
 }
 
+
+
+
+plot_calibration <- function(calib_output, smooth = TRUE) {
+  library(ggplot2)
+  ct <- calib_output$calibration_table
+  etime <- calib_output$eval_time
+  nboot <- calib_output$n_boot
+  nbins <- calib_output$n_bins
+
+  p <- ggplot(ct, aes(x = mean_pred_surv, y = observed_surv)) +
+    geom_point(size = 2) +
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.02) +
+    geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
+    coord_fixed(ratio = 1, xlim = c(0, 1), ylim = c(0, 1)) +
+    labs(
+      x = "Mean Predicted Survival",
+      y = "Observed Survival",
+      title = paste0("Calibration at t = ", etime, " | ", calib_result$learner)#,
+      #subtitle = paste0("n_bins = ", nbins, ", Bootstrap = ", nboot, " resamples")
+    ) +
+    theme_minimal()
+
+  if (smooth) {
+    p <- p + geom_smooth(method = "loess", se = FALSE, color = "blue", formula = y ~ x)
+  }
+
+  return(p)
+}
+
+
 calib_result <- compute_calibration(
   model = mod_cox,
   data = veteran,
