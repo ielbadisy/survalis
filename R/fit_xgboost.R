@@ -167,7 +167,7 @@ mod_xgboost <- fit_xgboost(
   data = veteran
 )
 
-pred_surv <- predict_xgboost(mod_xgboost, newdata = veteran, times = 0:100)
+pred_surv <- predict_xgboost(mod_xgboost, newdata = veteran, times = 100)
 
 pred_surv
 
@@ -206,3 +206,9 @@ tune_res <- tune_xgboost(
 )
 
 summary(tune_res)
+
+
+
+pred_surv <- predict_xgboost(tune_res, newdata = veteran, times = c("cindex", "ibs"))
+
+
