@@ -204,7 +204,7 @@ res_blackboost <- tune_blackboost(
   metrics = c("cindex", "ibs"),
   folds = 3
 )
-print(res_mboost)
+print(res_blackboost)
 
 # Refit best model
 mod_blackboost_best <- tune_blackboost(
