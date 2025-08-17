@@ -1,3 +1,48 @@
+#' Fit a Componentwise Gradient Boosted Cox Model (blackboost)
+#'
+#' Fits a survival boosting model using \pkg{mboost}'s \code{blackboost} with
+#' a Cox proportional hazards loss (\code{mboost::CoxPH()}) and shallow tree
+#' base-learners (\pkg{partykit}). Returns an `mlsurv_model` compatible with the
+#' `survalis` pipeline.
+#'
+#' @param formula A survival formula of the form \code{Surv(time, status) ~ predictors}.
+#' @param data A `data.frame` containing all variables referenced in \code{formula}.
+#' @param weights Optional case weights passed to \code{mboost::blackboost()}.
+#' @param mstop Integer; number of boosting iterations (stopping iteration). Default \code{100}.
+#' @param nu Learning rate/shrinkage in \code{(0,1]}; default \code{0.1}.
+#' @param minbucket Minimum bucket size per tree node.
+#' @param maxdepth  Maximum tree depth.
+#' @param minsplit, minbucket, maxdepth Tree control parameters passed via
+#'   \code{partykit::ctree_control()} (defaults: \code{10}, \code{4}, \code{2}).
+#' @param ... Additional arguments forwarded to \code{mboost::boost_control()} and/or
+#'   \code{mboost::blackboost()}.
+#'
+#' @details
+#' The base-learner is a conditional inference tree controlled by
+#' \code{partykit::ctree_control()}. The loss is the partial likelihood for Cox PH
+#' via \code{mboost::CoxPH()}. Use \code{mstop} and \code{nu} to control complexity.
+#'
+#' @return An object of class `mlsurv_model` with elements:
+#' \describe{
+#'   \item{model}{Fitted \code{mboost} model.}
+#'   \item{learner}{\code{"blackboost"}.}
+#'   \item{formula, data, time, status}{Original inputs/metadata.}
+#' }
+#'
+#' @references
+#' Bühlmann P, Hothorn T (2007). Boosting algorithms: regularization, prediction
+#' and model fitting. \emph{Statistical Science}.
+#'
+#' @examples
+#' \donttest{
+#'   mod <- fit_blackboost(
+#'     Surv(time, status) ~ age + karno + celltype,
+#'     data = veteran
+#'   )
+#'   head(predict_blackboost(mod, newdata = veteran[1:5, ], times = c(100, 200)))
+#' }
+#' @export
+
 fit_blackboost <- function(formula, data, weights = NULL, mstop = 100, nu = 0.1,
                        minsplit = 10, minbucket = 4, maxdepth = 2, ...) {
 
@@ -49,6 +94,33 @@ fit_blackboost <- function(formula, data, weights = NULL, mstop = 100, nu = 0.1,
   )
 }
 
+#' Predict Survival Probabilities from a blackboost Model
+#'
+#' Generates survival probabilities at requested times from a fitted
+#' \pkg{mboost} Cox boosting model produced by [fit_blackboost()].
+#'
+#' @param object An `mlsurv_model` returned by [fit_blackboost()].
+#' @param newdata A `data.frame` of new observations for prediction.
+#' @param times Numeric vector of time points at which to compute survival
+#'   probabilities.
+#' @param ... Additional arguments forwarded to \code{mboost::survFit()}.
+#'
+#' @details
+#' Predictions use \code{mboost::survFit()} to obtain a step function
+#' \(S(t)\) per observation. If any requested \code{times} exceed the model's
+#' maximum time, the last survival value is carried forward (right-constant).
+#' Values are then matched to \code{times} using stepwise (piecewise-constant)
+#' interpolation.
+#'
+#' @return A base `data.frame` with one row per observation in \code{newdata} and
+#' columns named \code{"t=<time>"} (character), containing survival probabilities
+#' in \[0, 1].
+#'
+#' @examples
+#' mod <- fit_blackboost(Surv(time, status) ~ age + karno + celltype, data = veteran)
+#' predict_blackboost(mod, newdata = veteran[1:5, ], times = c(5, 10, 40))
+#' @export
+
 predict_blackboost <- function(object, newdata, times, ...) {
 
 
@@ -94,40 +166,68 @@ predict_blackboost <- function(object, newdata, times, ...) {
   as.data.frame(survmat)
 }
 
-
-
-
-library(survival)
-data("veteran", package = "survival")
-
-mod <- fit_blackboost(Surv(time, status) ~ age + karno + celltype, data = veteran)
-
-predict_blackboost(mod, newdata = veteran[1:5, ], times = c(5, 10, 40))
-
-
-
-
-# Load data and required packages
-library(survival)
-data("veteran", package = "survival")
-
-# Fit model with CV
-cv_results_blackboost <- cv_survlearner(
-  formula = Surv(time, status) ~ age + karno + celltype,
-  data = veteran,
-  fit_fun = fit_blackboost,
-  pred_fun = predict_blackboost,
-  times = c(5, 10, 40),
-  metrics = c("cindex", "ibs"),
-  folds = 5,
-  seed = 42
-)
-
-# Summary and visualization
-print(cv_results_blackboost)
-
-#----------- add tuner
-
+#' Tune blackboost Hyperparameters (Cross-Validation)
+#'
+#' Cross-validates \pkg{mboost} Cox boosting models over a hyperparameter grid
+#' and selects the best configuration according to the primary metric. Optionally
+#' refits the best model on the full dataset.
+#'
+#' @param formula A survival formula of the form \code{Surv(time, status) ~ predictors}.
+#' @param data A `data.frame` containing variables referenced in \code{formula}.
+#' @param times Numeric vector of evaluation time points (same scale as the training time).
+#' @param param_grid A `data.frame` (e.g., from \code{expand.grid()}) with columns
+#'   such as \code{mstop}, \code{nu}, and \code{maxdepth}.
+#' @param metrics Character vector of metrics to compute (e.g., \code{"cindex"}, \code{"ibs"}).
+#'   The first entry is the primary selection metric.
+#' @param folds Integer; number of CV folds. Default \code{5}.
+#' @param seed Integer random seed for reproducibility. Default \code{123}.
+#' @param refit_best Logical; if \code{TRUE}, refits the best configuration on the full
+#'   data and returns it. Default \code{FALSE}.
+#' @param ... Additional arguments forwarded to [fit_blackboost()].
+#'
+#' @return If \code{refit_best = FALSE}, a `data.frame` (class `"tuned_surv"`) of grid
+#' results with metric columns, sorted by the primary metric. If \code{refit_best = TRUE},
+#' a fitted `mlsurv_model` from [fit_blackboost()] using the selected hyperparameters.
+#'
+#' @details
+#' Internally calls \code{cv_survlearner()} with \code{fit_blackboost()}/\code{predict_blackboost()}
+#' so tuning mirrors the production path. Typical grids vary \code{mstop}, \code{nu}, and
+#' tree \code{maxdepth}.
+#'
+#' @examples
+#' \donttest{
+#' # Grid search only
+#' res_blackboost <- tune_blackboost(
+#'   formula = Surv(time, status) ~ age + karno + celltype,
+#'   data = veteran,
+#'   times = c(5, 10, 40),
+#'   param_grid = expand.grid(
+#'     mstop = c(100, 200),
+#'     nu = c(0.05, 0.1),
+#'     maxdepth = c(2, 3)
+#'   ),
+#'   metrics = c("cindex", "ibs"),
+#'   folds = 3
+#' )
+#' print(res_blackboost)
+#'
+#' # Refit best model
+#' mod_blackboost_best <- tune_blackboost(
+#'   formula = Surv(time, status) ~ age + karno + celltype,
+#'   data = veteran,
+#'   times = c(5, 10, 40),
+#'   param_grid = expand.grid(
+#'     mstop = c(100, 200),
+#'     nu = c(0.05, 0.1),
+#'     maxdepth = c(2, 3)
+#'   ),
+#'   metrics = c("cindex", "ibs"),
+#'   folds = 3,
+#'   refit_best = TRUE
+#' )
+#' summary(mod_blackboost_best)
+#' }
+#' @export
 
 tune_blackboost <- function(formula, data, times,
                         param_grid = expand.grid(
@@ -190,35 +290,3 @@ tune_blackboost <- function(formula, data, times,
     return(best_model)
   }
 }
-
-# Grid search only
-res_blackboost <- tune_blackboost(
-  formula = Surv(time, status) ~ age + karno + celltype,
-  data = veteran,
-  times = c(5, 10, 40),
-  param_grid = expand.grid(
-    mstop = c(100, 200),
-    nu = c(0.05, 0.1),
-    maxdepth = c(2, 3)
-  ),
-  metrics = c("cindex", "ibs"),
-  folds = 3
-)
-print(res_blackboost)
-
-# Refit best model
-mod_blackboost_best <- tune_blackboost(
-  formula = Surv(time, status) ~ age + karno + celltype,
-  data = veteran,
-  times = c(5, 10, 40),
-  param_grid = expand.grid(
-    mstop = c(100, 200),
-    nu = c(0.05, 0.1),
-    maxdepth = c(2, 3)
-  ),
-  metrics = c("cindex", "ibs"),
-  folds = 3,
-  refit_best = TRUE
-)
-summary(mod_blackboost_best)
-

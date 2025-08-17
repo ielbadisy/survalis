@@ -1,3 +1,41 @@
+#' Fit a Bayesian Additive Regression Trees (BART) Survival Model
+#'
+#' Fits a right‐censored survival model using \pkg{BART}'s
+#' \code{\link[BART]{surv.bart}} and returns an `mlsurv_model` compatible with
+#' the \pkg{survalis} pipeline.
+#'
+#' @param formula A survival formula of the form \code{Surv(time, status) ~ predictors}.
+#'   Only right‐censored responses are supported.
+#' @param data A \code{data.frame} containing variables referenced in \code{formula}.
+#' @param K Integer; number of internal time grid intervals used by the BART
+#'   survival engine (default \code{3}). Larger values yield a finer internal
+#'   evaluation grid.
+#' @param ... Further args to BART::surv.bart
+
+#'
+#' @details
+#' The response must be of class \code{Surv(..., type = "right")}. The fitted
+#' object stores the engine's internal evaluation times in \code{$eval_times}
+#' (from \code{bart_fit$times}) for downstream prediction alignment.
+#'
+#' @return An object of class \code{mlsurv_model} with elements:
+#' \describe{
+#'   \item{model}{Fitted \code{BART::surv.bart} object.}
+#'   \item{learner}{\code{"bart"}.}
+#'   \item{formula, data}{Original inputs.}
+#'   \item{eval_times}{Engine's internal time grid used for prediction.}
+#' }
+#'
+#' @seealso \code{\link{predict_bart}}, \code{\link[BART]{surv.bart}}
+#'
+#' @examplesIf requireNamespace("BART", quietly = TRUE)
+#' mod_bart <- fit_bart(
+#'   Surv(time, status) ~ age + karno + celltype,
+#'   data = veteran
+#' )
+#' @export
+
+
 fit_bart <- function(formula, data, K = 3, ...) {
 
   stopifnot(requireNamespace("BART", quietly = TRUE))
@@ -20,8 +58,7 @@ fit_bart <- function(formula, data, K = 3, ...) {
         times = time_vec,
         delta = status_vec,
         K = K,
-        printevery = 1,
-        ...
+        printevery = 1
       )
     })
   )
@@ -39,7 +76,39 @@ fit_bart <- function(formula, data, K = 3, ...) {
   )
 }
 
-predict_bart <- function(object, newdata, times, ...) {
+
+
+#' Predict Survival Probabilities from a BART Survival Model
+#'
+#' Generates survival probability predictions at requested times for new data
+#' using a model fitted by \code{\link{fit_bart}}.
+#'
+#' @param object An \code{mlsurv_model} returned by \code{\link{fit_bart}}.
+#' @param newdata A \code{data.frame} of new observations for prediction.
+#' @param times Numeric vector of time points at which to estimate survival
+#'   probabilities (same scale as the training time).
+#'
+#' @details
+#' The BART engine predicts survival on its internal grid \code{object$eval_times}.
+#' Requested \code{times} are aligned to that grid by nearest‐neighbor matching,
+#' returning one survival estimate per requested time.
+#'
+#' @return A base \code{data.frame} with one row per observation in \code{newdata}
+#' and columns named \code{"t=<time>"} (character), containing survival
+#' probabilities in \[0, 1].
+#'
+#' @seealso \code{\link{fit_bart}}, \code{\link[BART]{surv.bart}}
+#'
+#' @examplesIf requireNamespace("BART", quietly = TRUE)
+#' mod_bart <- fit_bart(
+#'   Surv(time, status) ~ age + karno + celltype,
+#'   data = veteran
+#' )
+#' predict_bart(mod_bart, newdata = veteran[1:5, ], times = c(10, 30, 60))
+#' @export
+
+
+predict_bart <- function(object, newdata, times) {
 
 
   if (!is.null(object$learner) && object$learner != "bart") {
@@ -73,41 +142,59 @@ predict_bart <- function(object, newdata, times, ...) {
 
 }
 
+#' Tune BART Survival Hyperparameters (Cross-Validation)
+#'
+#' Cross-validates BART survival models over a user‐supplied grid and selects the
+#' best configuration by the primary metric. Optionally refits the best model on
+#' the full dataset.
+#'
+#' @param formula A survival formula of the form \code{Surv(time, status) ~ predictors}.
+#' @param data A \code{data.frame} with variables referenced in \code{formula}.
+#' @param times Numeric vector of evaluation time points.
+#' @param param_grid A \code{data.frame} (e.g., from \code{expand.grid()}) of candidate
+#'   hyperparameters (e.g., \code{K}, \code{ntree}, \code{power}, \code{base}).
+#' @param metrics Character vector of evaluation metrics (default \code{c("cindex","ibs")}).
+#'   The first entry is used as the primary selection metric.
+#' @param folds Integer; number of cross‐validation folds (default \code{5}).
+#' @param seed Integer random seed for reproducibility (default \code{123}).
+#' @param refit_best Logical; if \code{TRUE}, refits the best configuration on the
+#'   full data and returns it. If \code{FALSE}, returns a results table.
+#'
+#' @return If \code{refit_best = FALSE}, a \code{data.frame} (class \code{"tuned_surv"})
+#' sorted by the primary metric with one row per grid combination.
+#' If \code{refit_best = TRUE}, a fitted \code{mlsurv_model} returned by \code{\link{fit_bart}}.
+#'
+#' @details
+#' Internally calls \code{cv_survlearner()} with \code{fit_bart()}/\code{predict_bart()}
+#' so tuning mirrors the production prediction path.
+#'
+#' @seealso \code{\link{fit_bart}}, \code{\link{predict_bart}}, \code{\link[BART]{surv.bart}}
+#'
+#' @examplesIf requireNamespace("BART", quietly = TRUE)
+#' \donttest{
+#' # Evaluate a grid without refitting
+#' grid <- expand.grid(K = c(3), ntree = c(50), power = c(2), base = c(0.75, 0.95))
+#' res <- tune_bart(
+#'   formula = Surv(time, status) ~ age + karno + celltype,
+#'   data = veteran,
+#'   param_grid = grid,
+#'   times = c(10, 60),
+#'   refit_best = FALSE
+#' )
+#' print(res)
+#'
+#' # Refit best model
+#' mod_bart <- tune_bart(
+#'   formula = Surv(time, status) ~ age + karno + celltype,
+#'   data = veteran,
+#'   param_grid = grid,
+#'   times = c(10, 60),
+#'   refit_best = TRUE
+#' )
+#' summary(mod_bart)
+#' }
+#' @export
 
-
-
-#----------- TEST
-
-library(survival)
-library(BART)
-
-veteran <- survival::veteran
-
-# fit and CV
-mod_bart <- fit_bart(Surv(time, status) ~ age + karno + celltype, data = veteran)
-
-pred_bart <- predict_bart(mod_bart, newdata = veteran[1:5, ], times = c(10, 30, 60))
-print(round(pred_bart, 3))
-
-
-cv_results_bart <- cv_survlearner(
-  formula = Surv(time, status) ~ age + karno + celltype,
-  data = veteran,
-  fit_fun = fit_bart,
-  pred_fun = predict_bart,
-  times = c(5, 10, 40),
-  metrics = c("cindex", "ibs"),
-  folds = 5,
-  seed = 42
-)
-
-# summary and plot
-print(cv_results_bart)
-
-cv_summary(cv_results_bart)
-cv_plot(cv_results_bart)
-
-#---------------------- add tuner
 tune_bart <- function(formula, data, times,
                       param_grid = expand.grid(
                         K = c(3, 5),
@@ -117,7 +204,7 @@ tune_bart <- function(formula, data, times,
                       ),
                       metrics = c("cindex", "ibs"),
                       folds = 5, seed = 123,
-                      refit_best = FALSE, ...) {
+                      refit_best = FALSE) {
 
   results <- purrr::pmap_dfr(param_grid, function(K, ntree, power, base) {
     cv_results <- cv_survlearner(
@@ -129,8 +216,7 @@ tune_bart <- function(formula, data, times,
       metrics = metrics,
       folds = folds,
       seed = seed,
-      K = K, ntree = ntree, power = power, base = base,
-      ...
+      K = K, ntree = ntree, power = power, base = base
     )
 
     summary <- cv_summary(cv_results)
@@ -158,8 +244,7 @@ tune_bart <- function(formula, data, times,
       K = best_row$K,
       ntree = best_row$ntree,
       power = best_row$power,
-      base = best_row$base,
-      ...
+      base = best_row$base
     )
     return(best_model)
   }
@@ -167,31 +252,3 @@ tune_bart <- function(formula, data, times,
 
 
 
-param_grid = expand.grid(
-  K = c(3),
-  ntree = c(50),
-  power = c(2),
-  base = c(0.75, 0.95)
-  )
-
-res <- tune_bart(
-  formula = Surv(time, status) ~ age + karno + celltype,
-  data = veteran,
-  param_grid = param_grid,
-  times = c(10, 60),
-  refit_best = FALSE
-  )
-
-print(res)
-
-
-mod_bart <- tune_bart(
-  formula = Surv(time, status) ~ age + karno + celltype,
-  data = veteran,
-  param_grid = param_grid,
-  times = c(10, 60),
-  refit_best = TRUE
-)
-
-summary(mod_bart)
-predict_bart(mod_bart, newdata = veteran[1:5, ], times = c(30, 60))
