@@ -1,3 +1,41 @@
+#' Fit a Conditional Inference Survival Forest
+#'
+#' Fits a survival forest model using the `party::cforest()` implementation
+#' of conditional inference trees for right-censored survival data.
+#'
+#' @param formula A `Surv()` survival formula specifying the outcome and predictors.
+#' @param data A data frame containing the variables in the model.
+#' @param teststat Character string specifying the test statistic to use 
+#'   (default = `"quad"`). See [party::cforest_control()].
+#' @param testtype Character string specifying the type of test 
+#'   (default = `"Univariate"`).
+#' @param mincriterion Numeric, the value of the test statistic that must be
+#'   exceeded for a split to be performed (default = `0`).
+#' @param ntree Integer, number of trees to grow (default = `500`).
+#' @param mtry Integer, number of variables randomly selected at each node
+#'   (default = `5`).
+#' @param replace Logical, whether sampling of cases is with replacement
+#'   (default = `TRUE`).
+#' @param fraction Proportion of samples to draw if `replace = FALSE`
+#'   (default = `0.632`).
+#' @param ... Additional arguments passed to [party::cforest_control()].
+#'
+#' @return An object of class `"mlsurv_model"`, containing:
+#'   \item{model}{The fitted `cforest` model.}
+#'   \item{learner}{Character string `"cforest"`.}
+#'   \item{formula}{The model formula.}
+#'   \item{data}{The training data.}
+#'
+#' @details This function wraps `party::cforest()` to fit a conditional inference
+#'   forest for survival analysis, returning an `mlsurv_model` object compatible
+#'   with `predict_cforest()` and the `survalis` framework.
+#'
+#' @examples
+#' mod <- fit_cforest(Surv(time, status) ~ age + celltype + karno, data = veteran)
+#' head(predict_cforest(mod, newdata = veteran[1:5, ], times = c(100, 200)))
+#'
+#' @export
+
 fit_cforest <- function(formula, data,
                         teststat = "quad",
                         testtype = "Univariate",
@@ -39,6 +77,28 @@ fit_cforest <- function(formula, data,
 }
 
 
+#' Predict Survival Probabilities from a Conditional Inference Survival Forest
+#'
+#' Generates predicted survival probabilities at specified time points from a
+#' fitted `cforest` survival model.
+#'
+#' @param object An `mlsurv_model` object returned by [fit_cforest()].
+#' @param newdata A data frame containing the predictor variables for prediction.
+#' @param times A numeric vector of time points at which to estimate survival
+#'   probabilities.
+#' @param ... Not used, included for compatibility.
+#'
+#' @return A data frame of survival probabilities with one row per observation
+#'   in `newdata` and one column per requested time point (named `"t=<time>"`).
+#'
+#' @details Survival curves are extracted from the fitted `cforest` model and
+#'   linearly interpolated to the requested time points.
+#'
+#' @examples
+#' mod <- fit_cforest(Surv(time, status) ~ age + celltype + karno, data = veteran)
+#' predict_cforest(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
+#'
+#' @export
 
 predict_cforest <- function(object, newdata, times, ...) {
 
@@ -75,33 +135,49 @@ predict_cforest <- function(object, newdata, times, ...) {
   as.data.frame(survmat)
 }
 
-
-library(survival)
-data(veteran)
-
-mod_cforest <- fit_cforest(Surv(time, status) ~ age + celltype + karno, data = veteran)
-predict_cforest(mod_cforest, newdata = veteran[1:5, ], times = c(100, 200, 300))
-
-
-
-# --- Evaluate with CV ---
-cv_results_cforest <- cv_survlearner(
-  formula = Surv(time, status) ~ age + celltype + karno,
-  data = veteran,
-  fit_fun = fit_cforest,
-  pred_fun = predict_cforest,
-  times = c(100, 200, 300),
-  metrics = c("cindex", "ibs"),
-  folds = 10,
-  seed = 42
-)
-
-# --- Print Results ---
-print(cv_results_cforest)
-
-
-
-#---------------- tune_cforest()
+#' Tune a Conditional Inference Survival Forest
+#'
+#' Performs cross-validated hyperparameter tuning for a conditional inference
+#' survival forest using the `fit_cforest()` and `predict_cforest()` functions.
+#'
+#' @param formula A `Surv()` survival formula specifying the outcome and predictors.
+#' @param data A data frame containing the variables in the model.
+#' @param times A numeric vector of time points at which to evaluate performance.
+#' @param param_grid A data frame or list specifying the grid of hyperparameter
+#'   values to evaluate. Columns should include `ntree`, `mtry`, `mincriterion`,
+#'   and `fraction`.
+#' @param metrics A character vector of performance metrics to compute 
+#'   (default = `c("cindex", "ibs")`).
+#' @param folds Integer, number of cross-validation folds (default = `5`).
+#' @param seed Integer, random seed for reproducibility.
+#' @param refit_best Logical, if `TRUE` refits a model with the best-performing
+#'   hyperparameters and returns it; otherwise returns a summary table of results.
+#' @param ... Additional arguments passed to [fit_cforest()].
+#'
+#' @return If `refit_best = FALSE`, a data frame of mean cross-validation scores
+#'   for each hyperparameter combination (class `"tuned_surv"`).  
+#'   If `refit_best = TRUE`, an `mlsurv_model` object fitted with the optimal
+#'   hyperparameters.
+#'
+#' @details Cross-validation is performed using `cv_survlearner()` and results
+#'   are sorted in descending order of the first metric specified in `metrics`.
+#'
+#' @examples
+#' grid <- expand.grid(
+#'   ntree = c(50, 100),
+#'   mtry = c(2, 4),
+#'   mincriterion = c(0, 0.95),
+#'   fraction = c(0.632)
+#' )
+#' res <- tune_cforest(Surv(time, status) ~ age + celltype + karno,
+#'   data = veteran,
+#'   times = c(100, 200),
+#'   param_grid = grid,
+#'   folds = 3
+#' )
+#' print(res)
+#'
+#' @export
 
 tune_cforest <- function(formula, data, times,
                          param_grid = expand.grid(
@@ -165,42 +241,3 @@ tune_cforest <- function(formula, data, times,
     return(best_model)
   }
 }
-
-
-# Define parameter grid
-param_grid <- expand.grid(
-  ntree = c(5, 100),
-  mtry = c(0, 2, 4),
-  mincriterion = c(0, 5),
-  fraction = c(0.632)
-)
-
-# Return CV results only
-res_cforest <- tune_cforest(
-  formula = Surv(time, status) ~ age + celltype + karno,
-  data = veteran,
-  times = c(100, 200, 300),
-  param_grid = param_grid,
-  metrics = c("cindex", "ibs"),
-  folds = 3,
-  refit_best = FALSE
-)
-
-print(res_cforest)
-
-
-mod_cforest <- tune_cforest(
-  formula = Surv(time, status) ~ age + celltype + karno,
-  data = veteran,
-  times = c(100, 200, 300),
-  param_grid = param_grid,
-  metrics = c("cindex", "ibs"),
-  folds = 3,
-  refit_best = TRUE
-)
-
-summary(mod_cforest)
-predict_cforest(mod_cforest, newdata = veteran[1:5, ], times = c(100, 200, 300))
-summary(mod_cforest)
-
-

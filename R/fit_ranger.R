@@ -1,4 +1,34 @@
 
+#' Fit a Survival Random Forest Model Using ranger
+#'
+#' This function fits a survival random forest model using the
+#' \pkg{ranger} package and returns an object compatible with the
+#' `mlsurv_model` class.
+#'
+#' @param formula A survival formula of the form \code{Surv(time, status) ~ predictors}.
+#' @param data A \code{data.frame} containing the variables in the model.
+#' @param ... Additional arguments passed to \code{\link[ranger]{ranger}}.
+#'
+#' @details
+#' This function wraps \code{\link[ranger]{ranger}} for survival analysis and
+#' stores the result in a standardized `mlsurv_model` object.
+#'
+#' @return An object of class \code{"mlsurv_model"} containing:
+#' \itemize{
+#'   \item \code{model} - the fitted \code{ranger} model
+#'   \item \code{learner} - character string "ranger"
+#'   \item \code{formula} - the model formula
+#'   \item \code{data} - training data used to fit the model
+#' }
+#'
+#' @seealso \code{\link{predict_ranger}}, \code{\link{tune_ranger}}, \code{\link[ranger]{ranger}}
+#'
+#' @examples
+#' mod <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
+#' summary(mod)
+#'
+#' @export
+
 fit_ranger <- function(formula, data, ...) {
   stopifnot(requireNamespace("ranger", quietly = TRUE))
 
@@ -22,6 +52,30 @@ fit_ranger <- function(formula, data, ...) {
   )
 }
 
+
+#' Predict Survival Probabilities from a ranger Model
+#'
+#' Generates predicted survival probabilities for given time points
+#' from a model fitted with \code{\link{fit_ranger}}.
+#'
+#' @param object An \code{"mlsurv_model"} object returned by \code{\link{fit_ranger}}.
+#' @param newdata A \code{data.frame} containing the same predictors as the training data.
+#' @param times Numeric vector of time points at which to estimate survival probabilities.
+#'
+#' @details
+#' Predictions are obtained from \code{\link[ranger]{predict.ranger}} and
+#' survival curves are interpolated to match the requested \code{times}.
+#'
+#' @return A \code{data.frame} with one row per observation in \code{newdata}
+#' and one column per time point (columns named \code{"t=<time>"}).
+#'
+#' @seealso \code{\link{fit_ranger}}, \code{\link{tune_ranger}}
+#'
+#' @examples
+#' mod <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
+#' predict_ranger(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
+#'
+#' @export
 
 predict_ranger <- function(object, newdata, times) {
 
@@ -55,8 +109,52 @@ predict_ranger <- function(object, newdata, times) {
 
 
 
-mod <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
-summary(mod)
+#' Hyperparameter Tuning for ranger Survival Models
+#'
+#' Performs grid search tuning of a survival random forest model using
+#' \pkg{ranger} over a set of hyperparameter combinations.
+#'
+#' @param formula A survival formula of the form \code{Surv(time, status) ~ predictors}.
+#' @param data A \code{data.frame} containing the variables in the model.
+#' @param times Numeric vector of time points at which to evaluate performance.
+#' @param param_grid A \code{data.frame} of hyperparameter combinations. Must contain
+#'   columns \code{num.trees}, \code{mtry}, and \code{min.node.size}.
+#' @param metrics Character vector of evaluation metrics (e.g., \code{"cindex"}, \code{"ibs"}).
+#' @param folds Number of cross-validation folds.
+#' @param seed Random seed for reproducibility.
+#' @param refit_best Logical; if \code{TRUE}, refits the model using the best parameters.
+#' @param ... Additional arguments passed to \code{\link{fit_ranger}}.
+#'
+#' @details
+#' Uses \code{\link{cv_survlearner}} to perform cross-validation for each
+#' parameter combination. If \code{refit_best = TRUE}, the function returns the
+#' best-fitting model; otherwise, it returns a tuning results table.
+#'
+#' @return
+#' If \code{refit_best = FALSE}, returns a \code{data.frame} of tuning results
+#' sorted by the primary metric. If \code{refit_best = TRUE}, returns an
+#' \code{"mlsurv_model"} object with the best parameters and an attribute
+#' \code{"tuning_results"}.
+#'
+#' @seealso \code{\link{fit_ranger}}, \code{\link{predict_ranger}}
+#'
+#' @examples
+#' mod_ranger_best <- tune_ranger(
+#'   formula = Surv(time, status) ~ age + karno + celltype,
+#'   data = veteran,
+#'   times = c(100, 200, 300),
+#'   param_grid = expand.grid(
+#'     num.trees = c(100, 300),
+#'     mtry = c(1, 2),
+#'     min.node.size = c(3, 5)
+#'   ),
+#'   metrics = c("cindex", "ibs"),
+#'   folds = 3,
+#'   refit_best = TRUE
+#' )
+#' summary(mod_ranger_best)
+#'
+#' @export
 
 tune_ranger <- function(formula, data, times,
                         param_grid = expand.grid(
@@ -113,43 +211,4 @@ tune_ranger <- function(formula, data, times,
 
   return(res)
 }
-
-
-
-mod_ranger_best <- tune_ranger(
-  formula = Surv(time, status) ~ age + karno + celltype,
-  data = veteran,
-  times = c(100, 200, 300),
-  param_grid = expand.grid(
-    num.trees = c(100, 300),
-    mtry = c(1, 2),
-    min.node.size = c(3, 5)
-  ),
-  metrics = c("cindex", "ibs"),
-  folds = 3,
-  refit_best = TRUE
-)
-
-# This now works and gives structured summary output:
-summary(mod_ranger_best)
-
-
-
-
-mod_ranger <- tune_ranger(
-  formula = Surv(time, status) ~ age + karno + celltype,
-  data = veteran,
-  times = c(100, 200, 300),
-  param_grid = expand.grid(
-    num.trees = c(100, 300),
-    mtry = c(1, 2),
-    min.node.size = c(3, 5)
-  ),
-  metrics = c("cindex", "ibs"),
-  folds = 3,
-  refit_best = FALSE
-)
-
-mod_ranger
-
 
