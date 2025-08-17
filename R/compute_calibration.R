@@ -167,7 +167,7 @@ plot_calibration <- function(calib_output, smooth = TRUE) {
     labs(
       x = "Mean Predicted Survival",
       y = "Observed Survival",
-      title = paste0("Calibration at t = ", etime, " | ", calib_result$learner)#,
+      title = paste0("Calibration at t = ", etime, " | ", calib_output$learner)#,
       #subtitle = paste0("n_bins = ", nbins, ", Bootstrap = ", nboot, " resamples")
     ) +
     theme_minimal()
