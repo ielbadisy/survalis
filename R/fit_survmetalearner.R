@@ -1,3 +1,48 @@
+
+#' Fit a Stacked Survival Meta‑Learner (Time‑Varying NNLS)
+#'
+#' Learns nonnegative, time‑specific stacking weights over a set of base survival
+#' learners by solving a nonnegative least squares (NNLS) problem at each
+#' requested time \eqn{t^{*}}. For each \eqn{t^{*}}, the target is the indicator
+#' \eqn{Y = I(T > t^{*})}; the features are the base learners' predicted survival
+#' probabilities \eqn{S_\ell(t^{*} \mid x)}. Weights are constrained to be
+#' nonnegative and are normalized to sum to 1 per time point.
+#'
+#' @param base_preds A named list of matrices/data frames, one per base learner,
+#'   each of dimension \code{n x length(times)}, with columns named \code{"t=<time>"}.
+#' @param time Numeric vector of observed event/censoring times (length \code{n}).
+#' @param status Numeric/binary vector of event indicators (1=event, 0=censor) (length \code{n}).
+#' @param times Numeric vector of evaluation times at which to learn weights.
+#' @param base_models A named list of fitted base learner objects; names must
+#'   match \code{names(base_preds)} and the learner names used by \code{predict_*()}.
+#' @param formula A \code{Surv()} formula that was used for the base models
+#'   (stored for metadata and downstream scoring).
+#' @param data The training data frame used for the base models (stored for metadata).
+#'
+#' @details
+#' For each \code{t} in \code{times}, this function fits
+#' \deqn{\min_{w \ge 0} \\mid Y - S w \|_2^2 \quad \text{s.t.} \ \sum_j w_j = 1}
+#' where \eqn{Y = I(T > t)} and \eqn{S} is the matrix of base survival
+#' probabilities at \eqn{t}. The NNLS solution from \pkg{nnls} is renormalized
+#' to sum to 1 (if the solution is all zeros, weights remain \code{NA} for that time).
+#'
+#' @return An object of class \code{c("mlsurv_model","survmetalearner")} with elements:
+#' \describe{
+#'   \item{weights}{Matrix \code{L x T} of nonnegative stacking weights, rows=learners, cols=\code{"t=<time>"}.}
+#'   \item{base_models}{Named list of base learner fits.}
+#'   \item{base_preds}{Named list of base prediction matrices on training data.}
+#'   \item{learners}{Character vector of learner names (from \code{names(base_preds)}).}
+#'   \item{formula, data, time, status}{Training metadata for scoring/reporting.}
+#'   \item{learner}{The string \code{"survmetalearner"} (for \code{predict_*} dispatch).}
+#' }
+#'
+#' @seealso \code{\link{predict_survmetalearner}}, \code{\link{plot_survmetalearner_weights}},
+#'   \code{\link{cv_survmetalearner}}
+#'
+#' @examples
+#' # See cv_survmetalearner() and predict_survmetalearner() examples.
+#' @export
+
 fit_survmetalearner <- function(base_preds, time, status, times,
                             base_models, formula, data) {
   stopifnot(is.list(base_preds), is.list(base_models), is.data.frame(data))
@@ -34,6 +79,30 @@ fit_survmetalearner <- function(base_preds, time, status, times,
 
 }
 
+#' Predict with a Stacked Survival Meta‑Learner
+#'
+#' Produces stacked survival probabilities by combining base learner predictions
+#' via the time‑specific weights learned by \code{\link{fit_survmetalearner}}.
+#'
+#' @param model A \code{"survmetalearner"} object returned by \code{fit_survmetalearner()}.
+#' @param newdata A data frame of new observations for prediction.
+#' @param times Numeric vector of evaluation times (must be a subset of the times
+#'   used to train the meta‑learner).
+#'
+#' @details
+#' For each base learner listed in \code{model$learners}, the corresponding
+#' \code{predict_<learner>} function is called to obtain \eqn{S_\ell(t \mid x)}.
+#' Stacked predictions are computed as \eqn{\hat{S}(t \mid x) = \sum_\ell w_\ell(t) S_\ell(t \mid x)},
+#' where \eqn{w_\ell(t)} are the learned nonnegative weights for time \eqn{t}.
+#'
+#' @return A data frame with one row per observation and one column per requested
+#'   time (columns named \code{"t=<time>"}), containing stacked survival probabilities.
+#'
+#' @seealso \code{\link{fit_survmetalearner}}, \code{\link{plot_survmetalearner_weights}}
+#'
+#' @examples
+#' # pred <- predict_survmetalearner(meta_model, newdata = df_test, times = c(200, 500, 800))
+#' @export
 
 predict_survmetalearner <- function(model, newdata, times) {
   stopifnot(inherits(model, "survmetalearner"))
@@ -68,9 +137,21 @@ predict_survmetalearner <- function(model, newdata, times) {
   as.data.frame(survmat)
 }
 
+#' Plot Time‑Varying Stacking Weights
+#'
+#' Visualizes the learned nonnegative NNLS stacking weights \eqn{w_\ell(t)} over time
+#' for each base learner.
+#'
+#' @param model A \code{"survmetalearner"} object from \code{\link{fit_survmetalearner}}.
+#'
+#' @return A \pkg{ggplot2} object showing weight trajectories (one line per learner).
+#'
+#' @examples
+#' # plot_survmetalearner_weights(meta_model)
+#' @export
+
 plot_survmetalearner_weights <- function(model) {
   stopifnot(inherits(model, "survmetalearner"))
-  library(ggplot2); library(tidyr); library(dplyr)
 
   W <- as.data.frame(model$weights)
   W$learner <- rownames(model$weights)
@@ -85,64 +166,71 @@ plot_survmetalearner_weights <- function(model) {
     theme_minimal(base_size = 14)
 }
 
-
-
-## TEST -------
-
-library(survival)
-data(veteran)
-
-formula <- Surv(time, status) ~ age + karno + trt + diagtime + celltype
-times <- c(200, 500, 800)
-
-mod_rpart   <- fit_rpart(formula, data = veteran)
-mod_ranger  <- fit_ranger(formula, data = veteran)
-mod_cforest <- fit_cforest(formula, data = veteran)
-
-base_preds <- list(
-  rpart   = predict_rpart(mod_rpart, veteran, times),
-  ranger  = predict_ranger(mod_ranger, veteran, times),
-  cforest = predict_cforest(mod_cforest, veteran, times)
-)
-
-base_models <- list(
-  rpart   = mod_rpart,
-  ranger  = mod_ranger,
-  cforest = mod_cforest
-)
-
-meta_model <- fit_survmetalearner(
-  base_preds = base_preds,
-  time = veteran$time,
-  status = veteran$status,
-  times = times,
-  base_models = base_models,
-  formula = formula,
-  data = veteran
-)
-
-# Prediction
-pred_meta <- predict_survmetalearner(meta_model, newdata = veteran[1:5, ], times = times)
-print(round(pred_meta, 3))
-
-# Plot
-plot_survmetalearner_weights(meta_model)
-
-
-
-summary(meta_model)
-
-
-
-## Score
-
-
-score_survmodel(meta_model, times = c(200, 500, 800), metrics = c("cindex", "ibs"))
-
-
-
-## CV
-
+#' Cross‑Validate a Stacked Survival Meta‑Learner
+#'
+#' Performs v‑fold cross‑validation for the NNLS stacking meta‑learner over
+#' a fixed set of base learners and their predictions. On each fold, stacking
+#' weights are learned on the analysis set and evaluated on the assessment set.
+#'
+#' @param formula A survival formula \code{Surv(time, status) ~ predictors}.
+#' @param data A data frame containing all variables referenced in \code{formula}.
+#' @param times Numeric vector of evaluation times for stacking and scoring.
+#' @param base_models A named list of fitted base learner models (used to predict
+#'   on assessment folds and for the final refit on full data).
+#' @param base_preds A named list of \emph{training‑set} prediction matrices
+#'   (rows align with \code{data}, columns align with \code{times}); names must
+#'   match \code{base_models}.
+#' @param folds Integer; number of CV folds (default \code{5}).
+#' @param metrics Character vector of metrics to compute (default \code{c("cindex","ibs")}).
+#'   Supported: \code{"cindex"}, \code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}.
+#' @param seed Integer random seed (default \code{123}).
+#' @param verbose Logical; if \code{TRUE}, prints fold progress (default \code{TRUE}).
+#'
+#' @details
+#' For each fold: (1) subset \code{base_preds} to the analysis indices;
+#' (2) learn time‑specific NNLS weights with \code{\link{fit_survmetalearner}};
+#'
+#' (3) predict stacked survival on the assessment set with \code{\link{predict_survmetalearner}};
+#' (4) compute requested metrics. After CV, a final meta‑learner is fit on the full data.
+#'
+#' @return An object of class \code{"cv_survmetalearner_result"} with components:
+#' \describe{
+#'   \item{model}{Final \code{"survmetalearner"} fit on all data.}
+#'   \item{cv_results}{Per‑fold metric values (tibble).}
+#'   \item{summary}{Fold‑aggregated mean and sd by metric (tibble).}
+#'   \item{folds, metrics}{CV settings.}
+#' }
+#'
+#' @seealso \code{\link{fit_survmetalearner}}, \code{\link{predict_survmetalearner}},
+#'   \code{\link{plot_survmetalearner_weights}}
+#'
+#' @examples
+#' \dontrun{
+#' form  <- Surv(time, status) ~ age + karno + trt + diagtime + celltype
+#' times <- c(200, 500, 800)
+#'
+#' # Fit a few base learners (examples)
+#' mod_rpart   <- fit_rpart(form, data = veteran)
+#' mod_ranger  <- fit_ranger(form, data = veteran)
+#' mod_cforest <- fit_cforest(form, data = veteran)
+#'
+#' base_models <- list(rpart = mod_rpart, ranger = mod_ranger, cforest = mod_cforest)
+#' base_preds  <- list(
+#'   rpart   = predict_rpart(mod_rpart,   veteran, times),
+#'   ranger  = predict_ranger(mod_ranger, veteran, times),
+#'   cforest = predict_cforest(mod_cforest, veteran, times)
+#' )
+#'
+#' cv_res <- cv_survmetalearner(
+#'   formula = form, data = veteran, times = times,
+#'   base_models = base_models, base_preds = base_preds,
+#'   folds = 3, metrics = c("cindex","ibs")
+#' )
+#'
+#' cv_res$summary
+#' plot_survmetalearner_weights(cv_res$model)
+#' }
+#' @export
 
 cv_survmetalearner <- function(formula, data, times,
                            base_models, base_preds,
@@ -273,22 +361,5 @@ cv_survmetalearner <- function(formula, data, times,
 }
 
 
-
-
-cv_result <- cv_survmetalearner(
-  formula = Surv(time, status) ~ age + karno + celltype,
-  data = veteran,
-  times = c(200, 500, 800),
-  base_models = base_models,
-  base_preds = base_preds,
-  folds = 3,
-  metrics = c("cindex", "ibs", "iae")
-)
-
-
-summary(cv_result$model)
-cv_result$summary
-plot_survmetalearner_weights(cv_result$model)
-score_survmodel(cv_result$model, times = c(200, 500, 800), metrics = c("cindex", "ibs"))
 
 
