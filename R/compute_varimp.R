@@ -1,3 +1,44 @@
+#' Permutation variable importance for survival models
+#'
+#' @description
+#' Estimates feature importance by measuring the change in a survival metric
+#' after permuting each feature.
+#'
+#' @param model An \code{mlsurv_model}-like object with fields \code{data}, \code{formula}, and \code{learner}.
+#' @param times Numeric vector of evaluation times.
+#' @param metric Character string, e.g. \code{"ibs"} or \code{"cindex"}.
+#' @param n_repetitions Integer; number of permutations per feature.
+#' @param seed Optional integer seed for reproducibility.
+#' @param subset Optional row indices or logical vector to subset \code{model$data}.
+#' @param importance_type One of \code{"delta"} (default) or \code{"mean"}; see Details.
+#'
+#' @return A data.frame with columns:
+#' \itemize{
+#'   \item \code{feature}: feature name,
+#'   \item \code{value}: importance value (change in metric),
+#'   \item \code{scaled_importance}: percent-scaled importance (see Details).
+#' }
+#'
+#' @details
+#' For each feature, rows are permuted \code{n_repetitions} times, predictions are recomputed,
+#' and the chosen metric is compared to the baseline (unpermuted) value. The
+#' \code{scaled_importance} rescales values to sum to 100%.
+#'
+#' @examples
+#' \donttest{
+#' mod <- fit_coxph(survival::Surv(time, status) ~ age + karno + celltype, data = veteran)
+#' shap_td <- compute_shap(
+#'   model         = mod,
+#'   newdata       = veteran[10, , drop = FALSE],
+#'   baseline_data = veteran,
+#'   times         = c(100),   # one time point
+#'   sample.size   = 8,        # small MC
+#'   aggregate     = FALSE
+#' )
+#' head(shap_td)
+#' }
+#' @export
+
 compute_varimp <- function(model, times,
                            metric = "ibs",
                            n_repetitions = 10,
@@ -92,6 +133,22 @@ compute_varimp <- function(model, times,
 }
 
 
+#' Plot Permutation Variable Importance
+#'
+#' Creates a dot plot of permutation-based variable importance, using either the
+#' scaled importance (default) or the raw importance column.
+#'
+#' @param varimp_df A data frame as returned by \code{\link{compute_varimp}}.
+#' @param use_scaled Logical; if \code{TRUE} (default), plot \code{scaled_importance}
+#'   (percent). If unavailable, falls back to raw \code{importance} with a warning.
+#'
+#' @return A \pkg{ggplot2} object.
+#'
+#' @examples
+#' # p1 <- plot_varimp(imp, use_scaled = TRUE)
+#' # p2 <- plot_varimp(imp, use_scaled = FALSE)
+#' @export
+
 plot_varimp <- function(varimp_df, use_scaled = TRUE) {
   if (use_scaled && (!"scaled_importance" %in% names(varimp_df) || all(is.na(varimp_df$scaled_importance)))) {
     warning("Scaled importance not available. Falling back to raw importance.")
@@ -117,16 +174,3 @@ plot_varimp <- function(varimp_df, use_scaled = TRUE) {
     ggplot2::theme_minimal()
 }
 
-
-imp <- compute_varimp(
-  model = mod_bart,
-  times = c(1, 3, 5),
-  metric = "ibs",
-  n_repetitions = 5,
-  importance_type = "delta"
-)
-
-plot_varimp(imp, use_scaled = FALSE)
-
-
-plot_varimp(imp, use_scaled = TRUE)

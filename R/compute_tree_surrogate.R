@@ -1,3 +1,51 @@
+
+#' Compute Tree-Based Surrogate Model for Survival Predictions
+#'
+#' @description
+#' Fits decision tree surrogate models to approximate the predictions of a fitted survival model
+#' at one or more evaluation times. This allows users to gain interpretable, rule-based
+#' approximations of complex survival models.
+#'
+#' @param model A fitted survival model object created with a `fit_*()` function.
+#'              Must include a valid `learner` field corresponding to a `predict_*()` method.
+#' @param data A data frame containing predictor variables (and optional survival outcome columns).
+#' @param times A numeric vector of evaluation times at which to approximate model predictions.
+#'              Must contain at least one value.
+#' @param minsplit Minimum number of observations required to attempt a split in the surrogate tree.
+#'                 Passed to `rpart::rpart.control()`.
+#' @param cp Complexity parameter for the surrogate tree. Passed to `rpart::rpart.control()`.
+#'
+#' @details
+#' For each evaluation time, the function:
+#' 1. Predicts survival probabilities from the fitted model.
+#' 2. Excludes survival outcome columns (`time`, `status`, `event`) from the predictors.
+#' 3. Fits a decision tree to approximate the predicted probabilities.
+#' 4. Computes the R between the model predictions and the surrogate predictions.
+#' 5. Counts the number of splits per feature.
+#'
+#' If multiple `times` are provided, results are stored for each time point.
+#'
+#' @return
+#' An object of class `"tree_surrogate"`, containing:
+#' - `times`: the evaluation times.
+#' - `results`: a list with one element per time, each containing:
+#'   - `tree`: the fitted `rpart` object.
+#'   - `r_squared`: the R of the surrogate model vs. the original predictions.
+#'   - `split_count`: a table of feature split counts.
+#' - `dynamic`: logical indicating if more than one time was used.
+#'
+#' @examples
+#' \dontrun{
+#' mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
+#' tree_ranger <- compute_tree_surrogate(
+#'   model = mod_ranger,
+#'   data = veteran,
+#'   times = c(100, 200, 300)
+#' )
+#' }
+#'
+#' @export
+
 compute_tree_surrogate <- function(model, data, times, minsplit = 10, cp = 0.01) {
   if (!requireNamespace("rpart", quietly = TRUE)) stop("Please install 'rpart'.")
   if (!requireNamespace("partykit", quietly = TRUE)) stop("Please install 'partykit'.")
@@ -61,6 +109,37 @@ compute_tree_surrogate <- function(model, data, times, minsplit = 10, cp = 0.01)
 }
 
 
+#' Plot Tree-Based Surrogate Models or Feature Importances
+#'
+#' @description
+#' Visualizes the results of a `tree_surrogate` object returned by
+#' [compute_tree_surrogate()]. Can display either the fitted surrogate trees
+#' or aggregated feature importance based on split counts.
+#'
+#' @param tree_surrogate An object of class `"tree_surrogate"`.
+#' @param type Character string indicating the type of plot:
+#'   - `"tree"`: displays the surrogate decision tree(s) for each time.
+#'   - `"importance"`: displays a bar plot of top features ranked by split count.
+#' @param top_n Integer, the number of top features to display in the importance plot.
+#'              Ignored if `type = "tree"`.
+#'
+#' @details
+#' - If `type = "tree"`, a separate tree diagram is produced for each evaluation time.
+#' - If `type = "importance"`, feature split counts are summed across all times
+#'   and plotted as a bar chart.
+#'
+#' Requires the `partykit` package for tree plotting and `ggplot2` for importance plotting.
+#'
+#' @return
+#' A plot object (for `"importance"`) or printed tree diagrams (for `"tree"`).
+#'
+#' @examples
+#' \dontrun{
+#' plot_tree_surrogate(tree_ranger, type = "tree")
+#' plot_tree_surrogate(tree_ranger, type = "importance", top_n = 5)
+#' }
+#'
+#' @export
 
 plot_tree_surrogate <- function(tree_surrogate, type = c("tree", "importance"), top_n = 10) {
   if (!requireNamespace("partykit", quietly = TRUE)) stop("Please install 'partykit'.")
@@ -74,7 +153,7 @@ plot_tree_surrogate <- function(tree_surrogate, type = c("tree", "importance"), 
       party_tree <- partykit::as.party(res$tree)
       plot(
         party_tree,
-        main = paste0("Surrogate Tree at time = ", res$time, ", R² = ", round(res$r_squared, 2))
+        main = paste0("Surrogate Tree at time = ", res$time, ", R = ", round(res$r_squared, 2))
       )
     }
   } else if (type == "importance") {
@@ -99,15 +178,5 @@ plot_tree_surrogate <- function(tree_surrogate, type = c("tree", "importance"), 
 }
 
 
-mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
-
-tree_ranger <- compute_tree_surrogate(
-  model = mod_ranger,
-  data = veteran,
-  times = c(100, 200, 300)
-)
-
-plot_tree_surrogate(tree_ranger, type = "tree")
-plot_tree_surrogate(tree_ranger, type = "importance")
 
 
