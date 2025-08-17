@@ -1,4 +1,49 @@
 
+#' Benchmark Multiple Survival Learners (Cross-Validation Wrapper)
+#'
+#' Runs \code{cv_survlearner()} for a set of learner names (e.g., \code{"ranger"},
+#' \code{"coxph"}) by dynamically dispatching \code{fit_<learner>} and
+#' \code{predict_<learner>} functions. Returns the row‑bound CV results across
+#' all requested learners.
+#'
+#' @param formula A survival formula of the form \code{Surv(time, status) ~ x1 + x2 + ...}.
+#' @param data A data frame containing the variables in \code{formula}.
+#' @param learners Character vector of learner ids (without prefixes), e.g.
+#'   \code{c("ranger","coxph","glmnet")}. For each id, \code{fit_<id>} and
+#'   \code{predict_<id>} must exist.
+#' @param times Numeric vector of evaluation time points for survival predictions.
+#' @param metrics Character vector of metrics to compute in CV (e.g., \code{"cindex"},
+#'   \code{"ibs"}, \code{"iae"}, \code{"ise"}). The metric semantics are those of
+#'   \code{cv_survlearner()}.
+#' @param folds Integer number of CV folds (default \code{5}).
+#' @param seed Integer random seed for fold generation.
+#' @param verbose Logical; if \code{TRUE}, prints progress per learner.
+#' @param suppress_errors Logical; if \code{TRUE} (default) errors from individual
+#'   learners are caught and reported via \code{warning()} and benchmarking continues.
+#'   If \code{FALSE}, the first error is thrown.
+#' @param ... Additional arguments forwarded to each learner's \code{fit_*()}.
+#'
+#' @details
+#' Learners are run independently using identical CV splits and scoring settings.
+#' Any learner whose \code{fit_*()} or \code{predict_*()} function is missing will
+#' be skipped with a warning. At least one learner must complete successfully or an
+#' error is raised.
+#'
+#' @return A data frame of CV results (as returned by \code{cv_survlearner()})
+#' with an extra column \code{learner} identifying the source learner.
+#'
+#' @examples
+#' # learners <- c("coxph","ranger","glmnet")
+#' # res <- benchmark_default_survlearners(
+#' #   Surv(time, status) ~ age + karno + trt, veteran,
+#' #   learners = learners, times = c(100,200,300),
+#' #   metrics = c("cindex","ibs"), folds = 3, seed = 42
+#' # )
+#' # dplyr::glimpse(res)
+#'
+#' @seealso [cv_survlearner()], [plot_benchmark()], [summarise_benchmark()]
+#' @export
+
 benchmark_default_survlearners <- function(formula, data, learners, times,
                                    metrics = c("cindex", "ibs"),
                                    folds = 5, seed = 123,
@@ -62,20 +107,26 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
 
 
 
-learners <- c("aalen", "aftgee", "blackboost", "ranger", "orsf", "glmnet", "flexsurvreg", "bnnsurv", "coxaalen", "stpm2", "rpart", "rsf", "survsvm", "xgboost", "coxph", "survdnn")
-
-
-results <- benchmark_default_survlearners(
-  formula = Surv(time, status) ~ age + trt + karno,
-  data = veteran,
-  learners = learners,
-  times = c(100, 200, 300),
-  metrics = c("cindex", "ibs", "iae", "ise"),
-  verbose = TRUE
-)
-
-dplyr::glimpse(results)
-
+#' Summarise Benchmark Results (Mean  SD with Wald CI)
+#'
+#' Aggregates cross‑validated benchmark results by learner and metric, reporting
+#' mean, standard deviation, standard error, and an approximate 95% Wald
+#' confidence interval.
+#'
+#' @param benchmark_results A data frame produced by
+#'   \code{benchmark_default_survlearners()}, containing at least
+#'   \code{learner}, \code{metric}, and \code{value}.
+#'
+#' @return A tibble with columns \code{learner}, \code{metric}, \code{mean},
+#' \code{sd}, \code{n}, \code{se}, \code{lower}, \code{upper}.
+#'
+#' @examples
+#' # summ <- summarise_benchmark(res)
+#' # summ
+#'
+#' @seealso [benchmark_default_survlearners()], [plot_benchmark()],
+#'   [summarize_benchmark_results()]
+#' @export
 
 summarise_benchmark <- function(benchmark_results) {
   benchmark_results |>
@@ -92,8 +143,23 @@ summarise_benchmark <- function(benchmark_results) {
 }
 
 
-summarise_benchmark(results)
 
+#' Plot Benchmark Distributions Across Learners
+#'
+#' Produces box‑and‑jitter plots of CV metric values per learner, faceted by
+#' metric for quick visual comparison.
+#'
+#' @param benchmark_results A data frame from
+#'   \code{benchmark_default_survlearners()} with columns \code{learner},
+#'   \code{metric}, and \code{value}.
+#'
+#' @return A \pkg{ggplot2} object.
+#'
+#' @examples
+#' # plot_benchmark(res)
+#'
+#' @seealso [benchmark_default_survlearners()], [summarise_benchmark()]
+#' @export
 
 plot_benchmark <- function(benchmark_results) {
   ggplot2::ggplot(benchmark_results, ggplot2::aes(x = learner, y = value)) +
@@ -109,37 +175,76 @@ plot_benchmark <- function(benchmark_results) {
 }
 
 
-plot_benchmark(results)
 
+#' Compact Table of Mean  SD by Learner and Metric
+#'
+#' Creates a wide table summarizing each learner's performance as
+#' \code{mean  sd} per metric, suitable for reporting.
+#'
+#' @param results A data frame with columns \code{learner}, \code{metric},
+#'   and \code{value} (e.g., output of \code{benchmark_default_survlearners()}).
+#' @param digits Integer number of decimal places in the formatted summary
+#'   (default \code{3}).
+#'
+#' @return A wide tibble with one row per learner and one column per metric,
+#'   containing formatted strings \code{"mean  sd"}.
+#'
+#' @examples
+#' # tbl <- summarize_benchmark_results(res, digits = 2)
+#' # tbl
+#'
+#' @seealso [summarise_benchmark()], [benchmark_default_survlearners()]
+#' @export
 
 summarize_benchmark_results <- function(results, digits = 3) {
 
   stopifnot(is.data.frame(results), all(c("learner", "metric", "value") %in% colnames(results)))
 
-  results %>%
-    dplyr::group_by(learner, metric) %>%
+  results |>
+    dplyr::group_by(learner, metric) |>
     dplyr::summarise(
       mean = mean(value, na.rm = TRUE),
       sd   = sd(value, na.rm = TRUE),
       .groups = "drop"
-    ) %>%
+    ) |>
     dplyr::mutate(
-      summary = sprintf("%.*f ± %.*f", digits, mean, digits, sd)
-    ) %>%
+      summary = sprintf("%.*f  %.*f", digits, mean, digits, sd)
+    ) |>
     tidyr::pivot_wider(
       id_cols = learner,
       names_from = metric,
       values_from = summary
-    ) %>%
+    ) |>
     dplyr::arrange(learner)
 }
 
-summary_tbl <- summarize_benchmark_results(results)
-print(summary_tbl)
 
 
 
 
+#' Select the Best Survival Learner by a Given Metric
+#'
+#' Extracts the top‑performing learner(s) under a chosen metric from benchmark
+#' results, using the average value across folds.
+#'
+#' @param benchmark_results A data frame with columns \code{learner},
+#'   \code{metric}, and \code{value}.
+#' @param metric Character name of the metric to optimize (e.g., \code{"cindex"},
+#'   \code{"ibs"}). Must exist in \code{benchmark_results$metric}.
+#' @param maximize Logical; whether to maximize the metric. If \code{NULL}
+#'   (default), the function maximizes for concordance‑like metrics
+#'   (\code{"cindex"}) and minimizes for error‑like metrics
+#'   (\code{"ibs"}, \code{"brier"}, \code{"iae"}, \code{"ise"}).
+#'
+#' @return A tibble with columns \code{learner}, \code{metric}, and the selected
+#'   average \code{value} for the best learner(s). Ties are returned as multiple rows.
+#'
+#' @examples
+#' # best_survlearner(res, metric = "cindex")
+#' # best_survlearner(res, metric = "ibs")  # minimized by default
+#'
+#' @seealso [benchmark_default_survlearners()], [summarise_benchmark()]
+#' @export
 
 best_survlearner <- function(benchmark_results, metric, maximize = NULL) {
   if (!metric %in% benchmark_results$metric) {
@@ -162,5 +267,4 @@ best_survlearner <- function(benchmark_results, metric, maximize = NULL) {
   return(best)
   }
 
-### TO POLISH table names (maybe unify columns names like learner_name -> survlearner)
-best_survlearner(results, "cindex")
+

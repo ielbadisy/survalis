@@ -1,3 +1,54 @@
+#' Calibration of Survival Predictions at a Single Time Point
+#'
+#' Computes a nonparametric calibration curve for a survival model at one
+#' evaluation time by binning predicted survival probabilities and comparing
+#' bin-wise means to Kaplan-Meier-based observed survival, with bootstrap CIs.
+#'
+#' @param model An `mlsurv_model` fitted via a `fit_*()` function; must include a
+#'   valid `learner` so the corresponding `predict_<learner>()` can be dispatched,
+#'   and (ideally) a `$data` field for level alignment.
+#' @param data A data frame with predictors and survival outcome columns.
+#' @param time Survival time; either a numeric vector of the same length as
+#'   `nrow(data)` or a single string giving the column name in `data`.
+#' @param status Event indicator; either a numeric/logical vector or a single
+#'   string giving the column name in `data`. Events should be coded 1, censoring 0.
+#' @param eval_time Single numeric time at which to assess calibration.
+#' @param n_bins Integer number of quantile-based bins used to group predictions.
+#' @param n_boot Integer number of bootstrap resamples for confidence intervals.
+#' @param seed Integer seed for reproducibility of binning/bootstrap.
+#' @param learner_name Optional character override for labeling the learner in
+#'   downstream plots (defaults to `model$learner`).
+#'
+#' @details
+#' Predicted survival at `eval_time` is obtained from the appropriate
+#' `predict_<learner>()`. Predictions are split into `n_bins` quantile bins.
+#' For each bin, the function reports:
+#' mean predicted survival, observed survival at `eval_time` from a Kaplan-Meier
+#' fit on the bin's rows, and bootstrap percentile (2.5%, 97.5%) CIs on the
+#' observed survival computed by resampling rows with replacement.
+#'
+#' @return A list with components:
+#' \describe{
+#'   \item{calibration_table}{A data frame with columns `bin`, `mean_pred_surv`,
+#'         `observed_surv`, `lower_ci`, `upper_ci`.}
+#'   \item{eval_time}{The evaluation time used.}
+#'   \item{n_bins}{Number of bins.}
+#'   \item{n_boot}{Number of bootstrap resamples.}
+#'   \item{learner}{The learner label (from `learner_name` or `model$learner`).}
+#' }
+#'
+#' @examples
+#' # mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+#' # calib <- compute_calibration(
+#' #   model = mod_cox, data = veteran,
+#' #   time = "time", status = "status",
+#' #   eval_time = 80, n_bins = 10, n_boot = 30
+#' # )
+#' # plot_calibration(calib)
+#'
+#' @seealso [plot_calibration()]
+#' @export
+
 compute_calibration <- function(model, data, time, status,
                                 eval_time, n_bins = 10, n_boot = 100,
                                 seed = 123, learner_name = NULL) {
@@ -38,8 +89,8 @@ compute_calibration <- function(model, data, time, status,
   df <- data.frame(pred_surv = pred_surv, time = time, status = status, bin = bins)
 
   # Calibration table
-  calibration_table <- df %>%
-    group_by(bin) %>%
+  calibration_table <- df |>
+    group_by(bin) |>
     summarise(
       mean_pred_surv = mean(pred_surv, na.rm = TRUE),
       observed_surv = {
@@ -54,15 +105,15 @@ compute_calibration <- function(model, data, time, status,
   boot_results <- replicate(n_boot, {
     idx <- sample(seq_len(nrow(df)), replace = TRUE)
     df_boot <- df[idx, ]
-    df_boot %>%
-      group_by(bin) %>%
+    df_boot |>
+      group_by(bin) |>
       summarise(
         observed_surv = {
           surv_fit <- survfit(Surv(time, status) ~ 1, data = pick(everything()))
           surv_summary <- summary(surv_fit, times = eval_time, extend = TRUE)
           if (length(surv_summary$surv) == 0) NA else surv_summary$surv
         }, .groups = "drop"
-      ) %>%
+      ) |>
       pull(observed_surv)
   }, simplify = "matrix")
 
@@ -79,11 +130,30 @@ compute_calibration <- function(model, data, time, status,
   )
 }
 
-
-
+#' Plot Calibration Curve for Survival Predictions
+#'
+#' Produces a calibration plot comparing mean predicted survival (x-axis) to
+#' observed survival with bootstrap CIs (y-axis) at a single evaluation time.
+#'
+#' @param calib_output Output list returned by [compute_calibration()].
+#' @param smooth Logical; if `TRUE`, overlays a LOESS smooth of
+#'   `observed_surv ~ mean_pred_surv`.
+#'
+#' @return A `ggplot2` object showing bin-wise calibration points, bootstrap
+#' error bars, the 45° reference line, and (optionally) a smooth curve.
+#'
+#' @details
+#' Points above the diagonal indicate underprediction (observed survival higher
+#' than predicted), while points below indicate overprediction.
+#'
+#' @examples
+#' # p <- plot_calibration(calib)
+#' # p
+#'
+#' @seealso [compute_calibration()]
+#' @export
 
 plot_calibration <- function(calib_output, smooth = TRUE) {
-  library(ggplot2)
   ct <- calib_output$calibration_table
   etime <- calib_output$eval_time
   nboot <- calib_output$n_boot
@@ -110,16 +180,3 @@ plot_calibration <- function(calib_output, smooth = TRUE) {
 }
 
 
-calib_result <- compute_calibration(
-  model = mod_cox,
-  data = veteran,
-  time = "time",
-  status = "status",
-  eval_time = c(80),
-  n_bins = 10,
-  n_boot = 30
-)
-
-
-
-plot_calibration(calib_result)

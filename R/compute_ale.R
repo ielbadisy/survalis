@@ -1,3 +1,47 @@
+#' Accumulated Local Effects (ALE) for Survival Models
+#'
+#' Computes ALE curves for a numeric (continuous) feature with respect to
+#' survival probabilities at one or more evaluation times. ALE summarizes the
+#' average *local* effect of changing a feature within small intervals, is
+#' robust to correlated features, and is centered to have mean zero.
+#'
+#' @param model An `mlsurv_model` created by a `fit_*()` function. Must include
+#'   a valid `learner` so that `predict_<learner>()` can be dispatched.
+#' @param newdata Data frame used to compute ALE (typically the training set or
+#'   a representative sample).
+#' @param feature Single **numeric/continuous** feature name for which to
+#'   compute ALE. Categorical features are not supported here (use PDP/ICE).
+#' @param times Numeric vector of time points at which to evaluate survival
+#'   probabilities.
+#' @param grid.size Integer number of quantile cut points used to build the ALE
+#'   grid (default 20). The algorithm uses quantiles of `newdata[[feature]]`.
+#'
+#' @details
+#' For consecutive quantile bins \eqn{[z_k, z_{k+1}]} of the target feature,
+#' ALE integrates the *local* change in the model prediction when moving the
+#' feature from \eqn{z_k} to \eqn{z_{k+1}} while holding all other features at
+#' their observed values, and then accumulates these differences across bins.
+#' For survival models, predictions are survival probabilities at `times`.
+#' The returned ALE curves are centered (mean zero across the grid) per time.
+#'
+#' @return A list with:
+#' \describe{
+#'   \item{ale}{A data frame with columns `feature_value` and one column per
+#'   time (`"t=<time>"`) containing centered ALE effects.}
+#'   \item{integrated}{If multiple times were provided, a data frame with
+#'   columns `feature_value` and `integrated_ale` equal to the mean of per-time
+#'   ALE effects across `times`; otherwise `NULL`.}
+#' }
+#'
+#' @examples
+#' # mod <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+#' # ale_res <- compute_ale(mod, newdata = veteran, feature = "karno",
+#' #                        times = c(100, 200, 300))
+#' # head(ale_res$ale)
+#'
+#' @seealso [plot_ale()], [compute_pdp()]
+#' @export
+
 compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
   if (!feature %in% names(newdata)) stop("Feature not found in data.")
 
@@ -45,9 +89,35 @@ compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
   return(list(ale = ale_df, integrated = integrated))
 }
 
+#' Plot ALE Curves for Survival Models
+#'
+#' Visualizes ALE results produced by [compute_ale()] either as per-time curves
+#' (one curve per evaluation time) or as an integrated curve averaged across
+#' times.
+#'
+#' @param ale_result A list returned by [compute_ale()].
+#' @param feature Character name of the feature (for axis labeling only).
+#' @param which Either `"per_time"` to plot one ALE curve per time, or
+#'   `"integrated"` to plot the time-averaged ALE (requires multiple `times`).
+#' @param smooth Logical; if `TRUE`, overlays a LOESS smooth on the plotted
+#'   curve(s).
+#'
+#' @details
+#' Per-time plots show how the feature's local effect varies across different
+#' evaluation times. The integrated plot summarizes the average effect over the
+#' supplied time grid (simple mean across times of the centered ALE values).
+#'
+#' @return A `ggplot2` object.
+#'
+#' @examples
+#' # p1 <- plot_ale(ale_res, feature = "karno", which = "per_time")
+#' # p2 <- plot_ale(ale_res, feature = "karno", which = "integrated", smooth = TRUE)
+#'
+#' @seealso [compute_ale()], [compute_pdp()], [plot_pdp()]
+#' @export
+
 plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), smooth = FALSE) {
   which <- match.arg(which)
-  library(ggplot2)
 
   if (which == "per_time") {
     df <- ale_result$ale
@@ -83,25 +153,4 @@ plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), s
 
   stop("Invalid 'which' argument or missing integrated data.")
 }
-
-library(survival)
-data(veteran)
-
-# Fit a model
-mod_coxph <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
-
-# Compute ALE
-ale_result <- compute_ale(
-  model = mod_coxph,
-  newdata = veteran,
-  feature = "karno",
-  times = c(100, 200, 300)
-)
-
-# Plot per-time
-plot_ale(ale_result, feature = "karno", which = "per_time")
-
-# Plot integrated ALE
-plot_ale(ale_result, feature = "karno", which = "integrated", smooth = TRUE)
-
 

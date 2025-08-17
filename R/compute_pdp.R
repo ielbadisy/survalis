@@ -1,3 +1,50 @@
+#' Partial Dependence and ICE for Survival Predictions
+#'
+#' Computes partial dependence (PDP) and/or individual conditional expectation (ICE)
+#' curves of predicted survival probabilities for a single feature at one or more
+#' evaluation times. Works with any learner fitted via `fit_*()` that exposes a
+#' matching `predict_*()` method returning survival probabilities.
+#'
+#' @param model An `mlsurv_model` created by a `fit_*()` function; must contain a
+#'   valid `learner` so the appropriate `predict_<learner>()` can be dispatched.
+#' @param data A data frame used to construct PDP/ICE profiles (typically the
+#'   training data).
+#' @param feature Character scalar; the feature name to analyze (numeric or categorical).
+#' @param times Numeric vector of evaluation times at which survival probabilities
+#'   are computed.
+#' @param method One of `"pdp"`, `"ice"`, or `"pdp+ice"` (default). Controls which
+#'   profiles are produced.
+#' @param grid.size Integer number of grid points for numeric features (default 20).
+#'   Ignored for categorical features (levels are used).
+#'
+#' @details
+#' For numeric features, a regular grid over the observed range is used; for
+#' categorical features, all observed levels are used. For each grid value,
+#' predictions are made for every row of `data` with the feature forced to the
+#' grid value, yielding ICE curves per row and PDP as the average across rows.
+#'
+#' If multiple `times` are supplied, outputs are stacked in long format with a
+#' `time` column; an additional integrated PDP is computed via trapezoidal rule
+#' when more than one time is provided.
+#'
+#' @return A list with elements:
+#' \describe{
+#'   \item{results}{Long data frame with columns:
+#'     \code{surv_prob}, \code{time}, \code{type} (pdp/ice),
+#'     \code{.id} (row id for ICE), and the analyzed \code{feature}.}
+#'   \item{pdp_integrated}{(Optional) Data frame with \code{feature} and
+#'     \code{integrated_surv} (time-integrated PDP), present only if
+#'     \code{length(times) > 1} and PDP was requested.}
+#' }
+#'
+#' @examples
+#' # mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
+#' # pdp_age <- compute_pdp(mod_ranger, data = veteran, feature = "age",
+#' #                        times = c(100, 200, 300), method = "pdp+ice")
+#' # str(pdp_age)
+#'
+#' @export
+
 compute_pdp <- function(model, data, feature, times,
                         method = "pdp+ice", grid.size = 20) {
   # Automatically determine prediction function
@@ -95,6 +142,37 @@ compute_pdp <- function(model, data, feature, times,
 
 
 
+#' Plot PDP/ICE Curves for Survival Models
+#'
+#' Plots partial dependence (PDP) and/or individual conditional expectation (ICE)
+#' results returned by \code{\link{compute_pdp}} either per evaluation time or as
+#' an integrated PDP over time.
+#'
+#' @param pdp_ice_output The list returned by \code{compute_pdp()}.
+#' @param feature Character scalar; the same feature analyzed in \code{compute_pdp()}.
+#' @param method One of `"pdp"`, `"ice"`, or `"pdp+ice"` indicating which curves
+#'   to draw in per-time plots (ignored for integrated plots).
+#' @param ids Optional vector of row ids (`.id`) to subset ICE curves for clarity
+#'   in per-time plots.
+#' @param which One of `"per_time"` (facet by time) or `"integrated"` (plot the
+#'   time-integrated PDP if available).
+#' @param alpha_ice Alpha transparency for ICE lines/boxes in per-time plots (default 0.2).
+#' @param smooth Logical; if `TRUE` and the feature is numeric, apply a smooth
+#'   curve (`loess`) for integrated PDP; otherwise draw a line.
+#'
+#' @details
+#' \strong{Per-time:} For numeric features, draws ICE lines and PDP overlays per time.
+#' For categorical features, shows ICE as boxplots per level and PDP as point summaries.
+#' \strong{Integrated:} Plots the PDP integrated across time (if provided by
+#' \code{compute_pdp()}); numeric features can be smoothed with \code{smooth=TRUE}.
+#'
+#' @return A \pkg{ggplot2} object.
+#'
+#' @examples
+#' # plot_pdp(pdp_age, feature = "age", which = "per_time")
+#' # plot_pdp(pdp_age, feature = "age", which = "integrated", smooth = TRUE)
+#'
+#' @export
 
 plot_pdp <- function(pdp_ice_output, feature,
                      method = "pdp+ice", ids = NULL,
@@ -104,7 +182,7 @@ plot_pdp <- function(pdp_ice_output, feature,
   requireNamespace("data.table")
 
   which <- match.arg(which)
-  results <- data.table::as.data.table(pdp_ice_output$results)
+  results <- as.data.table(pdp_ice_output$results)
   feature_data <- results[[feature]]
   is_categorical <- is.factor(feature_data) || is.character(feature_data)
 
@@ -123,30 +201,30 @@ plot_pdp <- function(pdp_ice_output, feature,
     pdp_integrated <- pdp_ice_output$pdp_integrated
 
     if (is_categorical) {
-      p <- ggplot2::ggplot() +
-        ggplot2::geom_boxplot(data = ice_integrated, ggplot2::aes_string(x = feature, y = "integrated_surv"),
+      p <- ggplot() +
+        geom_boxplot(data = ice_integrated, aes_string(x = feature, y = "integrated_surv"),
                               alpha = alpha_ice, fill = "pink") +
-        ggplot2::geom_point(data = pdp_integrated, ggplot2::aes_string(x = feature, y = "integrated_surv"),
+        geom_point(data = pdp_integrated, aes_string(x = feature, y = "integrated_surv"),
                             shape = 21, size = 3, fill = "black") +
-        ggplot2::theme_minimal(base_size = 13) +
-        ggplot2::labs(
+        theme_minimal(base_size = 13) +
+        labs(
           title = paste("Integrated PDP with ICE Boxplot for", feature),
           x = feature,
           y = "Integrated Survival"
         )
       return(p)
     } else {
-      p <- ggplot2::ggplot(pdp_integrated, ggplot2::aes_string(x = feature, y = "integrated_surv")) +
-        ggplot2::theme_minimal(base_size = 13) +
-        ggplot2::labs(
+      p <- ggplot(pdp_integrated, aes_string(x = feature, y = "integrated_surv")) +
+        theme_minimal(base_size = 13) +
+        labs(
           title = paste("Integrated PDP over Survival Time:", feature),
           x = feature,
           y = "Integrated Survival"
         )
       if (smooth) {
-        p <- p + ggplot2::geom_smooth(method = "loess", se = FALSE, color = "steelblue", size = 1.2)
+        p <- p + geom_smooth(method = "loess", se = FALSE, color = "steelblue", size = 1.2)
       } else {
-        p <- p + ggplot2::geom_line(color = "steelblue", size = 1.2)
+        p <- p + geom_line(color = "steelblue", size = 1.2)
       }
       return(p)
     }
@@ -164,10 +242,10 @@ plot_pdp <- function(pdp_ice_output, feature,
   }
 
   if (is_categorical) {
-    p <- ggplot2::ggplot(plot_data, ggplot2::aes_string(x = feature, y = "surv_prob", fill = "type")) +
-      ggplot2::theme_minimal(base_size = 13) +
-      ggplot2::facet_wrap(~ time, scales = "free_y") +
-      ggplot2::labs(
+    p <- ggplot(plot_data, aes_string(x = feature, y = "surv_prob", fill = "type")) +
+      theme_minimal(base_size = 13) +
+      facet_wrap(~ time, scales = "free_y") +
+      labs(
         title = paste("Survival", toupper(method), "for", feature),
         x = feature,
         y = "Survival Probability",
@@ -175,69 +253,41 @@ plot_pdp <- function(pdp_ice_output, feature,
       )
 
     if ("ice" %in% plot_data$type) {
-      p <- p + ggplot2::geom_boxplot(data = plot_data[type == "ice"], alpha = alpha_ice, position = "dodge")
+      p <- p + geom_boxplot(data = plot_data[type == "ice"], alpha = alpha_ice, position = "dodge")
     }
 
     if ("pdp" %in% plot_data$type) {
-      p <- p + ggplot2::stat_summary(data = plot_data[type == "pdp"],
+      p <- p + stat_summary(data = plot_data[type == "pdp"],
                                      fun = mean, geom = "point",
                                      shape = 21, fill = "black", size = 3,
-                                     position = ggplot2::position_dodge(width = 0.75))
+                                     position = position_dodge(width = 0.75))
     }
 
   } else {
-    p <- ggplot2::ggplot(plot_data, ggplot2::aes_string(x = feature, y = "surv_prob",
+    p <- ggplot(plot_data, aes_string(x = feature, y = "surv_prob",
                                                         group = "interaction(.id, time)", color = "type")) +
-      ggplot2::theme_minimal(base_size = 13) +
-      ggplot2::facet_wrap(~ time, scales = "free_y") +
-      ggplot2::labs(
+      theme_minimal(base_size = 13) +
+      facet_wrap(~ time, scales = "free_y") +
+      labs(
         title = paste("Survival", toupper(method), "for", feature),
         x = feature,
         y = "Survival Probability",
         color = NULL
       ) +
-      ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(alpha = 1)))
+      guides(color = guide_legend(override.aes = list(alpha = 1)))
 
     if ("ice" %in% plot_data$type) {
-      p <- p + ggplot2::geom_line(data = plot_data[type == "ice"], alpha = alpha_ice)
+      p <- p + geom_line(data = plot_data[type == "ice"], alpha = alpha_ice)
     }
 
     if ("pdp" %in% plot_data$type) {
-      p <- p + ggplot2::geom_line(data = plot_data[type == "pdp"], size = 1.2)
+      p <- p + geom_line(data = plot_data[type == "pdp"], size = 1.2)
     }
   }
 
   return(p)
 }
 
-library(survival)
-data(veteran)
-veteran$celltype <- as.factor(veteran$celltype)
-
-mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
-
-# Numerical variable
-pdp_ice_result1 <- compute_pdp(
-  model = mod_ranger,
-  data = veteran,
-  feature = "age",
-  times = c(100, 200, 300),
-  method = "pdp+ice"
-)
-
-plot_pdp(pdp_ice_result1, feature = "age", which = "per_time")
-plot_pdp(pdp_ice_result1, feature = "age", which = "integrated", smooth = TRUE)
-
-# Categorical variable
-pdp_ice_result2 <- compute_pdp(
-  model = mod_ranger,
-  data = veteran,
-  feature = "celltype",
-  times = c(100, 300),
-  method = "pdp+ice"
-)
-
-plot_pdp(pdp_ice_result2, feature = "celltype", which = "per_time")
 
 
 

@@ -1,3 +1,62 @@
+#' Compute Feature Interactions for Survival Predictions
+#'
+#' Estimates global and time-varying interaction strengths of model predictions,
+#' using a Friedman-H style decomposition adapted to survival partial dependence.
+#' Works with any `mlsurv_model` that has a matching `predict_*()` method returning
+#' survival probabilities.
+#'
+#' @param model An `mlsurv_model` created via a `fit_*()` function; must include a
+#'   valid `learner` so the appropriate `predict_<learner>()` can be dispatched.
+#' @param data Data frame used to probe the model (typically training data).
+#' @param times Numeric vector of evaluation times used for prediction.
+#' @param target_time Single time at which to quantify interactions for
+#'   \code{type = "1way"} or \code{type = "heatmap"}. Required for these types.
+#' @param features Optional character vector of feature names to evaluate.
+#'   Defaults to all predictors in \code{data} except the outcome columns.
+#' @param type One of:
+#'   \itemize{
+#'     \item \code{"1way"} -- per-feature Friedman-H interaction strength vs. all others at \code{target_time};
+#'     \item \code{"heatmap"} -- pairwise feature interaction matrix at \code{target_time};
+#'     \item \code{"time"} -- per-feature interaction strength across \code{times}.
+#'   }
+#' @param grid.size Integer; number of random grid values / replicates used for Monte Carlo
+#'   marginalization (default 30).
+#' @param batch.size Reserved for future batching support (currently unused).
+#'
+#' @details
+#' For a target time \eqn{t^{*}}, let \eqn{f(x)} be the predicted survival probability.
+#' For feature \eqn{j}, we approximate a decomposition:
+#' \deqn{ f(x) \approx f_j(x_j) + f_{-j}(x_{-j}) }
+#' by Monte Carlo marginalization over subsets of features using random sampling from the
+#' empirical distribution in \code{data}. The reported interaction strength is:
+#' \deqn{ H_j(t^{*}) = \sqrt{ \frac{\sum ( f(x) - \{ \tilde f_j(x_j) + \tilde f_{-j}(x_{-j}) \})^2 }{ \sum f(x)^2 } } , }
+#' clipped to \[0, 1]. Pairwise heatmaps are computed analogously for \eqn{(j, k)}.
+#'
+#' Larger values indicate stronger non-additivity (interaction) involving the feature(s).
+#' The \code{"time"} mode repeats the computation across all \code{times} to show dynamics.
+#'
+#' @return
+#' A data frame whose structure depends on \code{type}:
+#' \itemize{
+#'   \item \code{"1way"}: columns \code{feature}, \code{interaction}.
+#'   \item \code{"heatmap"}: columns \code{feature1}, \code{feature2}, \code{interaction}
+#'         (symmetric with zeros on the diagonal).
+#'   \item \code{"time"}: columns \code{feature}, \code{time}, \code{interaction}.
+#' }
+#'
+#' @references
+#' Friedman, J. H., and Popescu, B. E. (2008). Predictive learning via rule ensembles.
+#' \emph{Annals of Applied Statistics}. (Friedman's \eqn{H} interaction measure.)
+#'
+#' @examples
+#' # mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
+#' # times <- c(100, 200, 300)
+#' # compute_interactions(mod_ranger, veteran, times, target_time = 200, type = "1way")
+#' # compute_interactions(mod_ranger, veteran, times, target_time = 200, type = "heatmap")
+#' # compute_interactions(mod_ranger, veteran, times, type = "time")
+#'
+#' @export
+
 compute_interactions <- function(model, data, times,
                                  target_time = NULL,
                                  features = NULL,
@@ -103,6 +162,37 @@ compute_interactions <- function(model, data, times,
 }
 
 
+#' Plot Interaction Strengths for Survival Models
+#'
+#' Visualizes interaction outputs from \code{\link{compute_interactions}} as
+#' (i) a ranked bar chart for one-way interactions, (ii) a pairwise heatmap,
+#' or (iii) time-varying interaction trajectories.
+#'
+#' @param object A data frame returned by \code{compute_interactions()} whose
+#'   columns match the requested \code{type}.
+#' @param type One of \code{"1way"}, \code{"heatmap"}, or \code{"time"}.
+#'
+#' @details
+#' \strong{1way}: Bars rank features by Friedman-H interaction strength at the target time.  
+#' \strong{heatmap}: Tiles show pairwise interaction magnitudes (symmetric).  
+#' \strong{time}: Lines show interaction strength vs. time for each feature.
+#'
+#' @return A \pkg{ggplot2} object.
+#'
+#' @examples
+#' # ia1 <- compute_interactions(mod_ranger, veteran, times = c(100,200,300),
+#' #                             target_time = 200, type = "1way")
+#' # plot_interactions(ia1, type = "1way")
+#' #
+#' # ia2 <- compute_interactions(mod_ranger, veteran, times = c(100,200,300),
+#' #                             target_time = 200, type = "heatmap")
+#' # plot_interactions(ia2, type = "heatmap")
+#' #
+#' # ia3 <- compute_interactions(mod_ranger, veteran, times = c(100,200,300),
+#' #                             type = "time")
+#' # plot_interactions(ia3, type = "time")
+#'
+#' @export
 
 plot_interactions <- function(object, type = c("1way", "heatmap", "time")) {
   type <- match.arg(type)
@@ -125,62 +215,3 @@ plot_interactions <- function(object, type = c("1way", "heatmap", "time")) {
       ggplot2::labs(title = "Time-Varying Feature Interactions", x = "Time", y = "Interaction Strength")
   }
 }
-
-
-
-
-# Required packages
-library(survival)
-library(ggplot2)
-
-# Fit a survival model using ranger (must be defined in your framework)
-data(veteran, package = "survival")
-mod_ranger <- fit_ranger(
-  Surv(time, status) ~ age + karno + celltype,
-  data = veteran,
-  num.trees = 300
-)
-
-# Define prediction times and features
-times <- c(50, 100, 150, 200, 250, 300, 350)
-target_time <- 200
-features <- c("age", "karno", "celltype")  # specify a subset or leave NULL to include all
-
-# --- 1. One-way interaction analysis (Friedman's H per feature)
-interaction_1way <- compute_interactions(
-  model = mod_ranger,
-  data = veteran,
-  times = times,
-  target_time = target_time,
-  features = features,
-  type = "1way"
-)
-
-print(interaction_1way)
-plot_interactions(interaction_1way, type = "1way")
-
-# --- 2. Pairwise interaction heatmap
-interaction_heatmap <- compute_interactions(
-  model = mod_ranger,
-  data = veteran,
-  times = times,
-  target_time = target_time,
-  features = features,
-  type = "heatmap"
-)
-
-print(interaction_heatmap)
-plot_interactions(interaction_heatmap, type = "heatmap")
-
-# --- 3. Time-varying interaction strengths
-interaction_time <- compute_interactions(
-  model = mod_ranger,
-  data = veteran,
-  times = times,
-  features = features,
-  type = "time"
-)
-
-print(interaction_time)
-plot_interactions(interaction_time, type = "time")
-

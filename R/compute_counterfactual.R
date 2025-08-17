@@ -1,3 +1,55 @@
+#' Compute individual counterfactual changes to increase survival
+#'
+#' For a single individual (one-row \code{newdata}), propose feature changes
+#' that maximize survival probability at a target time, subject to optional
+#' per-feature change costs and bounds inferred from the training data in
+#' \code{model$data}.
+#'
+#' @param model A fitted survival model (e.g., an \code{mlsurv_model}) that was
+#'   trained with a data frame stored in \code{model$data}, and (ideally) names
+#'   of the outcome variables in \code{model$time} and \code{model$status}.
+#' @param newdata A data frame with exactly one row representing the individual.
+#' @param times Numeric vector of time points used for prediction. Required unless
+#'   the model's predict function can infer times; used together with \code{target_time}.
+#' @param target_time Numeric scalar time at which to optimize survival. If missing
+#'   and \code{times} is provided, the median of \code{times} is used. If \code{times}
+#'   is missing but \code{target_time} is provided, \code{times} is set to \code{target_time}.
+#' @param features_to_change Optional character vector of feature names allowed to change.
+#'   Defaults to all predictors (non-outcome columns).
+#' @param grid.size Integer grid size for numeric features (default 100).
+#' @param max.change Optional named list of numeric bounds for per-feature absolute change,
+#'   e.g., \code{list(age = 5)}.
+#' @param cost_penalty Numeric penalty weight applied to magnitude of change (default 0.01).
+#'
+#' @return A \code{data.frame} with one row per feature considered and columns:
+#'   \code{feature}, \code{original_value}, \code{suggested_value},
+#'   \code{survival_gain}, \code{change_cost}, \code{penalized_gain}.
+#'
+#' @details
+#' For each candidate feature, the function sweeps over plausible values
+#' (numeric grid between observed min/max; all other levels for categorical),
+#' predicts survival at \code{target_time}, and reports the best penalized gain
+#' relative to the original value. Survival predictions are obtained via a
+#' corresponding \code{predict_*} function inferred from \code{model$learner}
+#' (e.g., \code{predict_coxph} for \code{learner = "coxph"}).
+#'
+#' @examples
+#' # Uses only {survival} (already in Imports) and your internal `veteran` dataset
+#' veteran$A <- veteran$trt
+#' mod <- fit_coxph(survival::Surv(time, status) ~ A + age + karno, data = veteran)
+#'
+#' cf <- compute_counterfactual(
+#'   model = mod,
+#'   newdata = veteran[1, , drop = FALSE],   # exactly one individual
+#'   times = c(50, 100, 150),
+#'   target_time = 100,
+#'   features_to_change = c("A", "age", "karno"),
+#'   cost_penalty = 0.01
+#' )
+#' head(cf)
+#'
+#' @export
+
 compute_counterfactual <- function(model, newdata, times, target_time,
                                    features_to_change = NULL, grid.size = 100,
                                    max.change = NULL, cost_penalty = 0.01) {
@@ -111,27 +163,5 @@ compute_counterfactual <- function(model, newdata, times, target_time,
 
 
 
-library(ranger)
-library(survival)
-
-data(veteran)
-veteran$trt <- factor(veteran$trt)
-veteran$celltype <- factor(veteran$celltype)
-
-mod_ranger <- fit_ranger(Surv(time, status) ~ trt + age + karno + celltype, data = veteran)
-
-obs <- veteran[1, , drop = FALSE]
-
-cf_result <- compute_counterfactual(
-  model = mod_ranger,
-  newdata = obs,
-  times = c(50, 100, 150),
-  target_time = 100,
-  features_to_change = c("trt", "karno", "celltype"),
-  grid.size = 50,
-  cost_penalty = 0.001
-)
-
-print(cf_result)
 
 
