@@ -1,5 +1,24 @@
 
-
+#' Concordance Index from a Survival-Probability Matrix
+#'
+#' Computes Harrell's concordance index using predicted survival probabilities
+#' at a specified time point (or the last column if \code{t_star} is \code{NULL}).
+#'
+#' @param object A \code{\link[survival]{Surv}} object of length \eqn{n}.
+#' @param predicted An \code{n x k} matrix or data frame of survival probabilities
+#'   with columns named \code{"t=<time>"}.
+#' @param t_star Optional numeric time at which to evaluate the c-index; if omitted,
+#'   the rightmost column of \code{predicted} is used.
+#'
+#' @details
+#' Risk scores are defined as \code{1 - S(t)} at the chosen time. Ties receive
+#' partial credit (0.5). Pairs not comparable due to censoring are excluded.
+#'
+#' @return A named numeric scalar: \code{"C index"}.
+#'
+#' @examples
+#' # cindex_survmat(Surv(time, status), sp_matrix, t_star = 365)
+#' @export
 
 cindex_survmat <- function(object, predicted, t_star = NULL) {
   if (!inherits(object, "Surv")) stop("object must be a survival object (from Surv())")
@@ -49,6 +68,28 @@ cindex_survmat <- function(object, predicted, t_star = NULL) {
   return(round(C_index, 6))
 }
 
+#' Brier Score with IPCW for a Single Time Point
+#'
+#' Computes the inverse-probability-of-censoring weighted (IPCW) Brier score
+#' at a single time \code{t_star}.
+#'
+#' @param object A \code{\link[survival]{Surv}} object.
+#' @param pre_sp Numeric vector of predicted survival probabilities \eqn{S(t^{*}\mid x_i)}.
+#' @param t_star Numeric evaluation time.
+#'
+#' @details
+#' The censoring distribution \eqn{G(t)} is estimated via Kaplan-Meier on
+#' \code{1 - status}. Observed events before \code{t_star} contribute
+#' \eqn{S(t_i)^2 / G(t_i)}; those at risk at \code{t_star} contribute
+#' \eqn{(1 - S(t^{*}))^2 / G(t^{*})}. Returns \code{NA} if \eqn{G(t^{*})} is
+#' undefined or zero.
+#'
+#' @return A named numeric scalar: \code{"brier"}.
+#'
+#' @examples
+#' # brier(Surv(time, status), pre_sp = sp[,1], t_star = 180)
+#' @export
+
 brier <- function(object, pre_sp, t_star) {
   if (!inherits(object, "Surv")) stop("object must be a survival object")
   if (length(pre_sp) != nrow(object)) stop("Length of predictions must match number of observations")
@@ -87,6 +128,23 @@ brier <- function(object, pre_sp, t_star) {
   return(round(bs_value, 6))
 }
 
+#' Integrated Brier Score (Discrete Integration)
+#'
+#' Computes the Integrated Brier Score (IBS) over a vector of times, using
+#' discrete left Riemann integration of IPCW Brier scores.
+#'
+#' @param object A \code{\link[survival]{Surv}} object.
+#' @param sp_matrix Matrix/data frame of survival probabilities with one column
+#'   per time in \code{times}.
+#' @param times Numeric vector of strictly increasing times (length must equal
+#'   \code{ncol(sp_matrix)}).
+#'
+#' @return A named numeric scalar: \code{"ibs"}.
+#'
+#' @examples
+#' # ibs_survmat(Surv(time, status), sp_matrix = sp, times = c(90,180,365))
+#' @export
+
 ibs_survmat <- function(object, sp_matrix, times) {
   if (!inherits(object, "Surv")) stop("object must be a survival object")
   if (length(times) != ncol(sp_matrix)) stop("Length of times must match sp_matrix columns")
@@ -105,6 +163,24 @@ ibs_survmat <- function(object, sp_matrix, times) {
   names(ibs_value) <- "ibs"
   return(round(ibs_value, 6))
 }
+
+#' Integrated Absolute Error Against Kaplan-Meier
+#'
+#' Computes \eqn{\int \mid \bar{S}(t) - \hat{S}_{KM}(t) \mid \, dt} where
+#' \eqn{\bar{S}(t)} is the mean predicted survival across subjects and
+#' \eqn{\hat{S}_{KM}(t)} is the Kaplan-Meier estimate. Integration is carried
+#' out over KM event times using a left Riemann sum.
+#'
+#' @param object A \code{\link[survival]{Surv}} object.
+#' @param sp_matrix Matrix/data frame of survival probabilities (rows = subjects,
+#'   columns aligned with \code{times}).
+#' @param times Numeric vector of times corresponding to the columns of \code{sp_matrix}.
+#'
+#' @return A named numeric scalar: \code{"iae"}.
+#'
+#' @examples
+#' # iae_survmat(Surv(time, status), sp, times)
+#' @export
 
 iae_survmat <- function(object, sp_matrix, times) {
   if (!inherits(object, "Surv")) stop("object must be a survival object")
@@ -125,6 +201,24 @@ iae_survmat <- function(object, sp_matrix, times) {
   return(round(iae, 4))
 }
 
+#' Integrated Squared Error Against Kaplan-Meier
+#'
+#' Computes \eqn{\int ( \bar{S}(t) - \hat{S}_{KM}(t) )^2 \, dt} where
+#' \eqn{\bar{S}(t)} is the mean predicted survival and \eqn{\hat{S}_{KM}(t)}
+#' is the Kaplan-Meier curve. Integration uses KM event times and a left
+#' Riemann sum.
+#'
+#' @param object A \code{\link[survival]{Surv}} object.
+#' @param sp_matrix Matrix/data frame of survival probabilities (rows = subjects,
+#'   columns aligned with \code{times}).
+#' @param times Numeric vector of times corresponding to the columns of \code{sp_matrix}.
+#'
+#' @return A named numeric scalar: \code{"ise"}.
+#'
+#' @examples
+#' # ise_survmat(Surv(time, status), sp, times)
+#' @export
+
 ise_survmat <- function(object, sp_matrix, times) {
   if (!inherits(object, "Surv")) stop("object must be a survival object")
   if (length(times) != ncol(sp_matrix)) stop("Length of times must match sp_matrix columns")
@@ -144,6 +238,41 @@ ise_survmat <- function(object, sp_matrix, times) {
   return(round(ise, 4))
 }
 
+
+#' Cross-Validate a Survival Learner
+#'
+#' Runs k-fold cross-validation for any pair of \code{fit_fun}/\code{pred_fun}
+#' that follow the package's learner contracts, and returns per-fold metric values.
+#'
+#' @param formula A survival formula \code{Surv(time, status) ~ predictors}.
+#' @param data A data frame.
+#' @param fit_fun Function with signature \code{fit_fun(formula, data, ...)} that
+#'   returns an \code{mlsurv_model}.
+#' @param pred_fun Function with signature \code{pred_fun(object, newdata, times, ...)}
+#'   returning a survival-probability matrix/data frame (columns named \code{"t=<time>"}).
+#' @param times Numeric vector of evaluation times (passed to \code{pred_fun}).
+#' @param metrics Character vector of metrics to compute. Supported: \code{"cindex"},
+#'   \code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}.
+#' @param folds Integer; number of folds (default \code{5}).
+#' @param seed Integer random seed for reproducibility (default \code{123}).
+#' @param verbose Logical; print row-dropping due to missingness (default \code{FALSE}).
+#' @param ... Additional arguments forwarded to \code{fit_fun}.
+#'
+#' @details
+#' The routine:
+#' \enumerate{
+#' \item Drops rows with missing values in any variables referenced by \code{formula}.
+#' \item Handles \code{Surv(time, status == k)} outcomes by recoding the status to 0/1.
+#' \item Uses stratified v-folds on the status indicator.
+#' \item For each fold: fits on analysis set, predicts on assessment set, and computes metrics.
+#' }
+#'
+#' @return A tibble with columns: \code{splits} (rsample split object),
+#'   \code{id}, \code{fold}, \code{metric}, and \code{value}.
+#'
+#' @examples
+#' # cv_survlearner(Surv(time, status) ~ x1 + x2, df, fit_fun, pred_fun, times = c(90,180))
+#' @export
 
 cv_survlearner <- function(formula, data,
                            fit_fun, pred_fun,
@@ -242,6 +371,19 @@ cv_survlearner <- function(formula, data,
   )
 }
 
+#' Summarize Cross-Validation Results
+#'
+#' Produces mean, standard deviation, standard error, and 95\% Wald intervals
+#' for each metric returned by \code{\link{cv_survlearner}}.
+#'
+#' @param cv_results A tibble/data frame as returned by \code{cv_survlearner()}.
+#'
+#' @return A tibble with columns: \code{metric}, \code{mean}, \code{sd}, \code{n},
+#'   \code{se}, \code{lower}, \code{upper}.
+#'
+#' @examples
+#' # cv_summary(cv_results)
+#' @export
 
 cv_summary <- function(cv_results) {
   cv_results |>
@@ -258,6 +400,19 @@ cv_summary <- function(cv_results) {
 }
 
 
+#' Boxplot of Cross-Validation Metric Distributions
+#'
+#' Visualizes per-fold metric values from \code{\link{cv_survlearner}} using a
+#' boxplot with jittered points.
+#'
+#' @param cv_results A tibble/data frame as returned by \code{cv_survlearner()}.
+#'
+#' @return A \pkg{ggplot2} object.
+#'
+#' @examples
+#' # cv_plot(cv_results)
+#' @export
+
 cv_plot <- function(cv_results) {
   ggplot(cv_results, aes(x = metric, y = value)) +
     geom_boxplot(fill = "skyblue", outlier.shape = NA, alpha = 0.3) +
@@ -267,38 +422,28 @@ cv_plot <- function(cv_results) {
 }
 
 
-
-#----------- TEST
-
-library(survival)
-library(timereg)
-library(rsample)
-library(purrr)
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-library(tibble)
-
-cv_results <- cv_survlearner(
-  formula = Surv(time, status) ~ karno,
-  data = veteran,
-  fit_fun = fit_xgboost,
-  pred_fun = predict_xgboost,
-  times = 999,
-  metrics = c("cindex", "ibs"),
-  folds = 4
-)
-
-cv_summary(cv_results)
-
-
-mod <- fit_coxph(Surv(time, status) ~ age + karno, data = veteran)
-
-
-# Results
-cv_summary(cv_results)
-cv_plot(cv_results)
-
+#' Score a Fitted Survival Model on Its Training Data
+#'
+#' Computes one or more performance metrics for a fitted \code{mlsurv_model},
+#' predicting on the training data with the model's corresponding \code{predict_*}
+#' function.
+#'
+#' @param model An object of class \code{"mlsurv_model"}.
+#' @param times Numeric vector of evaluation times. For \code{"brier"}, must be a single time.
+#' @param metrics Character vector of metrics to compute. Supported:
+#'   \code{"cindex"}, \code{"ibs"}, \code{"brier"}, \code{"iae"}, \code{"ise"}.
+#'
+#' @details
+#' The function constructs the appropriate \code{predict_*} function name from
+#' \code{model$learner}, predicts survival probabilities on \code{model$data},
+#' builds a \code{Surv} object from \code{model$formula}, and computes the metrics.
+#' If \code{"brier"} is requested with multiple \code{times}, an error is thrown.
+#'
+#' @return A tibble with columns \code{metric} and \code{value}.
+#'
+#' @examples
+#' # score_survmodel(fitted_model, times = c(90, 180), metrics = c("ibs", "cindex"))
+#' @export
 
 score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", "iae", "ise")) {
   stopifnot(inherits(model, "mlsurv_model"))
@@ -360,8 +505,4 @@ score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", 
   }
 
 
-### test the survmodel scoring
-form <- Surv(time, status) ~ age + trt + karno
-mod <- fit_aalen(form, veteran)
 
-score_survmodel(mod, times = c(100, 300, 900), metrics = c("ibs"))
