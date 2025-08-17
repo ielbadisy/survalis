@@ -1,34 +1,71 @@
 Package: survalis
 Type: Package
-Title: Interpretable and Causal Machine Learning Methods for Survival Analysis
-Version: 0.5.0
-Author: Imad El Badisy [aut, cre]
-Maintainer: Imad El Badisy <elbadisyimad@gmail.com>
-Description: A modular toolkit for interpretable and causal survival machine learning. 
-    Includes many built-in learners (e.g., statistical models, tree-based models, deep leanring models) and supports 
-    user-defined models that return time-indexed survival 
-    probability matrices. Provides model-agnostic interpretability methods such as SHAP, 
-    PDP, ALE, surrogate models, feature importance, and counterfactual explanations. 
-    Also enables causal survival inference including average treatment effects, RMST, 
-    and conditional treatment effects (CATE) with visualization tools. Designed to integrate 
-    seamlessly via a unified fit and predict interface.
+Title: Interpretable Survival Machine Learning and Explainability Tools
+Version: 0.6.0
+Authors@R: c(
+    person(given = c("Imad", "El"),
+           family = "Badisy",
+           role = c("aut", "cre", "cph"),
+           email = "elbadisyimad@gmail.com"))
+Description: A modular toolkit for interpretable survival machine learning.
+    Includes built-in learners (statistical, tree-based, gradient boosting,
+    and deep learning models) and supports user-defined models that return
+    time-indexed survival probability matrices. Provides model-agnostic
+    interpretability methods such as SHAP, partial dependence plot (PDP), accumulated
+    local effects (ALE), surrogate models, counterfactuals, interactions, feature importance, and calibration
+    utilities. Designed to integrate via a unified fit/predict/tune interface.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Depends: R (>= 3.6)
+Depends: R (>= 4.1)
 Imports:
     survival,
-    data.table,
     ggplot2,
-    stats,
-    utils,
-    methods
+    nnls,
+    pec,
+    party,
+    rpart,
+    randomForestSRC,
+    xgboost,
+    BART,
+    aftgee,
+    flexsurv,
+    glmnet,
+    aorsf,
+    mboost,
+    ranger,
+    rstpm2,
+    survdnn,
+    survivalsvm,
+    gbm,
+    timereg,
+    nnet,
+    partykit,
+    progress,
+    future,
+    gower,
+    pracma,
+    torch,
+    bnnSurvival,
+    data.table,
+    dplyr, 
+    glue,
+    methods,
+    purrr,
+    rlang,
+    tidyr,
+    purrr,
+    dplyr
 Suggests:
     testthat,
     knitr,
     rmarkdown,
     roxygen2,
-    covr
-VignetteBuilder: knitr
+    covr,
+    stats,
+    utils,
+    cli,
+    tibble,
+    rsample
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
