@@ -57,11 +57,11 @@ compute_counterfactual <- function(model, newdata, times, target_time,
     stop("newdata must contain exactly one row.")
   }
 
-  # Auto-predictor from model
+  # infer the predict function 
   learner <- model$learner
   pred_fun <- get(paste0("predict_", learner))
 
-  # Convert newdata columns to factors if needed
+  # convert newdata columns to factors if needed
   for (col in names(newdata)) {
     if (is.factor(model$data[[col]]) && !is.factor(newdata[[col]])) {
       newdata[[col]] <- factor(newdata[[col]], levels = levels(model$data[[col]]))
@@ -89,7 +89,7 @@ compute_counterfactual <- function(model, newdata, times, target_time,
   for (feature in feature_names) {
     value_orig <- newdata[[feature]]
 
-    # Generate candidate values
+    # generate candidate values
     if (is.numeric(value_orig)) {
       observed_min <- min(model$data[[feature]], na.rm = TRUE)
       observed_max <- max(model$data[[feature]], na.rm = TRUE)
@@ -117,7 +117,7 @@ compute_counterfactual <- function(model, newdata, times, target_time,
 
     for (i in seq_along(candidate_values)) {
       newdata_mod <- newdata
-      # Handle categorical
+      # handle categorical
       if (is.factor(model$data[[feature]])) {
         newdata_mod[[feature]] <- factor(candidate_values[i], levels = levels(model$data[[feature]]))
       } else {
@@ -130,7 +130,7 @@ compute_counterfactual <- function(model, newdata, times, target_time,
       surv_mod_value <- pred_mod[1, idx_time]
       surv_gains[i] <- surv_mod_value - surv_orig_value
 
-      # Cost calculation
+      # cost calculation
       if (is.numeric(value_orig)) {
         change_costs[i] <- abs(as.numeric(candidate_values[i]) - as.numeric(value_orig))
       } else {

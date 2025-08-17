@@ -1,19 +1,40 @@
-#' Summarize a Survival Learner Model (`mlsurv_model`)
+#' Summarize an `mlsurv_model`
 #'
-#' Provides a structured overview of a fitted survival model, including formula,
-#' engine, and data characteristics. Styled like `summary.survdnn()` and supports
-#' all learners wrapped using the `mlsurv_model` format.
+#' Produces a compact, human‑readable overview of a fitted survival learner that
+#' follows the `mlsurv_model` contract (e.g., objects returned by `fit_*()` in
+#' this toolkit). The summary prints the learner id, engine, original formula,
+#' and basic data characteristics (sample size, predictor names, time range,
+#' event rate). A structured list is returned invisibly for programmatic use.
 #'
-#' @param object An object of class `"mlsurv_model"` returned by a `fit_*` function.
-#' @param ... Currently ignored (for future compatibility).
+#' @param object An object of class `"mlsurv_model"` produced by a `fit_*()` function.
+#' @param ... Ignored; included for S3 signature compatibility.
 #'
-#' @return Invisibly returns an object of class `"summary.mlsurv_model"`.
-#' @export
+#' @return Invisibly returns a list of class `"summary.mlsurv_model"` containing:
+#' \describe{
+#'   \item{learner}{Character id of the learner (e.g., `"ranger"`, `"coxph"`).}
+#'   \item{engine}{Underlying package/engine used to fit the model.}
+#'   \item{formula}{The original survival formula.}
+#'   \item{data_summary}{List with \code{observations}, \code{predictors},
+#'         \code{time_range}, and \code{event_rate}.}
+#' }
+#'
+#' @details
+#' This method relies on the presence of the fields \code{learner}, \code{formula},
+#' and \code{data} stored in the fitted object (the standard `mlsurv_model`
+#' contract). Output printing uses \pkg{cli} if available.
 #'
 #' @examples
-#' data(veteran)
-#' mod <- fit_cox(Surv(time, status) ~ age + trt + celltype, data = veteran)
+#' mod <- fit_coxph(Surv(time, status) ~ age + trt + celltype, data = veteran)
 #' summary(mod)
+#'
+#' s <- summary(mod)  # capture the structured result invisibly
+#' str(s)
+#'
+#' @seealso [fit_coxph()], other `fit_*()` learners returning `mlsurv_model` objects.
+#'
+#' @export
+#' @method summary mlsurv_model
+
 summary.mlsurv_model <- function(object, ...) {
   stopifnot(inherits(object, "mlsurv_model"))
 

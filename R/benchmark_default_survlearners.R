@@ -96,7 +96,7 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
     result
   })
 
-  # Combine successful results
+  # combine results
   results_combined <- dplyr::bind_rows(results_list)
   if (nrow(results_combined) == 0) {
     stop("All learners failed or returned empty results.")
@@ -162,11 +162,11 @@ summarise_benchmark <- function(benchmark_results) {
 #' @export
 
 plot_benchmark <- function(benchmark_results) {
-  ggplot2::ggplot(benchmark_results, ggplot2::aes(x = learner, y = value)) +
-    ggplot2::geom_boxplot(fill = "lightblue", alpha = 0.4, outlier.shape = NA) +
-    ggplot2::geom_jitter(width = 0.1, size = 2, alpha = 0.6) +
-    ggplot2::facet_wrap(~ metric, scales = "free_y") +
-    ggplot2::labs(
+  ggplot(benchmark_results, ggplot2::aes(x = learner, y = value)) +
+    geom_boxplot(fill = "lightblue", alpha = 0.4, outlier.shape = NA) +
+    geom_jitter(width = 0.1, size = 2, alpha = 0.6) +
+    facet_wrap(~ metric, scales = "free_y") +
+    labs(
       title = "Cross-Validated Performance of Survival Learners",
       x = "Learner",
       y = "Metric Value"

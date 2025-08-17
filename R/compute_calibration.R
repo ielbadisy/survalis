@@ -69,7 +69,7 @@ compute_calibration <- function(model, data, time, status,
   if (is.character(time) && length(time) == 1) time <- data[[time]]
   if (is.character(status) && length(status) == 1) status <- data[[status]]
 
-  # Predict survival at eval_time
+  # predict survival at eval_time
   pred_surv_raw <- predict_function(model, newdata = data, times = eval_time)
 
   pred_surv <- if (is.data.frame(pred_surv_raw) && paste0("t=", eval_time) %in% colnames(pred_surv_raw)) {
@@ -82,13 +82,13 @@ compute_calibration <- function(model, data, time, status,
     stop("Unexpected prediction format. Ensure predict_<learner>() returns a data.frame or matrix with survival probabilities.")
   }
 
-  # Bin predictions
+  # bin predictions
   bins <- cut(pred_surv,
               breaks = quantile(pred_surv, probs = seq(0, 1, length.out = n_bins + 1), na.rm = TRUE),
               include.lowest = TRUE, labels = FALSE)
   df <- data.frame(pred_surv = pred_surv, time = time, status = status, bin = bins)
 
-  # Calibration table
+  # calibration table
   calibration_table <- df |>
     group_by(bin) |>
     summarise(
@@ -101,7 +101,7 @@ compute_calibration <- function(model, data, time, status,
       .groups = "drop"
     )
 
-  # Bootstrap CIs
+  # bootstrap CIs
   boot_results <- replicate(n_boot, {
     idx <- sample(seq_len(nrow(df)), replace = TRUE)
     df_boot <- df[idx, ]
