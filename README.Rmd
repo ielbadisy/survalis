@@ -1,0 +1,167 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+
+
+# Survalis: Unified Survival Modeling and Interpretability in R
+
+`survalis` provides a standardized and modular framework for machine learning survival analysis in R. It supports a wide range of learners, evaluation metrics, cross-validation and interpretability methods. 
+
+
+
+## Installation
+
+```{r, eval = FALSE}
+# Install from GitHub
+remotes::install_github("ielbadisy/survalis")
+
+# Or from source
+install.packages("survalis_0.6.0.tar.gz", repos = NULL, type = "source")
+```
+
+
+
+## Core philosophy
+
+* Consistent function patterns: `fit_*()`, `predict_*()`, `tune_*()`
+* Learners return standardized `mlsurv_model` objects
+* Predictions return `data.frame` of survival probabilities: `t=100`, `t=200`, ...
+* Evaluation is fully modular: plug any `fit_*`/`predict_*` with `cv_survlearner()` or `score_survmodel()`
+* Designed for interpretability post prediction. 
+
+
+
+## Exploring the package
+
+### List all available survival learners
+
+```{r}
+library(survalis)
+# See all available learners
+list_survlearners()
+
+# See only tunable learners (those with a tune_* function)
+list_survlearners(has_tune = TRUE)
+
+# Shortcut for tunable learners
+list_tunable_survlearners()
+```
+
+### List interpretability tools
+
+```{r}
+# List available interpretability methods
+list_interpretability_methods()
+
+# Show which compute_* methods have a plot_* counterpart
+subset(list_interpretability_methods(), !is.na(plot))
+```
+
+### List evaluation metrics
+
+```{r}
+# List available metrics used in cross-validation and scoring
+list_metrics()
+```
+
+
+
+## Basic Workflow
+
+**1. Fit a model**
+```{r}
+mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+summary(mod_cox)
+```
+
+
+**2. Predict survival probabilities**
+
+```{r}
+pred <- predict_coxph(mod_cox, newdata = veteran[1:5, ], times = c(100, 200))
+pred
+```
+
+
+**3. Evaluate model performance**
+
+Direct evalution (single split): 
+```{r}
+score <- score_survmodel(mod_cox, times = c(100, 200), metrics = c("cindex", "ibs"))
+score
+```
+
+
+```{r}
+cv_res <- cv_survlearner(
+  Surv(time, status) ~ age + karno + celltype,
+  veteran,
+  fit_coxph,
+  predict_coxph,
+  times  = 80,
+  metrics = c("cindex", "ibs"),
+  folds = 5,
+  seed = 123,
+  verbose = FALSE
+  )
+
+cv_res
+```
+
+```{r}
+cv_summary(cv_res)
+```
+
+
+
+**4. Visualize interpretation**
+```{r}
+shap_meanabs <- compute_shap(
+  model         = mod_cox,
+  newdata       = veteran[100,],
+  baseline_data = veteran,
+  times         = 80,
+  sample.size   = 50,
+  aggregate     = TRUE,
+  method        = "meanabs"
+  )
+
+shap_meanabs
+```
+
+```{r}
+plot_shap(shap_meanabs)
+```
+
+
+**5. Calibration**
+
+```{r}
+compute_calibration(
+   model = mod_cox, data = veteran,
+   time = "time", status = "status",
+   eval_time = 80, n_bins = 10, n_boot = 30
+   ) |> plot_calibration()
+```
+
+
+
+## Citing
+
+```r
+citation("survalis")
+```
+
+

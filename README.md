@@ -1,50 +1,276 @@
 
-## Implementation design and core philosophies
+<!-- README.md is generated from README.Rmd. Please edit that file -->
 
-The `survalis` framework is built on a foundational principle of _standardization and modularity_, enabling seamless comparison, interpretation, and benchmarking of a wide range of survival learning algorithms. All survival learners are implemented using a consistent trio of functions: `fit_*()`, `predict_*()`, and `tune_*()`, with standardized inputs and outputs. Each fitted model is wrapped in a minimal `mlsurv_model` object containing the original formula, training data, engine name, and learner identifier. This approach ensures predictability, composability, and ease of downstream evaluation.
+# Survalis: Unified Survival Modeling and Interpretability in R
 
-We deliberately avoid S3 class hierarchies or method dispatch. Instead, we use plain R functions that return standardized lists with required metadata. This choice enforces purity (no side effects), simplifies debugging, and enhances transparency. Prediction functions always return a plain `data.frame` with numeric survival probabilities, formatted with column names of the form `t=100`, `t=200`, etc., ensuring compatibility with all metric computation routines. 
+`survalis` provides a standardized and modular framework for machine
+learning survival analysis in R. It supports a wide range of learners,
+evaluation metrics, cross-validation and interpretability methods.
 
+## Installation
 
+``` r
+# Install from GitHub
+remotes::install_github("ielbadisy/survalis")
 
-## Learner-specific design choices
+# Or from source
+install.packages("survalis_0.6.0.tar.gz", repos = NULL, type = "source")
+```
 
-Some learners require special handling to ensure compatibility and stability. For instance, we fix `max.time = max(data$time)` in the Aalen additive hazards model (`aareg`) to prevent inconsistent prediction horizons across folds or resamples. Similarly, for `cox.aalen` models from `timereg`, we automatically wrap all covariates in `prop()` to ensure consistent proportional hazard modeling and prevent obscure errors related to missing `Z` variables.
+## Core philosophy
 
-The `survivalsvm` model, which lacks native survival probability outputs, is handled via _parametric approximation_: we convert predicted survival times into survival probabilities under an exponential or Weibull assumption. While approximate, this ensures output consistency for comparison across learners. Due to frequent instability, no hyperparameter tuning is performed for this learner.
+- Consistent function patterns: `fit_*()`, `predict_*()`, `tune_*()`
+- Learners return standardized `mlsurv_model` objects
+- Predictions return `data.frame` of survival probabilities: `t=100`,
+  `t=200`, …
+- Evaluation is fully modular: plug any `fit_*`/`predict_*` with
+  `cv_survlearner()` or `score_survmodel()`
+- Designed for interpretability post prediction.
 
-For tree-based models like `mboost` or `rfsrc`, we implement custom interpolation and padding logic to ensure predicted survival probabilities align exactly with user-specified time grids. This is essential for fair metric computation and avoids runtime failures in validation pipelines (e.g., when evaluating c-index or IBS).
+## Exploring the package
 
+### List all available survival learners
 
-## Cross-Validation and evaluation framework
+``` r
+library(survalis)
+# See all available learners
+list_survlearners()
+#> # A tibble: 19 × 8
+#>    learner         fit      predict tune  has_fit has_predict has_tune available
+#>    <chr>           <chr>    <chr>   <chr> <lgl>   <lgl>       <lgl>    <lgl>    
+#>  1 coxph           fit_cox… predic… <NA>  TRUE    TRUE        FALSE    TRUE     
+#>  2 aalen           fit_aal… predic… <NA>  TRUE    TRUE        FALSE    TRUE     
+#>  3 glmnet          fit_glm… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  4 selectcox       fit_sel… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  5 aftgee          fit_aft… predic… <NA>  TRUE    TRUE        FALSE    TRUE     
+#>  6 flexsurvreg     fit_fle… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  7 stpm2           fit_stp… predic… <NA>  TRUE    TRUE        FALSE    TRUE     
+#>  8 bnnsurv         fit_bnn… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  9 rpart           fit_rpa… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 10 bart            fit_bart predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 11 xgboost         fit_xgb… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 12 ranger          fit_ran… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 13 rsf             fit_rsf  predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 14 cforest         fit_cfo… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 15 blackboost      fit_bla… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 16 survsvm         fit_sur… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 17 survdnn         fit_sur… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 18 orsf            fit_orsf predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 19 survmetalearner fit_sur… predic… <NA>  TRUE    TRUE        FALSE    TRUE
 
-The central evaluation routine in `survalis` is `cv_survlearner()`, which performs cross-validation of survival learners in a fully standardized manner. Key design principles include a formula-first interface, automatic handling of missing data, flexible support for status/event coding, and tidy outputs suitable for downstream analysis and plotting. All model training, prediction, and evaluation are encapsulated within the CV loop, and parallelism is centralized in this function to avoid nested concurrency issues.
+# See only tunable learners (those with a tune_* function)
+list_survlearners(has_tune = TRUE)
+#> # A tibble: 14 × 8
+#>    learner     fit          predict tune  has_fit has_predict has_tune available
+#>    <chr>       <chr>        <chr>   <chr> <lgl>   <lgl>       <lgl>    <lgl>    
+#>  1 glmnet      fit_glmnet   predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  2 selectcox   fit_selectc… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  3 flexsurvreg fit_flexsur… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  4 bnnsurv     fit_bnnsurv  predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  5 rpart       fit_rpart    predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  6 bart        fit_bart     predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  7 xgboost     fit_xgboost  predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  8 ranger      fit_ranger   predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  9 rsf         fit_rsf      predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 10 cforest     fit_cforest  predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 11 blackboost  fit_blackbo… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 12 survsvm     fit_survsvm  predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 13 survdnn     fit_survdnn  predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 14 orsf        fit_orsf     predic… tune… TRUE    TRUE        TRUE     TRUE
 
-Parallel execution is limited to `cv_survlearner()` to prevent CPU oversubscription and to provide users with a clear mental model of where computation is concentrated. Tuning functions (`tune_*()`) remain sequential and rely on cross-validation results to guide hyperparameter selection.
+# Shortcut for tunable learners
+list_tunable_survlearners()
+#> # A tibble: 14 × 8
+#>    learner     fit          predict tune  has_fit has_predict has_tune available
+#>    <chr>       <chr>        <chr>   <chr> <lgl>   <lgl>       <lgl>    <lgl>    
+#>  1 glmnet      fit_glmnet   predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  2 selectcox   fit_selectc… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  3 flexsurvreg fit_flexsur… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  4 bnnsurv     fit_bnnsurv  predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  5 rpart       fit_rpart    predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  6 bart        fit_bart     predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  7 xgboost     fit_xgboost  predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  8 ranger      fit_ranger   predic… tune… TRUE    TRUE        TRUE     TRUE     
+#>  9 rsf         fit_rsf      predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 10 cforest     fit_cforest  predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 11 blackboost  fit_blackbo… predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 12 survsvm     fit_survsvm  predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 13 survdnn     fit_survdnn  predic… tune… TRUE    TRUE        TRUE     TRUE     
+#> 14 orsf        fit_orsf     predic… tune… TRUE    TRUE        TRUE     TRUE
+```
 
+### List interpretability tools
 
+``` r
+# List available interpretability methods
+list_interpretability_methods()
+#> # A tibble: 8 × 4
+#>   compute                plot                has_compute has_plot
+#>   <chr>                  <chr>               <lgl>       <lgl>   
+#> 1 compute_shap           plot_shap           TRUE        TRUE    
+#> 2 compute_pdp            plot_pdp            TRUE        TRUE    
+#> 3 compute_ale            plot_ale            TRUE        TRUE    
+#> 4 compute_surrogate      plot_surrogate      TRUE        TRUE    
+#> 5 compute_tree_surrogate plot_tree_surrogate TRUE        TRUE    
+#> 6 compute_varimp         plot_varimp         TRUE        TRUE    
+#> 7 compute_interactions   plot_interactions   TRUE        TRUE    
+#> 8 compute_counterfactual <NA>                TRUE        FALSE
 
-## Prediction interface
+# Show which compute_* methods have a plot_* counterpart
+subset(list_interpretability_methods(), !is.na(plot))
+#> # A tibble: 7 × 4
+#>   compute                plot                has_compute has_plot
+#>   <chr>                  <chr>               <lgl>       <lgl>   
+#> 1 compute_shap           plot_shap           TRUE        TRUE    
+#> 2 compute_pdp            plot_pdp            TRUE        TRUE    
+#> 3 compute_ale            plot_ale            TRUE        TRUE    
+#> 4 compute_surrogate      plot_surrogate      TRUE        TRUE    
+#> 5 compute_tree_surrogate plot_tree_surrogate TRUE        TRUE    
+#> 6 compute_varimp         plot_varimp         TRUE        TRUE    
+#> 7 compute_interactions   plot_interactions   TRUE        TRUE
+```
 
-The `predict_*()` functions follow a unified contract: given a trained `mlsurv_model`, a new dataset, and a vector of prediction times, they return a rectangular `data.frame` with predicted survival probabilities. The design ensures that row = individual, column = time point regardless of the model. Special handling is implemented for learners that do not support arbitrary time prediction (e.g., `mboost`, `rpart`, or `bnnsurv`) through interpolation or extrapolation strategies to match requested times.
+### List evaluation metrics
 
-This standardization is critical for enabling model-agnostic interpretability, benchmarking, and diagnostic tools. It ensures that interpretability methods like PDP, SHAP, and surrogate models operate on a consistent prediction interface.
+``` r
+# List available metrics used in cross-validation and scoring
+list_metrics()
+#> # A tibble: 3 × 4
+#>   metric direction summary                                                 range
+#>   <chr>  <chr>     <chr>                                                   <chr>
+#> 1 cindex maximize  Harrell-style concordance index for survival predictio… [0, …
+#> 2 brier  minimize  Brier Score at specified evaluation time(s) (IPCW-weig… [0, …
+#> 3 ibs    minimize  Integrated Brier Score over an evaluation time grid (I… [0, …
+```
 
+## Basic Workflow
 
-## Interpretability method architecture
+**1. Fit a model**
 
-Each interpretability method in `survalis` is implemented via a `compute_*()` + `plot_*()` pairing, following a clear separation of concerns. Methods like partial dependence (`compute_pdp()`), accumulated local effects (`compute_ale()`), and feature importance (`compute_varimp()`) rely on the unified prediction interface. Advanced methods like local surrogate models and tree-based surrogates build explanations at either individual or global levels.
+``` r
+mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+summary(mod_cox)
+#> 
+#> ── coxph summary ───────────────────────────────────────────────────────────────
+#> Formula:
+#> Surv(time, status) ~ age + karno + celltype
+#> Engine: survival
+#> Learner: coxph
+#> Data summary:
+#> - Observations: 137
+#> - Predictors: "age, karno, celltypesmallcell, celltypeadeno, celltypelarge"
+#> - Time range: [1, 999]
+#> - Event rate: "93.4%"
+```
 
-The design supports both time-specific and integrated views of interpretability, leveraging numerical integration (e.g., trapezoidal rule) to summarize survival curves into scalar metrics when needed (e.g., for RMST-like interpretations in PDPs).
+**2. Predict survival probabilities**
 
+``` r
+pred <- predict_coxph(mod_cox, newdata = veteran[1:5, ], times = c(100, 200))
+pred
+#>       t=100     t=200
+#> 1 0.6142681 0.3541697
+#> 2 0.6944383 0.4599242
+#> 3 0.5556797 0.2860796
+#> 4 0.6033305 0.3408724
+#> 5 0.6959633 0.4620783
+```
 
-## Benchmarking and model selection
+**3. Evaluate model performance**
 
-For consistent learner comparison, we provide `benchmark_survlearners()`, which internally relies on `cv_survlearner()` and aggregates performance across a list of learners using `purrr::pmap_dfr()`. This enables comprehensive, reproducible benchmarking using multiple metrics (C-index, IBS, IAE, ISE). Supplementary tools like `select_best()`, `cv_summary()`, and `cv_plot()` help users inspect and summarize results.
+Direct evalution (single split):
 
-Hyperparameter tuning follows a consistent pattern: extract the best row based on a metric, refit the final model using `fit_*()`, and evaluate using `evaluate_survlearner()` or `score_survmodel()`. Learners that are unstable or fully parametric (e.g., `aareg`, `cox.aalen`, `survreg`) are excluded from tuning, as tuning does not yield meaningful improvements and can introduce unnecessary complexity or inconsistencies.
+``` r
+score <- score_survmodel(mod_cox, times = c(100, 200), metrics = c("cindex", "ibs"))
+score
+#> # A tibble: 2 × 2
+#>   metric value
+#>   <chr>  <dbl>
+#> 1 cindex 0.734
+#> 2 ibs    0.160
+```
 
+``` r
+cv_res <- cv_survlearner(
+  Surv(time, status) ~ age + karno + celltype,
+  veteran,
+  fit_coxph,
+  predict_coxph,
+  times  = 80,
+  metrics = c("cindex", "ibs"),
+  folds = 5,
+  seed = 123,
+  verbose = FALSE
+  )
 
-## Remarks
+cv_res
+#> # A tibble: 10 × 5
+#>    splits           id     fold metric value
+#>    <list>           <chr> <int> <chr>  <dbl>
+#>  1 <split [109/28]> Fold1     1 cindex 0.699
+#>  2 <split [109/28]> Fold1     1 ibs    0.227
+#>  3 <split [109/28]> Fold2     2 cindex 0.812
+#>  4 <split [109/28]> Fold2     2 ibs    0.141
+#>  5 <split [110/27]> Fold3     3 cindex 0.695
+#>  6 <split [110/27]> Fold3     3 ibs    0.217
+#>  7 <split [110/27]> Fold4     4 cindex 0.698
+#>  8 <split [110/27]> Fold4     4 ibs    0.188
+#>  9 <split [110/27]> Fold5     5 cindex 0.688
+#> 10 <split [110/27]> Fold5     5 ibs    0.138
+```
 
-Overall, the `survalis` design philosophy emphasizes clarity and modularity. Each component, from learners and evaluators to interpretability tools—follows a unified interface. This enables practitioners and researchers to focus on model logic and decision-making, not debugging infrastructure mismatches. With this system, adding a new learner or interpretability method becomes a matter of implementing a minimal set of well-defined functions, backed by robust and reusable tooling.
+``` r
+cv_summary(cv_res)
+#> # A tibble: 2 × 7
+#>   metric  mean     sd     n     se lower upper
+#>   <chr>  <dbl>  <dbl> <int>  <dbl> <dbl> <dbl>
+#> 1 cindex 0.718 0.0528     5 0.0236 0.672 0.765
+#> 2 ibs    0.182 0.0417     5 0.0186 0.146 0.219
+```
+
+**4. Visualize interpretation**
+
+``` r
+shap_meanabs <- compute_shap(
+  model         = mod_cox,
+  newdata       = veteran[100,],
+  baseline_data = veteran,
+  times         = 80,
+  sample.size   = 50,
+  aggregate     = TRUE,
+  method        = "meanabs"
+  )
+
+shap_meanabs
+#>           feature         phi
+#> trt           trt 0.000000000
+#> celltype celltype 0.005850095
+#> karno       karno 0.045326970
+#> diagtime diagtime 0.000000000
+#> age           age 0.002540069
+#> prior       prior 0.000000000
+```
+
+``` r
+plot_shap(shap_meanabs)
+```
+
+<img src="man/figures/README-unnamed-chunk-12-1.png" width="100%" />
+
+**5. Calibration**
+
+``` r
+compute_calibration(
+   model = mod_cox, data = veteran,
+   time = "time", status = "status",
+   eval_time = 80, n_bins = 10, n_boot = 30
+   ) |> plot_calibration()
+```
+
+<img src="man/figures/README-unnamed-chunk-13-1.png" width="100%" />
+
+## Citing
+
+``` r
+citation("survalis")
+```
