@@ -9,12 +9,7 @@
 Core learners, tuning, evaluation, and interpretability utilities for survival analysis.
 }
 \author{
-\strong{Maintainer}: Imad EL BADISY \email{elbadisyimad@gmail.com} [copyright holder]
-
-Other contributors:
-\itemize{
-  \item Roch GIORGI \email{roch.giorgi@univ-amu.fr} [contributor]
-}
+\strong{Maintainer}: Imad El Badisy \email{elbadisyimad@gmail.com}
 
 }
 \keyword{internal}

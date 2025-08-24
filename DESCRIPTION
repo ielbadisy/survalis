@@ -3,17 +3,12 @@ Type: Package
 Title: Interpretable Survival Machine Learning and Explainability Tools
 Version: 0.6.0
 Authors@R: c(
-    person(given = c("Imad", "El"),
-           family = "Badisy",
+    person(given = c("Imad"),
+           family = "EL BADISY",
            role = c("aut", "cre", "cph"),
            email = "elbadisyimad@gmail.com"))
-Description: A modular toolkit for interpretable survival machine learning.
-    Includes built-in learners (statistical, tree-based, gradient boosting,
-    and deep learning models) and supports user-defined models that return
-    time-indexed survival probability matrices. Provides model-agnostic
-    interpretability methods such as SHAP, partial dependence plot (PDP), accumulated
-    local effects (ALE), surrogate models, counterfactuals, interactions, feature importance, and calibration
-    utilities. Designed to integrate via a unified fit/predict/tune interface.
+Description: A modular toolkit for interpretable survival machine learning. Includes built-in learners (statistical, tree-based, gradient boosting, and deep learning models) and supports user-defined models that retur time-indexed survival probability matrices. Provides model-agnostic
+interpretability methods such as SHAP, partial dependence plot (PDP), accumulated local effects (ALE), surrogate models, counterfactuals, interactions, feature importance, calibration, and other utilities. Designed to integrate via a unified fit/predict/tune interface.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
