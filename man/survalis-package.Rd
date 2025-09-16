@@ -11,10 +11,5 @@ Core learners, tuning, evaluation, and interpretability utilities for survival a
 \author{
 \strong{Maintainer}: Imad EL BADISY \email{elbadisyimad@gmail.com} [copyright holder]
 
-Other contributors:
-\itemize{
-  \item Roch GIORGI \email{roch.giorgi@univ-amu.fr} [contributor]
-}
-
 }
 \keyword{internal}
