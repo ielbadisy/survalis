@@ -4,10 +4,10 @@ Title: Interpretable and Causal Machine Learning Methods for Survival
         Analysis
 Version: 0.6.0
 Authors@R: c(
-    person(given = c("Imad", "El"),
-           family = "Badisy",
+    person(given = "Imad", family = "El Badisy",
            role = c("aut", "cre"),
-           email = "elbadisyimad@gmail.com"))
+           email = "elbadisyimad@gmail.com")
+)
 Description: A modular toolkit for interpretable and causal survival machine learning. 
     Includes many built-in learners (e.g., statistical models, tree-based models, deep leanring models) and supports 
     user-defined models that return time-indexed survival 
