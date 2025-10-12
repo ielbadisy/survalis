@@ -1,273 +1,289 @@
-
-
-#' Fit a Survival SVM Model (survivalsvm)
+#' Fit a kNN–Ensemble Survival Model (bnnSurvival)
 #'
-#' Fits a survival support vector machine using \pkg{survivalsvm} with configurable
-#' loss type, kernel, optimization method, and regularization.
+#' Fits an ensemble of k–nearest neighbour survival learners via
+#' \pkg{bnnSurvival}. The fitted object is standardized to the
+#' \code{mlsurv_model} contract used in \pkg{survalis}.
 #'
-#' @param formula A survival formula \code{Surv(time, status) ~ predictors}.
-#' @param data A data frame containing the variables in the model.
-#' @param type Character. One of \code{"regression"}, \code{"vanbelle1"},
-#'   \code{"vanbelle2"}, \code{"hybrid"}. Default \code{"regression"}.
-#' @param gamma.mu Numeric. Regularization parameter. Default \code{0.1}.
-#' @param opt.meth Character. Optimization method; e.g., \code{"quadprog"}.
-#' @param kernel Character. Kernel name in \pkg{survivalsvm} (e.g., \code{"lin_kernel"},
-#'   \code{"rbf_kernel"}, \code{"add_kernel"}). Default \code{"add_kernel"}.
-#' @param diff.meth Optional differentiability method; see \pkg{survivalsvm} docs.
+#' @section Engine:
+#' Uses \strong{bnnSurvival::bnnSurvival}. This wrapper calls the engine via
+#' \code{requireNamespace("bnnSurvival", quietly = TRUE)} and stores the native
+#' model in \code{$model}.
 #'
-#' @return An \code{"mlsurv_model"} list with elements:
-#' \itemize{
-#'   \item \code{model} - fitted \code{survivalsvm} object
-#'   \item \code{learner} - \code{"survsvm"}
-#'   \item \code{engine} - \code{"survivalsvm"}
-#'   \item \code{formula}, \code{data}, \code{time}, \code{status}
+#' @param formula A survival formula of the form \code{Surv(time, status) ~ predictors}.
+#' @param data A data frame containing all variables referenced in \code{formula}.
+#' @param k Integer, number of neighbours for each base learner. Default \code{20}.
+#' @param num_base_learners Integer, number of base learners in the ensemble.
+#'   Default \code{10}.
+#' @param num_features_per_base_learner Integer or \code{NULL}. If not \code{NULL},
+#'   each base learner samples this many features. Passed to the engine.
+#' @param metric Character distance metric for neighbour search (for example,
+#'   \code{"mahalanobis"}). Passed to the engine.
+#' @param weighting_function Function used to weight neighbours. Defaults to a
+#'   constant weighting \code{function(x) x * 0 + 1}. Passed to the engine.
+#' @param replace Logical; sample with replacement when drawing observations for
+#'   a base learner. Passed to the engine.
+#' @param sample_fraction Optional numeric in \code{(0, 1]}; fraction of rows used
+#'   by each base learner. Passed to the engine.
+#'
+#' @return An object of class \code{"mlsurv_model"} with elements:
+#' \describe{
+#'   \item{model}{The underlying \pkg{bnnSurvival} fit.}
+#'   \item{learner}{Scalar \code{"bnnsurv"}.}
+#'   \item{engine}{Scalar \code{"bnnSurvival"}.}
+#'   \item{formula, data}{Inputs preserved for downstream use.}
+#'   \item{time, status}{Character names of the survival outcome fields.}
 #' }
 #'
 #' @details
-#' This wrapper standardizes \pkg{survivalsvm} models to the \code{mlsurv_model}
-#' interface used across the package.
+#' The native engine returns full survival curves on an internal time grid.
+#' See \code{\link{predict_bnnsurv}} for how these are post–processed and
+#' (optionally) interpolated to user–requested times.
 #'
-#' @seealso [predict_survsvm()], \code{survivalsvm::survivalsvm()}
-#'
-#' @examples
-#' \donttest{
-#'   fit <- fit_survsvm(
-#'     Surv(time, status) ~ age + celltype + karno,
-#'     data = veteran, type = "regression", gamma.mu = 0.1, kernel = "lin_kernel"
-#'   )
-#'   head(predict_survsvm(fit, newdata = veteran[1:5, ], times = c(100, 300, 500)))
-#' }
-#' @export
-
-fit_survsvm <- function(formula, data,
-  type = "regression",
-  gamma.mu = 0.1,
-  opt.meth = "quadprog",
-  kernel = "add_kernel",
-  diff.meth = NULL) {
-
-stopifnot(requireNamespace("survivalsvm", quietly = TRUE))
-model <- survivalsvm::survivalsvm(
-formula = formula,
-data = data,
-type = type,
-gamma.mu = gamma.mu,
-opt.meth = opt.meth,
-kernel = kernel,
-diff.meth = diff.meth)
-
-structure(list(
-model = model,
-learner = "survsvm",
-formula = formula,
-data = data,
-time = all.vars(formula)[[2]],
-status = all.vars(formula)[[3]]
-), class = "mlsurv_model", engine = "survivalsvm")
-}
-
-
-#' Predict Survival from a survivalsvm Model
-#'
-#' Produces survival probabilities at specified time points by converting
-#' predicted survival times from \pkg{survivalsvm} using a parametric survival
-#' assumption (exponential or Weibull).
-#'
-#' @param object An \code{mlsurv_model} created by [fit_survsvm()].
-#' @param newdata Data frame of new observations.
-#' @param times Numeric vector of time points for prediction.
-#' @param dist Character. Parametric distribution for mapping predicted times to
-#'   survival probabilities: \code{"exp"} (exponential) or \code{"weibull"}.
-#'   Default \code{"exp"}.
-#' @param shape Numeric shape parameter for Weibull mapping (ignored if \code{dist = "exp"}).
-#'   Default \code{1}.
-#'
-#' @return A \code{data.frame} of survival probabilities with one row per observation
-#'   and columns named \code{"t=<time>"}.
-#'
-#' @details
-#' \pkg{survivalsvm} returns predicted survival times. This wrapper converts them
-#' to survival probabilities at \code{times} via:
-#' \itemize{
-#'   \item Exponential: \eqn{S(t) = \exp(-t/\hat{T})}
-#'   \item Weibull: \eqn{S(t) = \exp\{-(t/\hat{T})^{\text{shape}}\}}
-#' }
-#' where \eqn{\hat{T}} is the predicted time. Choose \code{dist} and \code{shape}
-#' to match your application.
-#'
-#' @seealso [fit_survsvm()], \code{survivalsvm::predict.survivalsvm()}
+#' @seealso [predict_bnnsurv()], [tune_bnnsurv()]
 #'
 #' @examples
-#' \donttest{
-#'   fit <- fit_survsvm(
-#'     Surv(time, status) ~ age + celltype + karno,
-#'     data = veteran, kernel = "lin_kernel"
-#'   )
-#'   times <- c(100, 300, 500)
-#'   predict_survsvm(fit, newdata = veteran[1:5, ], times = times, dist = "exp")
-#'   predict_survsvm(fit, newdata = veteran[1:5, ], times = times, dist = "weibull", shape = 1.5)
-#' }
+#'
+#' mod <- fit_bnnsurv(
+#'   Surv(time, status) ~ age + karno + diagtime + prior,
+#'   data = veteran
+#' )
+#' head(predict_bnnsurv(mod, newdata = veteran[1:5, ], times = c(50, 100)))
+#'
 #' @export
 
-predict_survsvm <- function(object, newdata, times, dist = "exp", shape = 1) {
+fit_bnnsurv <- function(formula, data,
+   k = 5,
+   num_base_learners = 10,
+   num_features_per_base_learner = NULL,
+   metric = "mahalanobis",
+   weighting_function = function(x) x * 0 + 1,
+   replace = TRUE,
+   sample_fraction = NULL) {
+stopifnot(requireNamespace("bnnSurvival", quietly = TRUE))
 
-if (!is.null(object$learner) && object$learner != "survsvm") {
-warning("Object passed to predict_survsvm() may not come from fit_survsvm().")
-}
-
-stopifnot(requireNamespace("survivalsvm", quietly = TRUE))
-
-newdata <- as.data.frame(newdata)
-pred <- predict(object$model, newdata = newdata)
-predicted_times <- as.numeric(pred$predicted)
-
-dist <- match.arg(dist, choices = c("exp", "weibull"))
-
-survmat <- switch(dist,
-"exp" = sapply(times, function(t) exp(-t / predicted_times)),
-"weibull" = sapply(times, function(t) exp(- (t / predicted_times)^shape))
+model <- bnnSurvival::bnnSurvival(
+formula = formula,
+data = data,
+k = k,
+num_base_learners = num_base_learners,
+num_features_per_base_learner = num_features_per_base_learner,
+metric = metric,
+weighting_function = weighting_function,
+replace = replace,
+sample_fraction = sample_fraction
 )
 
-colnames(survmat) <- paste0("t=", times)
-as.data.frame(survmat)
+structure(list(
+model   = model,
+learner = "bnnsurv",
+engine  = "bnnSurvival",
+formula = formula,
+data    = data,
+time    = all.vars(formula)[[2]],
+status  = all.vars(formula)[[3]]
+), class = "mlsurv_model")
 }
 
 
-#' Hyperparameter Tuning for survivalsvm
+#' Predict Survival with a bnnSurvival Model
 #'
-#' Cross-validated tuning over a grid of \pkg{survivalsvm} hyperparameters.
-#' Returns a results table or refits and returns the best model.
+#' Generates survival probabilities from an \code{mlsurv_model} fitted by
+#' \code{\link{fit_bnnsurv}}. If \code{times} is supplied, survival curves are
+#' linearly interpolated from the engine's internal time grid to those times.
 #'
-#' @param formula A survival formula \code{Surv(time, status) ~ predictors}.
-#' @param data Training data frame.
-#' @param times Numeric vector of time points used for evaluation.
-#' @param metrics Character vector of metric names to aggregate (e.g., \code{c("cindex","ibs")}).
-#' @param param_grid Named list of candidate values. Example:
-#'   \code{list(gamma.mu = c(0.01, 0.1), kernel = c("lin_kernel","add_kernel"))}.
-#' @param folds Integer. Number of CV folds. Default \code{5}.
-#' @param seed Integer. Random seed for reproducibility.
-#' @param refit_best Logical. If \code{TRUE}, refit best config on full data and return it.
-#' @param dist Character. Mapping distribution passed to [predict_survsvm()] (\code{"exp"} or \code{"weibull"}).
-#' @param shape Numeric. Weibull shape for mapping (used if \code{dist = "weibull"}).
+#' @param object A fitted \code{mlsurv_model} returned by \code{fit_bnnsurv()}.
+#' @param newdata A data frame of new observations for prediction.
+#' @param times Optional numeric vector of evaluation time points. If \code{NULL}
+#'   (default), the function returns survival on the engine's native grid.
 #'
-#' @return
-#' If \code{refit_best = FALSE}, a \code{tibble} with one row per configuration and
-#' columns for aggregated \code{metrics}. If \code{refit_best = TRUE}, an
-#' \code{mlsurv_model} with attribute \code{"tuning_results"} containing the full table.
+#' @return A base \code{data.frame} with one row per observation and columns
+#'   named \code{"t=<time>"} containing survival probabilities in \code{[0, 1]}.
+#'   Probabilities are clipped to \code{[0, 1]} and made non–increasing over time.
 #'
 #' @details
-#' For stability, the tuner fixes \code{type = "regression"}, \code{opt.meth = "quadprog"},
-#' and \code{diff.meth = NULL}. The prediction mapping is controlled by \code{dist} and \code{shape}.
+#' Internally, predictions are obtained via \code{bnnSurvival::predict()}.
+#' The returned survival matrix is post–processed to enforce monotonicity
+#' (cumulative minimum over time). When \code{times} is provided, values are
+#' obtained by \code{stats::approx()} (linear interpolation, rule = 2).
 #'
-#' @seealso [fit_survsvm()], [predict_survsvm()], [cv_survlearner()]
+#' @seealso [fit_bnnsurv()], [tune_bnnsurv()]
+#'
+#' @examples
+#'
+#' mod <- fit_bnnsurv(Surv(time, status) ~ age + karno + diagtime + prior, data = veteran)
+#' pred <- predict_bnnsurv(mod, newdata = veteran[1:3, ], times = c(50, 100, 200))
+#' pred
+#'
+#' @export
+
+predict_bnnsurv <- function(object, newdata, times = NULL) {
+stopifnot(object$learner == "bnnsurv")
+stopifnot(requireNamespace("bnnSurvival", quietly = TRUE))
+
+newdata <- as.data.frame(newdata)
+
+# Get full survival curves from bnnSurvival
+pr   <- bnnSurvival::predict(object$model, newdata)
+tg   <- bnnSurvival::timepoints(pr)        # numeric time grid
+Smat <- bnnSurvival::predictions(pr)       # nrow(newdata) x length(tg)
+
+# ensure probabilities are within [0,1] and non-increasing over time grid
+Smat <- pmin(pmax(Smat, 0), 1)
+Smat <- t(apply(Smat, 1L, cummin))
+
+if (is.null(times)) {
+survmat <- as.data.frame(Smat, stringsAsFactors = FALSE)
+colnames(survmat) <- paste0("t=", tg)
+return(survmat)
+}
+
+stopifnot(is.numeric(times), length(times) > 0L, all(is.finite(times)))
+
+# interpolate from model grid (tg) to requested times
+survmat <- t(apply(Smat, 1L, function(row)
+stats::approx(x = tg, y = row, xout = times, method = "linear", rule = 2)$y
+))
+survmat <- as.data.frame(survmat, stringsAsFactors = FALSE)
+colnames(survmat) <- paste0("t=", times)
+survmat
+}
+
+
+#' Tune bnnSurvival Hyperparameters (Cross-Validation)
+#'
+#' Cross-validates \code{\link{fit_bnnsurv}} over a user-supplied grid and
+#' aggregates metrics (for example, \code{"cindex"}, \code{"ibs"}). Optionally
+#' refits and returns the best configuration.
+#'
+#' @param formula A survival formula of the form \code{Surv(time, status) ~ predictors}.
+#' @param data Training data frame.
+#' @param times Numeric vector of evaluation time points used during CV.
+#' @param param_grid A data frame (for example from \code{expand.grid()}) with
+#'   columns \code{k}, \code{num_base_learners}, and \code{sample_fraction}.
+#'   Defaults cover a small illustrative search.
+#' @param metrics Character vector of metric names to compute and summarize.
+#'   The first entry is treated as the primary ranking metric.
+#' @param folds Integer number of cross-validation folds. Default \code{5}.
+#' @param seed Integer random seed for reproducibility.
+#' @param refit_best Logical; if \code{TRUE}, refits the best configuration on
+#'   the full data and returns that model. Otherwise returns the results table.
+#'
+#' @return If \code{refit_best = FALSE}, a \code{tibble} with one row per
+#'   configuration containing \code{metrics} and the tuning parameters, with a
+#'   \code{failed} flag for combinations that errored during CV. If
+#'   \code{refit_best = TRUE}, an \code{mlsurv_model} refit at the selected
+#'   hyperparameters.
+#'
+#' @details
+#' Evaluation is performed by \code{cv_survlearner()} using
+#' \code{fit_bnnsurv()} and \code{predict_bnnsurv()} to match production code
+#' paths. Results are ordered by the first entry in \code{metrics}.
+#'
+#' @seealso [fit_bnnsurv()], [predict_bnnsurv()], [cv_survlearner()]
 #'
 #' @examples
 #' \donttest{
-#'   grid <- list(
-#'     gamma.mu = c(0.01, 0.1),
-#'     kernel = c("lin_kernel", "add_kernel")
-#'   )
-#'   # Return best refitted model
-#'   best <- tune_survsvm(
-#'     formula = Surv(time, status) ~ age + celltype + karno,
-#'     data = veteran,
-#'     times = c(100, 300, 500),
-#'     metrics = c("cindex", "ibs"),
-#'     param_grid = grid,
-#'     folds = 3,
-#'     refit_best = TRUE
-#'   )
-#'   predict_survsvm(best, newdata = veteran[1:5, ], times = c(100,300))
+#' grid <- expand.grid(
+#'   k = c(2, 3),
+#'   num_base_learners = c(5, 10),
+#'   sample_fraction = c(0.5, 1),
+#'   stringsAsFactors = FALSE
+#' )
 #'
-#'   # Or get the full results table
-#'   res <- tune_survsvm(
-#'     formula = Surv(time, status) ~ age + celltype + karno,
-#'     data = veteran,
-#'     times = c(100, 300, 500),
-#'     metrics = c("cindex", "ibs"),
-#'     param_grid = grid,
-#'     folds = 3,
-#'     refit_best = FALSE
-#'   )
-#'   res
+#' # Performance table
+#' res <- tune_bnnsurv(
+#'   formula = Surv(time, status) ~ age + karno + diagtime + prior,
+#'   data = veteran,
+#'   times = c(100, 200),
+#'   param_grid = grid,
+#'   refit_best = FALSE
+#' )
+#' res
+#'
+#' # Best refitted model
+#' best <- tune_bnnsurv(
+#'   formula = Surv(time, status) ~ age + karno + diagtime + prior,
+#'   data = veteran,
+#'   times = c(100, 200),
+#'   param_grid = grid,
+#'   refit_best = TRUE
+#' )
+#' head(predict_bnnsurv(best, newdata = veteran[1:5, ], times = c(50, 100)))
 #' }
+#' 
 #' @export
 
-tune_survsvm <- function(formula, data, times,
-   metrics = "cindex",
-   param_grid,
-   folds = 5, seed = 42,
-   refit_best = FALSE,
-   dist = "exp", shape = 1) {
-stopifnot(is.list(param_grid))
-param_df <- tidyr::crossing(!!!param_grid)
-
-# Fixed safe defaults
-fixed_type <- "regression"
-fixed_opt_meth <- "quadprog"
-fixed_diff_meth <- NULL
-
-results <- purrr::pmap_dfr(param_df, function(gamma.mu, kernel) {
-set.seed(seed)
-tryCatch({
-res_cv <- cv_survlearner(
+tune_bnnsurv <- function(formula, data, times,
+    param_grid = expand.grid(
+      k = c(2, 3),
+      num_base_learners = c(30, 50),
+      sample_fraction = c(0.5, 1),
+      stringsAsFactors = FALSE
+    ),
+    metrics = c("cindex", "ibs"),
+    folds = 5,
+    seed = 123,
+    refit_best = FALSE) {
+results <- purrr::pmap_dfr(param_grid, function(k, num_base_learners, sample_fraction) {
+cv_result <- tryCatch({
+cv_survlearner(
 formula = formula,
 data = data,
-fit_fun = fit_survsvm,
-pred_fun = function(...) predict_survsvm(..., dist = dist, shape = shape),
+fit_fun = fit_bnnsurv,
+pred_fun = predict_bnnsurv,
 times = times,
 metrics = metrics,
 folds = folds,
 seed = seed,
-gamma.mu = gamma.mu,
-kernel = kernel,
-type = fixed_type,
-opt.meth = fixed_opt_meth,
-diff.meth = fixed_diff_meth
+k = k,
+num_base_learners = num_base_learners,
+sample_fraction = sample_fraction
 )
+}, error = function(e) NULL)
 
-summary <- cv_summary(res_cv)
+if (is.null(cv_result)) {
+return(tibble::tibble(
+k = k,
+num_base_learners = num_base_learners,
+sample_fraction = sample_fraction,
+failed = TRUE
+))
+}
+
+summary <- cv_summary(cv_result)
 
 tibble::tibble(
-gamma.mu = gamma.mu,
-kernel = kernel
+k = k,
+num_base_learners = num_base_learners,
+sample_fraction = sample_fraction,
+failed = FALSE
 ) |>
 dplyr::bind_cols(
 tidyr::pivot_wider(summary[, c("metric", "mean")],
-   names_from = metric, values_from = mean)
+      names_from = metric, values_from = mean)
 )
-}, error = function(e) {
-invisible(cat(glue::glue("Skipping (gamma.mu={gamma.mu}, kernel={kernel}): {e$message}\n"),
-file = "errors.log", append = TRUE)) ## keep a trace without showing it on the console
-NULL
 })
-})
+
+results <- results[!results[["failed"]], , drop = FALSE]
 
 if (nrow(results) == 0) {
 warning("All tuning combinations failed.")
-return(NULL)
+return(tibble::tibble())
 }
 
 results <- dplyr::arrange(results, dplyr::desc(.data[[metrics[1]]]))
 
 if (refit_best) {
 best <- results[1, ]
-model <- fit_survsvm(
+model <- fit_bnnsurv(
 formula = formula,
 data = data,
-gamma.mu = best$gamma.mu,
-kernel = best$kernel,
-type = fixed_type,
-opt.meth = fixed_opt_meth,
-diff.meth = fixed_diff_meth
+k = best$k,
+num_base_learners = best$num_base_learners,
+sample_fraction = best$sample_fraction
 )
-attr(model, "tuning_results") <- results
-class(model) <- c("tune_surv", class(model))
 return(model)
 }
 
-class(results) <- c("tune_surv", class(results))
 return(results)
 }
-
-
