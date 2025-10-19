@@ -77,6 +77,7 @@ test_that("predict_aftgee() warns on learner tag mismatch and errors on bad inpu
   bad_new <- subset(df, select = -age)
   expect_error(predict_aftgee(mod, newdata = bad_new, times = c(20, 60)))
 
+  
   expect_error(predict_aftgee(mod, newdata = df[1:5, ], times = c("a", "b")))
 })
 
