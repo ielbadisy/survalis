@@ -49,7 +49,7 @@ compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
     stop("ALE is only defined for numeric continuous features. For categorical features, use PDP instead.")
   }
 
-  # infer prediction function from model$learner
+  # Infer prediction function from model$learner
   if (is.null(model$learner) || !exists(paste0("predict_", model$learner))) {
     stop("Invalid or missing 'learner' in model. Make sure model was created using fit_*() functions.")
   }

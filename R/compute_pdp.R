@@ -230,7 +230,7 @@ plot_pdp <- function(pdp_ice_output, feature,
     }
   }
 
-  # per-time PDP/ICE plot
+  # Per-time PDP/ICE plot (unchanged)
   plot_data <- results[type %in% switch(method,
                                         "pdp" = "pdp",
                                         "ice" = "ice",

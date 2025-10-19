@@ -52,36 +52,36 @@
 #' @export
 
 fit_bnnsurv <- function(formula, data,
-                        k = 5,
-                        num_base_learners = 10,
-                        num_features_per_base_learner = NULL,
-                        metric = "mahalanobis",
-                        weighting_function = function(x) x * 0 + 1,
-                        replace = TRUE,
-                        sample_fraction = NULL) {
-  stopifnot(requireNamespace("bnnSurvival", quietly = TRUE))
+   k = 5,
+   num_base_learners = 10,
+   num_features_per_base_learner = NULL,
+   metric = "mahalanobis",
+   weighting_function = function(x) x * 0 + 1,
+   replace = TRUE,
+   sample_fraction = NULL) {
+stopifnot(requireNamespace("bnnSurvival", quietly = TRUE))
 
-  model <- bnnSurvival::bnnSurvival(
-    formula = formula,
-    data = data,
-    k = k,
-    num_base_learners = num_base_learners,
-    num_features_per_base_learner = num_features_per_base_learner,
-    metric = metric,
-    weighting_function = weighting_function,
-    replace = replace,
-    sample_fraction = sample_fraction
-  )
+model <- bnnSurvival::bnnSurvival(
+formula = formula,
+data = data,
+k = k,
+num_base_learners = num_base_learners,
+num_features_per_base_learner = num_features_per_base_learner,
+metric = metric,
+weighting_function = weighting_function,
+replace = replace,
+sample_fraction = sample_fraction
+)
 
-  structure(list(
-    model   = model,
-    learner = "bnnsurv",
-    engine  = "bnnSurvival",
-    formula = formula,
-    data    = data,
-    time    = all.vars(formula)[[2]],
-    status  = all.vars(formula)[[3]]
-  ), class = "mlsurv_model")
+structure(list(
+model   = model,
+learner = "bnnsurv",
+engine  = "bnnSurvival",
+formula = formula,
+data    = data,
+time    = all.vars(formula)[[2]],
+status  = all.vars(formula)[[3]]
+), class = "mlsurv_model")
 }
 
 
@@ -117,35 +117,35 @@ fit_bnnsurv <- function(formula, data,
 #' @export
 
 predict_bnnsurv <- function(object, newdata, times = NULL) {
-  stopifnot(object$learner == "bnnsurv")
-  stopifnot(requireNamespace("bnnSurvival", quietly = TRUE))
+stopifnot(object$learner == "bnnsurv")
+stopifnot(requireNamespace("bnnSurvival", quietly = TRUE))
 
-  newdata <- as.data.frame(newdata)
+newdata <- as.data.frame(newdata)
 
-  # Get full survival curves from bnnSurvival
-  pr   <- bnnSurvival::predict(object$model, newdata)
-  tg   <- bnnSurvival::timepoints(pr)        # numeric time grid
-  Smat <- bnnSurvival::predictions(pr)       # nrow(newdata) x length(tg)
+# Get full survival curves from bnnSurvival
+pr   <- bnnSurvival::predict(object$model, newdata)
+tg   <- bnnSurvival::timepoints(pr)        # numeric time grid
+Smat <- bnnSurvival::predictions(pr)       # nrow(newdata) x length(tg)
 
-  # ensure probabilities are within [0,1] and non-increasing over time grid
-  Smat <- pmin(pmax(Smat, 0), 1)
-  Smat <- t(apply(Smat, 1L, cummin))
+# ensure probabilities are within [0,1] and non-increasing over time grid
+Smat <- pmin(pmax(Smat, 0), 1)
+Smat <- t(apply(Smat, 1L, cummin))
 
-  if (is.null(times)) {
-    survmat <- as.data.frame(Smat, stringsAsFactors = FALSE)
-    colnames(survmat) <- paste0("t=", tg)
-    return(survmat)
-  }
+if (is.null(times)) {
+survmat <- as.data.frame(Smat, stringsAsFactors = FALSE)
+colnames(survmat) <- paste0("t=", tg)
+return(survmat)
+}
 
-  stopifnot(is.numeric(times), length(times) > 0L, all(is.finite(times)))
+stopifnot(is.numeric(times), length(times) > 0L, all(is.finite(times)))
 
-  # interpolate from model grid (tg) to requested times
-  survmat <- t(apply(Smat, 1L, function(row)
-    stats::approx(x = tg, y = row, xout = times, method = "linear", rule = 2)$y
-  ))
-  survmat <- as.data.frame(survmat, stringsAsFactors = FALSE)
-  colnames(survmat) <- paste0("t=", times)
-  survmat
+# interpolate from model grid (tg) to requested times
+survmat <- t(apply(Smat, 1L, function(row)
+stats::approx(x = tg, y = row, xout = times, method = "linear", rule = 2)$y
+))
+survmat <- as.data.frame(survmat, stringsAsFactors = FALSE)
+colnames(survmat) <- paste0("t=", times)
+survmat
 }
 
 
@@ -214,77 +214,76 @@ predict_bnnsurv <- function(object, newdata, times = NULL) {
 #' @export
 
 tune_bnnsurv <- function(formula, data, times,
-                         param_grid = expand.grid(
-                           k = c(2, 3),
-                           num_base_learners = c(30, 50),
-                           sample_fraction = c(0.5, 1),
-                           stringsAsFactors = FALSE
-                         ),
-                         metrics = c("cindex", "ibs"),
-                         folds = 5,
-                         seed = 123,
-                         refit_best = FALSE) {
-  results <- purrr::pmap_dfr(param_grid, function(k, num_base_learners, sample_fraction) {
-    cv_result <- tryCatch({
-      cv_survlearner(
-        formula = formula,
-        data = data,
-        fit_fun = fit_bnnsurv,
-        pred_fun = predict_bnnsurv,
-        times = times,
-        metrics = metrics,
-        folds = folds,
-        seed = seed,
-        k = k,
-        num_base_learners = num_base_learners,
-        sample_fraction = sample_fraction
-      )
-    }, error = function(e) NULL)
+    param_grid = expand.grid(
+      k = c(2, 3),
+      num_base_learners = c(30, 50),
+      sample_fraction = c(0.5, 1),
+      stringsAsFactors = FALSE
+    ),
+    metrics = c("cindex", "ibs"),
+    folds = 5,
+    seed = 123,
+    refit_best = FALSE) {
+results <- purrr::pmap_dfr(param_grid, function(k, num_base_learners, sample_fraction) {
+cv_result <- tryCatch({
+cv_survlearner(
+formula = formula,
+data = data,
+fit_fun = fit_bnnsurv,
+pred_fun = predict_bnnsurv,
+times = times,
+metrics = metrics,
+folds = folds,
+seed = seed,
+k = k,
+num_base_learners = num_base_learners,
+sample_fraction = sample_fraction
+)
+}, error = function(e) NULL)
 
-    if (is.null(cv_result)) {
-      return(tibble::tibble(
-        k = k,
-        num_base_learners = num_base_learners,
-        sample_fraction = sample_fraction,
-        failed = TRUE
-      ))
-    }
-
-    summary <- cv_summary(cv_result)
-
-    tibble::tibble(
-      k = k,
-      num_base_learners = num_base_learners,
-      sample_fraction = sample_fraction,
-      failed = FALSE
-    ) |>
-      dplyr::bind_cols(
-        tidyr::pivot_wider(summary[, c("metric", "mean")],
-                           names_from = metric, values_from = mean)
-      )
-  })
-
-  results <- results[!results[["failed"]], , drop = FALSE]
-
-  if (nrow(results) == 0) {
-    warning("All tuning combinations failed.")
-    return(tibble::tibble())
-  }
-
-  results <- dplyr::arrange(results, dplyr::desc(.data[[metrics[1]]]))
-
-  if (refit_best) {
-    best <- results[1, ]
-    model <- fit_bnnsurv(
-      formula = formula,
-      data = data,
-      k = best$k,
-      num_base_learners = best$num_base_learners,
-      sample_fraction = best$sample_fraction
-    )
-    return(model)
-  }
-
-  return(results)
+if (is.null(cv_result)) {
+return(tibble::tibble(
+k = k,
+num_base_learners = num_base_learners,
+sample_fraction = sample_fraction,
+failed = TRUE
+))
 }
 
+summary <- cv_summary(cv_result)
+
+tibble::tibble(
+k = k,
+num_base_learners = num_base_learners,
+sample_fraction = sample_fraction,
+failed = FALSE
+) |>
+dplyr::bind_cols(
+tidyr::pivot_wider(summary[, c("metric", "mean")],
+      names_from = metric, values_from = mean)
+)
+})
+
+results <- results[!results[["failed"]], , drop = FALSE]
+
+if (nrow(results) == 0) {
+warning("All tuning combinations failed.")
+return(tibble::tibble())
+}
+
+results <- dplyr::arrange(results, dplyr::desc(.data[[metrics[1]]]))
+
+if (refit_best) {
+best <- results[1, ]
+model <- fit_bnnsurv(
+formula = formula,
+data = data,
+k = best$k,
+num_base_learners = best$num_base_learners,
+sample_fraction = best$sample_fraction
+)
+return(model)
+}
+
+return(results)
+}

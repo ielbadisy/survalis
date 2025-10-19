@@ -177,7 +177,7 @@ predict_xgboost <- function(object, newdata, times = NULL) {
 #' Tune XGBoost Survival Hyperparameters (Cross-Validation)
 #'
 #' Cross-validates XGBoost survival models over a user-specified grid and
-#' returns a results table with metric summaries per configuration. Any row
+#' returns a results table with metric summaries per configuration. Each row
 #' that errors during CV is marked \code{failed = TRUE}.
 #'
 #' @param formula A survival formula of the form \code{Surv(time, status) ~ predictors}.
@@ -186,27 +186,25 @@ predict_xgboost <- function(object, newdata, times = NULL) {
 #' @param param_grid A \code{data.frame} (e.g., from \code{expand.grid()}) with columns:
 #'   \code{nrounds}, \code{max_depth}, \code{eta}, \code{aft_loss_distribution},
 #'   \code{aft_loss_distribution_scale}, and \code{objective}. Values are passed
-#'   through to \code{\link{fit_xgboost}} and ultimately to \pkg{xgboost}.
+#'   through to [fit_xgboost()] and \code{xgboost::xgboost()}.
 #' @param metrics Character vector of metrics to evaluate (e.g., \code{"cindex"}, \code{"ibs"}).
-#'   The first entry is treated as the primary selection metric for ordering.
 #' @param folds Integer number of CV folds.
 #' @param seed Integer random seed for reproducibility.
 #'
 #' @return A \code{tibble} with one row per grid configuration, containing:
 #' \describe{
-#'   \item{nrounds, max_depth, eta, aft_loss_distribution, aft_loss_distribution_scale, objective}{The grid values.}
+#'   \item{nrounds, max_depth, eta, aft_loss_distribution, aft_loss_distribution_scale, objective}{Grid values.}
 #'   \item{failed}{Logical; \code{TRUE} if the configuration errored.}
-#'   \item{metric columns}{One column per entry in \code{metrics} (when available).}
+#'   \item{<metric columns>}{One column per metric from \code{metrics}, when available.}
 #' }
-#' The table is arranged by the first metric in \code{metrics} (ascending, as implemented).
+#' The table is arranged by the first metric in \code{metrics} (ascending as implemented).
 #'
 #' @details
-#' Internally calls \code{\link{cv_survlearner}} with \code{\link{fit_xgboost}} /
-#' \code{\link{predict_xgboost}}. Any configuration that errors (e.g., due to
-#' invalid parameters or data issues) is recorded with \code{failed = TRUE} and
-#' omitted from metric summarization.
+#' Internally calls \code{cv_survlearner()} with \code{fit_xgboost()}/\code{predict_xgboost()}.
+#' Any configuration that errors (e.g., due to invalid parameters or data issues) is
+#' recorded with \code{failed = TRUE} and omitted from metric summarization.
 #'
-#' @seealso \code{\link{fit_xgboost}}, \code{\link{predict_xgboost}}
+#' @seealso [fit_xgboost()], [predict_xgboost()]
 #'
 #' @examples
 #' \donttest{
@@ -221,8 +219,8 @@ predict_xgboost <- function(object, newdata, times = NULL) {
 #'   )
 #'
 #'   res_xgb <- tune_xgboost(
-#'     formula = survival::Surv(time, status) ~ age + karno + celltype,
-#'     data    = survival::veteran,
+#'     formula = Surv(time, status) ~ age + karno + celltype,
+#'     data    = veteran,
 #'     times   = c(100, 200),
 #'     metrics = c("cindex", "ibs"),
 #'     param_grid = grid,
@@ -233,8 +231,6 @@ predict_xgboost <- function(object, newdata, times = NULL) {
 #' }
 #'
 #' @export
-
-
 tune_xgboost <- function(formula, data, times,
                          param_grid = expand.grid(
                            nrounds = c(50, 100),

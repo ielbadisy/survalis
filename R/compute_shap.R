@@ -197,15 +197,15 @@ type <- if (is_time_dependent) "time" else "integrated"
 }
 
 if (type == "time") {
-ggplot(shapley_result, ggplot2::aes(x = time, y = phi, color = feature)) +
-  geom_line(size = 1) +
-  geom_point(size = 2) +
-  labs(
-    title = "Shapley Contributions Over Time",
-    x = "Time",
-    y = "SHAP value"
-  ) +
-  theme_minimal(base_size = 14)
+ggplot2::ggplot(shapley_result, ggplot2::aes(x = time, y = phi, color = feature)) +
+ggplot2::geom_line(size = 1) +
+ggplot2::geom_point(size = 2) +
+ggplot2::labs(
+title = "Shapley Contributions Over Time",
+x = "Time",
+y = "SHAP value"
+) +
+ggplot2::theme_minimal(base_size = 14)
 } else {
 shap_method <- attr(shapley_result, "shap_method", exact = TRUE)
 shap_method <- if (is.null(shap_method)) "integral" else shap_method
@@ -221,16 +221,16 @@ shapley_result <- shapley_result[order(shapley_result$phi), ]
 shapley_result$feature <- factor(shapley_result$feature, levels = shapley_result$feature)
 shapley_result$direction <- ifelse(shapley_result$phi >= 0, "Positive", "Negative")
 
-ggplot(shapley_result, ggplot2::aes(x = phi, y = feature, fill = direction)) +
-  geom_col(show.legend = FALSE) +
-  scale_fill_manual(values = c("Positive" = "#4CAF50", "Negative" = "#E53935")) +
-  geom_vline(xintercept = 0, linetype = "dashed", color = "gray40") +
-  labs(
-    title = title,
-    x = "SHAP value",
-    y = "Feature"
-  ) +
-  theme_minimal(base_size = 14)
+ggplot2::ggplot(shapley_result, ggplot2::aes(x = phi, y = feature, fill = direction)) +
+ggplot2::geom_col(show.legend = FALSE) +
+ggplot2::scale_fill_manual(values = c("Positive" = "#4CAF50", "Negative" = "#E53935")) +
+ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray40") +
+ggplot2::labs(
+title = title,
+x = "SHAP value",
+y = "Feature"
+) +
+ggplot2::theme_minimal(base_size = 14)
 }
 }
 
