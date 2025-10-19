@@ -16,9 +16,8 @@ test_that("tune_blackboost() returns a minimal grid with metrics and refit_best 
     KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE
   )
 
-  # Grid search only (keep quick)
   res <- tune_blackboost(
-    formula = Surv(time, status) ~ age + karno + celltype,   # <-- bare Surv(...)
+    formula = Surv(time, status) ~ age + karno + celltype,   
     data = df,
     times = c(30, 90, 150),
     param_grid = grid,
@@ -32,9 +31,8 @@ test_that("tune_blackboost() returns a minimal grid with metrics and refit_best 
   expect_true(all(c("mstop", "nu", "maxdepth") %in% names(res)))
   expect_true(all(c("cindex", "ibs") %in% names(res)))
 
-  # Refit the best configuration
   best_mod <- tune_blackboost(
-    formula = Surv(time, status) ~ age + karno + celltype,   # <-- bare Surv(...)
+    formula = Surv(time, status) ~ age + karno + celltype,  
     data = df,
     times = c(30, 90, 150),
     param_grid = grid,
