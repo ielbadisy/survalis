@@ -239,137 +239,173 @@ ise_survmat <- function(object, sp_matrix, times) {
 }
 
 
-#' Cross-Validate a Survival Learner
+#' Cross-Validate a Survival Learner (fold-mapped with \code{fmapn})
 #'
 #' Runs k-fold cross-validation for any pair of \code{fit_fun}/\code{pred_fun}
-#' that follow the package's learner contracts, and returns per-fold metric values.
+#' that follow the package's learner contracts, and returns tidy per-fold metric values.
+#' Fold iteration is handled by \code{functionals::fmapn()} with optional parallel
+#' execution and a progress bar.
 #'
 #' @param formula A survival formula \code{Surv(time, status) ~ predictors}.
-#' @param data A data frame.
+#' @param data A data frame containing all variables in \code{formula}.
 #' @param fit_fun Function with signature \code{fit_fun(formula, data, ...)} that
 #'   returns an \code{mlsurv_model}.
 #' @param pred_fun Function with signature \code{pred_fun(object, newdata, times, ...)}
 #'   returning a survival-probability matrix/data frame (columns named \code{"t=<time>"}).
 #' @param times Numeric vector of evaluation times (passed to \code{pred_fun}).
-#' @param metrics Character vector of metrics to compute. Supported: \code{"cindex"},
-#'   \code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}.
+#' @param metrics Character vector of metrics to compute. Supported:
+#'   \code{"cindex"}, \code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}.
 #' @param folds Integer; number of folds (default \code{5}).
 #' @param seed Integer random seed for reproducibility (default \code{123}).
 #' @param verbose Logical; print row-dropping due to missingness (default \code{FALSE}).
+#' @param ncores Integer; number of CPU cores for \code{fmapn} parallel mapping
+#'   (default \code{1}). Set \code{> 1} to enable parallelism.
+#' @param pb Logical; show a progress bar during fold mapping (default \code{TRUE}).
 #' @param ... Additional arguments forwarded to \code{fit_fun}.
 #'
 #' @details
 #' The routine:
 #' \enumerate{
+#' \item Validates \code{Surv(...)} on the LHS and warns against using \code{.} in formulas.
 #' \item Drops rows with missing values in any variables referenced by \code{formula}.
-#' \item Handles \code{Surv(time, status == k)} outcomes by recoding the status to 0/1.
-#' \item Uses stratified v-folds on the status indicator.
-#' \item For each fold: fits on analysis set, predicts on assessment set, and computes metrics.
+#' \item Supports \code{Surv(time, status == k)} by recoding the status to 0/1.
+#' \item Builds stratified v-folds on the status indicator (\pkg{rsample}).
+#' \item For each fold: fits on the analysis set, predicts on the assessment set, and computes metrics.
 #' }
+#'
+#' Fold iteration is performed via \code{functionals::fmapn()}, which preserves
+#' per-fold identifiers (\code{id}, \code{fold}) and returns a list ready for
+#' \code{dplyr::bind_rows()}.
 #'
 #' @return A tibble with columns: \code{splits} (rsample split object),
 #'   \code{id}, \code{fold}, \code{metric}, and \code{value}.
 #'
 #' @examples
-#' # cv_survlearner(Surv(time, status) ~ x1 + x2, df, fit_fun, pred_fun, times = c(90,180))
+#' \dontrun{
+#' library(survival)
+#' data(veteran)
+#' cv_results <- cv_survlearner(
+#'   formula = Surv(time, status) ~ karno,
+#'   data = veteran,
+#'   fit_fun = fit_bart,
+#'   pred_fun = predict_bart,
+#'   times = c(10, 100, 600, 900),
+#'   metrics = c("cindex", "ibs"),
+#'   folds = 5,
+#'   ncores = max(1, parallel::detectCores() - 1),
+#'   pb = TRUE
+#' )
+#' }
+#'
+#' @seealso \code{\link[functionals]{fmapn}}
+#' @importFrom functionals fmapn
+#' @keywords survival cross-validation fmapn parallel
 #' @export
 
+
+
 cv_survlearner <- function(formula, data,
-                           fit_fun, pred_fun,
-                           times,
-                           metrics = c("cindex", "ibs"),
-                           folds = 5,
-                           seed = 123,
-                           verbose = FALSE,
-                           ...) {
+  fit_fun, pred_fun,
+  times,
+  metrics = c("cindex", "ibs"),
+  folds = 5,
+  seed = 123,
+  verbose = FALSE,
+  ncores = 1,
+  pb = TRUE,
+  ...) {
 
-
-  if ("." %in% all.vars(update(formula, . ~ 0))) {
-    warning("Please avoid using '.' in the formula. Specify all predictors explicitly.")
-  }
-
-  tf <- terms(formula, data = data)
-  outcome <- attr(tf, "variables")[[2]]
-
-  if (!inherits(outcome, "call") || outcome[[1]] != as.name("Surv")) {
-    stop("Formula must begin with a Surv(...) outcome.")
-  }
-
-  time_col <- as.character(outcome[[2]])
-  status_expr <- outcome[[3]]
-
-  if (is.call(status_expr) && status_expr[[1]] == as.name("==")) {
-    status_col <- as.character(status_expr[[2]])
-    event_value <- eval(status_expr[[3]], data)
-    recode_status <- TRUE
-  } else {
-    status_col <- as.character(status_expr)
-    event_value <- 1
-    recode_status <- FALSE
-  }
-
-  all_vars <- all.vars(formula)
-  n_before <- nrow(data)
-  data <- tidyr::drop_na(data, dplyr::all_of(all_vars))
-  n_after <- nrow(data)
-
-  if (verbose && n_after < n_before) {
-    message("Dropped ", n_before - n_after, " rows with missing values (from ", n_before, " to ", n_after, ").")
-  }
-
-  if (recode_status) {
-    data[[status_col]] <- as.integer(data[[status_col]] == event_value)
-  }
-
-  set.seed(seed)
-  folds_data <- rsample::vfold_cv(data, v = folds, strata = !!rlang::sym(status_col))
-
-  purrr::pmap_dfr(
-    list(split = folds_data$splits, id = folds_data$id, fold = seq_len(folds)),
-    function(split, id, fold) {
-      train <- rsample::analysis(split)
-      test  <- rsample::assessment(split)
-
-      model <- fit_fun(formula = formula, data = train, ...)
-      pred  <- pred_fun(model, newdata = test, times = times)
-
-      tf <- terms(formula, data = test)
-      outcome <- attr(tf, "variables")[[2]]
-      time_col <- as.character(outcome[[2]])
-      status_expr <- outcome[[3]]
-
-      if (is.call(status_expr) && status_expr[[1]] == as.name("==")) {
-        status_col <- as.character(status_expr[[2]])
-        event_value <- eval(status_expr[[3]], test)
-        status_vector <- as.integer(test[[status_col]] == event_value)
-      } else {
-        status_col <- as.character(status_expr)
-        event_value <- 1
-        status_vector <- test[[status_col]]
-      }
-
-      surv_obj <- survival::Surv(time = test[[time_col]], event = status_vector)
-
-      tibble::tibble(metric = metrics) |>
-        dplyr::mutate(value = purrr::map(metric, function(metric) {
-          switch(metric,
-                 "cindex" = cindex_survmat(surv_obj, predicted = pred, t_star = max(times)),
-                 "brier"  = {
-                   if (length(times) != 1) stop("Brier requires a single time point.")
-                   brier(surv_obj, pre_sp = pred[, 1], t_star = times)
-                 },
-                 "ibs"    = ibs_survmat(surv_obj, sp_matrix = pred, times = times),
-                 "iae"    = iae_survmat(surv_obj, sp_matrix = pred, times = times),
-                 "ise"    = ise_survmat(surv_obj, sp_matrix = pred, times = times),
-                 stop("Unknown metric: ", metric)
-          )
-        })) |>
-        tidyr::unnest(cols = value) |>
-        dplyr::mutate(splits = list(split), id = id, fold = fold) |>
-        dplyr::relocate(splits, id, fold)
-    }
-  )
+if ("." %in% all.vars(update(formula, . ~ 0))) {
+warning("Please avoid using '.' in the formula. Specify all predictors explicitly.")
 }
+
+tf <- terms(formula, data = data)
+outcome <- attr(tf, "variables")[[2]]
+
+if (!inherits(outcome, "call") || outcome[[1]] != as.name("Surv")) {
+stop("Formula must begin with a Surv(...) outcome.")
+}
+
+time_col <- as.character(outcome[[2]])
+status_expr <- outcome[[3]]
+
+if (is.call(status_expr) && status_expr[[1]] == as.name("==")) {
+status_col <- as.character(status_expr[[2]])
+event_value <- eval(status_expr[[3]], data)
+recode_status <- TRUE
+} else {
+status_col <- as.character(status_expr)
+event_value <- 1
+recode_status <- FALSE
+}
+
+all_vars <- all.vars(formula)
+n_before <- nrow(data)
+data <- tidyr::drop_na(data, dplyr::all_of(all_vars))
+n_after <- nrow(data)
+
+if (verbose && n_after < n_before) {
+message("Dropped ", n_before - n_after, " rows with missing values (from ", n_before, " to ", n_after, ").")
+}
+
+if (recode_status) {
+data[[status_col]] <- as.integer(data[[status_col]] == event_value)
+}
+
+set.seed(seed)
+folds_data <- rsample::vfold_cv(data, v = folds, strata = !!rlang::sym(status_col))
+
+# cross-validation loop via fmapn
+results <- functionals::fmapn(
+list(split = folds_data$splits, id = folds_data$id, fold = seq_len(folds)),
+function(split, id, fold) {
+train <- rsample::analysis(split)
+test  <- rsample::assessment(split)
+
+model <- fit_fun(formula = formula, data = train, ...)
+pred  <- pred_fun(model, newdata = test, times = times)
+
+tf <- terms(formula, data = test)
+outcome <- attr(tf, "variables")[[2]]
+time_col <- as.character(outcome[[2]])
+status_expr <- outcome[[3]]
+
+if (is.call(status_expr) && status_expr[[1]] == as.name("==")) {
+status_col <- as.character(status_expr[[2]])
+event_value <- eval(status_expr[[3]], test)
+status_vector <- as.integer(test[[status_col]] == event_value)
+} else {
+status_col <- as.character(status_expr)
+event_value <- 1
+status_vector <- test[[status_col]]
+}
+
+surv_obj <- survival::Surv(time = test[[time_col]], event = status_vector)
+
+tibble::tibble(metric = metrics) |>
+dplyr::mutate(value = lapply(metric, function(metric) {
+switch(metric,
+"cindex" = cindex_survmat(surv_obj, predicted = pred, t_star = max(times)),
+"brier"  = {
+if (length(times) != 1) stop("Brier requires a single time point.")
+brier(surv_obj, pre_sp = pred[, 1], t_star = times)
+},
+"ibs" = ibs_survmat(surv_obj, sp_matrix = pred, times = times),
+"iae" = iae_survmat(surv_obj, sp_matrix = pred, times = times),
+"ise" = ise_survmat(surv_obj, sp_matrix = pred, times = times),
+stop("Unknown metric: ", metric)
+)
+})) |>
+tidyr::unnest(cols = value) |>
+dplyr::mutate(splits = list(split), id = id, fold = fold) |>
+dplyr::relocate(splits, id, fold)
+},
+ncores = ncores, pb = pb
+)
+  dplyr::bind_rows(results)
+}
+
+
 
 #' Summarize Cross-Validation Results
 #'
