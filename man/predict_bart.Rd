@@ -29,7 +29,7 @@ Requested \code{times} are aligned to that grid by nearest‐neighbor matching,
 returning one survival estimate per requested time.
 }
 \examples{
-\dontshow{if (requireNamespace("BART", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (requireNamespace("BART", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 mod_bart <- fit_bart(
   Surv(time, status) ~ age + karno + celltype,
   data = veteran

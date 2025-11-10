@@ -38,7 +38,7 @@ object stores the engine's internal evaluation times in \code{$eval_times}
 (from \code{bart_fit$times}) for downstream prediction alignment.
 }
 \examples{
-\dontshow{if (requireNamespace("BART", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (requireNamespace("BART", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 mod_bart <- fit_bart(
   Surv(time, status) ~ age + karno + celltype,
   data = veteran

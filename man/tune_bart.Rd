@@ -51,7 +51,7 @@ Internally calls \code{cv_survlearner()} with \code{fit_bart()}/\code{predict_ba
 so tuning mirrors the production prediction path.
 }
 \examples{
-\dontshow{if (requireNamespace("BART", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (requireNamespace("BART", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 \donttest{
 # Evaluate a grid without refitting
 grid <- expand.grid(K = c(3), ntree = c(50), power = c(2), base = c(0.75, 0.95))

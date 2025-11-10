@@ -1,11 +1,10 @@
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
+# Survalis: Unified Survival Machine Learning and Interpretability in R
 
-# Survalis: Unified Survival Modeling and Interpretability in R
-
-`survalis` provides a standardized and modular framework for machine
-learning survival analysis in R. It supports a wide range of learners,
-evaluation metrics, cross-validation and interpretability methods.
+`survalis` provides a standardized and modular framework for survival
+machine learning survival analysis in R. It supports a wide range of
+learners, evaluation metrics, cross-validation and interpretability
+methods.
 
 ## Installation
 
@@ -151,7 +150,7 @@ list_metrics()
 mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
 summary(mod_cox)
 #> 
-#> ── coxph summary ───────────────────────────────────────────────────────────────
+#> ── coxph summary ───────────────────────────────────────────────────────────────────────────
 #> Formula:
 #> Surv(time, status) ~ age + karno + celltype
 #> Engine: survival
