@@ -1,10 +1,9 @@
 
 # Survalis: Unified Survival Machine Learning and Interpretability in R
 
-`survalis` provides a standardized and modular framework for survival
-machine learning survival analysis in R. It supports a wide range of
-learners, evaluation metrics, cross-validation and interpretability
-methods.
+`survalis` provides a unified framework for survival machine learning
+survival analysis in R. It supports a wide range of learners, evaluation
+metrics, cross-validation and interpretability methods.
 
 ## Installation
 
