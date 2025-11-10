@@ -195,7 +195,7 @@ predict_xgboost <- function(object, newdata, times = NULL) {
 #' \describe{
 #'   \item{nrounds, max_depth, eta, aft_loss_distribution, aft_loss_distribution_scale, objective}{Grid values.}
 #'   \item{failed}{Logical; \code{TRUE} if the configuration errored.}
-#'   \item{<metric columns>}{One column per metric from \code{metrics}, when available.}
+#'   \item{\code{<metric columns>}}{One column per metric from \code{metrics}, when available.}
 #' }
 #' The table is arranged by the first metric in \code{metrics} (ascending as implemented).
 #'
