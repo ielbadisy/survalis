@@ -15,6 +15,7 @@ Depends: R (>= 4.1)
 Imports:
     survival,
     ggplot2,
+    functionals,
     nnls,
     pec,
     party,
@@ -62,5 +63,5 @@ Suggests:
     tibble,
     rsample
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Config/testthat/edition: 3
