@@ -236,8 +236,7 @@ test_that("multi-base meta shapes, weights, and CV", {
 
   mod   <- fit_coxph(form, data = veteran)
   bp1   <- predict_coxph(mod, veteran, times)
-  predict_coxph_alt <- function(object, newdata, times) predict_coxph(object, newdata, times)
-  bp2   <- predict_coxph_alt(mod, veteran, times)
+  bp2   <- predict_coxph(mod, veteran, times)
 
   meta  <- fit_survmetalearner(
             base_preds  = list(coxph = bp1, coxph_alt = bp2),
