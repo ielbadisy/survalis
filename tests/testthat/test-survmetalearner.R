@@ -205,3 +205,64 @@ test_that("cv_survmetalearner() runs a small CV and returns a summary", {
   expect_true(all(c("mean", "sd") %in% names(res$summary)))
   expect_true(inherits(res$model, "survmetalearner"))
 })
+
+
+
+test_that("single-base meta equals base", {
+  veteran <- survival::veteran
+  veteran$status <- as.integer(veteran$status == 1)
+  form  <- Surv(time, status) ~ age + karno + trt + celltype + prior
+  times <- as.integer(quantile(veteran$time, c(0.25, 0.5, 0.75)))
+
+  mod   <- fit_coxph(form, data = veteran)
+  bp    <- predict_coxph(mod, veteran, times)
+
+  meta  <- fit_survmetalearner(list(coxph = bp), veteran$time, veteran$status,
+                               times, list(coxph = mod), form, veteran)
+
+  pred  <- predict_survmetalearner(meta, veteran, times)
+  expect_true(max(abs(as.matrix(pred) - as.matrix(bp))) < 1e-10)
+  out   <- score_survmodel(meta, times, c("cindex","ibs","iae","ise"))
+  expect_true(all(c("cindex","ibs","iae","ise") %in% out$metric))
+  out_b <- score_survmodel(meta, times[2], "brier")
+  expect_equal(out_b$metric, "brier")
+})
+
+test_that("multi-base meta shapes, weights, and CV", {
+  veteran <- survival::veteran
+  veteran$status <- as.integer(veteran$status == 1)
+  form  <- Surv(time, status) ~ age + karno + trt + celltype + prior
+  times <- as.integer(quantile(veteran$time, c(0.25, 0.5, 0.75)))
+
+  mod   <- fit_coxph(form, data = veteran)
+  bp1   <- predict_coxph(mod, veteran, times)
+  predict_coxph_alt <- function(object, newdata, times) predict_coxph(object, newdata, times)
+  bp2   <- predict_coxph_alt(mod, veteran, times)
+
+  meta  <- fit_survmetalearner(
+            base_preds  = list(coxph = bp1, coxph_alt = bp2),
+            time        = veteran$time, status = veteran$status, times = times,
+            base_models = list(coxph = mod, coxph_alt = mod),
+            formula     = form, data = veteran)
+
+  expect_true(all(abs(colSums(meta$weights) - 1) < 1e-10))
+  expect_true(all(meta$weights >= 0))
+
+  pred  <- predict_survmetalearner(meta, veteran[1:5, ], times)
+  expect_true(is.matrix(as.matrix(pred)))
+  expect_equal(nrow(pred), 5)
+  expect_equal(ncol(pred), length(times))
+
+  expect_error(
+    predict_survmetalearner(meta, veteran, c(times, max(times)+1)),
+    "subset of the training times"
+  )
+
+  cvres <- cv_survmetalearner(form, veteran, times,
+                              base_models = list(coxph = mod, coxph_alt = mod),
+                              base_preds  = list(coxph = bp1, coxph_alt = bp2),
+                              folds = 3, metrics = c("cindex","ibs"),
+                              seed = 7, verbose = FALSE)
+  expect_true(all(c("model","cv_results","summary") %in% names(cvres)))
+  expect_true(all(c("cindex","ibs") %in% unique(cvres$cv_results$metric)))
+})
