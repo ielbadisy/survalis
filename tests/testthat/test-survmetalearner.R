@@ -112,7 +112,6 @@ test_that("predict_survmetalearner() stacks base predictions correctly", {
 })
 
 test_that("plot_survmetalearner_weights() returns a ggplot object", {
-  skip_if_not_installed("ggplot2")
 
   set.seed(2)
   n <- 20
@@ -228,21 +227,27 @@ test_that("single-base meta equals base", {
   expect_equal(out_b$metric, "brier")
 })
 
+
+
 test_that("multi-base meta shapes, weights, and CV", {
+
   veteran <- survival::veteran
   veteran$status <- as.integer(veteran$status == 1)
   form  <- Surv(time, status) ~ age + karno + trt + celltype + prior
   times <- as.integer(quantile(veteran$time, c(0.25, 0.5, 0.75)))
 
-  mod   <- fit_coxph(form, data = veteran)
-  bp1   <- predict_coxph(mod, veteran, times)
-  bp2   <- predict_coxph(mod, veteran, times)
+  mod_cox   <- fit_coxph(form, data = veteran)
+  mod_rng   <- fit_ranger(form, data = veteran)  
+
+  bp_cox <- predict_coxph(mod_cox, veteran, times)
+  bp_rng <- predict_ranger(mod_rng, veteran, times)
 
   meta  <- fit_survmetalearner(
-            base_preds  = list(coxph = bp1, coxph_alt = bp2),
-            time        = veteran$time, status = veteran$status, times = times,
-            base_models = list(coxph = mod, coxph_alt = mod),
-            formula     = form, data = veteran)
+    base_preds  = list(coxph = bp_cox, ranger = bp_rng),
+    time        = veteran$time, status = veteran$status, times = times,
+    base_models = list(coxph = mod_cox, ranger = mod_rng),
+    formula     = form, data = veteran
+  )
 
   expect_true(all(abs(colSums(meta$weights) - 1) < 1e-10))
   expect_true(all(meta$weights >= 0))
@@ -258,8 +263,8 @@ test_that("multi-base meta shapes, weights, and CV", {
   )
 
   cvres <- cv_survmetalearner(form, veteran, times,
-                              base_models = list(coxph = mod, coxph_alt = mod),
-                              base_preds  = list(coxph = bp1, coxph_alt = bp2),
+                              base_models = list(coxph = mod_cox, ranger = mod_rng),
+                              base_preds  = list(coxph = bp_cox, ranger = bp_rng),
                               folds = 3, metrics = c("cindex","ibs"),
                               seed = 7, verbose = FALSE)
   expect_true(all(c("model","cv_results","summary") %in% names(cvres)))
