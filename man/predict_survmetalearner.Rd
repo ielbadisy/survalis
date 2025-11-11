@@ -2,35 +2,97 @@
 % Please edit documentation in R/fit_survmetalearner.R
 \name{predict_survmetalearner}
 \alias{predict_survmetalearner}
-\title{Predict with a Stacked Survival Meta‑Learner}
+\title{Predict with a Stacked Survival Meta-Learner}
 \usage{
 predict_survmetalearner(model, newdata, times)
 }
 \arguments{
-\item{model}{A \code{"survmetalearner"} object returned by \code{fit_survmetalearner()}.}
+\item{model}{A fitted \code{"survmetalearner"} object produced by
+\code{\link{fit_survmetalearner}}.}
 
 \item{newdata}{A data frame of new observations for prediction.}
 
-\item{times}{Numeric vector of evaluation times (must be a subset of the times
-used to train the meta‑learner).}
+\item{times}{Numeric vector of evaluation times at which to compute survival
+probabilities. Must be a subset of the training times used to fit the
+meta-learner.}
 }
 \value{
-A data frame with one row per observation and one column per requested
-time (columns named \code{"t=<time>"}), containing stacked survival probabilities.
+A data frame of survival probabilities with:
+\itemize{
+\item one row per observation in \code{newdata};
+\item one column per requested time (columns named \code{"t=<time>"}).
+}
 }
 \description{
-Produces stacked survival probabilities by combining base learner predictions
-via the time‑specific weights learned by \code{\link{fit_survmetalearner}}.
+Generates stacked survival probabilities by combining base learner predictions
+using the time-varying nonnegative weights learned via
+\code{\link{fit_survmetalearner}}.
 }
 \details{
 For each base learner listed in \code{model$learners}, the corresponding
-\code{predict_<learner>} function is called to obtain \eqn{S_\ell(t \mid x)}.
-Stacked predictions are computed as \eqn{\hat{S}(t \mid x) = \sum_\ell w_\ell(t) S_\ell(t \mid x)},
-where \eqn{w_\ell(t)} are the learned nonnegative weights for time \eqn{t}.
+\code{predict_<learner>} function is called to obtain survival probabilities
+\eqn{S_\ell(t \mid x)} for each requested time point.
+
+The meta-prediction at each time \eqn{t} is computed as:
+\deqn{
+  \hat{S}(t \mid x) = \sum_{\ell=1}^{L} w_\ell(t) S_\ell(t \mid x),
 }
+where \eqn{w_\ell(t)} are the nonnegative weights estimated at training time
+(see \code{\link{fit_survmetalearner}}).
+\itemize{
+\item If any requested time points are not present in the learned weight matrix,
+an error is raised.
+\item When only one base learner is available, or if all learned weights at a
+given time point are zero or non-finite, uniform weights (\eqn{1/L}) are used.
+\item Each base learner’s prediction function must accept arguments
+\code{(object, newdata, times)} and return a numeric matrix/data frame
+with columns named \code{"t=<time>"}.
+}
+
+Internally, this function safeguards against matrix shape issues and
+ensures that all predicted probabilities remain bounded in \eqn{[0, 1]}.
+}
+\section{Implementation Notes}{
+
+\itemize{
+\item Predictions are purely aggregative: the meta-learner performs no re-fitting.
+\item If only one base learner was used, the predictions will exactly match that
+learner's output.
+\item This function is compatible with all base learners implementing
+\code{predict_<learner>()} returning survival probabilities.
+}
+}
+
 \examples{
-# pred <- predict_survmetalearner(meta_model, newdata = df_test, times = c(200, 500, 800))
+\donttest{
+veteran < survival::veteran
+veteran$status <- as.integer(veteran$status == 1)
+form <- Surv(time, status) ~ age + karno + celltype
+times <- c(100, 200, 400)
+
+# fit base learners
+mod1 <- fit_coxph(form, data = veteran)
+mod2 <- fit_rpart(form, data = veteran)
+
+base_models <- list(coxph = mod1, rpart = mod2)
+base_preds  <- list(
+  coxph = predict_coxph(mod1, veteran, times),
+  rpart = predict_rpart(mod2, veteran, times)
+)
+
+meta <- fit_survmetalearner(
+  base_preds = base_preds, time = veteran$time, status = veteran$status,
+  times = times, base_models = base_models, formula = form, data = veteran
+)
+
+# generate predictions on new data
+preds <- predict_survmetalearner(meta, newdata = veteran[1:5, ], times = c(100, 200))
+head(preds)
+}
+
 }
 \seealso{
-\code{\link{fit_survmetalearner}}, \code{\link{plot_survmetalearner_weights}}
+\code{\link{fit_survmetalearner}},
+\code{\link{plot_survmetalearner_weights}},
+\code{\link{cv_survmetalearner}}
 }
