@@ -239,6 +239,135 @@ ise_survmat <- function(object, sp_matrix, times) {
 }
 
 
+
+
+#' Expected Calibration Error (ECE) at a Single Time Point
+#'
+#' Computes a binned Expected Calibration Error at time \code{t_star}, using
+#' quantile-based bins of predicted survival probabilities.
+#'
+#' @param object A \code{\link[survival]{Surv}} object.
+#' @param sp_matrix Matrix or data frame of survival probabilities with rows =
+#'   subjects and (optionally) columns named \code{"t=<time>"}.
+#' @param t_star Numeric evaluation time (must be a single value).
+#' @param n_bins Integer number of quantile bins (default \code{10}).
+#' @param p Power for the L^p error (default \code{1} gives absolute error).
+#' @param weighted Logical; if \code{TRUE} (default) weights bin errors by
+#'   \code{n_k / N} where \code{n_k} is the bin size.
+#'
+#' @details
+#' Let \eqn{\hat{S}_k(t^*)} be the mean predicted survival in bin \eqn{k} and
+#' \eqn{\tilde{S}_k(t^*)} the Kaplan-Meier survival at \eqn{t^*} in that bin.
+#' The (weighted) ECE is
+#' \deqn{
+#'   \mathrm{ECE}(t^*) = \left(
+#'     \sum_k w_k \, |\hat{S}_k(t^*) - \tilde{S}_k(t^*)|^p
+#'   \right)^{1/p}
+#' }
+#' with \eqn{w_k = n_k / N}.
+#'
+#' @return A named numeric scalar: \code{"ece"}.
+#' @export
+ece_survmat <- function(object,
+  sp_matrix,
+  t_star,
+  n_bins   = 10L,
+  p        = 1,
+  weighted = TRUE) {
+if (!inherits(object, "Surv")) {
+stop("object must be a survival object (from Surv()).")
+}
+if (length(t_star) != 1L) {
+stop("t_star must be a single numeric value for ECE.")
+}
+
+# coerce to matrix
+if (is.data.frame(sp_matrix)) {
+sp_mat <- as.matrix(sp_matrix)
+} else if (is.matrix(sp_matrix)) {
+sp_mat <- sp_matrix
+} else {
+stop("sp_matrix must be a matrix or data frame of survival probabilities.")
+}
+
+if (nrow(sp_mat) != nrow(object)) {
+stop("Number of rows in sp_matrix must match length of Surv object.")
+}
+
+# Extract column at t_star (or the only column if unlabelled)
+t_name <- paste0("t=", t_star)
+if (!is.null(colnames(sp_mat)) && t_name %in% colnames(sp_mat)) {
+pre_sp <- sp_mat[, t_name]
+} else if (ncol(sp_mat) == 1L) {
+pre_sp <- sp_mat[, 1L]
+} else {
+stop("Column for t_star = ", t_star,
+" not found in sp_matrix (expected colname '", t_name, "').")
+}
+
+time   <- object[, 1]
+status <- object[, 2]
+
+# quantile-based bins on predicted survival
+qs <- stats::quantile(
+pre_sp,
+probs = seq(0, 1, length.out = n_bins + 1L),
+na.rm = TRUE
+)
+qs <- unique(qs)
+
+if (length(qs) <= 1L) {
+# all predictions identical: single bin
+bins <- rep.int(1L, length(pre_sp))
+} else {
+bins <- cut(pre_sp, breaks = qs, include.lowest = TRUE, labels = FALSE)
+}
+
+uniq_bins <- sort(unique(bins[!is.na(bins)]))
+
+n_vec    <- numeric(length(uniq_bins))
+mean_vec <- numeric(length(uniq_bins))
+obs_vec  <- numeric(length(uniq_bins))
+
+for (i in seq_along(uniq_bins)) {
+b   <- uniq_bins[i]
+idx <- which(bins == b)
+if (!length(idx)) next
+
+n_vec[i]    <- length(idx)
+mean_vec[i] <- mean(pre_sp[idx], na.rm = TRUE)
+
+# KM in bin
+fit_b   <- survival::survfit(survival::Surv(time[idx], status[idx]) ~ 1)
+summ_b  <- summary(fit_b, times = t_star, extend = TRUE)
+obs_vec[i] <- if (length(summ_b$surv) == 0L) NA_real_ else summ_b$surv[1L]
+}
+
+valid <- which(!is.na(mean_vec) & !is.na(obs_vec) & n_vec > 0)
+if (!length(valid)) {
+warning("ECE: no valid bins (all NA or empty); returning NA.")
+return(NA_real_)
+}
+
+n_vec    <- n_vec[valid]
+mean_vec <- mean_vec[valid]
+obs_vec  <- obs_vec[valid]
+
+diff_p <- abs(mean_vec - obs_vec)^p
+
+if (weighted) {
+w <- n_vec / sum(n_vec)
+ece <- (sum(w * diff_p))^(1 / p)
+} else {
+ece <- (mean(diff_p))^(1 / p)
+}
+
+names(ece) <- "ece"
+round(ece, 6)
+}
+
+
+
 #' Cross-Validate a Survival Learner (fold-mapped with \code{fmapn})
 #'
 #' Runs k-fold cross-validation for any pair of \code{fit_fun}/\code{pred_fun}
@@ -254,7 +383,7 @@ ise_survmat <- function(object, sp_matrix, times) {
 #'   returning a survival-probability matrix/data frame (columns named \code{"t=<time>"}).
 #' @param times Numeric vector of evaluation times (passed to \code{pred_fun}).
 #' @param metrics Character vector of metrics to compute. Supported:
-#'   \code{"cindex"}, \code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}.
+#'   \code{"cindex"}, \code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}, \code{"ece"} (single time).
 #' @param folds Integer; number of folds (default \code{5}).
 #' @param seed Integer random seed for reproducibility (default \code{123}).
 #' @param verbose Logical; print row-dropping due to missingness (default \code{FALSE}).
@@ -383,25 +512,25 @@ status_vector <- test[[status_col]]
 surv_obj <- survival::Surv(time = test[[time_col]], event = status_vector)
 
 tibble::tibble(metric = metrics) |>
-dplyr::mutate(value = lapply(metric, function(metric) {
-switch(metric,
-"cindex" = cindex_survmat(surv_obj, predicted = pred, t_star = max(times)),
-"brier"  = {
-if (length(times) != 1) stop("Brier requires a single time point.")
-brier(surv_obj, pre_sp = pred[, 1], t_star = times)
-},
-"ibs" = ibs_survmat(surv_obj, sp_matrix = pred, times = times),
-"iae" = iae_survmat(surv_obj, sp_matrix = pred, times = times),
-"ise" = ise_survmat(surv_obj, sp_matrix = pred, times = times),
-stop("Unknown metric: ", metric)
-)
-})) |>
-tidyr::unnest(cols = value) |>
-dplyr::mutate(splits = list(split), id = id, fold = fold) |>
-dplyr::relocate(splits, id, fold)
-},
-ncores = ncores, pb = pb
-)
+  dplyr::mutate(value = lapply(metric, function(metric) {
+    switch(metric,
+      "cindex" = cindex_survmat(surv_obj, predicted = pred, t_star = max(times)),
+      "brier"  = {
+        if (length(times) != 1) stop("Brier requires a single time point.")
+        brier(surv_obj, pre_sp = pred[, 1], t_star = times)
+      },
+      "ibs" = ibs_survmat(surv_obj, sp_matrix = pred, times = times),
+      "iae" = iae_survmat(surv_obj, sp_matrix = pred, times = times),
+      "ise" = ise_survmat(surv_obj, sp_matrix = pred, times = times),
+      "ece" = {
+        if (length(times) != 1) stop("ECE requires a single time point.")
+        ece_survmat(surv_obj, sp_matrix = pred, t_star = times)
+      },
+      stop("Unknown metric: ", metric)
+    )
+  })) |> tidyr::unnest(cols = value) |>
+  dplyr::mutate(splits = list(split), id = id, fold = fold) |>
+  dplyr::relocate(splits, id, fold)}, ncores = ncores, pb = pb)
   dplyr::bind_rows(results)
 }
 
@@ -467,7 +596,7 @@ cv_plot <- function(cv_results) {
 #' @param model An object of class \code{"mlsurv_model"}.
 #' @param times Numeric vector of evaluation times. For \code{"brier"}, must be a single time.
 #' @param metrics Character vector of metrics to compute. Supported:
-#'   \code{"cindex"}, \code{"ibs"}, \code{"brier"}, \code{"iae"}, \code{"ise"}.
+#'   \code{"cindex"}, \code{"ibs"}, \code{"brier"}, \code{"iae"}, \code{"ise"}, \code{"ece"}.
 #'
 #' @details
 #' The function constructs the appropriate \code{predict_*} function name from
@@ -489,6 +618,12 @@ score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", 
   if ("brier" %in% metrics && length(times) != 1) {
     stop("The Brier score requires a single evaluation time.\n",
          "Please use `times = t` with a single value or remove 'brier' from the metric list.")
+  }
+
+  # check ece with multiple times
+  if ("ece" %in% metrics && length(times) != 1) {
+  stop("The ECE requires a single evaluation time.\n",
+       "Please use `times = t` with a single value or remove 'ece' from the metric list.")
   }
 
   # extract model fields
@@ -528,13 +663,14 @@ score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", 
   tibble::tibble(metric = metrics) |>
     dplyr::mutate(value = purrr::map(metric, function(metric) {
       switch(metric,
-             "cindex" = cindex_survmat(surv_obj, predicted = sp_matrix, t_star = max(times)),
-             "brier"  = brier(surv_obj, pre_sp = sp_matrix[, 1], t_star = times),
-             "ibs"    = ibs_survmat(surv_obj, sp_matrix, times),
-             "iae"    = iae_survmat(surv_obj, sp_matrix, times),
-             "ise"    = ise_survmat(surv_obj, sp_matrix, times),
-             stop("Unknown metric: ", metric)
-      )
+        "cindex" = cindex_survmat(surv_obj, predicted = sp_matrix, t_star = max(times)),
+        "brier"  = brier(surv_obj, pre_sp = sp_matrix[, 1], t_star = times),
+        "ibs"    = ibs_survmat(surv_obj, sp_matrix, times),
+        "iae"    = iae_survmat(surv_obj, sp_matrix, times),
+        "ise"    = ise_survmat(surv_obj, sp_matrix, times),
+        "ece"    = ece_survmat(surv_obj, sp_matrix = sp_matrix, t_star = times),
+        stop("Unknown metric: ", metric)
+      )      
     })) |>
 
     tidyr::unnest(cols = value)
