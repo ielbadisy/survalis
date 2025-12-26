@@ -33,7 +33,7 @@ returning a survival-probability matrix/data frame (columns named \code{"t=<time
 \item{times}{Numeric vector of evaluation times (passed to \code{pred_fun}).}
 
 \item{metrics}{Character vector of metrics to compute. Supported:
-\code{"cindex"}, \code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}.}
+\code{"cindex"}, \code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}, \code{"ece"} (single time).}
 
 \item{folds}{Integer; number of folds (default \code{5}).}
 
