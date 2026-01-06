@@ -476,7 +476,7 @@ cv_survmetalearner <- function(formula, data, times,
   set.seed(seed)
   
   # stratify by status like cv_survlearner
-  rsplits <- rsample::vfold_cv(data, v = folds, strata = .strata)
+  rsplits <- rsample::vfold_cv(data, v = folds, strata = ".strata")
 
   # OUTER PARALLEL LAYER via fmapn
   results <- functionals::fmapn(
