@@ -10,17 +10,41 @@ compute_calibration(
   time,
   status,
   eval_time,
-  n_bins = 10,
-  n_boot = 100,
+  n_bins = 10L,
+  n_boot = 100L,
   seed = 123,
   learner_name = NULL
 )
 }
+\arguments{
+\item{model}{A fitted model object created by \code{fit_*()} in \pkg{survalis}.
+Must contain a \code{learner} field used to dispatch to \code{predict_<learner>()}.}
+
+\item{data}{A data.frame containing predictors and the survival outcome.}
+
+\item{time}{Either a numeric vector of observed times (same length as \code{nrow(data)})
+or a single string giving the time column name in \code{data}.}
+
+\item{status}{Either a numeric/integer vector of event indicators (1=event, 0=censor)
+or a single string giving the status column name in \code{data}.}
+
+\item{eval_time}{A single numeric value at which to evaluate calibration.}
+
+\item{n_bins}{Integer. Number of bins used to group predictions (default 10).}
+
+\item{n_boot}{Integer. Number of bootstrap resamples for confidence intervals (default 100).}
+
+\item{seed}{Integer or \code{NULL}. Random seed for bootstrap resampling (default 123).
+If \code{NULL}, no seed is set.}
+
+\item{learner_name}{Optional string label for the learner. If \code{NULL},
+uses \code{model$learner}.}
+}
 \value{
 A list with components:
 \describe{
-\item{calibration_table}{Data frame with \code{bin}, \code{n_bin}, \code{mean_pred_surv},
-\code{observed_surv}, \code{lower_ci}, \code{upper_ci}.}
+\item{calibration_table}{Data frame with columns \code{bin}, \code{n_bin},
+\code{mean_pred_surv}, \code{observed_surv}, \code{lower_ci}, \code{upper_ci}.}
 \item{eval_time}{The evaluation time used.}
 \item{n_bins}{Number of bins.}
 \item{n_boot}{Number of bootstrap resamples.}
@@ -31,5 +55,5 @@ A list with components:
 \description{
 Computes a nonparametric calibration curve for a survival model at one
 evaluation time by binning predicted survival probabilities and comparing
-bin-wise means to Kaplan-Meier-based observed survival, with bootstrap CIs.
+bin-wise means to Kaplan–Meier-based observed survival, with bootstrap CIs.
 }
