@@ -89,6 +89,100 @@ test_that("interaction, variable importance, and calibration helpers run", {
   expect_s3_class(calibration$calibration_table, "data.frame")
 })
 
+test_that("interpretability helpers satisfy core numeric invariants", {
+  skip_on_cran()
+  skip_if_not_installed("survival")
+  skip_if_not_installed("glmnet")
+  skip_if_not_installed("gower")
+  skip_if_not_installed("rpart")
+  skip_if_not_installed("partykit")
+
+  df <- survival::veteran[, c("time", "status", "age", "karno", "celltype", "trt")]
+  mod <- fit_coxph(survival::Surv(time, status) ~ age + karno + celltype + trt, data = df)
+  times <- c(50, 100, 150)
+  features <- c("age", "karno", "trt")
+
+  shap_ag <- compute_shap(
+    mod, df[1, , drop = FALSE], df,
+    times = times, sample.size = 5, aggregate = TRUE, method = "meanabs"
+  )
+  expect_true(all(shap_ag$phi >= 0))
+
+  ale <- compute_ale(mod, df, feature = "age", times = times, grid.size = 5)
+  ale_mat <- as.matrix(ale$ale[, -1, drop = FALSE])
+  expect_true(all(is.finite(ale_mat)))
+  expect_true(all(abs(colMeans(ale_mat)) < 1e-8))
+
+  surrogate_pen <- compute_surrogate(
+    mod, df[1, , drop = FALSE], df,
+    times = times, target_time = 100, k = 2, penalized = TRUE
+  )
+  expect_lte(nrow(surrogate_pen), 2)
+  expect_true(all(diff(abs(surrogate_pen$effect)) <= 1e-8))
+
+  tree_surrogate <- compute_tree_surrogate(mod, df, times = c(100, 150), minsplit = 20, cp = 0.05)
+  expect_length(tree_surrogate$results, 2)
+  expect_true(tree_surrogate$dynamic)
+  expect_true(all(vapply(tree_surrogate$results, function(x) is.finite(x$r_squared), logical(1))))
+
+  inter_heat <- compute_interactions(mod, df, times = times, target_time = 100, features = features, type = "heatmap", grid.size = 5)
+  diag_rows <- inter_heat[inter_heat$feature1 == inter_heat$feature2, ]
+  expect_true(all(diag_rows$interaction == 0))
+  for (i in seq_len(nrow(inter_heat))) {
+    rev_val <- inter_heat$interaction[
+      inter_heat$feature1 == inter_heat$feature2[i] &
+        inter_heat$feature2 == inter_heat$feature1[i]
+    ]
+    expect_equal(inter_heat$interaction[i], rev_val, tolerance = 1e-12)
+  }
+
+  inter_time <- compute_interactions(mod, df, times = times, features = features, type = "time", grid.size = 5)
+  expect_setequal(unique(inter_time$time), times)
+  expect_true(all(inter_time$interaction >= 0))
+  expect_true(all(inter_time$interaction <= 1))
+
+  calibration <- compute_calibration(
+    mod, data = df, time = "time", status = "status",
+    eval_time = 100, n_bins = 5, n_boot = 5, seed = 1
+  )
+  ct <- calibration$calibration_table
+  expect_true(all(ct$mean_pred_surv >= 0 & ct$mean_pred_surv <= 1))
+  expect_true(all(ct$observed_surv >= 0 & ct$observed_surv <= 1))
+})
+
+test_that("interpretability helpers error cleanly on unsupported inputs", {
+  skip_on_cran()
+  skip_if_not_installed("survival")
+  skip_if_not_installed("glmnet")
+  skip_if_not_installed("gower")
+  skip_if_not_installed("rpart")
+  skip_if_not_installed("partykit")
+
+  df <- survival::veteran[, c("time", "status", "age", "karno", "celltype", "trt")]
+  mod <- fit_coxph(survival::Surv(time, status) ~ age + karno + celltype + trt, data = df)
+  times <- c(50, 100, 150)
+
+  expect_error(
+    compute_counterfactual(mod, df[1, , drop = FALSE], times = times, target_time = 100, features_to_change = "not_a_feature"),
+    "No valid features to change"
+  )
+
+  expect_error(
+    compute_interactions(mod, df, times = times, type = "1way"),
+    "target_time must be specified"
+  )
+
+  expect_error(
+    compute_ale(mod, df, feature = "celltype", times = times, grid.size = 5),
+    "only defined for numeric continuous features"
+  )
+
+  expect_error(
+    compute_surrogate(mod, df[1, , drop = FALSE], df, times = times, target_time = 100, dist.fun = "euclidean"),
+    "Specify kernel.width"
+  )
+})
+
 test_that("interpretability plotting helpers return plot objects", {
   skip_on_cran()
   skip_if_not_installed("survival")
