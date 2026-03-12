@@ -82,7 +82,7 @@ fit_xgboost <- function(formula, data,
     eval_metric = "cox-nloglik"
   )
 
-  model <- xgboost::xgboost(
+  model <- xgboost::xgb.train(
     params = params,
     data = dmat,
     nrounds = nrounds,
