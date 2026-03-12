@@ -2,6 +2,8 @@ Package: survalis
 Type: Package
 Title: Interpretable Survival Machine Learning Framework
 Version: 0.6.0
+Author: Imad El Badisy [aut, cre]
+Maintainer: Imad El Badisy <elbadisyimad@gmail.com>
 Authors@R: 
     c(person(given = "Imad",
              family = "El Badisy",
@@ -15,7 +17,6 @@ Depends: R (>= 4.1)
 Imports:
     survival,
     ggplot2,
-    functionals,
     nnls,
     pec,
     party,
@@ -48,9 +49,7 @@ Imports:
     methods,
     purrr,
     rlang,
-    tidyr,
-    purrr,
-    dplyr
+    tidyr
 Suggests:
     testthat (>= 3.0.0),
     knitr,
