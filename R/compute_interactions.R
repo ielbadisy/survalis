@@ -209,7 +209,7 @@ plot_interactions <- function(object, type = c("1way", "heatmap", "time")) {
       labs(title = "Pairwise Interaction Heatmap")
   } else {
     ggplot(object, ggplot2::aes(x = time, y = interaction, color = feature)) +
-      geom_line(size = 1.2) +
+      geom_line(linewidth = 1.2) +
       geom_point(size = 2) +
       theme_minimal() +
       labs(title = "Time-Varying Feature Interactions", x = "Time", y = "Interaction Strength")
