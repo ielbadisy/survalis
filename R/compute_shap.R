@@ -198,7 +198,7 @@ type <- if (is_time_dependent) "time" else "integrated"
 
 if (type == "time") {
 ggplot(shapley_result, ggplot2::aes(x = time, y = phi, color = feature)) +
-  geom_line(size = 1) +
+  geom_line(linewidth = 1) +
   geom_point(size = 2) +
   labs(
     title = "Shapley Contributions Over Time",
@@ -233,7 +233,6 @@ ggplot(shapley_result, ggplot2::aes(x = phi, y = feature, fill = direction)) +
   theme_minimal(base_size = 14)
 }
 }
-
 
 
 
