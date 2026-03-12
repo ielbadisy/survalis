@@ -27,7 +27,7 @@
 #' Jin, Z., Lin, D. Y., Wei, L. J., & Ying, Z. (2003). Rank-based inference for the
 #' accelerated failure time model. \emph{Biometrika}, 90(2), 341-353.
 #'
-#' @examples
+#' @examplesIf requireNamespace("aftgee", quietly = TRUE)
 #' \donttest{
 #' mod <- fit_aftgee(
 #'   Surv(time, status) ~ trt + karno + age,
@@ -81,7 +81,7 @@ fit_aftgee <- function(formula, data, corstr = "independence") {
 #' @return A data.frame of survival probabilities with one row per \code{newdata} observation
 #'   and one column per requested time (\code{"t=<time>"}).
 #'
-#' @examples
+#' @examplesIf requireNamespace("aftgee", quietly = TRUE)
 #'   mod <- fit_aftgee(Surv(time, status) ~ trt + karno + age, data = veteran)
 #'   predict_aftgee(mod, newdata = veteran[1:5, ], times = c(20, 60, 120))
 #'
@@ -114,4 +114,3 @@ predict_aftgee <- function(object, newdata, times = NULL) {
   colnames(survmat) <- paste0("t=", times)
   as.data.frame(survmat)
 }
-

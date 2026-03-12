@@ -23,7 +23,7 @@
 #'
 #' @seealso \code{\link{predict_ranger}}, \code{\link{tune_ranger}}, \code{\link[ranger]{ranger}}
 #'
-#' @examples
+#' @examplesIf requireNamespace("ranger", quietly = TRUE)
 #' mod <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
 #' summary(mod)
 #'
@@ -71,7 +71,7 @@ fit_ranger <- function(formula, data, ...) {
 #'
 #' @seealso \code{\link{fit_ranger}}, \code{\link{tune_ranger}}
 #'
-#' @examples
+#' @examplesIf requireNamespace("ranger", quietly = TRUE)
 #' mod <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
 #' predict_ranger(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
@@ -138,7 +138,7 @@ predict_ranger <- function(object, newdata, times) {
 #'
 #' @seealso \code{\link{fit_ranger}}, \code{\link{predict_ranger}}
 #'
-#' @examples
+#' @examplesIf requireNamespace("ranger", quietly = TRUE)
 #' mod_ranger_best <- tune_ranger(
 #'   formula = Surv(time, status) ~ age + karno + celltype,
 #'   data = veteran,
@@ -192,7 +192,11 @@ tune_ranger <- function(formula, data, times,
       )
   })
 
-  res <- dplyr::arrange(res, dplyr::across(dplyr::any_of(metrics[1])))
+  if (metrics[1] %in% c("cindex", "auc", "accuracy")) {
+    res <- dplyr::arrange(res, dplyr::desc(.data[[metrics[1]]]))
+  } else {
+    res <- dplyr::arrange(res, .data[[metrics[1]]])
+  }
 
   if (refit_best) {
     best <- res[1, ]
@@ -211,4 +215,3 @@ tune_ranger <- function(formula, data, times,
 
   return(res)
 }
-

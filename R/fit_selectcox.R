@@ -36,8 +36,8 @@
 #' Survival Analysis using \pkg{pec}.
 #' Gerds TA, et al. \pkg{pec}: Prediction Error Curves for Survival Models.
 #'
-#' @examples
-#' mod <- fit_cforest(Surv(time, status) ~ age + celltype + karno, data = veteran)
+#' @examplesIf requireNamespace("pec", quietly = TRUE)
+#' mod <- fit_selectcox(Surv(time, status) ~ age + celltype + karno, data = veteran)
 #'
 #' @export
 
@@ -77,7 +77,7 @@ fit_selectcox <- function(formula, data, rule = "aic") {
 #'
 #' @seealso [fit_selectcox()], [tune_selectcox()]
 #'
-#' @examples
+#' @examplesIf requireNamespace("pec", quietly = TRUE)
 #' mod <- fit_selectcox(Surv(time, status) ~ age + celltype + karno, data = veteran)
 #' predict_selectcox(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
@@ -137,7 +137,7 @@ predict_selectcox <- function(object, newdata, times) {
 #'
 #' @seealso [fit_selectcox()], [predict_selectcox()], \code{pec::selectCox()}
 #'
-#' @examples
+#' @examplesIf requireNamespace("pec", quietly = TRUE)
 #' res_selectcox <- tune_selectcox(
 #'   formula = Surv(time, status) ~ age + karno + celltype,
 #'   data = veteran,
@@ -196,7 +196,11 @@ tune_selectcox <- function(formula, data, times,
       )
   })
 
-  results <- dplyr::arrange(results, dplyr::desc(!!sym(metrics[1])))
+  if (metrics[1] %in% c("cindex", "auc", "accuracy")) {
+    results <- dplyr::arrange(results, dplyr::desc(!!sym(metrics[1])))
+  } else {
+    results <- dplyr::arrange(results, !!sym(metrics[1]))
+  }
 
   if (refit_best) {
     best_rule <- results$rule[1]

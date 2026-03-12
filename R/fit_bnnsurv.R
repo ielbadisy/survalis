@@ -41,7 +41,7 @@
 #'
 #' @seealso [predict_bnnsurv()], [tune_bnnsurv()]
 #'
-#' @examples
+#' @examplesIf requireNamespace("bnnSurvival", quietly = TRUE)
 #'
 #' mod <- fit_bnnsurv(
 #'   Surv(time, status) ~ age + karno + diagtime + prior,
@@ -108,7 +108,7 @@ fit_bnnsurv <- function(formula, data,
 #'
 #' @seealso [fit_bnnsurv()], [tune_bnnsurv()]
 #'
-#' @examples
+#' @examplesIf requireNamespace("bnnSurvival", quietly = TRUE)
 #'
 #' mod <- fit_bnnsurv(Surv(time, status) ~ age + karno + diagtime + prior, data = veteran)
 #' pred <- predict_bnnsurv(mod, newdata = veteran[1:3, ], times = c(50, 100, 200))
@@ -181,7 +181,7 @@ predict_bnnsurv <- function(object, newdata, times = NULL) {
 #'
 #' @seealso [fit_bnnsurv()], [predict_bnnsurv()], [cv_survlearner()]
 #'
-#' @examples
+#' @examplesIf requireNamespace("bnnSurvival", quietly = TRUE)
 #' \donttest{
 #' grid <- expand.grid(
 #'   k = c(2, 3),
@@ -271,7 +271,11 @@ tune_bnnsurv <- function(formula, data, times,
     return(tibble::tibble())
   }
 
-  results <- dplyr::arrange(results, dplyr::desc(.data[[metrics[1]]]))
+  if (metrics[1] %in% c("cindex", "auc", "accuracy")) {
+    results <- dplyr::arrange(results, dplyr::desc(.data[[metrics[1]]]))
+  } else {
+    results <- dplyr::arrange(results, .data[[metrics[1]]])
+  }
 
   if (refit_best) {
     best <- results[1, ]
@@ -287,4 +291,3 @@ tune_bnnsurv <- function(formula, data, times,
 
   return(results)
 }
-

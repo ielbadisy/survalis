@@ -31,7 +31,7 @@
 #' Ishwaran H, Kogalur UB, Blackstone EH, Lauer MS (2008).
 #' Random survival forests. \emph{Annals of Applied Statistics}, 2(3):841-860.
 #'
-#' @examples
+#' @examplesIf requireNamespace("randomForestSRC", quietly = TRUE)
 #' mod_rsf <- fit_rsf(Surv(time, status) ~ age + celltype + karno,
 #'                    data = veteran, ntree = 200)
 #'
@@ -93,7 +93,7 @@ fit_rsf <- function(formula, data,
 #'
 #' @seealso [fit_rsf()], \code{\link[randomForestSRC]{predict.rfsrc}}
 #'
-#' @examples
+#' @examplesIf requireNamespace("randomForestSRC", quietly = TRUE)
 #' mod_rsf <- fit_rsf(Surv(time, status) ~ age + celltype + karno,
 #'                    data = veteran, ntree = 200)
 #'
@@ -163,7 +163,7 @@ predict_rsf <- function(object, newdata, times = NULL, ...) {
 #'
 #' @seealso [fit_rsf()], [predict_rsf()]
 #'
-#' @examples
+#' @examplesIf requireNamespace("randomForestSRC", quietly = TRUE)
 #' \donttest{
 #' mod_rsf_best <- tune_rsf(
 #'   formula = Surv(time, status) ~ age + celltype + karno,

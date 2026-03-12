@@ -44,7 +44,7 @@
 #' Binder H, et al. (2009). Survival Support Vector Machines (and related work).
 #' \pkg{survivalsvm} package documentation.
 #'
-#' @examples
+#' @examplesIf requireNamespace("survivalsvm", quietly = TRUE)
 #' mod_svm <- fit_survsvm(Surv(time, status) ~ age + celltype + karno,
 #'                            data = veteran,
 #'                            type = "regression",
@@ -139,7 +139,7 @@ fit_survsvm <- function(formula, data,
 #'
 #' @seealso [fit_survsvm()], [tune_survsvm()]
 #'
-#' @examples
+#' @examplesIf requireNamespace("survivalsvm", quietly = TRUE)
 #' mod_svm <- fit_survsvm(Surv(time, status) ~ age + celltype + karno,
 #'                            data = veteran,
 #'                            type = "regression",
@@ -210,7 +210,7 @@ predict_survsvm <- function(object, newdata, times, dist = "exp", shape = 1) {
 #'
 #' @seealso [fit_survsvm()], [predict_survsvm()]
 #'
-#' @examples
+#' @examplesIf requireNamespace("survivalsvm", quietly = TRUE)
 #' grid <- list(
 #'   gamma.mu = c(0.01, 0.1),
 #'   kernel = c("lin_kernel", "add_kernel")
@@ -297,7 +297,11 @@ tune_survsvm <- function(formula, data, times,
     return(NULL)
   }
 
-  results <- dplyr::arrange(results, dplyr::desc(.data[[metrics[1]]]))
+  if (metrics[1] %in% c("cindex", "auc", "accuracy")) {
+    results <- dplyr::arrange(results, dplyr::desc(.data[[metrics[1]]]))
+  } else {
+    results <- dplyr::arrange(results, .data[[metrics[1]]])
+  }
 
   if (refit_best) {
     best <- results[1, ]
@@ -318,5 +322,4 @@ tune_survsvm <- function(formula, data, times,
   class(results) <- c("tune_surv", class(results))
   return(results)
 }
-
 

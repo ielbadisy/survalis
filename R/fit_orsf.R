@@ -30,7 +30,7 @@
 #' Oblique random survival forests. \emph{Annals of Applied Statistics}. 2019;13(3):1847-1883.
 #' doi:10.1214/19-AOAS1261
 #'
-#' @examples
+#' @examplesIf requireNamespace("aorsf", quietly = TRUE)
 #' mod <- fit_orsf(Surv(time, status) ~ age + karno, data = veteran)
 #' summary(mod)
 #'
@@ -74,7 +74,7 @@ fit_orsf <- function(formula, data, ...) {
 #' @return A data frame where each row corresponds to an observation in \code{newdata}
 #' and each column corresponds to a requested prediction time (\code{"t=<time>"}).
 #'
-#' @examples
+#' @examplesIf requireNamespace("aorsf", quietly = TRUE)
 #' mod <- fit_orsf(Surv(time, status) ~ age + karno, data = veteran)
 #' pred <- predict_orsf(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #' head(pred)
@@ -152,7 +152,7 @@ predict_orsf <- function(object, newdata, times, ...) {
 #'
 #' @seealso \code{\link{fit_orsf}}, \code{\link{predict_orsf}}, \pkg{aorsf}
 #'
-#' @examples
+#' @examplesIf requireNamespace("aorsf", quietly = TRUE)
 #' \donttest{
 #'   # Cross-validated tuning (small grid to keep runtime light)
 #'   res_orsf <- tune_orsf(

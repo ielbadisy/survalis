@@ -225,7 +225,11 @@ tune_rpart <- function(formula, data, times,
       )
   })
 
-  res <- dplyr::arrange(res, dplyr::desc(!!sym(metrics[1])))
+  if (metrics[1] %in% c("cindex", "auc", "accuracy")) {
+    res <- dplyr::arrange(res, dplyr::desc(!!sym(metrics[1])))
+  } else {
+    res <- dplyr::arrange(res, !!sym(metrics[1]))
+  }
 
   if (refit_best) {
     best_params <- res[1, ]

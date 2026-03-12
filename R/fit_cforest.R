@@ -30,7 +30,7 @@
 #'   forest for survival analysis, returning an `mlsurv_model` object compatible
 #'   with `predict_cforest()` and the `survalis` framework.
 #'
-#' @examples
+#' @examplesIf requireNamespace("party", quietly = TRUE)
 #' mod <- fit_cforest(Surv(time, status) ~ age + celltype + karno, data = veteran)
 #' head(predict_cforest(mod, newdata = veteran[1:5, ], times = c(100, 200)))
 #'
@@ -94,7 +94,7 @@ fit_cforest <- function(formula, data,
 #' @details Survival curves are extracted from the fitted `cforest` model and
 #'   linearly interpolated to the requested time points.
 #'
-#' @examples
+#' @examplesIf requireNamespace("party", quietly = TRUE)
 #' mod <- fit_cforest(Surv(time, status) ~ age + celltype + karno, data = veteran)
 #' predict_cforest(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
@@ -162,7 +162,7 @@ predict_cforest <- function(object, newdata, times, ...) {
 #' @details Cross-validation is performed using `cv_survlearner()` and results
 #'   are sorted in descending order of the first metric specified in `metrics`.
 #'
-#' @examples
+#' @examplesIf requireNamespace("party", quietly = TRUE)
 #' grid <- expand.grid(
 #'   ntree = c(50, 100),
 #'   mtry = c(2, 4),

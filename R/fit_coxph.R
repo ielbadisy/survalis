@@ -26,7 +26,7 @@
 #'   \item \code{time}, \code{status} -- names of the survival outcome variables
 #' }
 #'
-#' @examples
+#' @examplesIf requireNamespace("pec", quietly = TRUE)
 #' mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
 #' summary(mod_cox)
 #'
@@ -69,7 +69,7 @@ fit_coxph <- function(formula, data, ...) {
 #' @return A data frame of survival probabilities with columns named
 #' \code{"t=<time>"} for each requested time.
 #'
-#' @examples
+#' @examplesIf requireNamespace("pec", quietly = TRUE)
 #' mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
 #' predict_coxph(mod_cox, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
@@ -85,4 +85,3 @@ predict_coxph <- function(object, newdata, times) {
   colnames(survmat) <- paste0("t=", times)
   as.data.frame(survmat)
 }
-
