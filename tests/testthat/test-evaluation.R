@@ -108,3 +108,30 @@ test_that("iae_survmat and ise_survmat are ~0 when mean prediction matches KM", 
   expect_equal(unname(iae), 0, tolerance = 1e-8)
   expect_equal(unname(ise), 0, tolerance = 1e-8)
 })
+
+test_that("ece_survmat computes a bounded single-time calibration error", {
+  testthat::skip_on_cran()
+  testthat::skip_if_not_installed("survival")
+
+  time <- c(1, 2, 3, 4, 6, 7, 8, 9)
+  status <- c(1, 1, 0, 1, 0, 1, 1, 0)
+  y <- survival::Surv(time, status)
+
+  sp <- cbind("t=5" = c(0.15, 0.20, 0.35, 0.40, 0.55, 0.65, 0.75, 0.80))
+
+  ece <- ece_survmat(y, sp_matrix = sp, t_star = 5, n_bins = 4)
+  expect_named(ece, "ece")
+  expect_true(is.finite(unname(ece)))
+  expect_gte(unname(ece), 0)
+  expect_lte(unname(ece), 1)
+
+  expect_error(
+    ece_survmat(y, sp_matrix = cbind("t=4" = sp[, 1], "t=6" = sp[, 1]), t_star = 5),
+    "not found in sp_matrix"
+  )
+
+  expect_error(
+    ece_survmat(y, sp_matrix = sp, t_star = c(3, 5)),
+    "single numeric value"
+  )
+})
