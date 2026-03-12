@@ -117,3 +117,25 @@ test_that("tune_glmnet() returns tuned grid and refit_best yields a fitted model
   expect_identical(attr(best_mod, "engine"), "glmnet")
   expect_true(!is.null(best_mod$model))
 })
+
+test_that("tune_glmnet() sorts minimizing metrics in ascending order", {
+  skip_on_cran()
+  skip_if_not_installed("glmnet")
+  skip_if_not_installed("survival")
+
+  df <- survival::veteran
+  Surv <- survival::Surv
+
+  res <- tune_glmnet(
+    formula = Surv(time, status) ~ age + karno + celltype,
+    data = df,
+    times = c(60, 180, 300),
+    param_grid = list(alpha = c(0, 0.5, 1)),
+    metrics = "ibs",
+    folds = 2,
+    seed = 2025,
+    refit_best = FALSE
+  )
+
+  expect_true(all(diff(res$ibs) >= -1e-12))
+})
