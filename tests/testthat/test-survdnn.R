@@ -66,6 +66,40 @@ test_that("predict_survdnn() returns bounded, monotone-ish survival at requested
   expect_true(all(diffs <= 1e-6))
 })
 
+test_that("predict_survdnn() exposes lp and risk prediction types", {
+  skip_on_cran()
+  skip_if_not_installed("survdnn")
+  skip_if_not_installed("torch")
+  skip_if_not_installed("survival")
+
+  df  <- survival::veteran
+  Surv <- survival::Surv
+  mod <- fit_survdnn(
+    Surv(time, status) ~ age + karno + celltype,
+    data = df,
+    loss = "cox",
+    hidden = c(16L, 8L),
+    epochs = 5,
+    lr = 1e-3,
+    optimizer = "adam",
+    dropout = 0.1,
+    batch_norm = TRUE,
+    verbose = FALSE
+  )
+
+  lp <- predict_survdnn(mod, newdata = df[1:4, ], type = "lp")
+  risk <- predict_survdnn(mod, newdata = df[1:4, ], times = 90, type = "risk")
+
+  expect_type(lp, "double")
+  expect_length(lp, 4)
+  expect_type(risk, "double")
+  expect_length(risk, 4)
+  expect_true(all(is.finite(lp)))
+  expect_true(all(is.finite(risk)))
+  expect_gte(min(risk), -1e-12)
+  expect_lte(max(risk), 1 + 1e-12)
+})
+
 test_that("predict_survdnn() errors when newdata lacks required predictors", {
   skip_on_cran()
   skip_if_not_installed("survdnn")
