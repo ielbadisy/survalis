@@ -182,7 +182,8 @@ plot_survmetalearner_weights <- function(model) {
 #'   match \code{base_models}.
 #' @param folds Integer; number of CV folds (default \code{5}).
 #' @param metrics Character vector of metrics to compute (default \code{c("cindex","ibs")}).
-#'   Supported: \code{"cindex"}, \code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}.
+#'   Supported: \code{"cindex"}, \code{"brier"} (single time), \code{"ibs"},
+#'   \code{"iae"}, \code{"ise"}, \code{"ece"} (single time).
 #' @param seed Integer random seed (default \code{123}).
 #' @param verbose Logical; if \code{TRUE}, prints fold progress (default \code{TRUE}).
 #'
@@ -319,6 +320,8 @@ cv_survmetalearner <- function(formula, data, times,
                "ibs"    = ibs_survmat(surv_test, preds_test, times),
                "iae"    = iae_survmat(surv_test, preds_test, times),
                "ise"    = ise_survmat(surv_test, preds_test, times),
+               "ece"    = if (length(times) != 1) stop("ECE requires single time") else
+                 ece_survmat(surv_test, preds_test, t_star = times),
                stop("Unknown metric: ", metric)
         )
       })) |>
@@ -359,6 +362,5 @@ cv_survmetalearner <- function(formula, data, times,
     metrics = metrics
   ), class = "cv_survmetalearner_result")
 }
-
 
 
