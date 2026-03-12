@@ -72,7 +72,7 @@ survival::Surv
 #' @importFrom gower gower_dist
 #' @importFrom torch torch_tensor
 #' @importFrom glmnet glmnet
-#' @importFrom ggplot2 ggplot aes aes_string geom_line geom_point geom_col
+#' @importFrom ggplot2 ggplot aes geom_line geom_point geom_col
 #' @importFrom ggplot2 geom_errorbar geom_jitter geom_abline geom_smooth geom_vline
 #' @importFrom ggplot2 labs theme_minimal coord_flip coord_fixed guides guide_legend
 #' @importFrom ggplot2 position_dodge stat_summary scale_fill_manual scale_color_discrete
@@ -96,6 +96,5 @@ utils::globalVariables(c(
   # others seen in notes
   "splits","ale","integrated_ale","type"
 ))
-
 
 
