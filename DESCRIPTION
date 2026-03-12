@@ -17,6 +17,7 @@ Depends: R (>= 4.1)
 Imports:
     survival,
     ggplot2,
+    functionals,
     nnls,
     pec,
     party,
