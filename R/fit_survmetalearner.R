@@ -161,7 +161,7 @@ plot_survmetalearner_weights <- function(model) {
     mutate(time = as.numeric(sub("t=", "", time)))
 
   ggplot(W_long, aes(x = time, y = weight, color = learner)) +
-    geom_line(size = 1.2) +
+    geom_line(linewidth = 1.2) +
     labs(x = "Time", y = "Weight", title = "NNLS stacking weights over time") +
     theme_minimal(base_size = 14)
 }
@@ -359,7 +359,6 @@ cv_survmetalearner <- function(formula, data, times,
     metrics = metrics
   ), class = "cv_survmetalearner_result")
 }
-
 
 
 
