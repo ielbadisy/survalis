@@ -1,28 +1,40 @@
 #' Fit a Deep Neural Network Survival Model (mlsurv_model-compatible)
 #'
 #' Fits a deep neural network survival model using \pkg{survdnn} (backed by
-#' \pkg{torch}). Supports common survival losses (e.g., `"cox"`, `"aft"`,
-#' `"coxtime"` depending on your \pkg{survdnn} build). Returns an
+#' \pkg{torch}). Supports the losses currently exposed by \pkg{survdnn}
+#' (`"cox"`, `"cox_l2"`, `"aft"`, and `"coxtime"`). Returns an
 #' `mlsurv_model` object that integrates with the `survalis` evaluation and
 #' cross-validation pipeline.
 #'
 #' @section Engine:
-#' Uses \strong{survdnn::survdnn} with \pkg{torch}. Hidden layer widths,
-#' activation, learning rate, epochs, and verbosity are passed through.
+#' Uses \strong{survdnn::survdnn} with \pkg{torch}. The wrapper exposes the
+#' core training arguments used by the engine, including optimizer choice,
+#' dropout, batch normalization, callbacks, device selection, and missing-value
+#' handling.
 #'
 #' @param formula A survival formula of the form `Surv(time, status) ~ predictors`.
 #'   The left-hand side must be a `Surv()` object from the `survival` package.
 #' @param data A `data.frame` containing all variables referenced in `formula`.
-#' @param loss Loss function name understood by \pkg{survdnn} (e.g., `"cox"`,
-#'   `"aft"`, `"coxtime"`).
+#' @param loss Loss function name understood by \pkg{survdnn}. One of
+#'   `"cox"`, `"cox_l2"`, `"aft"`, or `"coxtime"`.
 #' @param hidden Integer vector of hidden layer sizes (e.g., `c(32L, 32L, 16L)`).
-#' @param activation Activation function name (e.g., `"relu"`, `"gelu"`, `"tanh"`),
-#'   as supported by \pkg{survdnn}.
+#' @param activation Activation function name. Supported options depend on the
+#'   installed \pkg{survdnn} version and include `"relu"`, `"leaky_relu"`,
+#'   `"tanh"`, `"sigmoid"`, `"gelu"`, `"elu"`, and `"softplus"`.
 #' @param lr Learning rate.
 #' @param epochs Number of training epochs.
-#' @param verbose Logical; print training progress
-#'
-#' @param ... Additional arguments forwarded to the underlying engine where applicable.
+#' @param optimizer Optimizer name. One of `"adam"`, `"adamw"`, `"sgd"`,
+#'   `"rmsprop"`, or `"adagrad"`.
+#' @param optim_args Optional named list of extra optimizer arguments passed to
+#'   \pkg{torch} via \pkg{survdnn}.
+#' @param verbose Logical; print training progress.
+#' @param dropout Numeric dropout rate in `[0, 1]`.
+#' @param batch_norm Logical; whether to use batch normalization in hidden layers.
+#' @param callbacks Optional list of callback functions used by \pkg{survdnn}.
+#' @param .seed Optional integer random seed passed through to \pkg{survdnn}.
+#' @param .device Computation device. One of `"auto"`, `"cpu"`, or `"cuda"`.
+#' @param na_action How to handle missing values. One of `"omit"` or `"fail"`.
+#' @param ... Additional arguments forwarded to the underlying engine.
 #'
 #' @return An object of class `mlsurv_model`, a named list with elements:
 #' \describe{
@@ -62,7 +74,15 @@ fit_survdnn <- function(formula, data,
                         activation = "relu",
                         lr = 1e-4,
                         epochs = 300L,
+                        optimizer = "adam",
+                        optim_args = list(),
                         verbose = FALSE,
+                        dropout = 0.3,
+                        batch_norm = TRUE,
+                        callbacks = NULL,
+                        .seed = NULL,
+                        .device = "auto",
+                        na_action = "omit",
                         ...) {
 
   stopifnot(requireNamespace("survdnn", quietly = TRUE))
@@ -76,7 +96,16 @@ fit_survdnn <- function(formula, data,
     activation = activation,
     lr = lr,
     epochs = epochs,
-    verbose = verbose
+    optimizer = optimizer,
+    optim_args = optim_args,
+    verbose = verbose,
+    dropout = dropout,
+    batch_norm = batch_norm,
+    callbacks = callbacks,
+    .seed = .seed,
+    .device = .device,
+    na_action = na_action,
+    ...
   )
 
   time_status <- all.vars(formula[[2]])
@@ -103,14 +132,22 @@ fit_survdnn <- function(formula, data,
 #' @param newdata A `data.frame` of new observations for prediction. Must include
 #'   the same predictor variables used at training time.
 #' @param times Numeric vector of evaluation time points (same scale as the
-#'   survival time used at training). Must be non-negative and finite.
-#' @param ... Additional arguments forwarded to the underlying engine where applicable.
+#'   survival time used at training). Required for `type = "survival"` and
+#'   `type = "risk"`. Ignored for `type = "lp"`.
+#' @param type Prediction type. `"survival"` returns survival probabilities,
+#'   `"lp"` returns the engine's linear predictor / latent score, and `"risk"`
+#'   returns `1 - S(t)` at a single requested time.
+#' @param ... Additional arguments forwarded to `predict.survdnn()`.
 #'
-#' @return A base `data.frame` with one row per observation in `newdata` and
-#' columns named `t={time}` (character), containing numeric values in \[0, 1].
+#' @return
+#' - If `type = "survival"`, a base `data.frame` with one row per observation
+#'   in `newdata` and columns named `t={time}` containing values in `[0, 1]`.
+#' - If `type = "lp"` or `type = "risk"`, a numeric vector.
 #'
 #' @details
-#' Delegates to `predict(object$model, type = "survival", times = times)`.
+#' Delegates to the installed \pkg{survdnn} prediction method. The default
+#' remains `type = "survival"` so the result stays compatible with
+#' `cv_survlearner()` and the rest of the `survalis` evaluation pipeline.
 #'
 #' @seealso [fit_survdnn()], [tune_survdnn()]
 #'
@@ -124,14 +161,17 @@ fit_survdnn <- function(formula, data,
 #'
 #' @export
 
-predict_survdnn <- function(object, newdata, times, ...) {
+predict_survdnn <- function(object, newdata, times = NULL,
+                            type = c("survival", "lp", "risk"), ...) {
 
 
   if (!is.null(object$learner) && object$learner != "survdnn") {
     warning("Object passed to predict_survdnn() may not come from fit_survdnn().")
   }
 
-  predict(object$model, newdata = newdata, type = "survival", times = times)
+  type <- match.arg(type)
+
+  predict(object$model, newdata = newdata, type = type, times = times, ...)
 }
 
 
@@ -147,8 +187,9 @@ predict_survdnn <- function(object, newdata, times, ...) {
 #' @param times Numeric vector of evaluation time points (same scale as the
 #'   survival time used at training). Must be non-negative and finite.
 #' @param param_grid A named list of candidate hyperparameters. Typical entries:
-#'   `hidden` (list of integer vectors), `lr` (numeric), `activation` (character),
-#'   `epochs` (integer), and `loss` (character).
+#'   `hidden` (list of integer vectors), `lr` (numeric), `activation`
+#'   (character), `epochs` (integer), `loss` (character), `optimizer`
+#'   (character), `dropout` (numeric), and `batch_norm` (logical).
 #' @param metrics Character vector of metrics to evaluate/optimize
 #'   (e.g., `"cindex"`, `"ibs"`). The first entry is used as the primary
 #'   selection metric.
@@ -166,8 +207,9 @@ predict_survdnn <- function(object, newdata, times, ...) {
 #' @details
 #' \strong{Evaluation.} Internally calls `cv_survlearner()` with
 #' `fit_survdnn()`/`predict_survdnn()` so tuning uses the same code paths as
-#' production. Hyperparameters are combined via `tidyr::crossing()` and
-#' iterated with `purrr::pmap_dfr()`.
+#' production. Hyperparameters are combined via `tidyr::crossing()` and each
+#' row is passed through to `fit_survdnn()`, so the grid can include any
+#' supported engine argument exposed by this wrapper.
 #'
 #' @seealso [fit_survdnn()], [predict_survdnn()]
 #'
@@ -179,7 +221,9 @@ predict_survdnn <- function(object, newdata, times, ...) {
 #'   lr = c(1e-4, 5e-4),
 #'   activation = c("relu", "tanh"),
 #'   epochs = c(300),
-#'   loss = c("cox", "coxtime")
+#'   loss = c("cox", "coxtime"),
+#'   optimizer = "adam",
+#'   dropout = c(0.1, 0.3)
 #' )
 #'
 #' mod <- tune_survdnn(
@@ -202,7 +246,10 @@ tune_survdnn <- function(formula, data, times,
                            lr = c(1e-3, 5e-4),
                            activation = c("relu", "gelu"),
                            epochs = c(100, 200),
-                           loss = c("cox", "aft")
+                           loss = c("cox", "aft"),
+                           optimizer = "adam",
+                           dropout = c(0.1, 0.3),
+                           batch_norm = c(TRUE)
                          ),
                          metrics = c("cindex", "ibs"),
                          folds = 3,
@@ -214,36 +261,42 @@ tune_survdnn <- function(formula, data, times,
   stopifnot(is.list(param_grid))
 
   param_df <- tidyr::crossing(!!!param_grid)
+  extra_args <- list(...)
+  higher_is_better <- metrics[1] %in% c("cindex", "auc", "accuracy")
 
-  results <- purrr::pmap_dfr(param_df, function(hidden, lr, activation, epochs, loss) {
+  as_tibble_row <- function(params) {
+    tibble::as_tibble(purrr::imap(params, function(x, nm) {
+      if (is.list(param_df[[nm]]) || length(x) != 1L || is.list(x)) {
+        list(x)
+      } else {
+        x
+      }
+    }))
+  }
+
+  results <- purrr::map_dfr(seq_len(nrow(param_df)), function(i) {
+    params <- purrr::map(param_df[i, , drop = FALSE], ~ .x[[1]])
     set.seed(seed)
-    cv_results <- cv_survlearner(
-      formula = formula,
-      data = data,
-      fit_fun = fit_survdnn,
-      pred_fun = predict_survdnn,
-      times = times,
-      metrics = metrics,
-      folds = folds,
-      seed = seed,
-      hidden = hidden,
-      lr = lr,
-      activation = activation,
-      epochs = epochs,
-      loss = loss,
-      verbose = FALSE,
-      ...
+    cv_args <- c(
+      list(
+        formula = formula,
+        data = data,
+        fit_fun = fit_survdnn,
+        pred_fun = predict_survdnn,
+        times = times,
+        metrics = metrics,
+        folds = folds,
+        seed = seed,
+        verbose = FALSE
+      ),
+      params,
+      extra_args
     )
+    cv_results <- do.call(cv_survlearner, cv_args)
 
     summary <- cv_summary(cv_results)
 
-    tibble::tibble(
-      hidden = list(hidden),
-      lr = lr,
-      activation = activation,
-      epochs = epochs,
-      loss = loss
-    ) |>
+    as_tibble_row(params) |>
       dplyr::bind_cols(
         tidyr::pivot_wider(summary[, c("metric", "mean")],
                            names_from = metric,
@@ -251,7 +304,11 @@ tune_survdnn <- function(formula, data, times,
       )
   })
 
-  results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
+  if (higher_is_better) {
+    results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
+  } else {
+    results <- results |> dplyr::arrange(!!rlang::sym(metrics[1]))
+  }
 
   if (!refit_best) {
     class(results) <- c("tuned_surv", class(results))
@@ -260,19 +317,18 @@ tune_survdnn <- function(formula, data, times,
     return(results)
   } else {
     best_row <- results[1, ]
-    best_model <- fit_survdnn(
-      formula = formula,
-      data = tidyr::drop_na(data, all.vars(formula)),
-      hidden = best_row$hidden[[1]],
-      lr = best_row$lr,
-      activation = best_row$activation,
-      epochs = best_row$epochs,
-      loss = best_row$loss,
-      verbose = FALSE,
-      ...
+    best_params <- purrr::map(best_row[names(param_df)], ~ .x[[1]])
+    fit_args <- c(
+      list(
+        formula = formula,
+        data = tidyr::drop_na(data, all.vars(formula)),
+        verbose = FALSE
+      ),
+      best_params,
+      extra_args
     )
+    best_model <- do.call(fit_survdnn, fit_args)
     attr(best_model, "tuning_results") <- results
     return(best_model)
   }
 }
-
