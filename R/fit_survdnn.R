@@ -59,12 +59,15 @@
 #' \pkg{survdnn} documentation; \pkg{torch} for deep learning in R.
 #'
 #' @examples
+#' if (requireNamespace("survdnn", quietly = TRUE) &&
+#'     requireNamespace("torch", quietly = TRUE) &&
+#'     torch::torch_is_installed()) {
+#'   mod <- fit_survdnn(Surv(time, status) ~ age + karno + celltype,
+#'                      data = veteran, loss = "cox", epochs = 50, verbose = FALSE)
 #'
-#' mod <- fit_survdnn(Surv(time, status) ~ age + karno + celltype,
-#'                    data = veteran, loss = "cox", epochs = 50, verbose = FALSE)
-#'
-#' pred <- predict_survdnn(mod, newdata = veteran[1:5, ], times = c(30, 90, 180))
-#' print(pred)
+#'   pred <- predict_survdnn(mod, newdata = veteran[1:5, ], times = c(30, 90, 180))
+#'   print(pred)
+#' }
 #'
 #' @export
 
@@ -152,12 +155,15 @@ fit_survdnn <- function(formula, data,
 #' @seealso [fit_survdnn()], [tune_survdnn()]
 #'
 #' @examples
+#' if (requireNamespace("survdnn", quietly = TRUE) &&
+#'     requireNamespace("torch", quietly = TRUE) &&
+#'     torch::torch_is_installed()) {
+#'   mod <- fit_survdnn(Surv(time, status) ~ age + karno + celltype,
+#'                      data = veteran, loss = "cox", epochs = 50, verbose = FALSE)
 #'
-#' mod <- fit_survdnn(Surv(time, status) ~ age + karno + celltype,
-#'                    data = veteran, loss = "cox", epochs = 50, verbose = FALSE)
-#'
-#' pred <- predict_survdnn(mod, newdata = veteran[1:5, ], times = c(30, 90, 180))
-#' print(pred)
+#'   pred <- predict_survdnn(mod, newdata = veteran[1:5, ], times = c(30, 90, 180))
+#'   print(pred)
+#' }
 #'
 #' @export
 
@@ -215,27 +221,30 @@ predict_survdnn <- function(object, newdata, times = NULL,
 #'
 #' @examples
 #' \donttest{
+#' if (requireNamespace("survdnn", quietly = TRUE) &&
+#'     requireNamespace("torch", quietly = TRUE) &&
+#'     torch::torch_is_installed()) {
+#'   grid <- list(
+#'     hidden = list(c(16), c(32, 16)),
+#'     lr = c(1e-4, 5e-4),
+#'     activation = c("relu", "tanh"),
+#'     epochs = c(300),
+#'     loss = c("cox", "coxtime"),
+#'     optimizer = "adam",
+#'     dropout = c(0.1, 0.3)
+#'   )
 #'
-#' grid <- list(
-#'   hidden = list(c(16), c(32, 16)),
-#'   lr = c(1e-4, 5e-4),
-#'   activation = c("relu", "tanh"),
-#'   epochs = c(300),
-#'   loss = c("cox", "coxtime"),
-#'   optimizer = "adam",
-#'   dropout = c(0.1, 0.3)
-#' )
+#'   mod <- tune_survdnn(
+#'     formula = Surv(time, status) ~ age + karno + celltype,
+#'     data = veteran,
+#'     times = c(90),
+#'     metrics = c("cindex", "ibs"),
+#'     param_grid = grid,
+#'     refit_best = TRUE
+#'   )
 #'
-#' mod <- tune_survdnn(
-#'   formula = Surv(time, status) ~ age + karno + celltype,
-#'   data = veteran,
-#'   times = c(90),
-#'   metrics = c("cindex", "ibs"),
-#'   param_grid = grid,
-#'   refit_best = TRUE
-#' )
-#'
-#' summary(mod)
+#'   summary(mod)
+#' }
 #' }
 #'
 #' @export

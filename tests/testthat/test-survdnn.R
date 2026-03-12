@@ -4,6 +4,7 @@ test_that("fit_survdnn() returns a proper mlsurv_model wrapper", {
   skip_if_not_installed("survdnn")
   skip_if_not_installed("torch")
   skip_if_not_installed("survival")
+  skip_if_not(torch::torch_is_installed(), "Torch backend is not installed")
 
   df <- survival::veteran
   Surv <- survival::Surv
@@ -29,6 +30,7 @@ test_that("predict_survdnn() returns bounded, monotone-ish survival at requested
   skip_if_not_installed("survdnn")
   skip_if_not_installed("torch")
   skip_if_not_installed("survival")
+  skip_if_not(torch::torch_is_installed(), "Torch backend is not installed")
 
   df  <- survival::veteran
   Surv <- survival::Surv
@@ -71,6 +73,7 @@ test_that("predict_survdnn() exposes lp and risk prediction types", {
   skip_if_not_installed("survdnn")
   skip_if_not_installed("torch")
   skip_if_not_installed("survival")
+  skip_if_not(torch::torch_is_installed(), "Torch backend is not installed")
 
   df  <- survival::veteran
   Surv <- survival::Surv
@@ -105,6 +108,7 @@ test_that("predict_survdnn() errors when newdata lacks required predictors", {
   skip_if_not_installed("survdnn")
   skip_if_not_installed("torch")
   skip_if_not_installed("survival")
+  skip_if_not(torch::torch_is_installed(), "Torch backend is not installed")
 
   df  <- survival::veteran
   Surv <- survival::Surv
@@ -136,6 +140,7 @@ test_that("tune_survdnn() returns a compact grid and refit_best yields a fitted 
   skip_if_not_installed("survdnn")
   skip_if_not_installed("torch")
   skip_if_not_installed("survival")
+  skip_if_not(torch::torch_is_installed(), "Torch backend is not installed")
 
   Surv <- survival::Surv
   df   <- survival::veteran
