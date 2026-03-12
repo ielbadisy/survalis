@@ -12,7 +12,15 @@ fit_survdnn(
   activation = "relu",
   lr = 1e-04,
   epochs = 300L,
+  optimizer = "adam",
+  optim_args = list(),
   verbose = FALSE,
+  dropout = 0.3,
+  batch_norm = TRUE,
+  callbacks = NULL,
+  .seed = NULL,
+  .device = "auto",
+  na_action = "omit",
   ...
 )
 }
@@ -22,21 +30,40 @@ The left-hand side must be a \code{Surv()} object from the \code{survival} packa
 
 \item{data}{A \code{data.frame} containing all variables referenced in \code{formula}.}
 
-\item{loss}{Loss function name understood by \pkg{survdnn} (e.g., \code{"cox"},
-\code{"aft"}, \code{"coxtime"}).}
+\item{loss}{Loss function name understood by \pkg{survdnn}. One of
+\code{"cox"}, \code{"cox_l2"}, \code{"aft"}, or \code{"coxtime"}.}
 
 \item{hidden}{Integer vector of hidden layer sizes (e.g., \code{c(32L, 32L, 16L)}).}
 
-\item{activation}{Activation function name (e.g., \code{"relu"}, \code{"gelu"}, \code{"tanh"}),
-as supported by \pkg{survdnn}.}
+\item{activation}{Activation function name. Supported options depend on the
+installed \pkg{survdnn} version and include \code{"relu"}, \code{"leaky_relu"},
+\code{"tanh"}, \code{"sigmoid"}, \code{"gelu"}, \code{"elu"}, and \code{"softplus"}.}
 
 \item{lr}{Learning rate.}
 
 \item{epochs}{Number of training epochs.}
 
-\item{verbose}{Logical; print training progress}
+\item{optimizer}{Optimizer name. One of \code{"adam"}, \code{"adamw"}, \code{"sgd"},
+\code{"rmsprop"}, or \code{"adagrad"}.}
 
-\item{...}{Additional arguments forwarded to the underlying engine where applicable.}
+\item{optim_args}{Optional named list of extra optimizer arguments passed to
+\pkg{torch} via \pkg{survdnn}.}
+
+\item{verbose}{Logical; print training progress.}
+
+\item{dropout}{Numeric dropout rate in \verb{[0, 1]}.}
+
+\item{batch_norm}{Logical; whether to use batch normalization in hidden layers.}
+
+\item{callbacks}{Optional list of callback functions used by \pkg{survdnn}.}
+
+\item{.seed}{Optional integer random seed passed through to \pkg{survdnn}.}
+
+\item{.device}{Computation device. One of \code{"auto"}, \code{"cpu"}, or \code{"cuda"}.}
+
+\item{na_action}{How to handle missing values. One of \code{"omit"} or \code{"fail"}.}
+
+\item{...}{Additional arguments forwarded to the underlying engine.}
 }
 \value{
 An object of class \code{mlsurv_model}, a named list with elements:
@@ -52,8 +79,8 @@ An object of class \code{mlsurv_model}, a named list with elements:
 }
 \description{
 Fits a deep neural network survival model using \pkg{survdnn} (backed by
-\pkg{torch}). Supports common survival losses (e.g., \code{"cox"}, \code{"aft"},
-\code{"coxtime"} depending on your \pkg{survdnn} build). Returns an
+\pkg{torch}). Supports the losses currently exposed by \pkg{survdnn}
+(\code{"cox"}, \code{"cox_l2"}, \code{"aft"}, and \code{"coxtime"}). Returns an
 \code{mlsurv_model} object that integrates with the \code{survalis} evaluation and
 cross-validation pipeline.
 }
@@ -65,8 +92,10 @@ cross-validation pipeline.
 }
 \section{Engine}{
 
-Uses \strong{survdnn::survdnn} with \pkg{torch}. Hidden layer widths,
-activation, learning rate, epochs, and verbosity are passed through.
+Uses \strong{survdnn::survdnn} with \pkg{torch}. The wrapper exposes the
+core training arguments used by the engine, including optimizer choice,
+dropout, batch normalization, callbacks, device selection, and missing-value
+handling.
 }
 
 \examples{

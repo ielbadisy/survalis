@@ -33,7 +33,8 @@ match \code{base_models}.}
 \item{folds}{Integer; number of CV folds (default \code{5}).}
 
 \item{metrics}{Character vector of metrics to compute (default \code{c("cindex","ibs")}).
-Supported: \code{"cindex"}, \code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}.}
+Supported: \code{"cindex"}, \code{"brier"} (single time), \code{"ibs"},
+\code{"iae"}, \code{"ise"}, \code{"ece"} (single time).}
 
 \item{seed}{Integer random seed (default \code{123}).}
 

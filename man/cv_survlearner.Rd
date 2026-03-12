@@ -2,7 +2,7 @@
 % Please edit documentation in R/evaluation.R
 \name{cv_survlearner}
 \alias{cv_survlearner}
-\title{Cross-Validate a Survival Learner}
+\title{Cross-Validate a Survival Learner (fold-mapped with \code{fmapn})}
 \usage{
 cv_survlearner(
   formula,
@@ -14,13 +14,15 @@ cv_survlearner(
   folds = 5,
   seed = 123,
   verbose = FALSE,
+  ncores = 1,
+  pb = interactive(),
   ...
 )
 }
 \arguments{
 \item{formula}{A survival formula \code{Surv(time, status) ~ predictors}.}
 
-\item{data}{A data frame.}
+\item{data}{A data frame containing all variables in \code{formula}.}
 
 \item{fit_fun}{Function with signature \code{fit_fun(formula, data, ...)} that
 returns an \code{mlsurv_model}.}
@@ -30,14 +32,20 @@ returning a survival-probability matrix/data frame (columns named \code{"t=<time
 
 \item{times}{Numeric vector of evaluation times (passed to \code{pred_fun}).}
 
-\item{metrics}{Character vector of metrics to compute. Supported: \code{"cindex"},
-\code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}.}
+\item{metrics}{Character vector of metrics to compute. Supported:
+\code{"cindex"}, \code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}, \code{"ece"} (single time).}
 
 \item{folds}{Integer; number of folds (default \code{5}).}
 
 \item{seed}{Integer random seed for reproducibility (default \code{123}).}
 
 \item{verbose}{Logical; print row-dropping due to missingness (default \code{FALSE}).}
+
+\item{ncores}{Integer; number of CPU cores for \code{fmapn} parallel mapping
+(default \code{1}). Set \code{> 1} to enable parallelism.}
+
+\item{pb}{Logical; show a progress bar during fold mapping (default
+\code{interactive()}).}
 
 \item{...}{Additional arguments forwarded to \code{fit_fun}.}
 }
@@ -47,17 +55,46 @@ A tibble with columns: \code{splits} (rsample split object),
 }
 \description{
 Runs k-fold cross-validation for any pair of \code{fit_fun}/\code{pred_fun}
-that follow the package's learner contracts, and returns per-fold metric values.
+that follow the package's learner contracts, and returns tidy per-fold metric values.
+Fold iteration is handled by \code{functionals::fmapn()} with optional parallel
+execution and a progress bar.
 }
 \details{
 The routine:
 \enumerate{
+\item Validates \code{Surv(...)} on the LHS and warns against using \code{.} in formulas.
 \item Drops rows with missing values in any variables referenced by \code{formula}.
-\item Handles \code{Surv(time, status == k)} outcomes by recoding the status to 0/1.
-\item Uses stratified v-folds on the status indicator.
-\item For each fold: fits on analysis set, predicts on assessment set, and computes metrics.
+\item Supports \code{Surv(time, status == k)} by recoding the status to 0/1.
+\item Builds stratified v-folds on the status indicator (\pkg{rsample}).
+\item For each fold: fits on the analysis set, predicts on the assessment set, and computes metrics.
 }
+
+Fold iteration is performed via \code{functionals::fmapn()}, which preserves
+per-fold identifiers (\code{id}, \code{fold}) and returns a list ready for
+\code{dplyr::bind_rows()}.
 }
 \examples{
-# cv_survlearner(Surv(time, status) ~ x1 + x2, df, fit_fun, pred_fun, times = c(90,180))
+\dontrun{
+library(survival)
+data(veteran)
+cv_results <- cv_survlearner(
+  formula = Surv(time, status) ~ karno,
+  data = veteran,
+  fit_fun = fit_bart,
+  pred_fun = predict_bart,
+  times = c(10, 100, 600, 900),
+  metrics = c("cindex", "ibs"),
+  folds = 5,
+  ncores = max(1, parallel::detectCores() - 1),
+  pb = TRUE
+)
 }
+
+}
+\seealso{
+\code{\link[functionals]{fmapn}}
+}
+\keyword{cross-validation}
+\keyword{fmapn}
+\keyword{parallel}
+\keyword{survival}

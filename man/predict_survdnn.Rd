@@ -4,7 +4,13 @@
 \alias{predict_survdnn}
 \title{Predict Survival Probabilities with a DNN Survival Model}
 \usage{
-predict_survdnn(object, newdata, times, ...)
+predict_survdnn(
+  object,
+  newdata,
+  times = NULL,
+  type = c("survival", "lp", "risk"),
+  ...
+)
 }
 \arguments{
 \item{object}{A fitted \code{mlsurv_model} returned by \code{\link[=fit_survdnn]{fit_survdnn()}}.}
@@ -13,20 +19,30 @@ predict_survdnn(object, newdata, times, ...)
 the same predictor variables used at training time.}
 
 \item{times}{Numeric vector of evaluation time points (same scale as the
-survival time used at training). Must be non-negative and finite.}
+survival time used at training). Required for \code{type = "survival"} and
+\code{type = "risk"}. Ignored for \code{type = "lp"}.}
 
-\item{...}{Additional arguments forwarded to the underlying engine where applicable.}
+\item{type}{Prediction type. \code{"survival"} returns survival probabilities,
+\code{"lp"} returns the engine's linear predictor / latent score, and \code{"risk"}
+returns \code{1 - S(t)} at a single requested time.}
+
+\item{...}{Additional arguments forwarded to \code{predict.survdnn()}.}
 }
 \value{
-A base \code{data.frame} with one row per observation in \code{newdata} and
-columns named \code{t={time}} (character), containing numeric values in [0, 1].
+\itemize{
+\item If \code{type = "survival"}, a base \code{data.frame} with one row per observation
+in \code{newdata} and columns named \code{t={time}} containing values in \verb{[0, 1]}.
+\item If \code{type = "lp"} or \code{type = "risk"}, a numeric vector.
+}
 }
 \description{
 Generates survival probabilities at specified time points using a fitted
 deep neural network survival model (\code{mlsurv_model}).
 }
 \details{
-Delegates to \code{predict(object$model, type = "survival", times = times)}.
+Delegates to the installed \pkg{survdnn} prediction method. The default
+remains \code{type = "survival"} so the result stays compatible with
+\code{cv_survlearner()} and the rest of the \code{survalis} evaluation pipeline.
 }
 \examples{
 

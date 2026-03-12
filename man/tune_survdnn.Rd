@@ -9,7 +9,8 @@ tune_survdnn(
   data,
   times,
   param_grid = list(hidden = list(c(32, 16), c(64, 32, 16)), lr = c(0.001, 5e-04),
-    activation = c("relu", "gelu"), epochs = c(100, 200), loss = c("cox", "aft")),
+    activation = c("relu", "gelu"), epochs = c(100, 200), loss = c("cox", "aft"),
+    optimizer = "adam", dropout = c(0.1, 0.3), batch_norm = c(TRUE)),
   metrics = c("cindex", "ibs"),
   folds = 3,
   seed = 42,
@@ -27,8 +28,9 @@ The left-hand side must be a \code{Surv()} object from the \code{survival} packa
 survival time used at training). Must be non-negative and finite.}
 
 \item{param_grid}{A named list of candidate hyperparameters. Typical entries:
-\code{hidden} (list of integer vectors), \code{lr} (numeric), \code{activation} (character),
-\code{epochs} (integer), and \code{loss} (character).}
+\code{hidden} (list of integer vectors), \code{lr} (numeric), \code{activation}
+(character), \code{epochs} (integer), \code{loss} (character), \code{optimizer}
+(character), \code{dropout} (numeric), and \code{batch_norm} (logical).}
 
 \item{metrics}{Character vector of metrics to evaluate/optimize
 (e.g., \code{"cindex"}, \code{"ibs"}). The first entry is used as the primary
@@ -57,8 +59,9 @@ best model on the full dataset.
 \details{
 \strong{Evaluation.} Internally calls \code{cv_survlearner()} with
 \code{fit_survdnn()}/\code{predict_survdnn()} so tuning uses the same code paths as
-production. Hyperparameters are combined via \code{tidyr::crossing()} and
-iterated with \code{purrr::pmap_dfr()}.
+production. Hyperparameters are combined via \code{tidyr::crossing()} and each
+row is passed through to \code{fit_survdnn()}, so the grid can include any
+supported engine argument exposed by this wrapper.
 }
 \examples{
 \donttest{
@@ -68,7 +71,9 @@ grid <- list(
   lr = c(1e-4, 5e-4),
   activation = c("relu", "tanh"),
   epochs = c(300),
-  loss = c("cox", "coxtime")
+  loss = c("cox", "coxtime"),
+  optimizer = "adam",
+  dropout = c(0.1, 0.3)
 )
 
 mod <- tune_survdnn(

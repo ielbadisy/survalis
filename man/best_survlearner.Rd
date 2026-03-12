@@ -16,7 +16,7 @@ best_survlearner(benchmark_results, metric, maximize = NULL)
 \item{maximize}{Logical; whether to maximize the metric. If \code{NULL}
 (default), the function maximizes for concordance‑like metrics
 (\code{"cindex"}) and minimizes for error‑like metrics
-(\code{"ibs"}, \code{"brier"}, \code{"iae"}, \code{"ise"}).}
+(\code{"ibs"}, \code{"brier"}, \code{"iae"}, \code{"ise"}, \code{"ece"}).}
 }
 \value{
 A tibble with columns \code{learner}, \code{metric}, and the selected
