@@ -25,7 +25,6 @@ Points above the diagonal indicate underprediction (observed survival higher
 than predicted), while points below indicate overprediction.
 }
 \examples{
-# calib <- compute_calibration(model, data, time = "time", status = "status", eval_time = 365)
 # p <- plot_calibration(calib)
 # p
 

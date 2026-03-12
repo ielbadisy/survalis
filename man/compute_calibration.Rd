@@ -10,50 +10,70 @@ compute_calibration(
   time,
   status,
   eval_time,
-  n_bins = 10L,
-  n_boot = 100L,
+  n_bins = 10,
+  n_boot = 100,
   seed = 123,
   learner_name = NULL
 )
 }
 \arguments{
-\item{model}{A fitted model object created by \code{fit_*()} in \pkg{survalis}.
-Must contain a \code{learner} field used to dispatch to \code{predict_<learner>()}.}
+\item{model}{An \code{mlsurv_model} fitted via a \verb{fit_*()} function; must include a
+valid \code{learner} so the corresponding \verb{predict_<learner>()} can be dispatched,
+and (ideally) a \verb{$data} field for level alignment.}
 
-\item{data}{A data.frame containing predictors and the survival outcome.}
+\item{data}{A data frame with predictors and survival outcome columns.}
 
-\item{time}{Either a numeric vector of observed times (same length as \code{nrow(data)})
-or a single string giving the time column name in \code{data}.}
+\item{time}{Survival time; either a numeric vector of the same length as
+\code{nrow(data)} or a single string giving the column name in \code{data}.}
 
-\item{status}{Either a numeric/integer vector of event indicators (1=event, 0=censor)
-or a single string giving the status column name in \code{data}.}
+\item{status}{Event indicator; either a numeric/logical vector or a single
+string giving the column name in \code{data}. Events should be coded 1, censoring 0.}
 
-\item{eval_time}{A single numeric value at which to evaluate calibration.}
+\item{eval_time}{Single numeric time at which to assess calibration.}
 
-\item{n_bins}{Integer. Number of bins used to group predictions (default 10).}
+\item{n_bins}{Integer number of quantile-based bins used to group predictions.}
 
-\item{n_boot}{Integer. Number of bootstrap resamples for confidence intervals (default 100).}
+\item{n_boot}{Integer number of bootstrap resamples for confidence intervals.}
 
-\item{seed}{Integer or \code{NULL}. Random seed for bootstrap resampling (default 123).
-If \code{NULL}, no seed is set.}
+\item{seed}{Integer seed for reproducibility of binning/bootstrap.}
 
-\item{learner_name}{Optional string label for the learner. If \code{NULL},
-uses \code{model$learner}.}
+\item{learner_name}{Optional character override for labeling the learner in
+downstream plots (defaults to \code{model$learner}).}
 }
 \value{
 A list with components:
 \describe{
-\item{calibration_table}{Data frame with columns \code{bin}, \code{n_bin},
-\code{mean_pred_surv}, \code{observed_surv}, \code{lower_ci}, \code{upper_ci}.}
+\item{calibration_table}{A data frame with columns \code{bin}, \code{mean_pred_surv},
+\code{observed_surv}, \code{lower_ci}, \code{upper_ci}.}
 \item{eval_time}{The evaluation time used.}
 \item{n_bins}{Number of bins.}
 \item{n_boot}{Number of bootstrap resamples.}
-\item{learner}{Learner label.}
-\item{ece}{Expected Calibration Error at \code{eval_time}.}
+\item{learner}{The learner label (from \code{learner_name} or \code{model$learner}).}
 }
 }
 \description{
 Computes a nonparametric calibration curve for a survival model at one
 evaluation time by binning predicted survival probabilities and comparing
-bin-wise means to Kaplan–Meier-based observed survival, with bootstrap CIs.
+bin-wise means to Kaplan-Meier-based observed survival, with bootstrap CIs.
+}
+\details{
+Predicted survival at \code{eval_time} is obtained from the appropriate
+\verb{predict_<learner>()}. Predictions are split into \code{n_bins} quantile bins.
+For each bin, the function reports:
+mean predicted survival, observed survival at \code{eval_time} from a Kaplan-Meier
+fit on the bin's rows, and bootstrap percentile (2.5\%, 97.5\%) CIs on the
+observed survival computed by resampling rows with replacement.
+}
+\examples{
+# mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+# calib <- compute_calibration(
+#   model = mod_cox, data = veteran,
+#   time = "time", status = "status",
+#   eval_time = 80, n_bins = 10, n_boot = 30
+# )
+# plot_calibration(calib)
+
+}
+\seealso{
+\code{\link[=plot_calibration]{plot_calibration()}}
 }

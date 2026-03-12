@@ -2,164 +2,133 @@
 #'
 #' Computes a nonparametric calibration curve for a survival model at one
 #' evaluation time by binning predicted survival probabilities and comparing
-#' bin-wise means to Kaplan–Meier-based observed survival, with bootstrap CIs.
+#' bin-wise means to Kaplan-Meier-based observed survival, with bootstrap CIs.
 #'
-#' @param model A fitted model object created by \code{fit_*()} in \pkg{survalis}.
-#'   Must contain a \code{learner} field used to dispatch to \code{predict_<learner>()}.
-#' @param data A data.frame containing predictors and the survival outcome.
-#' @param time Either a numeric vector of observed times (same length as \code{nrow(data)})
-#'   or a single string giving the time column name in \code{data}.
-#' @param status Either a numeric/integer vector of event indicators (1=event, 0=censor)
-#'   or a single string giving the status column name in \code{data}.
-#' @param eval_time A single numeric value at which to evaluate calibration.
-#' @param n_bins Integer. Number of bins used to group predictions (default 10).
-#' @param n_boot Integer. Number of bootstrap resamples for confidence intervals (default 100).
-#' @param seed Integer or \code{NULL}. Random seed for bootstrap resampling (default 123).
-#'   If \code{NULL}, no seed is set.
-#' @param learner_name Optional string label for the learner. If \code{NULL},
-#'   uses \code{model$learner}.
+#' @param model An `mlsurv_model` fitted via a `fit_*()` function; must include a
+#'   valid `learner` so the corresponding `predict_<learner>()` can be dispatched,
+#'   and (ideally) a `$data` field for level alignment.
+#' @param data A data frame with predictors and survival outcome columns.
+#' @param time Survival time; either a numeric vector of the same length as
+#'   `nrow(data)` or a single string giving the column name in `data`.
+#' @param status Event indicator; either a numeric/logical vector or a single
+#'   string giving the column name in `data`. Events should be coded 1, censoring 0.
+#' @param eval_time Single numeric time at which to assess calibration.
+#' @param n_bins Integer number of quantile-based bins used to group predictions.
+#' @param n_boot Integer number of bootstrap resamples for confidence intervals.
+#' @param seed Integer seed for reproducibility of binning/bootstrap.
+#' @param learner_name Optional character override for labeling the learner in
+#'   downstream plots (defaults to `model$learner`).
+#'
+#' @details
+#' Predicted survival at `eval_time` is obtained from the appropriate
+#' `predict_<learner>()`. Predictions are split into `n_bins` quantile bins.
+#' For each bin, the function reports:
+#' mean predicted survival, observed survival at `eval_time` from a Kaplan-Meier
+#' fit on the bin's rows, and bootstrap percentile (2.5%, 97.5%) CIs on the
+#' observed survival computed by resampling rows with replacement.
 #'
 #' @return A list with components:
 #' \describe{
-#'   \item{calibration_table}{Data frame with columns \code{bin}, \code{n_bin},
-#'     \code{mean_pred_surv}, \code{observed_surv}, \code{lower_ci}, \code{upper_ci}.}
+#'   \item{calibration_table}{A data frame with columns `bin`, `mean_pred_surv`,
+#'         `observed_surv`, `lower_ci`, `upper_ci`.}
 #'   \item{eval_time}{The evaluation time used.}
 #'   \item{n_bins}{Number of bins.}
 #'   \item{n_boot}{Number of bootstrap resamples.}
-#'   \item{learner}{Learner label.}
-#'   \item{ece}{Expected Calibration Error at \code{eval_time}.}
+#'   \item{learner}{The learner label (from `learner_name` or `model$learner`).}
 #' }
+#'
+#' @examples
+#' # mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+#' # calib <- compute_calibration(
+#' #   model = mod_cox, data = veteran,
+#' #   time = "time", status = "status",
+#' #   eval_time = 80, n_bins = 10, n_boot = 30
+#' # )
+#' # plot_calibration(calib)
+#'
+#' @seealso [plot_calibration()]
 #' @export
+
 compute_calibration <- function(model, data, time, status,
-                                eval_time, n_bins = 10L, n_boot = 100L,
+                                eval_time, n_bins = 10, n_boot = 100,
                                 seed = 123, learner_name = NULL) {
+  set.seed(seed)
 
-  if (length(eval_time) != 1L || !is.finite(eval_time)) {
-    stop("`eval_time` must be a single finite numeric value.")
-  }
-  n_bins <- as.integer(n_bins)
-  n_boot <- as.integer(n_boot)
-  if (n_bins < 1L) stop("`n_bins` must be >= 1.")
-  if (n_boot < 0L) stop("`n_boot` must be >= 0.")
-
-  if (!is.null(seed)) set.seed(seed)
-
-  # Extract time/status if passed as column names
-  if (is.character(time) && length(time) == 1L)   time   <- data[[time]]
-  if (is.character(status) && length(status) == 1L) status <- data[[status]]
-
-  if (length(time) != nrow(data) || length(status) != nrow(data)) {
-    stop("`time` and `status` must have length equal to nrow(data).")
+  # check eval_time is a single value
+  if (length(eval_time) != 1) {
+    stop("`eval_time` must be a single numeric value. Calibration at multiple time points is not supported.")
   }
 
-  # Infer prediction function
-  if (is.null(model$learner)) {
-    stop("`model$learner` is NULL. Cannot dispatch to predict_<learner>().")
+  # infer prediction function
+  if (is.null(model$learner) || !exists(paste0("predict_", model$learner))) {
+    stop("Could not infer prediction function. Ensure model was created using fit_*() and includes a valid 'learner'.")
   }
-  pred_name <- paste0("predict_", model$learner)
-  if (!exists(pred_name, mode = "function")) {
-    stop("Could not find prediction function: ", pred_name)
-  }
-  predict_function <- get(pred_name, mode = "function")
+  predict_function <- get(paste0("predict_", model$learner))
 
-  # Predict survival at eval_time
+  # if time/status are passed as strings, extract from data
+  if (is.character(time) && length(time) == 1) time <- data[[time]]
+  if (is.character(status) && length(status) == 1) status <- data[[status]]
+
+  # predict survival at eval_time
   pred_surv_raw <- predict_function(model, newdata = data, times = eval_time)
 
-  pred_surv <- if (is.data.frame(pred_surv_raw) && paste0("t=", eval_time) %in% names(pred_surv_raw)) {
+  pred_surv <- if (is.data.frame(pred_surv_raw) && paste0("t=", eval_time) %in% colnames(pred_surv_raw)) {
     pred_surv_raw[[paste0("t=", eval_time)]]
   } else if (is.matrix(pred_surv_raw)) {
-    as.vector(pred_surv_raw[, 1L])
+    as.vector(pred_surv_raw[, 1])
   } else if (is.numeric(pred_surv_raw)) {
-    as.vector(pred_surv_raw)
+    pred_surv_raw
   } else {
-    stop("Unexpected prediction format from ", pred_name,
-         ". Expected numeric vector, matrix, or data.frame containing column 't=<eval_time>'.")
+    stop("Unexpected prediction format. Ensure predict_<learner>() returns a data.frame or matrix with survival probabilities.")
   }
 
-  if (length(pred_surv) != nrow(data)) {
-    stop("Predictions returned by ", pred_name, " do not match nrow(data).")
-  }
-
-  # Bin predictions by quantiles
-  qs <- stats::quantile(pred_surv, probs = seq(0, 1, length.out = n_bins + 1L), na.rm = TRUE)
-  qs <- unique(qs)
-
-  if (length(qs) <= 1L) {
-    bins <- rep.int(1L, length(pred_surv))
-    n_bins_eff <- 1L
-  } else {
-    bins <- cut(pred_surv, breaks = qs, include.lowest = TRUE, labels = FALSE)
-    n_bins_eff <- max(bins, na.rm = TRUE)
-  }
-
+  # bin predictions
+  bins <- cut(pred_surv,
+              breaks = quantile(pred_surv, probs = seq(0, 1, length.out = n_bins + 1), na.rm = TRUE),
+              include.lowest = TRUE, labels = FALSE)
   df <- data.frame(pred_surv = pred_surv, time = time, status = status, bin = bins)
 
-  km_at_t <- function(tt, ss, t0) {
-    sf <- survival::survfit(survival::Surv(tt, ss) ~ 1)
-    s  <- summary(sf, times = t0, extend = TRUE)$surv
-    if (length(s) == 0L) NA_real_ else as.numeric(s[1L])
-  }
+  # calibration table
+  calibration_table <- df |>
+    group_by(bin) |>
+    summarise(
+      mean_pred_surv = mean(pred_surv, na.rm = TRUE),
+      observed_surv = {
+        surv_fit <- survfit(Surv(time, status) ~ 1, data = pick(everything()))
+        surv_summary <- summary(surv_fit, times = eval_time, extend = TRUE)
+        if (length(surv_summary$surv) == 0) NA else surv_summary$surv
+      },
+      .groups = "drop"
+    )
 
-  # Per-bin summaries
-  mean_pred <- tapply(df$pred_surv, df$bin, mean, na.rm = TRUE)
-  n_bin     <- tapply(df$pred_surv, df$bin, length)
+  # bootstrap CIs
+  boot_results <- replicate(n_boot, {
+    idx <- sample(seq_len(nrow(df)), replace = TRUE)
+    df_boot <- df[idx, ]
+    df_boot |>
+      group_by(bin) |>
+      summarise(
+        observed_surv = {
+          surv_fit <- survfit(Surv(time, status) ~ 1, data = pick(everything()))
+          surv_summary <- summary(surv_fit, times = eval_time, extend = TRUE)
+          if (length(surv_summary$surv) == 0) NA else surv_summary$surv
+        }, .groups = "drop"
+      ) |>
+      pull(observed_surv)
+  }, simplify = "matrix")
 
-  obs_surv <- vapply(seq_len(n_bins_eff), function(b) {
-    idx <- which(df$bin == b)
-    if (length(idx) == 0L) return(NA_real_)
-    km_at_t(df$time[idx], df$status[idx], eval_time)
-  }, numeric(1L))
-
-  calibration_table <- data.frame(
-    bin = seq_len(n_bins_eff),
-    n_bin = as.integer(n_bin[as.character(seq_len(n_bins_eff))]),
-    mean_pred_surv = as.numeric(mean_pred[as.character(seq_len(n_bins_eff))]),
-    observed_surv = as.numeric(obs_surv),
-    lower_ci = NA_real_,
-    upper_ci = NA_real_
-  )
-
-  # Bootstrap CIs (aligned to bins 1..n_bins_eff)
-  if (n_boot > 0L) {
-    boot_mat <- matrix(NA_real_, nrow = n_bins_eff, ncol = n_boot)
-
-    for (bb in seq_len(n_boot)) {
-      idx <- sample.int(nrow(df), replace = TRUE)
-      dfb <- df[idx, , drop = FALSE]
-
-      # compute observed survival per bin; bins may be missing in bootstrap sample
-      for (b in seq_len(n_bins_eff)) {
-        ii <- which(dfb$bin == b)
-        boot_mat[b, bb] <- if (length(ii) == 0L) NA_real_ else km_at_t(dfb$time[ii], dfb$status[ii], eval_time)
-      }
-    }
-
-    cis <- t(apply(boot_mat, 1L, stats::quantile, probs = c(0.025, 0.975), na.rm = TRUE))
-    calibration_table$lower_ci <- cis[, 1L]
-    calibration_table$upper_ci <- cis[, 2L]
-  }
-
-  # ECE (your existing metric function)
-  surv_obj <- survival::Surv(time = df$time, event = df$status)
-  sp_mat <- matrix(pred_surv, ncol = 1L, dimnames = list(NULL, paste0("t=", eval_time)))
-
-  ece_value <- ece_survmat(
-    object    = surv_obj,
-    sp_matrix = sp_mat,
-    t_star    = eval_time,
-    n_bins    = n_bins_eff
-  )
+  boot_ci <- apply(boot_results, 1, function(x) quantile(x, probs = c(0.025, 0.975), na.rm = TRUE))
+  calibration_table$lower_ci <- boot_ci[1, ]
+  calibration_table$upper_ci <- boot_ci[2, ]
 
   list(
     calibration_table = calibration_table,
     eval_time = eval_time,
-    n_bins = n_bins_eff,
+    n_bins = n_bins,
     n_boot = n_boot,
-    learner = if (is.null(learner_name)) model$learner else learner_name,
-    ece = ece_value
+    learner = learner_name %||% model$learner
   )
 }
-
 
 #' Plot Calibration Curve for Survival Predictions
 #'
@@ -178,58 +147,36 @@ compute_calibration <- function(model, data, time, status,
 #' than predicted), while points below indicate overprediction.
 #'
 #' @examples
-#' # calib <- compute_calibration(model, data, time = "time", status = "status", eval_time = 365)
 #' # p <- plot_calibration(calib)
 #' # p
 #'
 #' @seealso [compute_calibration()]
 #' @export
-plot_calibration <- function(calib_output, smooth = TRUE) {
-  if (!is.list(calib_output) || is.null(calib_output$calibration_table)) {
-    stop("`calib_output` must be the list returned by compute_calibration().")
-  }
-  ct <- calib_output$calibration_table
-  req <- c("mean_pred_surv", "observed_surv", "lower_ci", "upper_ci")
-  miss <- setdiff(req, names(ct))
-  if (length(miss) > 0L) {
-    stop("`calibration_table` is missing required columns: ", paste(miss, collapse = ", "))
-  }
 
+plot_calibration <- function(calib_output, smooth = TRUE) {
+  ct <- calib_output$calibration_table
   etime <- calib_output$eval_time
   nboot <- calib_output$n_boot
   nbins <- calib_output$n_bins
-  ece   <- calib_output$ece
 
-  subtitle_text <- paste0(
-    "n_bins = ", nbins,
-    ", bootstrap = ", nboot,
-    if (!is.null(ece) && is.finite(ece)) paste0(", ECE = ", signif(ece, 3)) else ""
-  )
-
-  learner_label <- calib_output$learner
-  if (is.null(learner_label) || !nzchar(learner_label)) learner_label <- "model"
-
-  p <- ggplot2::ggplot(ct, ggplot2::aes(x = mean_pred_surv, y = observed_surv)) +
-    ggplot2::geom_point(size = 2) +
-    ggplot2::geom_errorbar(
-      ggplot2::aes(ymin = lower_ci, ymax = upper_ci),
-      width = 0.02
-    ) +
-    ggplot2::geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
-    ggplot2::coord_fixed(ratio = 1) +
-    ggplot2::scale_x_continuous(limits = c(0, 1)) +
-    ggplot2::scale_y_continuous(limits = c(0, 1)) +
-    ggplot2::labs(
+  p <- ggplot(ct, aes(x = mean_pred_surv, y = observed_surv)) +
+    geom_point(size = 2) +
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.02) +
+    geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
+    coord_fixed(ratio = 1, xlim = c(0, 1), ylim = c(0, 1)) +
+    labs(
       x = "Mean Predicted Survival",
       y = "Observed Survival",
-      title = paste0("Calibration at t = ", etime, " | ", learner_label),
-      subtitle = subtitle_text
+      title = paste0("Calibration at t = ", etime, " | ", calib_output$learner)#,
+      #subtitle = paste0("n_bins = ", nbins, ", Bootstrap = ", nboot, " resamples")
     ) +
-    ggplot2::theme_minimal()
+    theme_minimal()
 
-  if (isTRUE(smooth)) {
-    p <- p + ggplot2::geom_smooth(method = "loess", se = FALSE, formula = y ~ x)
+  if (smooth) {
+    p <- p + geom_smooth(method = "loess", se = FALSE, color = "blue", formula = y ~ x)
   }
 
-  p
+  return(p)
 }
+
+
