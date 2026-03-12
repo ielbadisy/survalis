@@ -99,12 +99,15 @@ handling.
 }
 
 \examples{
+if (requireNamespace("survdnn", quietly = TRUE) &&
+    requireNamespace("torch", quietly = TRUE) &&
+    torch::torch_is_installed()) {
+  mod <- fit_survdnn(Surv(time, status) ~ age + karno + celltype,
+                     data = veteran, loss = "cox", epochs = 50, verbose = FALSE)
 
-mod <- fit_survdnn(Surv(time, status) ~ age + karno + celltype,
-                   data = veteran, loss = "cox", epochs = 50, verbose = FALSE)
-
-pred <- predict_survdnn(mod, newdata = veteran[1:5, ], times = c(30, 90, 180))
-print(pred)
+  pred <- predict_survdnn(mod, newdata = veteran[1:5, ], times = c(30, 90, 180))
+  print(pred)
+}
 
 }
 \references{

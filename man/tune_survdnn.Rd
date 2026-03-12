@@ -65,27 +65,30 @@ supported engine argument exposed by this wrapper.
 }
 \examples{
 \donttest{
+if (requireNamespace("survdnn", quietly = TRUE) &&
+    requireNamespace("torch", quietly = TRUE) &&
+    torch::torch_is_installed()) {
+  grid <- list(
+    hidden = list(c(16), c(32, 16)),
+    lr = c(1e-4, 5e-4),
+    activation = c("relu", "tanh"),
+    epochs = c(300),
+    loss = c("cox", "coxtime"),
+    optimizer = "adam",
+    dropout = c(0.1, 0.3)
+  )
 
-grid <- list(
-  hidden = list(c(16), c(32, 16)),
-  lr = c(1e-4, 5e-4),
-  activation = c("relu", "tanh"),
-  epochs = c(300),
-  loss = c("cox", "coxtime"),
-  optimizer = "adam",
-  dropout = c(0.1, 0.3)
-)
+  mod <- tune_survdnn(
+    formula = Surv(time, status) ~ age + karno + celltype,
+    data = veteran,
+    times = c(90),
+    metrics = c("cindex", "ibs"),
+    param_grid = grid,
+    refit_best = TRUE
+  )
 
-mod <- tune_survdnn(
-  formula = Surv(time, status) ~ age + karno + celltype,
-  data = veteran,
-  times = c(90),
-  metrics = c("cindex", "ibs"),
-  param_grid = grid,
-  refit_best = TRUE
-)
-
-summary(mod)
+  summary(mod)
+}
 }
 
 }
