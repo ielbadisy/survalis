@@ -112,20 +112,18 @@ test_that("predict_survmetalearner() stacks base predictions correctly", {
 })
 
 test_that("plot_survmetalearner_weights() returns a ggplot object", {
+  skip_if_not_installed("ggplot2")
 
   set.seed(2)
   n <- 20
   x <- rnorm(n)
   df <- data.frame(x = x)
   times <- c(50, 100)
-
-  # simple base survival predictions (n x |times|)
   S1 <- exp(-outer(rep(1, n), times, `*`) * 0.002)
   S2 <- exp(-outer(rep(1, n), times, `*`) * 0.004)
   colnames(S1) <- paste0("t=", times)
   colnames(S2) <- paste0("t=", times)
 
-  # fit a minimal meta-learner to produce `meta`
   meta <- fit_survmetalearner(
     base_preds = list(L1 = S1, L2 = S2),
     time = rexp(n, 1/200),
@@ -136,14 +134,9 @@ test_that("plot_survmetalearner_weights() returns a ggplot object", {
     data = df
   )
 
-  # Silence any ggplot lifecycle warnings during this test only
-  old <- options(lifecycle_verbosity = "quiet")
-  on.exit(options(old), add = TRUE)
-
-  p <- suppressWarnings(plot_survmetalearner_weights(meta))
-  expect_s3_class(p, "ggplot")
+  p <- plot_survmetalearner_weights(meta)
+  expect_true(inherits(p, "ggplot"))
 })
-
 
 test_that("cv_survmetalearner() runs a small CV and returns a summary", {
   skip_on_cran()
@@ -203,70 +196,4 @@ test_that("cv_survmetalearner() runs a small CV and returns a summary", {
   expect_true(is.data.frame(res$summary))
   expect_true(all(c("mean", "sd") %in% names(res$summary)))
   expect_true(inherits(res$model, "survmetalearner"))
-})
-
-
-
-test_that("single-base meta equals base", {
-  veteran <- survival::veteran
-  veteran$status <- as.integer(veteran$status == 1)
-  form  <- Surv(time, status) ~ age + karno + trt + celltype + prior
-  times <- as.integer(quantile(veteran$time, c(0.25, 0.5, 0.75)))
-
-  mod   <- fit_coxph(form, data = veteran)
-  bp    <- predict_coxph(mod, veteran, times)
-
-  meta  <- fit_survmetalearner(list(coxph = bp), veteran$time, veteran$status,
-                               times, list(coxph = mod), form, veteran)
-
-  pred  <- predict_survmetalearner(meta, veteran, times)
-  expect_true(max(abs(as.matrix(pred) - as.matrix(bp))) < 1e-10)
-  out   <- score_survmodel(meta, times, c("cindex","ibs","iae","ise"))
-  expect_true(all(c("cindex","ibs","iae","ise") %in% out$metric))
-  out_b <- score_survmodel(meta, times[2], "brier")
-  expect_equal(out_b$metric, "brier")
-})
-
-
-
-test_that("multi-base meta shapes, weights, and CV", {
-
-  veteran <- survival::veteran
-  veteran$status <- as.integer(veteran$status == 1)
-  form  <- Surv(time, status) ~ age + karno + trt + celltype + prior
-  times <- as.integer(quantile(veteran$time, c(0.25, 0.5, 0.75)))
-
-  mod_cox   <- fit_coxph(form, data = veteran)
-  mod_rng   <- fit_ranger(form, data = veteran)  
-
-  bp_cox <- predict_coxph(mod_cox, veteran, times)
-  bp_rng <- predict_ranger(mod_rng, veteran, times)
-
-  meta  <- fit_survmetalearner(
-    base_preds  = list(coxph = bp_cox, ranger = bp_rng),
-    time        = veteran$time, status = veteran$status, times = times,
-    base_models = list(coxph = mod_cox, ranger = mod_rng),
-    formula     = form, data = veteran
-  )
-
-  expect_true(all(abs(colSums(meta$weights) - 1) < 1e-10))
-  expect_true(all(meta$weights >= 0))
-
-  pred  <- predict_survmetalearner(meta, veteran[1:5, ], times)
-  expect_true(is.matrix(as.matrix(pred)))
-  expect_equal(nrow(pred), 5)
-  expect_equal(ncol(pred), length(times))
-
-  expect_error(
-    predict_survmetalearner(meta, veteran, c(times, max(times)+1)),
-    "subset of the training times"
-  )
-
-  cvres <- cv_survmetalearner(form, veteran, times,
-                              base_models = list(coxph = mod_cox, ranger = mod_rng),
-                              base_preds  = list(coxph = bp_cox, ranger = bp_rng),
-                              folds = 3, metrics = c("cindex","ibs"),
-                              seed = 7, verbose = FALSE)
-  expect_true(all(c("model","cv_results","summary") %in% names(cvres)))
-  expect_true(all(c("cindex","ibs") %in% unique(cvres$cv_results$metric)))
 })

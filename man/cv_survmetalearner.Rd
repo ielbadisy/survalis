@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_survmetalearner.R
 \name{cv_survmetalearner}
 \alias{cv_survmetalearner}
-\title{Cross-Validate a Stacked Survival Meta-Learner}
+\title{Cross‑Validate a Stacked Survival Meta‑Learner}
 \usage{
 cv_survmetalearner(
   formula,
@@ -13,100 +13,79 @@ cv_survmetalearner(
   folds = 5,
   metrics = c("cindex", "ibs"),
   seed = 123,
-  verbose = TRUE,
-  ncores = 1,
-  pb = TRUE
+  verbose = TRUE
 )
 }
 \arguments{
 \item{formula}{A survival formula \code{Surv(time, status) ~ predictors}.}
 
-\item{data}{Data frame containing variables in \code{formula}.}
+\item{data}{A data frame containing all variables referenced in \code{formula}.}
 
 \item{times}{Numeric vector of evaluation times for stacking and scoring.}
 
-\item{base_models}{Named list of fitted base learner models. Names must match
-\code{names(base_preds)} and correspond to available \code{predict_<learner>()}.}
+\item{base_models}{A named list of fitted base learner models (used to predict
+on assessment folds and for the final refit on full data).}
 
-\item{base_preds}{Named list of training-set prediction matrices/data frames with
-columns \code{"t=<time>"} matching \code{times} and rows aligned with \code{data}.}
+\item{base_preds}{A named list of \emph{training‑set} prediction matrices
+(rows align with \code{data}, columns align with \code{times}); names must
+match \code{base_models}.}
 
-\item{folds}{Integer; number of v-folds (default \code{5}).}
+\item{folds}{Integer; number of CV folds (default \code{5}).}
 
-\item{metrics}{Character vector of metrics to compute. Supported:
-\code{"cindex"}, \code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}.}
+\item{metrics}{Character vector of metrics to compute (default \code{c("cindex","ibs")}).
+Supported: \code{"cindex"}, \code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}.}
 
 \item{seed}{Integer random seed (default \code{123}).}
 
-\item{verbose}{Logical; print fold progress (default \code{TRUE}).}
-
-\item{ncores}{Integer; number of cores for fold-level parallelism via
-\code{functionals::fmapn()} (default \code{1} = sequential).}
-
-\item{pb}{Logical; show a progress bar for fold mapping (default \code{TRUE}).}
+\item{verbose}{Logical; if \code{TRUE}, prints fold progress (default \code{TRUE}).}
 }
 \value{
-An object of class \code{"cv_survmetalearner_result"} with:
+An object of class \code{"cv_survmetalearner_result"} with components:
 \describe{
 \item{model}{Final \code{"survmetalearner"} fit on all data.}
-\item{cv_results}{Per-fold metric values (tibble with \code{splits}, \code{id}, \code{fold}, \code{metric}, \code{value}).}
-\item{summary}{Fold-aggregated mean and sd by metric.}
-\item{folds, metrics, ncores, pb}{Run settings for reproducibility.}
+\item{cv_results}{Per‑fold metric values (tibble).}
+\item{summary}{Fold‑aggregated mean and sd by metric (tibble).}
+\item{folds, metrics}{CV settings.}
 }
 }
 \description{
-Performs v-fold cross-validation for the NNLS stacking meta-learner over a fixed
-set of base learners and evaluation times. On each fold, time-varying weights
-are learned on the analysis set and evaluated on the assessment set.
+Performs v‑fold cross‑validation for the NNLS stacking meta‑learner over
+a fixed set of base learners and their predictions. On each fold, stacking
+weights are learned on the analysis set and evaluated on the assessment set.
 }
 \details{
-For each fold:
-\enumerate{
-\item Subset \code{base_preds} to the analysis indices.
-\item Fit \code{\link{fit_survmetalearner}} (time-varying NNLS) on the analysis set.
-\item Predict stacked survival on the assessment set with
-\code{\link{predict_survmetalearner}}.
-\item Compute requested metrics on the assessment set.
-}
+For each fold: (1) subset \code{base_preds} to the analysis indices;
+(2) learn time‑specific NNLS weights with \code{\link{fit_survmetalearner}};
 
-Folds are \emph{stratified} by the event indicator to preserve class balance.
-Column names in \code{base_preds} must exactly equal \code{paste0("t=", times)}.
+(3) predict stacked survival on the assessment set with \code{\link{predict_survmetalearner}};
+(4) compute requested metrics. After CV, a final meta‑learner is fit on the full data.
 }
-\section{Parallelization}{
-
-Parallel execution is available \emph{only across folds} via \code{fmapn} when
-\code{ncores > 1}. Base learners are assumed single-threaded; there is no inner
-parallel layer. Choose \code{ncores} according to available CPU/RAM.
-}
-
 \examples{
 \dontrun{
-library(survival)
-data(veteran, package = "survival")
-veteran$status <- as.integer(veteran$status == 1)
-form  <- Surv(time, status) ~ age + karno + celltype
-times <- c(100, 200, 400)
+form  <- Surv(time, status) ~ age + karno + trt + diagtime + celltype
+times <- c(200, 500, 800)
 
-mod1 <- fit_coxph(form, data = veteran)
-mod2 <- fit_rpart(form, data = veteran)
+# Fit a few base learners (examples)
+mod_rpart   <- fit_rpart(form, data = veteran)
+mod_ranger  <- fit_ranger(form, data = veteran)
+mod_cforest <- fit_cforest(form, data = veteran)
 
-base_models <- list(coxph = mod1, rpart = mod2)
+base_models <- list(rpart = mod_rpart, ranger = mod_ranger, cforest = mod_cforest)
 base_preds  <- list(
-  coxph = predict_coxph(mod1, veteran, times),
-  rpart = predict_rpart(mod2, veteran, times)
+  rpart   = predict_rpart(mod_rpart,   veteran, times),
+  ranger  = predict_ranger(mod_ranger, veteran, times),
+  cforest = predict_cforest(mod_cforest, veteran, times)
 )
 
 cv_res <- cv_survmetalearner(
   formula = form, data = veteran, times = times,
   base_models = base_models, base_preds = base_preds,
-  folds = 3, metrics = c("cindex","ibs"),
-  ncores = 2, pb = TRUE
+  folds = 3, metrics = c("cindex","ibs")
 )
 
 cv_res$summary
 plot_survmetalearner_weights(cv_res$model)
 }
-
 }
 \seealso{
 \code{\link{fit_survmetalearner}}, \code{\link{predict_survmetalearner}},

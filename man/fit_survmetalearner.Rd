@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_survmetalearner.R
 \name{fit_survmetalearner}
 \alias{fit_survmetalearner}
-\title{Fit a Stacked Survival Meta-Learner (Time-Varying NNLS)}
+\title{Fit a Stacked Survival Meta‑Learner (Time‑Varying NNLS)}
 \usage{
 fit_survmetalearner(
   base_preds,
@@ -15,96 +15,53 @@ fit_survmetalearner(
 )
 }
 \arguments{
-\item{base_preds}{A named list of matrices or data frames, one per base learner,
-each of dimension \code{n × length(times)}, with columns named
-\code{"t=<time>"} corresponding to evaluation times.}
+\item{base_preds}{A named list of matrices/data frames, one per base learner,
+each of dimension \code{n x length(times)}, with columns named \code{"t=<time>"}.}
 
-\item{time}{Numeric vector of observed survival times (length \code{n}).}
+\item{time}{Numeric vector of observed event/censoring times (length \code{n}).}
 
-\item{status}{Binary event indicator (1 = event, 0 = censored) of length \code{n}.}
+\item{status}{Numeric/binary vector of event indicators (1=event, 0=censor) (length \code{n}).}
 
-\item{times}{Numeric vector of time points at which to learn stacking weights.}
+\item{times}{Numeric vector of evaluation times at which to learn weights.}
 
-\item{base_models}{A named list of fitted base learner models. Names must match
-those in \code{base_preds} and correspond to available \code{predict_<learner>()}
-functions.}
+\item{base_models}{A named list of fitted base learner objects; names must
+match \code{names(base_preds)} and the learner names used by \code{predict_*()}.}
 
-\item{formula}{A \code{Surv()} formula used to fit the base models; stored for metadata
-and downstream scoring.}
+\item{formula}{A \code{Surv()} formula that was used for the base models
+(stored for metadata and downstream scoring).}
 
-\item{data}{The training data frame used to fit the base learners.}
+\item{data}{The training data frame used for the base models (stored for metadata).}
 }
 \value{
-An object of class \code{c("mlsurv_model","survmetalearner")} containing:
+An object of class \code{c("mlsurv_model","survmetalearner")} with elements:
 \describe{
-\item{weights}{Matrix (\eqn{L × T}) of nonnegative weights,
-rows = base learners, columns = \code{"t=<time>"} points.}
+\item{weights}{Matrix \code{L x T} of nonnegative stacking weights, rows=learners, cols=\code{"t=<time>"}.}
 \item{base_models}{Named list of base learner fits.}
-\item{base_preds}{Named list of base prediction matrices on the training set.}
-\item{learners}{Character vector of base learner names.}
-\item{formula, data, time, status}{Training metadata for reproducibility.}
-\item{learner}{String \code{"survmetalearner"} used for dispatch in
-\code{predict_survmetalearner()}.}
+\item{base_preds}{Named list of base prediction matrices on training data.}
+\item{learners}{Character vector of learner names (from \code{names(base_preds)}).}
+\item{formula, data, time, status}{Training metadata for scoring/reporting.}
+\item{learner}{The string \code{"survmetalearner"} (for \code{predict_*} dispatch).}
 }
 }
 \description{
-Learns nonnegative, time-specific stacking weights across a set of base
-survival learners using a nonnegative least squares (NNLS) approach.
-For each evaluation time \eqn{t^{*}}, the target is the survival indicator
-\eqn{Y = I(T > t^{*})}, and the predictors are the base learners’ survival
+Learns nonnegative, time‑specific stacking weights over a set of base survival
+learners by solving a nonnegative least squares (NNLS) problem at each
+requested time \eqn{t^{*}}. For each \eqn{t^{*}}, the target is the indicator
+\eqn{Y = I(T > t^{*})}; the features are the base learners' predicted survival
 probabilities \eqn{S_\ell(t^{*} \mid x)}. Weights are constrained to be
-nonnegative and renormalized to sum to 1 per time point.
+nonnegative and are normalized to sum to 1 per time point.
 }
 \details{
-For each time point \eqn{t \in \texttt{times}}, this function solves
-\deqn{
-  \min_{w \ge 0} \|Y - S w\|_2^2
-  \quad \text{s.t. } \sum_j w_j = 1,
+For each \code{t} in \code{times}, this function fits
+\deqn{\min_{w \ge 0} \\mid Y - S w \|_2^2 \quad \text{s.t.} \ \sum_j w_j = 1}
+where \eqn{Y = I(T > t)} and \eqn{S} is the matrix of base survival
+probabilities at \eqn{t}. The NNLS solution from \pkg{nnls} is renormalized
+to sum to 1 (if the solution is all zeros, weights remain \code{NA} for that time).
 }
-where \eqn{Y = I(T > t)} and \eqn{S} is the matrix of base learner survival
-probabilities at time \eqn{t}. The nonnegative least squares problem is solved
-using \pkg{nnls}. If the NNLS solution sums to zero or contains non-finite values,
-uniform weights (\eqn{1/L}) are assigned across learners.
-
-This approach produces a \emph{time-varying ensemble} that adaptively reweights the
-contributions of each base learner across the survival horizon.
-}
-\section{Implementation Notes}{
-
-\itemize{
-\item Columns in \code{base_preds} must exactly match \code{paste0("t=", times)}.
-\item If fewer than two base learners are provided, the function falls back to
-uniform weighting.
-\item All base learners are assumed to produce calibrated survival probabilities.
-}
-}
-
 \examples{
-\donttest{
-veteran < survival::veteran
-veteran$status <- as.integer(veteran$status == 1)
-form <- Surv(time, status) ~ age + karno + celltype
-times <- c(100, 200, 400)
-
-mod1 <- fit_coxph(form, data = veteran)
-mod2 <- fit_rpart(form, data = veteran)
-
-base_models <- list(coxph = mod1, rpart = mod2)
-base_preds <- list(
-  coxph = predict_coxph(mod1, veteran, times),
-  rpart = predict_rpart(mod2, veteran, times)
-)
-
-meta <- fit_survmetalearner(
-  base_preds = base_preds, time = veteran$time, status = veteran$status,
-  times = times, base_models = base_models, formula = form, data = veteran
-)
-meta$weights
-}
-
+# See cv_survmetalearner() and predict_survmetalearner() examples.
 }
 \seealso{
-\code{\link{predict_survmetalearner}},
-\code{\link{plot_survmetalearner_weights}},
+\code{\link{predict_survmetalearner}}, \code{\link{plot_survmetalearner_weights}},
 \code{\link{cv_survmetalearner}}
 }

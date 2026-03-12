@@ -2,74 +2,20 @@
 % Please edit documentation in R/fit_survmetalearner.R
 \name{plot_survmetalearner_weights}
 \alias{plot_survmetalearner_weights}
-\title{Plot Time-Varying Stacking Weights from a Survival Meta-Learner}
+\title{Plot Time‑Varying Stacking Weights}
 \usage{
 plot_survmetalearner_weights(model)
 }
 \arguments{
-\item{model}{A fitted \code{"survmetalearner"} object produced by
-\code{\link{fit_survmetalearner}} or returned within
-\code{\link{cv_survmetalearner}}.}
+\item{model}{A \code{"survmetalearner"} object from \code{\link{fit_survmetalearner}}.}
 }
 \value{
-A \pkg{ggplot2} object displaying the time-varying weights, with:
-\itemize{
-\item \emph{x-axis}: time points (\code{as.numeric(times)});
-\item \emph{y-axis}: normalized NNLS weights;
-\item \emph{color}: base learner identity.
-}
+A \pkg{ggplot2} object showing weight trajectories (one line per learner).
 }
 \description{
-Visualizes how each base learner’s contribution evolves over time, as learned
-by the time-varying NNLS stacking model from
-\code{\link{fit_survmetalearner}}.
-}
-\details{
-This plot displays the nonnegative ensemble weights \eqn{w_\ell(t)} assigned
-to each base learner \eqn{\ell} across the evaluation times \eqn{t} used in
-training.
-
-Each curve corresponds to one learner, showing how its relative importance
-changes over the survival horizon. The weights at each \eqn{t} sum to 1,
-reflecting the convex NNLS constraint in the meta-learner.
-
-Internally, the function reshapes the weight matrix (\eqn{L × T}) to long
-format and draws smooth trajectories with \pkg{ggplot2}.
-
-This visualization is useful to:
-\itemize{
-\item interpret dynamic model weighting behavior;
-\item identify learners that dominate at early vs. late follow-up;
-\item assess stability and complementarity among base learners.
-}
+Visualizes the learned nonnegative NNLS stacking weights \eqn{w_\ell(t)} over time
+for each base learner.
 }
 \examples{
-\donttest{
-veteran < survival::veteran
-veteran$status <- as.integer(veteran$status == 1)
-form <- Surv(time, status) ~ age + karno + celltype
-times <- c(100, 200, 400)
-
-mod1 <- fit_coxph(form, data = veteran)
-mod2 <- fit_rpart(form, data = veteran)
-
-base_models <- list(coxph = mod1, rpart = mod2)
-base_preds  <- list(
-  coxph = predict_coxph(mod1, veteran, times),
-  rpart = predict_rpart(mod2, veteran, times)
-)
-
-meta <- fit_survmetalearner(
-  base_preds = base_preds, time = veteran$time, status = veteran$status,
-  times = times, base_models = base_models, formula = form, data = veteran
-)
-
-plot_survmetalearner_weights(meta)
-}
-
-}
-\seealso{
-\code{\link{fit_survmetalearner}},
-\code{\link{predict_survmetalearner}},
-\code{\link{cv_survmetalearner}}
+# plot_survmetalearner_weights(meta_model)
 }
