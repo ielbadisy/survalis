@@ -26,9 +26,10 @@ tune_xgboost(
 \item{param_grid}{A \code{data.frame} (e.g., from \code{expand.grid()}) with columns:
 \code{nrounds}, \code{max_depth}, \code{eta}, \code{aft_loss_distribution},
 \code{aft_loss_distribution_scale}, and \code{objective}. Values are passed
-through to \code{\link[=fit_xgboost]{fit_xgboost()}} and \code{xgboost::xgboost()}.}
+through to \code{\link{fit_xgboost}} and ultimately to \pkg{xgboost}.}
 
-\item{metrics}{Character vector of metrics to evaluate (e.g., \code{"cindex"}, \code{"ibs"}).}
+\item{metrics}{Character vector of metrics to evaluate (e.g., \code{"cindex"}, \code{"ibs"}).
+The first entry is treated as the primary selection metric for ordering.}
 
 \item{folds}{Integer number of CV folds.}
 
@@ -37,21 +38,22 @@ through to \code{\link[=fit_xgboost]{fit_xgboost()}} and \code{xgboost::xgboost(
 \value{
 A \code{tibble} with one row per grid configuration, containing:
 \describe{
-\item{nrounds, max_depth, eta, aft_loss_distribution, aft_loss_distribution_scale, objective}{Grid values.}
+\item{nrounds, max_depth, eta, aft_loss_distribution, aft_loss_distribution_scale, objective}{The grid values.}
 \item{failed}{Logical; \code{TRUE} if the configuration errored.}
-\item{\code{<metric columns>}}{One column per metric from \code{metrics}, when available.}
+\item{metric columns}{One column per entry in \code{metrics} (when available).}
 }
-The table is arranged by the first metric in \code{metrics} (ascending as implemented).
+The table is arranged by the first metric in \code{metrics} (ascending, as implemented).
 }
 \description{
 Cross-validates XGBoost survival models over a user-specified grid and
-returns a results table with metric summaries per configuration. Each row
+returns a results table with metric summaries per configuration. Any row
 that errors during CV is marked \code{failed = TRUE}.
 }
 \details{
-Internally calls \code{cv_survlearner()} with \code{fit_xgboost()}/\code{predict_xgboost()}.
-Any configuration that errors (e.g., due to invalid parameters or data issues) is
-recorded with \code{failed = TRUE} and omitted from metric summarization.
+Internally calls \code{\link{cv_survlearner}} with \code{\link{fit_xgboost}} /
+\code{\link{predict_xgboost}}. Any configuration that errors (e.g., due to
+invalid parameters or data issues) is recorded with \code{failed = TRUE} and
+omitted from metric summarization.
 }
 \examples{
 \donttest{
@@ -66,8 +68,8 @@ recorded with \code{failed = TRUE} and omitted from metric summarization.
   )
 
   res_xgb <- tune_xgboost(
-    formula = Surv(time, status) ~ age + karno + celltype,
-    data    = veteran,
+    formula = survival::Surv(time, status) ~ age + karno + celltype,
+    data    = survival::veteran,
     times   = c(100, 200),
     metrics = c("cindex", "ibs"),
     param_grid = grid,
@@ -79,5 +81,5 @@ recorded with \code{failed = TRUE} and omitted from metric summarization.
 
 }
 \seealso{
-\code{\link[=fit_xgboost]{fit_xgboost()}}, \code{\link[=predict_xgboost]{predict_xgboost()}}
+\code{\link{fit_xgboost}}, \code{\link{predict_xgboost}}
 }

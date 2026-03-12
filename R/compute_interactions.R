@@ -197,21 +197,21 @@ compute_interactions <- function(model, data, times,
 plot_interactions <- function(object, type = c("1way", "heatmap", "time")) {
   type <- match.arg(type)
   if (type == "1way") {
-    ggplot2::ggplot(object, ggplot2::aes(x = interaction, y = reorder(feature, interaction))) +
-      ggplot2::geom_col(fill = "steelblue") +
-      ggplot2::theme_minimal() +
-      ggplot2::labs(x = "Interaction strength (H)", y = "Feature")
+  ggplot(object, ggplot2::aes(x = interaction, y = reorder(feature, interaction))) +
+      geom_col(fill = "steelblue") +
+      theme_minimal() +
+      labs(x = "Interaction strength (H)", y = "Feature")
   } else if (type == "heatmap") {
-    ggplot2::ggplot(object, ggplot2::aes(x = feature1, y = feature2, fill = interaction)) +
-      ggplot2::geom_tile() +
-      ggplot2::scale_fill_gradient(low = "white", high = "steelblue") +
-      ggplot2::theme_minimal() +
-      ggplot2::labs(title = "Pairwise Interaction Heatmap")
+    ggplot(object, ggplot2::aes(x = feature1, y = feature2, fill = interaction)) +
+      geom_tile() +
+      scale_fill_gradient(low = "white", high = "steelblue") +
+      theme_minimal() +
+      labs(title = "Pairwise Interaction Heatmap")
   } else {
-    ggplot2::ggplot(object, ggplot2::aes(x = time, y = interaction, color = feature)) +
-      ggplot2::geom_line(size = 1.2) +
-      ggplot2::geom_point(size = 2) +
-      ggplot2::theme_minimal() +
-      ggplot2::labs(title = "Time-Varying Feature Interactions", x = "Time", y = "Interaction Strength")
+    ggplot(object, ggplot2::aes(x = time, y = interaction, color = feature)) +
+      geom_line(size = 1.2) +
+      geom_point(size = 2) +
+      theme_minimal() +
+      labs(title = "Time-Varying Feature Interactions", x = "Time", y = "Interaction Strength")
   }
 }
