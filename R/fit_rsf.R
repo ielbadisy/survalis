@@ -224,7 +224,11 @@ tune_rsf <- function(formula, data, times,
       )
   })
 
-  results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
+  if (metrics[1] %in% c("cindex", "auc", "accuracy")) {
+    results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
+  } else {
+    results <- results |> dplyr::arrange(!!rlang::sym(metrics[1]))
+  }
 
   if (!refit_best) {
     class(results) <- c("tuned_surv", class(results))  # like other learners
