@@ -34,13 +34,14 @@ requested time, the closest available time from the RSF prediction object's
 \code{time.interest} grid (nearest-neighbor matching).
 }
 \examples{
+\dontshow{if (requireNamespace("randomForestSRC", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 mod_rsf <- fit_rsf(Surv(time, status) ~ age + celltype + karno,
                    data = veteran, ntree = 200)
 
 times <- c(100, 200, 300)
 pred_probs <- predict_rsf(mod_rsf, newdata = veteran[1:5, ], times = times)
 print(round(pred_probs, 3))
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=fit_rsf]{fit_rsf()}}, \code{\link[randomForestSRC]{predict.rfsrc}}

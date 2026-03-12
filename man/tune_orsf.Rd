@@ -64,6 +64,7 @@ The \code{min_events} column of \code{param_grid} is passed to the engine as
 \code{n_split} (minimum events for a candidate split).
 }
 \examples{
+\dontshow{if (requireNamespace("aorsf", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 \donttest{
   # Cross-validated tuning (small grid to keep runtime light)
   res_orsf <- tune_orsf(
@@ -97,6 +98,7 @@ The \code{min_events} column of \code{param_grid} is passed to the engine as
 
   summary(mod_orsf_best)
 }
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{fit_orsf}}, \code{\link{predict_orsf}}, \pkg{aorsf}

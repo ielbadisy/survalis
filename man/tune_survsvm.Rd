@@ -61,6 +61,7 @@ production usage. The prediction step applies the specified \code{dist}/\code{sh
 mapping to convert predicted times into survival probabilities at \code{times}.
 }
 \examples{
+\dontshow{if (requireNamespace("survivalsvm", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 grid <- list(
   gamma.mu = c(0.01, 0.1),
   kernel = c("lin_kernel", "add_kernel")
@@ -89,7 +90,7 @@ res_svm <- tune_survsvm(
 )
 
 res_svm
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=fit_survsvm]{fit_survsvm()}}, \code{\link[=predict_survsvm]{predict_survsvm()}}

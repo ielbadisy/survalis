@@ -55,6 +55,7 @@ Cross-validation is performed using \code{cv_survlearner()} and results
 are sorted in descending order of the first metric specified in \code{metrics}.
 }
 \examples{
+\dontshow{if (requireNamespace("party", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 grid <- expand.grid(
   ntree = c(50, 100),
   mtry = c(2, 4),
@@ -68,5 +69,5 @@ res <- tune_cforest(Surv(time, status) ~ age + celltype + karno,
   folds = 3
 )
 print(res)
-
+\dontshow{\}) # examplesIf}
 }

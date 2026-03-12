@@ -58,6 +58,7 @@ refits the best rule on the full dataset.
 paths as production. Rules typically include \code{"aic"} and/or \code{"p"}.
 }
 \examples{
+\dontshow{if (requireNamespace("pec", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 res_selectcox <- tune_selectcox(
   formula = Surv(time, status) ~ age + karno + celltype,
   data = veteran,
@@ -82,7 +83,7 @@ mod_selectcox <- tune_selectcox(
 )
 
 summary(mod_selectcox)
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=fit_selectcox]{fit_selectcox()}}, \code{\link[=predict_selectcox]{predict_selectcox()}}, \code{pec::selectCox()}

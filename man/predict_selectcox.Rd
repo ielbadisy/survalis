@@ -29,9 +29,10 @@ Internally calls \code{pec::predictSurvProb(object$model, newdata, times)}
 and renames columns to the standard \code{t=...} convention used by \code{survalis}.
 }
 \examples{
+\dontshow{if (requireNamespace("pec", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 mod <- fit_selectcox(Surv(time, status) ~ age + celltype + karno, data = veteran)
 predict_selectcox(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=fit_selectcox]{fit_selectcox()}}, \code{\link[=tune_selectcox]{tune_selectcox()}}

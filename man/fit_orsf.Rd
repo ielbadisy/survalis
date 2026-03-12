@@ -36,9 +36,10 @@ which can improve prediction accuracy when predictors are correlated.
 Missing data are omitted by default (\code{na_action = "omit"}).
 }
 \examples{
+\dontshow{if (requireNamespace("aorsf", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 mod <- fit_orsf(Surv(time, status) ~ age + karno, data = veteran)
 summary(mod)
-
+\dontshow{\}) # examplesIf}
 }
 \references{
 Jaeger BC, Long DL, Long DM, Sims M, Szychowski JM, Min YI, Bandyopadhyay D.

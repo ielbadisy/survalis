@@ -31,11 +31,12 @@ The returned survival matrix is post–processed to enforce monotonicity
 obtained by \code{stats::approx()} (linear interpolation, rule = 2).
 }
 \examples{
+\dontshow{if (requireNamespace("bnnSurvival", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 
 mod <- fit_bnnsurv(Surv(time, status) ~ age + karno + diagtime + prior, data = veteran)
 pred <- predict_bnnsurv(mod, newdata = veteran[1:3, ], times = c(50, 100, 200))
 pred
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=fit_bnnsurv]{fit_bnnsurv()}}, \code{\link[=tune_bnnsurv]{tune_bnnsurv()}}

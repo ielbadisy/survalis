@@ -61,7 +61,8 @@ forest for survival analysis, returning an \code{mlsurv_model} object compatible
 with \code{predict_cforest()} and the \code{survalis} framework.
 }
 \examples{
+\dontshow{if (requireNamespace("party", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 mod <- fit_cforest(Surv(time, status) ~ age + celltype + karno, data = veteran)
 head(predict_cforest(mod, newdata = veteran[1:5, ], times = c(100, 200)))
-
+\dontshow{\}) # examplesIf}
 }

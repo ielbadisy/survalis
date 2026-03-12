@@ -32,9 +32,10 @@ This function wraps \code{\link[ranger]{ranger}} for survival analysis and
 stores the result in a standardized \code{mlsurv_model} object.
 }
 \examples{
+\dontshow{if (requireNamespace("ranger", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 mod <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
 summary(mod)
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{predict_ranger}}, \code{\link{tune_ranger}}, \code{\link[ranger]{ranger}}

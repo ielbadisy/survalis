@@ -43,8 +43,9 @@ as implemented by \pkg{pec}.
 }
 
 \examples{
-mod <- fit_cforest(Surv(time, status) ~ age + celltype + karno, data = veteran)
-
+\dontshow{if (requireNamespace("pec", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+mod <- fit_selectcox(Surv(time, status) ~ age + celltype + karno, data = veteran)
+\dontshow{\}) # examplesIf}
 }
 \references{
 Mogensen UB, Ishwaran H, Gerds TA (2012). Evaluating Random Forests for

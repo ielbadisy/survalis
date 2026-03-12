@@ -56,6 +56,7 @@ uses the same code paths as production. Typical grids vary \code{ntree}, \code{m
 and \code{nodesize}.
 }
 \examples{
+\dontshow{if (requireNamespace("randomForestSRC", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 \donttest{
 mod_rsf_best <- tune_rsf(
   formula = Surv(time, status) ~ age + celltype + karno,
@@ -73,6 +74,7 @@ mod_rsf_best <- tune_rsf(
 
 summary(mod_rsf_best)
 }
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=fit_rsf]{fit_rsf()}}, \code{\link[=predict_rsf]{predict_rsf()}}

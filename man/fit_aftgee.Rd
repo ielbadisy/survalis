@@ -35,6 +35,7 @@ determines the baseline survival. \pkg{aftgee} estimates \eqn{\beta} using GEE.
 In this wrapper we set \code{id = NULL}, assuming one observation per subject.
 }
 \examples{
+\dontshow{if (requireNamespace("aftgee", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 \donttest{
 mod <- fit_aftgee(
   Surv(time, status) ~ trt + karno + age,
@@ -42,7 +43,7 @@ mod <- fit_aftgee(
 )
 head(predict_aftgee(mod, newdata = veteran[1:5, ], times = c(20, 60, 120)))
 }
-
+\dontshow{\}) # examplesIf}
 }
 \references{
 Jin, Z., Lin, D. Y., Wei, L. J., & Ying, Z. (2003). Rank-based inference for the

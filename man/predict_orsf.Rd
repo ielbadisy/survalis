@@ -28,8 +28,9 @@ Predictions are computed using the \code{pred_type = "surv"} option from \pkg{ao
 returning estimated survival probabilities for each observation at the specified time points.
 }
 \examples{
+\dontshow{if (requireNamespace("aorsf", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 mod <- fit_orsf(Surv(time, status) ~ age + karno, data = veteran)
 pred <- predict_orsf(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 head(pred)
-
+\dontshow{\}) # examplesIf}
 }

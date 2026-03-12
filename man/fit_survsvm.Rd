@@ -64,6 +64,7 @@ package to be installed.
 }
 
 \examples{
+\dontshow{if (requireNamespace("survivalsvm", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 mod_svm <- fit_survsvm(Surv(time, status) ~ age + celltype + karno,
                            data = veteran,
                            type = "regression",
@@ -91,7 +92,7 @@ cv_results_svm <- cv_survlearner(
 print(cv_results_svm)
 cv_summary(cv_results_svm)
 cv_plot(cv_results_svm)
-
+\dontshow{\}) # examplesIf}
 }
 \references{
 Binder H, et al. (2009). Survival Support Vector Machines (and related work).

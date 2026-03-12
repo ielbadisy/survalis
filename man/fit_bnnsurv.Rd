@@ -69,13 +69,14 @@ model in \code{$model}.
 }
 
 \examples{
+\dontshow{if (requireNamespace("bnnSurvival", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 
 mod <- fit_bnnsurv(
   Surv(time, status) ~ age + karno + diagtime + prior,
   data = veteran
 )
 head(predict_bnnsurv(mod, newdata = veteran[1:5, ], times = c(50, 100)))
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=predict_bnnsurv]{predict_bnnsurv()}}, \code{\link[=tune_bnnsurv]{tune_bnnsurv()}}

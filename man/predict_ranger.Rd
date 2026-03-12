@@ -26,9 +26,10 @@ Predictions are obtained from \code{\link[ranger]{predict.ranger}} and
 survival curves are interpolated to match the requested \code{times}.
 }
 \examples{
+\dontshow{if (requireNamespace("ranger", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 mod <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
 predict_ranger(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{fit_ranger}}, \code{\link{tune_ranger}}

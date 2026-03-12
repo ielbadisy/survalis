@@ -31,7 +31,8 @@ distribution-agnostic proxy; this yields a monotone-in-time score useful for ben
 For production use, prefer a parametric AFT fit where \eqn{\sigma} is estimated.
 }
 \examples{
+\dontshow{if (requireNamespace("aftgee", quietly = TRUE)) withAutoprint(\{ # examplesIf}
   mod <- fit_aftgee(Surv(time, status) ~ trt + karno + age, data = veteran)
   predict_aftgee(mod, newdata = veteran[1:5, ], times = c(20, 60, 120))
-
+\dontshow{\}) # examplesIf}
 }

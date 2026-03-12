@@ -36,7 +36,8 @@ of the time and status variables. The function requires the
 \pkg{survival} and \pkg{pec} packages.
 }
 \examples{
+\dontshow{if (requireNamespace("pec", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
 summary(mod_cox)
-
+\dontshow{\}) # examplesIf}
 }

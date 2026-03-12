@@ -41,6 +41,7 @@ This mapping provides calibrated-looking survival probabilities but is a
 modeling assumption external to the SVM fit; verify adequacy in practice.
 }
 \examples{
+\dontshow{if (requireNamespace("survivalsvm", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 mod_svm <- fit_survsvm(Surv(time, status) ~ age + celltype + karno,
                            data = veteran,
                            type = "regression",
@@ -50,7 +51,7 @@ mod_svm <- fit_survsvm(Surv(time, status) ~ age + celltype + karno,
 times <- c(100, 300, 500)
 predict_survsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "exp")
 predict_survsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "weibull", shape = 1.5)
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=fit_survsvm]{fit_survsvm()}}, \code{\link[=tune_survsvm]{tune_survsvm()}}

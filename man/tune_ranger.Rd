@@ -53,6 +53,7 @@ parameter combination. If \code{refit_best = TRUE}, the function returns the
 best-fitting model; otherwise, it returns a tuning results table.
 }
 \examples{
+\dontshow{if (requireNamespace("ranger", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 mod_ranger_best <- tune_ranger(
   formula = Surv(time, status) ~ age + karno + celltype,
   data = veteran,
@@ -67,7 +68,7 @@ mod_ranger_best <- tune_ranger(
   refit_best = TRUE
 )
 summary(mod_ranger_best)
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{fit_ranger}}, \code{\link{predict_ranger}}
