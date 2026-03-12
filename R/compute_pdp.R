@@ -202,9 +202,9 @@ plot_pdp <- function(pdp_ice_output, feature,
 
     if (is_categorical) {
       p <- ggplot() +
-        geom_boxplot(data = ice_integrated, aes_string(x = feature, y = "integrated_surv"),
+        geom_boxplot(data = ice_integrated, aes(x = .data[[feature]], y = integrated_surv),
                               alpha = alpha_ice, fill = "pink") +
-        geom_point(data = pdp_integrated, aes_string(x = feature, y = "integrated_surv"),
+        geom_point(data = pdp_integrated, aes(x = .data[[feature]], y = integrated_surv),
                             shape = 21, size = 3, fill = "black") +
         theme_minimal(base_size = 13) +
         labs(
@@ -214,7 +214,7 @@ plot_pdp <- function(pdp_ice_output, feature,
         )
       return(p)
     } else {
-      p <- ggplot(pdp_integrated, aes_string(x = feature, y = "integrated_surv")) +
+      p <- ggplot(pdp_integrated, aes(x = .data[[feature]], y = integrated_surv)) +
         theme_minimal(base_size = 13) +
         labs(
           title = paste("Integrated PDP over Survival Time:", feature),
@@ -222,9 +222,9 @@ plot_pdp <- function(pdp_ice_output, feature,
           y = "Integrated Survival"
         )
       if (smooth) {
-        p <- p + geom_smooth(method = "loess", se = FALSE, color = "steelblue", size = 1.2)
+        p <- p + geom_smooth(method = "loess", se = FALSE, color = "steelblue", linewidth = 1.2)
       } else {
-        p <- p + geom_line(color = "steelblue", size = 1.2)
+        p <- p + geom_line(color = "steelblue", linewidth = 1.2)
       }
       return(p)
     }
@@ -242,7 +242,7 @@ plot_pdp <- function(pdp_ice_output, feature,
   }
 
   if (is_categorical) {
-    p <- ggplot(plot_data, aes_string(x = feature, y = "surv_prob", fill = "type")) +
+    p <- ggplot(plot_data, aes(x = .data[[feature]], y = surv_prob, fill = type)) +
       theme_minimal(base_size = 13) +
       facet_wrap(~ time, scales = "free_y") +
       labs(
@@ -264,8 +264,15 @@ plot_pdp <- function(pdp_ice_output, feature,
     }
 
   } else {
-    p <- ggplot(plot_data, aes_string(x = feature, y = "surv_prob",
-                                                        group = "interaction(.id, time)", color = "type")) +
+    p <- ggplot(
+      plot_data,
+      aes(
+        x = .data[[feature]],
+        y = surv_prob,
+        group = interaction(.id, time),
+        color = type
+      )
+    ) +
       theme_minimal(base_size = 13) +
       facet_wrap(~ time, scales = "free_y") +
       labs(
@@ -281,13 +288,12 @@ plot_pdp <- function(pdp_ice_output, feature,
     }
 
     if ("pdp" %in% plot_data$type) {
-      p <- p + geom_line(data = plot_data[type == "pdp"], size = 1.2)
+      p <- p + geom_line(data = plot_data[type == "pdp"], linewidth = 1.2)
     }
   }
 
   return(p)
 }
-
 
 
 
