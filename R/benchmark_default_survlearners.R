@@ -234,7 +234,7 @@ summarize_benchmark_results <- function(results, digits = 3) {
 #' @param maximize Logical; whether to maximize the metric. If \code{NULL}
 #'   (default), the function maximizes for concordance‑like metrics
 #'   (\code{"cindex"}) and minimizes for error‑like metrics
-#'   (\code{"ibs"}, \code{"brier"}, \code{"iae"}, \code{"ise"}).
+#'   (\code{"ibs"}, \code{"brier"}, \code{"iae"}, \code{"ise"}, \code{"ece"}).
 #'
 #' @return A tibble with columns \code{learner}, \code{metric}, and the selected
 #'   average \code{value} for the best learner(s). Ties are returned as multiple rows.
@@ -253,7 +253,7 @@ best_survlearner <- function(benchmark_results, metric, maximize = NULL) {
 
   if (is.null(maximize)) {
     # default: maximize cindex, minimize others
-    maximize <- !(metric %in% c("ibs", "brier", "iae", "ise"))
+    maximize <- !(metric %in% c("ibs", "brier", "iae", "ise", "ece"))
   }
 
   summary <- benchmark_results |>
@@ -266,5 +266,4 @@ best_survlearner <- function(benchmark_results, metric, maximize = NULL) {
 
   return(best)
   }
-
 
