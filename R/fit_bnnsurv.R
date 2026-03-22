@@ -132,9 +132,7 @@ predict_bnnsurv <- function(object, newdata, times = NULL) {
   Smat <- t(apply(Smat, 1L, cummin))
 
   if (is.null(times)) {
-    survmat <- as.data.frame(Smat, stringsAsFactors = FALSE)
-    colnames(survmat) <- paste0("t=", tg)
-    return(survmat)
+    return(.finalize_survmat(Smat, times = tg))
   }
 
   stopifnot(is.numeric(times), length(times) > 0L, all(is.finite(times)))
@@ -143,9 +141,7 @@ predict_bnnsurv <- function(object, newdata, times = NULL) {
   survmat <- t(apply(Smat, 1L, function(row)
     stats::approx(x = tg, y = row, xout = times, method = "linear", rule = 2)$y
   ))
-  survmat <- as.data.frame(survmat, stringsAsFactors = FALSE)
-  colnames(survmat) <- paste0("t=", times)
-  survmat
+  .finalize_survmat(survmat, times = times)
 }
 
 
