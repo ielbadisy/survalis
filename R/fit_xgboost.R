@@ -167,10 +167,7 @@ predict_xgboost <- function(object, newdata, times = NULL) {
                        stop("Unsupported distribution.")
   )
 
-  rownames(surv_probs) <- paste0("ID_", seq_len(nrow(x_new)))
-  colnames(surv_probs) <- paste0("t=", times)
-
-  as.data.frame(surv_probs)
+  .finalize_survmat(surv_probs, times = times)
 }
 
 
