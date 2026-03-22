@@ -103,8 +103,7 @@ predict_ranger <- function(object, newdata, times) {
     )$y
   }
 
-  colnames(survmat) <- paste0("t=", times)
-  as.data.frame(survmat)
+  .finalize_survmat(survmat, times = times)
 }
 
 
