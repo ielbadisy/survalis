@@ -122,10 +122,7 @@ predict_rpart <- function(object, newdata, times, ...) {
     exp(-t / predicted_times)
   })
 
-  if (is.vector(survmat)) survmat <- matrix(survmat, ncol = length(times))
-
-  colnames(survmat) <- paste0("t=", times)
-  as.data.frame(survmat)
+  .finalize_survmat(survmat, times = times)
 }
 
 #' Tune a Survival Tree Model (`rpart`) via Cross-Validation
