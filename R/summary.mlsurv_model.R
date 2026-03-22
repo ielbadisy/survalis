@@ -58,20 +58,29 @@ summary.mlsurv_model <- function(object, ...) {
   )
   class(out) <- "summary.mlsurv_model"
 
-  # styled output
-  cli::cli_h1(paste(out$learner, "summary"))
-
-  cli::cli_text("Formula:")
-  cli::cli_code(deparse(out$formula))
-
-  cli::cli_text("Engine: {.strong {out$engine}}")
-  cli::cli_text("Learner: {.strong {out$learner}}")
-
-  cli::cli_text("\nData summary:")
-  cli::cli_text("- Observations: {.val {out$data_summary$observations}}")
-  cli::cli_text("- Predictors: {.val {paste(out$data_summary$predictors, collapse = ', ')}}")
-  cli::cli_text("- Time range: [{out$data_summary$time_range[1]}, {out$data_summary$time_range[2]}]")
-  cli::cli_text("- Event rate: {.val {sprintf('%.1f%%', 100 * out$data_summary$event_rate)}}")
+  if (requireNamespace("cli", quietly = TRUE)) {
+    cli::cli_h1(paste(out$learner, "summary"))
+    cli::cli_text("Formula:")
+    cli::cli_code(deparse(out$formula))
+    cli::cli_text("Engine: {.strong {out$engine}}")
+    cli::cli_text("Learner: {.strong {out$learner}}")
+    cli::cli_text("\nData summary:")
+    cli::cli_text("- Observations: {.val {out$data_summary$observations}}")
+    cli::cli_text("- Predictors: {.val {paste(out$data_summary$predictors, collapse = ', ')}}")
+    cli::cli_text("- Time range: [{out$data_summary$time_range[1]}, {out$data_summary$time_range[2]}]")
+    cli::cli_text("- Event rate: {.val {sprintf('%.1f%%', 100 * out$data_summary$event_rate)}}")
+  } else {
+    cat(paste0("\n-- ", out$learner, " summary --\n"))
+    cat("Formula:\n")
+    cat(paste0(deparse(out$formula), "\n"))
+    cat("Engine:", out$engine, "\n")
+    cat("Learner:", out$learner, "\n")
+    cat("\nData summary:\n")
+    cat("- Observations:", out$data_summary$observations, "\n")
+    cat("- Predictors:", paste(out$data_summary$predictors, collapse = ", "), "\n")
+    cat("- Time range: [", out$data_summary$time_range[1], ", ", out$data_summary$time_range[2], "]\n", sep = "")
+    cat("- Event rate:", sprintf("%.1f%%", 100 * out$data_summary$event_rate), "\n")
+  }
 
   invisible(out)
 }
