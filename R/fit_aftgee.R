@@ -111,6 +111,5 @@ predict_aftgee <- function(object, newdata, times = NULL) {
     1 - pnorm((log(t) - log_time_pred))  # approximate S(t) from log-T model
   })
 
-  colnames(survmat) <- paste0("t=", times)
-  as.data.frame(survmat)
+  .finalize_survmat(survmat, times = times)
 }
