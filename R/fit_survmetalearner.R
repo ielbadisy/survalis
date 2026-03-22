@@ -133,8 +133,7 @@ predict_survmetalearner <- function(model, newdata, times) {
     survmat[, j] <- pred_array[, , j] %*% W[, j]
   }
 
-  colnames(survmat) <- paste0("t=", times)
-  as.data.frame(survmat)
+  .finalize_survmat(survmat, times = times)
 }
 
 #' Plot Time‑Varying Stacking Weights
@@ -362,5 +361,4 @@ cv_survmetalearner <- function(formula, data, times,
     metrics = metrics
   ), class = "cv_survmetalearner_result")
 }
-
 
