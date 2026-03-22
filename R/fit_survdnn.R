@@ -177,7 +177,16 @@ predict_survdnn <- function(object, newdata, times = NULL,
 
   type <- match.arg(type)
 
-  predict(object$model, newdata = newdata, type = type, times = times, ...)
+  pred <- predict(object$model, newdata = newdata, type = type, times = times, ...)
+
+  if (identical(type, "survival")) {
+    if (is.null(times)) {
+      stop("`times` must be supplied when `type = 'survival'`.")
+    }
+    return(.finalize_survmat(pred, times = times))
+  }
+
+  pred
 }
 
 
