@@ -136,9 +136,7 @@ predict_bart <- function(object, newdata, times) {
   # align internal BART times to requested times via nearest neighbor match
   mapped_times <- sapply(times, function(t) which.min(abs(object$eval_times - t)))
   survmat <- prob_matrix[, mapped_times, drop = FALSE]
-  colnames(survmat) <- paste0("t=", times)
-
-  as.data.frame(survmat)
+  .finalize_survmat(survmat, times = times)
 
 }
 
@@ -253,4 +251,3 @@ tune_bart <- function(formula, data, times,
     return(best_model)
   }
 }
-
