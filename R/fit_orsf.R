@@ -106,9 +106,7 @@ predict_orsf <- function(object, newdata, times, ...) {
     survmat <- matrix(survmat, nrow = 1)
   }
 
-  colnames(survmat) <- paste0("t=", times)
-
-  as.data.frame(survmat)
+  .finalize_survmat(survmat, times = times)
 }
 
 
