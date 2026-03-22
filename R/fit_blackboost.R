@@ -159,11 +159,7 @@ predict_blackboost <- function(object, newdata, times, ...) {
   idx <- findInterval(times, sf_time_ext)
   survmat <- sf_surv_ext[idx, , drop = FALSE]
   survmat <- t(survmat)
-
-  colnames(survmat) <- paste0("t=", times)
-  rownames(survmat) <- rownames(newdata)
-
-  as.data.frame(survmat)
+  .finalize_survmat(survmat, times = times)
 }
 
 #' Tune blackboost Hyperparameters (Cross-Validation)
