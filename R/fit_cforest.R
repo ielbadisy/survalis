@@ -131,8 +131,7 @@ predict_cforest <- function(object, newdata, times, ...) {
     approx(x = s_time, y = s_surv, xout = times, method = "linear", rule = 2)$y
   }))
 
-  colnames(survmat) <- paste0("t=", times)
-  as.data.frame(survmat)
+  .finalize_survmat(survmat, times = times)
 }
 
 #' Tune a Conditional Inference Survival Forest
