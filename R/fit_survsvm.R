@@ -171,8 +171,7 @@ predict_survsvm <- function(object, newdata, times, dist = "exp", shape = 1) {
                   "weibull" = sapply(times, function(t) exp(- (t / predicted_times)^shape))
   )
 
-  colnames(survmat) <- paste0("t=", times)
-  as.data.frame(survmat)
+  .finalize_survmat(survmat, times = times)
 }
 
 #' Tune Survival SVM Hyperparameters (Cross-Validation)
@@ -322,4 +321,3 @@ tune_survsvm <- function(formula, data, times,
   class(results) <- c("tune_surv", class(results))
   return(results)
 }
-
