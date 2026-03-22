@@ -149,7 +149,7 @@ list_metrics()
 mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
 summary(mod_cox)
 #> 
-#> ── coxph summary ───────────────────────────────────────────────────────────────────────────
+#> ── coxph summary ───────────────────────────────────────────────────────────────
 #> Formula:
 #> Surv(time, status) ~ age + karno + celltype
 #> Engine: survival
@@ -253,7 +253,207 @@ shap_meanabs
 plot_shap(shap_meanabs)
 ```
 
-<img src="man/figures/README-unnamed-chunk-12-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-12-1.png" alt="" width="100%" />
+
+### More interpretability methods
+
+`survalis` also provides PDP, ALE, surrogate explanations, tree
+surrogates, permutation importance, interaction analysis, and
+counterfactuals.
+
+**Partial dependence and ICE**
+
+``` r
+pdp_age <- compute_pdp(
+  model = mod_cox,
+  data = veteran,
+  feature = "age",
+  times = c(100, 200, 300),
+  method = "pdp+ice"
+  )
+
+plot_pdp(pdp_age, feature = "age", which = "per_time")
+#> Warning: `aes_string()` was deprecated in ggplot2 3.0.0.
+#> ℹ Please use tidy evaluation idioms with `aes()`.
+#> ℹ See also `vignette("ggplot2-in-packages")` for more information.
+#> ℹ The deprecated feature was likely used in the survalis package.
+#>   Please report the issue to the authors.
+#> This warning is displayed once per session.
+#> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+#> generated.
+#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+#> ℹ Please use `linewidth` instead.
+#> ℹ The deprecated feature was likely used in the survalis package.
+#>   Please report the issue to the authors.
+#> This warning is displayed once per session.
+#> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+#> generated.
+```
+
+<img src="man/figures/README-unnamed-chunk-13-1.png" alt="" width="100%" />
+
+``` r
+plot_pdp(pdp_age, feature = "age", which = "integrated", smooth = TRUE)
+#> `geom_smooth()` using formula = 'y ~ x'
+```
+
+<img src="man/figures/README-unnamed-chunk-13-2.png" alt="" width="100%" />
+
+**Accumulated local effects**
+
+``` r
+ale_karno <- compute_ale(
+  model = mod_cox,
+  newdata = veteran,
+  feature = "karno",
+  times = c(100, 200, 300)
+  )
+
+plot_ale(ale_karno, feature = "karno", which = "per_time")
+```
+
+<img src="man/figures/README-unnamed-chunk-14-1.png" alt="" width="100%" />
+
+``` r
+plot_ale(ale_karno, feature = "karno", which = "integrated", smooth = TRUE)
+#> `geom_smooth()` using formula = 'y ~ x'
+```
+
+<img src="man/figures/README-unnamed-chunk-14-2.png" alt="" width="100%" />
+
+**Local surrogate explanation**
+
+``` r
+local_surrogate <- compute_surrogate(
+  model = mod_cox,
+  newdata = veteran[1, , drop = FALSE],
+  baseline_data = veteran,
+  times = c(100, 200, 300),
+  target_time = 200,
+  k = 5
+  )
+
+local_surrogate
+#>    feature feature_value      effect target_time
+#> 1    karno            60 0.491034890         200
+#> 2 celltype      squamous 0.189632633         200
+#> 3      age            69 0.120729843         200
+#> 4 diagtime             7 0.001800378         200
+#> 5    prior             0 0.000000000         200
+plot_surrogate(local_surrogate, top_n = 10)
+```
+
+<img src="man/figures/README-unnamed-chunk-15-1.png" alt="" width="100%" />
+
+**Tree surrogate**
+
+``` r
+tree_surrogate <- compute_tree_surrogate(
+  model = mod_cox,
+  data = veteran,
+  times = c(100, 200, 300)
+  )
+
+plot_tree_surrogate(tree_surrogate, type = "importance", top_n = 5)
+```
+
+<img src="man/figures/README-unnamed-chunk-16-1.png" alt="" width="100%" />
+
+``` r
+# plot_tree_surrogate(tree_surrogate, type = "tree")
+```
+
+**Permutation variable importance**
+
+``` r
+varimp_res <- compute_varimp(
+  model = mod_cox,
+  times = c(100, 200, 300),
+  metric = "ibs",
+  n_repetitions = 5,
+  seed = 123
+  )
+
+varimp_res
+#> # A tibble: 6 × 5
+#>   feature  importance importance_05 importance_95 scaled_importance
+#>   <chr>         <dbl>         <dbl>         <dbl>             <dbl>
+#> 1 karno       0.0624          0.192         0.223            100   
+#> 2 celltype    0.0446          0.185         0.201             71.5 
+#> 3 age        -0.00180         0.144         0.146              2.89
+#> 4 trt         0               0.147         0.147              0   
+#> 5 diagtime    0               0.147         0.147              0   
+#> 6 prior       0               0.147         0.147              0
+plot_varimp(varimp_res)
+```
+
+<img src="man/figures/README-unnamed-chunk-17-1.png" alt="" width="100%" />
+
+**Feature interactions**
+
+``` r
+interaction_1way <- compute_interactions(
+  model = mod_cox,
+  data = veteran,
+  times = c(100, 200, 300),
+  target_time = 200,
+  type = "1way"
+  )
+
+interaction_heatmap <- compute_interactions(
+  model = mod_cox,
+  data = veteran,
+  times = c(100, 200, 300),
+  target_time = 200,
+  type = "heatmap"
+  )
+
+interaction_time <- compute_interactions(
+  model = mod_cox,
+  data = veteran,
+  times = c(100, 200, 300),
+  type = "time"
+  )
+
+plot_interactions(interaction_1way, type = "1way")
+```
+
+<img src="man/figures/README-unnamed-chunk-18-1.png" alt="" width="100%" />
+
+``` r
+plot_interactions(interaction_heatmap, type = "heatmap")
+```
+
+<img src="man/figures/README-unnamed-chunk-18-2.png" alt="" width="100%" />
+
+``` r
+plot_interactions(interaction_time, type = "time")
+```
+
+<img src="man/figures/README-unnamed-chunk-18-3.png" alt="" width="100%" />
+
+**Counterfactual explanations**
+
+``` r
+counterfactuals <- compute_counterfactual(
+  model = mod_cox,
+  newdata = veteran[1, , drop = FALSE],
+  times = c(100, 200, 300),
+  target_time = 200,
+  features_to_change = c("age", "karno", "diagtime"),
+  cost_penalty = 0.01
+  )
+
+counterfactuals
+#>    feature original_value suggested_value survival_gain change_cost
+#> 1    karno             60         81.0202        0.2347     21.0202
+#> 2 diagtime              7          7.0808        0.0000      0.0808
+#> 3      age             69         69.1313        0.0003      0.1313
+#>   penalized_gain
+#> 1         0.0245
+#> 2        -0.0008
+#> 3        -0.0010
+```
 
 **5. Calibration**
 
@@ -265,7 +465,7 @@ compute_calibration(
    ) |> plot_calibration()
 ```
 
-<img src="man/figures/README-unnamed-chunk-13-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-20-1.png" alt="" width="100%" />
 
 ## Citing
 

@@ -144,6 +144,129 @@ shap_meanabs
 plot_shap(shap_meanabs)
 ```
 
+### More interpretability methods
+
+`survalis` also provides PDP, ALE, surrogate explanations, tree surrogates,
+permutation importance, interaction analysis, and counterfactuals.
+
+**Partial dependence and ICE**
+
+```{r}
+pdp_age <- compute_pdp(
+  model = mod_cox,
+  data = veteran,
+  feature = "age",
+  times = c(100, 200, 300),
+  method = "pdp+ice"
+  )
+
+plot_pdp(pdp_age, feature = "age", which = "per_time")
+plot_pdp(pdp_age, feature = "age", which = "integrated", smooth = TRUE)
+```
+
+**Accumulated local effects**
+
+```{r}
+ale_karno <- compute_ale(
+  model = mod_cox,
+  newdata = veteran,
+  feature = "karno",
+  times = c(100, 200, 300)
+  )
+
+plot_ale(ale_karno, feature = "karno", which = "per_time")
+plot_ale(ale_karno, feature = "karno", which = "integrated", smooth = TRUE)
+```
+
+**Local surrogate explanation**
+
+```{r}
+local_surrogate <- compute_surrogate(
+  model = mod_cox,
+  newdata = veteran[1, , drop = FALSE],
+  baseline_data = veteran,
+  times = c(100, 200, 300),
+  target_time = 200,
+  k = 5
+  )
+
+local_surrogate
+plot_surrogate(local_surrogate, top_n = 10)
+```
+
+**Tree surrogate**
+
+```{r}
+tree_surrogate <- compute_tree_surrogate(
+  model = mod_cox,
+  data = veteran,
+  times = c(100, 200, 300)
+  )
+
+plot_tree_surrogate(tree_surrogate, type = "importance", top_n = 5)
+# plot_tree_surrogate(tree_surrogate, type = "tree")
+```
+
+**Permutation variable importance**
+
+```{r}
+varimp_res <- compute_varimp(
+  model = mod_cox,
+  times = c(100, 200, 300),
+  metric = "ibs",
+  n_repetitions = 5,
+  seed = 123
+  )
+
+varimp_res
+plot_varimp(varimp_res)
+```
+
+**Feature interactions**
+
+```{r}
+interaction_1way <- compute_interactions(
+  model = mod_cox,
+  data = veteran,
+  times = c(100, 200, 300),
+  target_time = 200,
+  type = "1way"
+  )
+
+interaction_heatmap <- compute_interactions(
+  model = mod_cox,
+  data = veteran,
+  times = c(100, 200, 300),
+  target_time = 200,
+  type = "heatmap"
+  )
+
+interaction_time <- compute_interactions(
+  model = mod_cox,
+  data = veteran,
+  times = c(100, 200, 300),
+  type = "time"
+  )
+
+plot_interactions(interaction_1way, type = "1way")
+plot_interactions(interaction_heatmap, type = "heatmap")
+plot_interactions(interaction_time, type = "time")
+```
+
+**Counterfactual explanations**
+
+```{r}
+counterfactuals <- compute_counterfactual(
+  model = mod_cox,
+  newdata = veteran[1, , drop = FALSE],
+  times = c(100, 200, 300),
+  target_time = 200,
+  features_to_change = c("age", "karno", "diagtime"),
+  cost_penalty = 0.01
+  )
+
+counterfactuals
+```
 
 **5. Calibration**
 
@@ -162,5 +285,3 @@ compute_calibration(
 ```r
 citation("survalis")
 ```
-
-
