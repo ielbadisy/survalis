@@ -75,9 +75,6 @@
   if (any(!is.finite(times)) || any(times < 0)) {
     stop("`times` must contain finite, non-negative values.")
   }
-  if (anyDuplicated(times)) {
-    stop("`times` must not contain duplicates.")
-  }
 
   if (is.vector(S) && !is.list(S)) {
     S <- matrix(S, nrow = 1)
