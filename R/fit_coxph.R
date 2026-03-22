@@ -34,7 +34,6 @@
 
 fit_coxph <- function(formula, data, ...) {
   stopifnot(requireNamespace("survival", quietly = TRUE))
-  stopifnot(requireNamespace("pec", quietly = TRUE))
 
   model <- survival::coxph(formula, data = data, x = TRUE, y = TRUE, ...)
 
@@ -79,9 +78,9 @@ predict_coxph <- function(object, newdata, times) {
 
   if (!is.null(object$learner) && object$learner != "coxph") {warning("Object passed to predict_coxph() may not come from fit_coxph().")}
 
-  stopifnot(requireNamespace("pec", quietly = TRUE))
+  lp_train <- stats::predict(object$model, newdata = object$data, type = "lp")
+  lp_new <- stats::predict(object$model, newdata = newdata, type = "lp")
+  y_train <- survival::Surv(object$data[[object$time]], object$data[[object$status]])
 
-  survmat <- pec::predictSurvProb(object$model, newdata = newdata, times = times)
-  colnames(survmat) <- paste0("t=", times)
-  as.data.frame(survmat)
+  .predict_cox_from_lp(lp_train = lp_train, lp_new = lp_new, y_train = y_train, times = times)
 }
