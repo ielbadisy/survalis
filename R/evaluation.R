@@ -449,25 +449,11 @@ if ("." %in% all.vars(update(formula, . ~ 0))) {
 warning("Please avoid using '.' in the formula. Specify all predictors explicitly.")
 }
 
-tf <- terms(formula, data = data)
-outcome <- attr(tf, "variables")[[2]]
-
-if (!inherits(outcome, "call") || outcome[[1]] != as.name("Surv")) {
-stop("Formula must begin with a Surv(...) outcome.")
-}
-
-time_col <- as.character(outcome[[2]])
-status_expr <- outcome[[3]]
-
-if (is.call(status_expr) && status_expr[[1]] == as.name("==")) {
-status_col <- as.character(status_expr[[2]])
-event_value <- eval(status_expr[[3]], data)
-recode_status <- TRUE
-} else {
-status_col <- as.character(status_expr)
-event_value <- 1
-recode_status <- FALSE
-}
+parsed_formula <- .parse_surv_formula(formula, data)
+time_col <- parsed_formula$time_col
+status_col <- parsed_formula$status_col
+event_value <- parsed_formula$event_value
+recode_status <- parsed_formula$recode_status
 
 all_vars <- all.vars(formula)
 n_before <- nrow(data)
@@ -496,18 +482,14 @@ model <- fit_fun(formula = formula, data = train, ...)
 pred  <- pred_fun(model, newdata = test, times = times)
 pred  <- .finalize_survmat(pred, times = times)
 
-tf <- terms(formula, data = test)
-outcome <- attr(tf, "variables")[[2]]
-time_col <- as.character(outcome[[2]])
-status_expr <- outcome[[3]]
+parsed_formula <- .parse_surv_formula(formula, test)
+time_col <- parsed_formula$time_col
+status_col <- parsed_formula$status_col
+event_value <- parsed_formula$event_value
 
-if (is.call(status_expr) && status_expr[[1]] == as.name("==")) {
-status_col <- as.character(status_expr[[2]])
-event_value <- eval(status_expr[[3]], test)
+if (parsed_formula$recode_status) {
 status_vector <- as.integer(test[[status_col]] == event_value)
 } else {
-status_col <- as.character(status_expr)
-event_value <- 1
 status_vector <- test[[status_col]]
 }
 
@@ -645,18 +627,14 @@ score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", 
   sp_matrix <- .finalize_survmat(sp_matrix, times = times)
 
   # extract Surv object
-  tf <- terms(formula, data = data)
-  outcome <- attr(tf, "variables")[[2]]
-  time_col <- as.character(outcome[[2]])
-  status_expr <- outcome[[3]]
+  parsed_formula <- .parse_surv_formula(formula, data)
+  time_col <- parsed_formula$time_col
+  status_col <- parsed_formula$status_col
+  event_value <- parsed_formula$event_value
 
-  if (is.call(status_expr) && status_expr[[1]] == as.name("==")) {
-    status_col <- as.character(status_expr[[2]])
-    event_value <- eval(status_expr[[3]], data)
+  if (parsed_formula$recode_status) {
     status_vector <- as.integer(data[[status_col]] == event_value)
   } else {
-    status_col <- as.character(status_expr)
-    event_value <- 1
     status_vector <- data[[status_col]]
   }
 
@@ -678,4 +656,3 @@ score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", 
 
     tidyr::unnest(cols = value)
   }
-

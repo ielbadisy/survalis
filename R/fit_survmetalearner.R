@@ -268,18 +268,13 @@ cv_survmetalearner <- function(formula, data, times,
     base_preds_train <- lapply(base_preds, function(mat) mat[idx_train, , drop = FALSE])
 
     # extract time/status from formula
-    tf <- terms(formula, data = train)
-    outcome <- attr(tf, "variables")[[2]]
-    time_col <- as.character(outcome[[2]])
-    status_expr <- outcome[[3]]
+    parsed_formula <- .parse_surv_formula(formula, train)
+    time_col <- parsed_formula$time_col
+    status_col <- parsed_formula$status_col
 
-    if (is.call(status_expr) && status_expr[[1]] == as.name("==")) {
-      status_col <- as.character(status_expr[[2]])
-      event_value <- eval(status_expr[[3]], train)
-      status_vector <- as.integer(train[[status_col]] == event_value)
+    if (parsed_formula$recode_status) {
+      status_vector <- as.integer(train[[status_col]] == parsed_formula$event_value)
     } else {
-      status_col <- as.character(status_expr)
-      event_value <- 1
       status_vector <- train[[status_col]]
     }
 
@@ -299,10 +294,10 @@ cv_survmetalearner <- function(formula, data, times,
 
     # extract test survival object
     time_test <- test[[time_col]]
-    status_test <- if (is.call(status_expr)) {
-      as.integer(test[[as.character(status_expr[[2]])]] == eval(status_expr[[3]], test))
+    status_test <- if (parsed_formula$recode_status) {
+      as.integer(test[[status_col]] == parsed_formula$event_value)
     } else {
-      test[[as.character(status_expr)]]
+      test[[status_col]]
     }
     surv_test <- survival::Surv(time_test, status_test)
 
@@ -328,18 +323,13 @@ cv_survmetalearner <- function(formula, data, times,
   })
 
   # Fit final survmetalearner on full data
-  tf <- terms(formula, data = data)
-  outcome <- attr(tf, "variables")[[2]]
-  time_col <- as.character(outcome[[2]])
-  status_expr <- outcome[[3]]
+  parsed_formula <- .parse_surv_formula(formula, data)
+  time_col <- parsed_formula$time_col
+  status_col <- parsed_formula$status_col
 
-  if (is.call(status_expr) && status_expr[[1]] == as.name("==")) {
-    status_col <- as.character(status_expr[[2]])
-    event_value <- eval(status_expr[[3]], data)
-    status_vector <- as.integer(data[[status_col]] == event_value)
+  if (parsed_formula$recode_status) {
+    status_vector <- as.integer(data[[status_col]] == parsed_formula$event_value)
   } else {
-    status_col <- as.character(status_expr)
-    event_value <- 1
     status_vector <- data[[status_col]]
   }
 
@@ -361,4 +351,3 @@ cv_survmetalearner <- function(formula, data, times,
     metrics = metrics
   ), class = "cv_survmetalearner_result")
 }
-

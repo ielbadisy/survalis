@@ -72,17 +72,13 @@ compute_varimp <- function(model, times,
   }
 
   # Parse formula for time/status
-  tf <- terms(formula, data = data)
-  outcome <- attr(tf, "variables")[[2]]
-  time_col <- as.character(outcome[[2]])
-  status_expr <- outcome[[3]]
+  parsed_formula <- .parse_surv_formula(formula, data)
+  time_col <- parsed_formula$time_col
+  status_col <- parsed_formula$status_col
 
-  if (is.call(status_expr) && status_expr[[1]] == as.name("==")) {
-    status_col <- as.character(status_expr[[2]])
-    event_value <- eval(status_expr[[3]], data)
-    status_vector <- as.integer(data[[status_col]] == event_value)
+  if (parsed_formula$recode_status) {
+    status_vector <- as.integer(data[[status_col]] == parsed_formula$event_value)
   } else {
-    status_col <- as.character(status_expr)
     status_vector <- data[[status_col]]
   }
 
@@ -173,4 +169,3 @@ plot_varimp <- function(varimp_df, use_scaled = TRUE) {
     ) +
     ggplot2::theme_minimal()
 }
-
