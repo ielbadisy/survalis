@@ -94,11 +94,7 @@ predict_selectcox <- function(object, newdata, times) {
   stopifnot(requireNamespace("pec", quietly = TRUE))
 
   pred <- pec::predictSurvProb(object$model, newdata = newdata, times = times)
-  survmat <- as.matrix(pred)
-
-  colnames(survmat) <- paste0("t=", times)
-
-  as.data.frame(survmat)
+  .finalize_survmat(as.matrix(pred), times = times)
 
   }
 
