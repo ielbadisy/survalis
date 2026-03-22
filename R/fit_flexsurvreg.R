@@ -100,7 +100,7 @@ predict_flexsurvreg <- function(object, newdata, times, ...) {
     survmat[i, ] <- .pred[[i]]$.pred_survival
     }
 
-  as.data.frame(survmat)
+  .finalize_survmat(survmat, times = times)
 }
 
 
