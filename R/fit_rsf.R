@@ -120,12 +120,10 @@ predict_rsf <- function(object, newdata, times = NULL, ...) {
   if (!is.null(times)) {
     idx <- sapply(times, function(t) which.min(abs(time_points - t)))
     survmat <- surv_mat[, idx, drop = FALSE]
-    colnames(survmat) <- paste0("t=", times)
+    .finalize_survmat(survmat, times = times)
     } else {
-    colnames(survmat) <- paste0("t=", time_points)
+    .finalize_survmat(survmat, times = time_points)
     }
-
-  as.data.frame(survmat)
 }
 
 
