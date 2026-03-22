@@ -120,6 +120,5 @@ predict_stpm2 <- function(object, newdata, times, ...) {
 
   # Reshape back to nrow(newdata) x length(times)
   surv_mat <- matrix(as.numeric(surv_vec), nrow = nrow(newdata), byrow = TRUE)
-  colnames(surv_mat) <- paste0("t=", times)
-  as.data.frame(surv_mat)
+  .finalize_survmat(surv_mat, times = times)
 }
