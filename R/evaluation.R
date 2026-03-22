@@ -487,13 +487,14 @@ folds_data <- rsample::vfold_cv(data, v = folds, strata = !!rlang::sym(status_co
 
 # cross-validation loop via fmapn
 results <- functionals::fmapn(
-list(split = folds_data$splits, id = folds_data$id, fold = seq_len(folds)),
+list(split = folds_data$splits, id = folds_data$id, fold = seq_along(folds_data$splits)),
 function(split, id, fold) {
 train <- rsample::analysis(split)
 test  <- rsample::assessment(split)
 
 model <- fit_fun(formula = formula, data = train, ...)
 pred  <- pred_fun(model, newdata = test, times = times)
+pred  <- .finalize_survmat(pred, times = times)
 
 tf <- terms(formula, data = test)
 outcome <- attr(tf, "variables")[[2]]
@@ -641,6 +642,7 @@ score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", 
   }
   pred_fun <- get(pred_fun_name, mode = "function")
   sp_matrix <- pred_fun(model, newdata = data, times = times)
+  sp_matrix <- .finalize_survmat(sp_matrix, times = times)
 
   # extract Surv object
   tf <- terms(formula, data = data)
@@ -676,5 +678,4 @@ score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", 
 
     tidyr::unnest(cols = value)
   }
-
 
