@@ -216,14 +216,13 @@ plot_surrogate <- function(surrogate_df, top_n = NULL) {
     coord_flip() +
     labs(
       x = NULL,
-      y = "Local Effect (\beta * x)",
+      y = "Local effect",
       title = paste0("Surrogate Explanation at Target Time = ", target_time)
     ) +
     scale_fill_manual(values = c("Positive" = "#4CAF50", "Negative" = "#F44336")) +
     theme_minimal() +
     theme(legend.position = "none")
 }
-
 
 
 
