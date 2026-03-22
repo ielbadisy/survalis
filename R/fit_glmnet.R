@@ -114,23 +114,7 @@ predict_glmnet <- function(object, newdata, times, ...) {
   # predict linear predictors
   lp_train <- predict(object$model, newx = x_train, s = "lambda.min", type = "link")[, 1]
   lp_new   <- predict(object$model, newx = x_new,   s = "lambda.min", type = "link")[, 1]
-
-  # estimate baseline hazard
-  base_haz <- survival::basehaz(survival::coxph(y_train ~ lp_train), centered = FALSE)
-
-  # interpolate cumulative hazard at requested times and compute survival
-  survmat <- sapply(times, function(t) {
-    H0_t <- approx(base_haz$time, base_haz$hazard, xout = t, rule = 2)$y
-    exp(-H0_t * exp(lp_new))
-  })
-
-  if (is.vector(survmat)) {
-    survmat <- matrix(survmat, ncol = length(times))
-  }
-
-  colnames(survmat) <- paste0("t=", times)
-
-  as.data.frame(survmat)
+  .predict_cox_from_lp(lp_train = lp_train, lp_new = lp_new, y_train = y_train, times = times)
 }
 
 #' Tune Penalized Cox Proportional Hazards Model via Cross-Validation
