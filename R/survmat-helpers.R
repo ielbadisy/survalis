@@ -50,6 +50,90 @@
   S
 }
 
+#' Standardize learner prediction output to the survmat contract
+#'
+#' Internal utility used by `predict_*()` methods and evaluators to coerce raw
+#' predictions to a validated survival-probability matrix contract.
+#'
+#' @param S Raw survival predictions as matrix, data.frame, or vector.
+#' @param times Numeric vector of evaluation times aligned with columns of `S`.
+#' @param clamp Logical; if `TRUE`, clamp values to `[0, 1]`.
+#' @param enforce_monotone Logical; if `TRUE`, enforce non-increasing survival
+#'   over increasing `times` via cumulative minima.
+#'
+#' @return A base data.frame with columns named `t=<time>`.
+#' @keywords internal
+.finalize_survmat <- function(S,
+                              times,
+                              clamp = TRUE,
+                              enforce_monotone = TRUE) {
+  if (is.null(times) || !length(times)) {
+    stop("`times` must be a non-empty numeric vector.")
+  }
+
+  times <- as.numeric(times)
+  if (any(!is.finite(times)) || any(times < 0)) {
+    stop("`times` must contain finite, non-negative values.")
+  }
+  if (anyDuplicated(times)) {
+    stop("`times` must not contain duplicates.")
+  }
+
+  if (is.vector(S) && !is.list(S)) {
+    S <- matrix(S, nrow = 1)
+  }
+
+  S <- .survmat_as_matrix(S, clamp = FALSE)
+
+  if (ncol(S) != length(times)) {
+    stop("Prediction output must have one column per requested time.")
+  }
+
+  ord <- order(times)
+  S_ord <- S[, ord, drop = FALSE]
+
+  if (clamp) {
+    S_ord <- pmin(pmax(S_ord, 0), 1)
+  }
+
+  if (enforce_monotone && ncol(S_ord) > 1L) {
+    S_ord <- t(apply(S_ord, 1L, cummin))
+  }
+
+  inv_ord <- order(ord)
+  out <- S_ord[, inv_ord, drop = FALSE]
+  colnames(out) <- paste0("t=", times)
+  as.data.frame(out)
+}
+
+#' Reconstruct Cox-style survival curves from linear predictors
+#'
+#' Internal helper shared by Cox-family learners to produce comparable survival
+#' probabilities from a baseline cumulative hazard and subject-specific linear
+#' predictors.
+#'
+#' @param lp_train Numeric vector of linear predictors on the training data.
+#' @param lp_new Numeric vector of linear predictors on `newdata`.
+#' @param y_train A `Surv` object for the training data.
+#' @param times Numeric evaluation times.
+#'
+#' @return A standardized survival-probability data.frame.
+#' @keywords internal
+.predict_cox_from_lp <- function(lp_train, lp_new, y_train, times) {
+  base_haz <- survival::basehaz(survival::coxph(y_train ~ lp_train), centered = FALSE)
+
+  survmat <- vapply(times, function(t) {
+    H0_t <- stats::approx(base_haz$time, base_haz$hazard, xout = t, rule = 2)$y
+    exp(-H0_t * exp(lp_new))
+  }, numeric(length(lp_new)))
+
+  if (is.vector(survmat)) {
+    survmat <- matrix(survmat, ncol = length(times))
+  }
+
+  .finalize_survmat(survmat, times = times)
+}
+
 #' Convert a survival-probability matrix (survmat) to cumulative hazard
 #'
 #' Uses the identity \eqn{\Lambda(t \mid x) = -\log S(t \mid x)} to compute
