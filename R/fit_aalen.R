@@ -82,9 +82,6 @@ predict_aalen <- function(object, newdata, times) {
   if (is.null(pred$S0))
     stop("timereg::predict.aalen() did not return S0 (survival probabilities).")
 
-  surv_probs <- pmin(pmax(pred$S0, 0), 1)
-  colnames(surv_probs) <- paste0("t=", pred$time)
-  as.data.frame(surv_probs)
+  .finalize_survmat(pred$S0, times = pred$time)
 }
-
 
