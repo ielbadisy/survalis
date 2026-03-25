@@ -219,6 +219,7 @@ tune_bnnsurv <- function(formula, data, times,
                          metrics = c("cindex", "ibs"),
                          folds = 5,
                          seed = 123,
+                         ncores = 1,
                          refit_best = FALSE) {
   results <- purrr::pmap_dfr(param_grid, function(k, num_base_learners, sample_fraction) {
     cv_result <- tryCatch({
@@ -231,6 +232,7 @@ tune_bnnsurv <- function(formula, data, times,
         metrics = metrics,
         folds = folds,
         seed = seed,
+        ncores = ncores,
         k = k,
         num_base_learners = num_base_learners,
         sample_fraction = sample_fraction
