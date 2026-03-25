@@ -179,6 +179,7 @@ tune_glmnet <- function(formula, data, times,
                         metrics = c("cindex", "ibs"),
                         folds = 5,
                         seed = 123,
+                        ncores = 1,
                         refit_best = FALSE,
                         ...) {
 
@@ -194,6 +195,7 @@ tune_glmnet <- function(formula, data, times,
       metrics = metrics,
       folds = folds,
       seed = seed,
+      ncores = ncores,
       alpha = alpha,
       ...
     )
