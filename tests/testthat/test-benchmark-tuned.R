@@ -1,3 +1,19 @@
+test_that("benchmark and tuning wrappers expose explicit core controls", {
+  tune_funs <- c(
+    "tune_bart", "tune_blackboost", "tune_bnnsurv", "tune_cforest",
+    "tune_flexsurvreg", "tune_glmnet", "tune_orsf", "tune_ranger",
+    "tune_rpart", "tune_rsf", "tune_selectcox", "tune_survdnn",
+    "tune_survsvm", "tune_xgboost"
+  )
+
+  for (fn in tune_funs) {
+    expect_true("ncores" %in% names(formals(get(fn))), info = fn)
+  }
+
+  expect_true("ncores" %in% names(formals(benchmark_default_survlearners)))
+  expect_true("inner_ncores" %in% names(formals(benchmark_tuned_survlearners)))
+})
+
 test_that("benchmark_tuned_survlearners() returns nested CV results and final refits", {
   skip_on_cran()
   skip_if_not_installed("ranger")
@@ -15,6 +31,7 @@ test_that("benchmark_tuned_survlearners() returns nested CV results and final re
     metrics = c("cindex", "ibs"),
     outer_folds = 2,
     inner_folds = 2,
+    inner_ncores = 1,
     seed = 2026,
     refit_final = TRUE,
     learner_args = list(
@@ -50,6 +67,7 @@ test_that("benchmark_tuned_survlearners() returns nested CV results and final re
   expect_s3_class(res$final_models$glmnet, "mlsurv_model")
   expect_true(!is.null(attr(res$final_models$ranger, "tuning_results")))
   expect_true(!is.null(attr(res$final_models$glmnet, "tuning_results")))
+  expect_identical(res$settings$inner_ncores, 1)
 })
 
 test_that("benchmark_tuned_survlearners() supports list-valued tuning parameters", {
@@ -70,6 +88,7 @@ test_that("benchmark_tuned_survlearners() supports list-valued tuning parameters
     metrics = c("cindex", "ibs"),
     outer_folds = 2,
     inner_folds = 2,
+    inner_ncores = 1,
     seed = 2026,
     learner_args = list(
       survdnn = list(
@@ -95,4 +114,5 @@ test_that("benchmark_tuned_survlearners() supports list-valued tuning parameters
   expect_equal(length(res$selected_params$hidden), 2)
   expect_setequal(unique(res$outer_results$learner), "survdnn")
   expect_setequal(unique(res$outer_results$metric), c("cindex", "ibs"))
+  expect_identical(res$settings$inner_ncores, 1)
 })
