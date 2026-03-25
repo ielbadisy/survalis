@@ -187,6 +187,7 @@ tune_cforest <- function(formula, data, times,
                          ),
                          metrics = c("cindex", "ibs"),
                          folds = 5, seed = 123,
+                         ncores = 1,
                          refit_best = FALSE, ...) {
 
   results <- purrr::pmap_dfr(param_grid, function(ntree, mtry, mincriterion, fraction) {
@@ -199,6 +200,7 @@ tune_cforest <- function(formula, data, times,
       metrics = metrics,
       folds = folds,
       seed = seed,
+      ncores = ncores,
       ntree = ntree,
       mtry = mtry,
       mincriterion = mincriterion,
