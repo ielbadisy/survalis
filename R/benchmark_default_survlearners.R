@@ -17,6 +17,8 @@
 #'   \code{cv_survlearner()}.
 #' @param folds Integer number of CV folds (default \code{5}).
 #' @param seed Integer random seed for fold generation.
+#' @param ncores Integer; number of CPU cores passed to \code{cv_survlearner()}
+#'   for fold-level parallel mapping (default \code{1}).
 #' @param verbose Logical; if \code{TRUE}, prints progress per learner.
 #' @param suppress_errors Logical; if \code{TRUE} (default) errors from individual
 #'   learners are caught and reported via \code{warning()} and benchmarking continues.
@@ -47,6 +49,7 @@
 benchmark_default_survlearners <- function(formula, data, learners, times,
                                    metrics = c("cindex", "ibs"),
                                    folds = 5, seed = 123,
+                                   ncores = 1,
                                    verbose = FALSE,
                                    suppress_errors = TRUE,
                                    ...) {
@@ -80,6 +83,7 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
         metrics = metrics,
         folds = folds,
         seed = seed,
+        ncores = ncores,
         verbose = verbose,
         ...
       ),
@@ -210,7 +214,8 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
 
 
 .nested_surv_tune_once <- function(tune_fun, formula, data, times, metrics,
-                                   inner_folds, seed, tune_args = list()) {
+                                   inner_folds, seed, inner_ncores = 1,
+                                   tune_args = list()) {
   args <- c(
     list(
       formula = formula,
@@ -218,7 +223,8 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
       times = times,
       metrics = metrics,
       folds = inner_folds,
-      seed = seed
+      seed = seed,
+      ncores = inner_ncores
     ),
     tune_args
   )
@@ -263,6 +269,8 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
 #' @param inner_folds Integer number of inner CV folds used by each learner's
 #'   tuning routine.
 #' @param seed Integer random seed used for outer and inner resampling.
+#' @param inner_ncores Integer; number of CPU cores passed to each learner's
+#'   inner \code{cv_survlearner()} calls during tuning (default \code{1}).
 #' @param learner_args Optional named list of learner-specific arguments. Each
 #'   entry can be either a list of tuning arguments passed to `tune_<learner>()`,
 #'   or a list with `tune` and/or `fit` components. The `fit` component is
@@ -317,6 +325,7 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
                                          outer_folds = 5,
                                          inner_folds = 5,
                                          seed = 123,
+                                         inner_ncores = 1,
                                          learner_args = list(),
                                          refit_final = FALSE,
                                          verbose = FALSE,
@@ -329,6 +338,11 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
   data <- prepared$data
   status_col <- prepared$parsed_formula$status_col
   common_tune_args <- list(...)
+
+  if ("ncores" %in% names(common_tune_args)) {
+    warning("Ignoring `ncores` in `...`; use `inner_ncores` in `benchmark_tuned_survlearners()`.")
+    common_tune_args$ncores <- NULL
+  }
 
   set.seed(seed)
   outer_resamples <- rsample::vfold_cv(data, v = outer_folds, strata = !!rlang::sym(status_col))
@@ -382,6 +396,14 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
       stop("Learner-specific `tune` and `fit` entries must be lists.")
     }
 
+    if ("ncores" %in% names(tune_args)) {
+      warning(sprintf(
+        "Ignoring learner-specific `ncores` for '%s'; use `inner_ncores` in `benchmark_tuned_survlearners()`.",
+        learner
+      ))
+      tune_args$ncores <- NULL
+    }
+
     tune_args <- c(common_tune_args, tune_args)
 
     if (verbose) {
@@ -410,6 +432,7 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
           metrics = metrics,
           inner_folds = inner_folds,
           seed = seed + i - 1L,
+          inner_ncores = inner_ncores,
           tune_args = tune_args
         )
 
@@ -475,6 +498,7 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
           metrics = metrics,
           inner_folds = inner_folds,
           seed = seed + outer_folds,
+          inner_ncores = inner_ncores,
           tune_args = tune_args
         )
 
@@ -520,6 +544,7 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
         times = times,
         outer_folds = outer_folds,
         inner_folds = inner_folds,
+        inner_ncores = inner_ncores,
         seed = seed
       )
     ),
