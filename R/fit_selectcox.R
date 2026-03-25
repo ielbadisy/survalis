@@ -166,6 +166,7 @@ tune_selectcox <- function(formula, data, times,
                            metrics = c("cindex", "ibs"),
                            folds = 5,
                            seed = 123,
+                           ncores = 1,
                            refit_best = TRUE,
                            ...) {
 
@@ -179,6 +180,7 @@ tune_selectcox <- function(formula, data, times,
       metrics = metrics,
       folds = folds,
       seed = seed,
+      ncores = ncores,
       rule = rule,
       ...
     )
