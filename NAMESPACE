@@ -3,6 +3,7 @@
 S3method(summary,mlsurv_model)
 export(Surv)
 export(benchmark_default_survlearners)
+export(benchmark_tuned_survlearners)
 export(best_survlearner)
 export(brier)
 export(cindex_survmat)
