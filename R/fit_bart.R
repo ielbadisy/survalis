@@ -202,6 +202,7 @@ tune_bart <- function(formula, data, times,
                       ),
                       metrics = c("cindex", "ibs"),
                       folds = 5, seed = 123,
+                      ncores = 1,
                       refit_best = FALSE) {
 
   results <- purrr::pmap_dfr(param_grid, function(K, ntree, power, base) {
@@ -214,6 +215,7 @@ tune_bart <- function(formula, data, times,
       metrics = metrics,
       folds = folds,
       seed = seed,
+      ncores = ncores,
       K = K, ntree = ntree, power = power, base = base
     )
 
