@@ -244,7 +244,7 @@ predict_survsvm <- function(object, newdata, times, dist = "exp", shape = 1) {
 tune_survsvm <- function(formula, data, times,
                              metrics = "cindex",
                              param_grid,
-                             folds = 5, seed = 42,
+                             folds = 5, seed = 42, ncores = 1,
                              refit_best = FALSE,
                              dist = "exp", shape = 1) {
   stopifnot(is.list(param_grid))
@@ -267,6 +267,7 @@ tune_survsvm <- function(formula, data, times,
         metrics = metrics,
         folds = folds,
         seed = seed,
+        ncores = ncores,
         gamma.mu = gamma.mu,
         kernel = kernel,
         type = fixed_type,
