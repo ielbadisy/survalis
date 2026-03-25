@@ -149,6 +149,7 @@ tune_flexsurvreg <- function(formula, data, times,
                           param_grid = c("weibull", "exponential", "lognormal"),
                           metrics = c("cindex", "ibs"),
                           folds = 5, seed = 123,
+                          ncores = 1,
                           refit_best = FALSE, ...) {
 
   results <- purrr::map_dfr(param_grid, function(d) {
@@ -161,6 +162,7 @@ tune_flexsurvreg <- function(formula, data, times,
       metrics = metrics,
       folds = folds,
       seed = seed,
+      ncores = ncores,
       dist = d,
       ...
     )
