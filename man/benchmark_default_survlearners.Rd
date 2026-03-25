@@ -12,6 +12,7 @@ benchmark_default_survlearners(
   metrics = c("cindex", "ibs"),
   folds = 5,
   seed = 123,
+  ncores = 1,
   verbose = FALSE,
   suppress_errors = TRUE,
   ...
@@ -35,6 +36,9 @@ benchmark_default_survlearners(
 \item{folds}{Integer number of CV folds (default \code{5}).}
 
 \item{seed}{Integer random seed for fold generation.}
+
+\item{ncores}{Integer; number of CPU cores passed to \code{cv_survlearner()}
+for fold-level parallel mapping (default \code{1}).}
 
 \item{verbose}{Logical; if \code{TRUE}, prints progress per learner.}
 
