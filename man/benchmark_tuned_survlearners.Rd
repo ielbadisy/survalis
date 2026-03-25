@@ -11,6 +11,7 @@ benchmark_tuned_survlearners(
   outer_folds = 5,
   inner_folds = 5,
   seed = 123,
+  inner_ncores = 1,
   learner_args = list(),
   refit_final = FALSE,
   verbose = FALSE,
@@ -34,6 +35,9 @@ benchmark_tuned_survlearners(
 \item{inner_folds}{Integer number of inner CV folds used by each learner's tuning routine.}
 
 \item{seed}{Integer random seed used for outer and inner resampling.}
+
+\item{inner_ncores}{Integer; number of CPU cores passed to each learner's inner
+\code{cv_survlearner()} calls during tuning (default \code{1}).}
 
 \item{learner_args}{Optional named list of learner-specific arguments. Each entry can be either a list of tuning arguments passed to \code{tune_<learner>()}, or a list with \code{tune} and/or \code{fit} components. The \code{fit} component is forwarded only when refitting the selected hyperparameters on an outer training split or on the full dataset.}
 
