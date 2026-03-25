@@ -272,6 +272,7 @@ tune_survdnn <- function(formula, data, times,
                          metrics = c("cindex", "ibs"),
                          folds = 3,
                          seed = 42,
+                         ncores = 1,
                          refit_best = FALSE,
                          ...) {
 
@@ -305,6 +306,7 @@ tune_survdnn <- function(formula, data, times,
         metrics = metrics,
         folds = folds,
         seed = seed,
+        ncores = ncores,
         verbose = FALSE
       ),
       params,
