@@ -244,7 +244,8 @@ tune_xgboost <- function(formula, data, times,
                          ),
                          metrics = c("cindex", "ibs"),
                          folds = 5,
-                         seed = 123
+                         seed = 123,
+                         ncores = 1
                          ) {
 
   stopifnot(is.numeric(times), all(is.finite(times)), all(times >= 0))
@@ -273,6 +274,7 @@ tune_xgboost <- function(formula, data, times,
           metrics  = metrics,
           folds    = folds,
           seed     = seed,
+          ncores   = ncores,
           booster  = "gbtree",
           objective = objective,
           aft_loss_distribution        = aft_loss_distribution,
