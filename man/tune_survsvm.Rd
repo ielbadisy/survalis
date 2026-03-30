@@ -12,6 +12,7 @@ tune_survsvm(
   param_grid,
   folds = 5,
   seed = 42,
+  ncores = 1,
   refit_best = FALSE,
   dist = "exp",
   shape = 1
