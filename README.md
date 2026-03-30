@@ -12,7 +12,7 @@ metrics, cross-validation and interpretability methods.
 remotes::install_github("ielbadisy/survalis")
 
 # Or from source
-install.packages("survalis_0.6.0.tar.gz", repos = NULL, type = "source")
+install.packages("survalis_0.7.0.tar.gz", repos = NULL, type = "source")
 ```
 
 ## Core philosophy
