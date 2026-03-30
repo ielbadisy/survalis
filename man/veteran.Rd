@@ -28,4 +28,8 @@ veteran
 This is the \code{veteran} dataset originally from the \pkg{survival} package,
 containing data from a randomized trial of lung cancer treatments.
 }
+\examples{
+head(veteran)
+summary(veteran$time)
+}
 \keyword{datasets}
