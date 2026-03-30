@@ -68,6 +68,90 @@ cindex_survmat <- function(object, predicted, t_star = NULL) {
   return(round(C_index, 6))
 }
 
+#' Time-Dependent AUC from a Survival-Probability Matrix
+#'
+#' Computes a cumulative/dynamic time-dependent AUC using predicted survival
+#' probabilities at a specified time point (or the last column if \code{t_star}
+#' is \code{NULL}). Cases are subjects with an observed event by \code{t_star};
+#' controls are subjects known to survive beyond \code{t_star}. Subjects
+#' censored before \code{t_star} are handled through IPCW weighting.
+#'
+#' @param object A \code{\link[survival]{Surv}} object of length \eqn{n}.
+#' @param predicted An \code{n x k} matrix or data frame of survival probabilities
+#'   with columns named \code{"t=<time>"}.
+#' @param t_star Optional numeric time at which to evaluate AUC; if omitted,
+#'   the rightmost column of \code{predicted} is used.
+#'
+#' @details
+#' Risk scores are defined as \code{1 - S(t)} at the chosen time. The AUC is
+#' computed over case-control pairs using inverse-probability-of-censoring
+#' weights for cases and partial credit (0.5) for ties.
+#'
+#' @return A named numeric scalar: \code{"auc"}.
+#'
+#' @examples
+#' # auc_survmat(Surv(time, status), predicted = sp_matrix, t_star = 365)
+#' @export
+auc_survmat <- function(object, predicted, t_star = NULL) {
+  if (!inherits(object, "Surv")) stop("object must be a survival object (from Surv())")
+
+  time <- object[, 1]
+  status <- object[, 2]
+
+  if (!is.null(t_star)) {
+    t_name <- paste0("t=", t_star)
+    if (!(t_name %in% colnames(predicted))) {
+      stop("t_star = ", t_star, " not found in predicted survival matrix.")
+    }
+    surv_prob <- if (is.matrix(predicted)) predicted[, t_name] else predicted[[t_name]]
+  } else {
+    if (is.matrix(predicted)) {
+      surv_prob <- predicted[, ncol(predicted)]
+      t_star <- as.numeric(sub("^t=", "", colnames(predicted)[ncol(predicted)]))
+    } else {
+      surv_prob <- predicted[[ncol(predicted)]]
+      t_star <- as.numeric(sub("^t=", "", names(predicted)[ncol(predicted)]))
+    }
+  }
+
+  risk_score <- 1 - surv_prob
+  cases <- which(time <= t_star & status == 1)
+  controls <- which(time > t_star)
+
+  if (!length(cases) || !length(controls)) {
+    warning("AUC is undefined because no comparable case/control pairs are available.")
+    return(stats::setNames(NA_real_, "auc"))
+  }
+
+  km_fit <- survival::survfit(survival::Surv(time, 1 - status) ~ 1)
+  eval_times <- sort(unique(c(t_star, time[cases])))
+  G_all <- summary(km_fit, times = eval_times, extend = TRUE)$surv
+  names(G_all) <- as.character(eval_times)
+
+  Gt <- G_all[as.character(t_star)]
+  G_case <- G_all[as.character(time[cases])]
+  valid_cases <- which(is.finite(G_case) & G_case > 0)
+
+  if (!length(valid_cases) || !is.finite(Gt) || Gt <= 0) {
+    warning("AUC is undefined because censoring weights are not available at t_star.")
+    return(stats::setNames(NA_real_, "auc"))
+  }
+
+  cases <- cases[valid_cases]
+  case_weights <- 1 / G_case[valid_cases]
+  risk_cases <- risk_score[cases]
+  risk_controls <- risk_score[controls]
+
+  comparisons <- outer(risk_cases, risk_controls, FUN = "-")
+  concordant <- (comparisons > 0) + 0.5 * (comparisons == 0)
+
+  auc_value <- sum(rowSums(concordant) * case_weights) /
+    (length(controls) * sum(case_weights))
+
+  names(auc_value) <- "auc"
+  round(auc_value, 6)
+}
+
 #' Brier Score with IPCW for a Single Time Point
 #'
 #' Computes the inverse-probability-of-censoring weighted (IPCW) Brier score
@@ -267,6 +351,14 @@ ise_survmat <- function(object, sp_matrix, times) {
 #' with \eqn{w_k = n_k / N}.
 #'
 #' @return A named numeric scalar: \code{"ece"}.
+#'
+#' @examples
+#' y <- survival::Surv(
+#'   time = c(1, 2, 3, 4, 6, 7, 8, 9),
+#'   event = c(1, 1, 0, 1, 0, 1, 1, 0)
+#' )
+#' sp <- cbind("t=5" = c(0.15, 0.20, 0.35, 0.40, 0.55, 0.65, 0.75, 0.80))
+#' ece_survmat(y, sp_matrix = sp, t_star = 5, n_bins = 4)
 #' @export
 ece_survmat <- function(object,
   sp_matrix,
@@ -496,13 +588,14 @@ status_vector <- test[[status_col]]
 surv_obj <- survival::Surv(time = test[[time_col]], event = status_vector)
 
 tibble::tibble(metric = metrics) |>
-  dplyr::mutate(value = lapply(metric, function(metric) {
-    switch(metric,
-      "cindex" = cindex_survmat(surv_obj, predicted = pred, t_star = max(times)),
-      "brier"  = {
-        if (length(times) != 1) stop("Brier requires a single time point.")
-        brier(surv_obj, pre_sp = pred[, 1], t_star = times)
-      },
+      dplyr::mutate(value = lapply(metric, function(metric) {
+        switch(metric,
+          "cindex" = cindex_survmat(surv_obj, predicted = pred, t_star = max(times)),
+          "auc" = auc_survmat(surv_obj, predicted = pred, t_star = max(times)),
+          "brier"  = {
+            if (length(times) != 1) stop("Brier requires a single time point.")
+            brier(surv_obj, pre_sp = pred[, 1], t_star = times)
+          },
       "ibs" = ibs_survmat(surv_obj, sp_matrix = pred, times = times),
       "iae" = iae_survmat(surv_obj, sp_matrix = pred, times = times),
       "ise" = ise_survmat(surv_obj, sp_matrix = pred, times = times),
@@ -580,7 +673,8 @@ cv_plot <- function(cv_results) {
 #' @param model An object of class \code{"mlsurv_model"}.
 #' @param times Numeric vector of evaluation times. For \code{"brier"}, must be a single time.
 #' @param metrics Character vector of metrics to compute. Supported:
-#'   \code{"cindex"}, \code{"ibs"}, \code{"brier"}, \code{"iae"}, \code{"ise"}, \code{"ece"}.
+#'   \code{"cindex"}, \code{"auc"}, \code{"ibs"}, \code{"brier"},
+#'   \code{"iae"}, \code{"ise"}, \code{"ece"}.
 #'
 #' @details
 #' The function constructs the appropriate \code{predict_*} function name from
@@ -645,6 +739,7 @@ score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", 
     dplyr::mutate(value = purrr::map(metric, function(metric) {
       switch(metric,
         "cindex" = cindex_survmat(surv_obj, predicted = sp_matrix, t_star = max(times)),
+        "auc"    = auc_survmat(surv_obj, predicted = sp_matrix, t_star = max(times)),
         "brier"  = brier(surv_obj, pre_sp = sp_matrix[, 1], t_star = times),
         "ibs"    = ibs_survmat(surv_obj, sp_matrix, times),
         "iae"    = iae_survmat(surv_obj, sp_matrix, times),
