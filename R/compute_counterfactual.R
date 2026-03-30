@@ -178,7 +178,9 @@ compute_counterfactual <- function(model, newdata, times, target_time,
 #' @return A \pkg{ggplot2} object.
 #'
 #' @examples
-#' # cf <- compute_counterfactual(mod, newdata = veteran[1, , drop = FALSE], times = 100, target_time = 100)
+#' # cf <- compute_counterfactual(
+#' #   mod, newdata = veteran[1, , drop = FALSE], times = 100, target_time = 100
+#' # )
 #' # plot_counterfactual(cf)
 #' @export
 plot_counterfactual <- function(counterfactual_df,
@@ -244,4 +246,3 @@ plot_counterfactual <- function(counterfactual_df,
       max(plot_df[[metric]], na.rm = TRUE) * 1.25
     )
 }
-
