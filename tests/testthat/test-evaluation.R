@@ -31,6 +31,32 @@ test_that("cindex_survmat works on simple no-censoring data and handles ties/col
   )
 })
 
+test_that("auc_survmat works on simple data and is listed as a supported metric", {
+  testthat::skip_on_cran()
+  testthat::skip_if_not_installed("survival")
+
+  time <- c(1, 2, 3, 4)
+  status <- c(1, 1, 1, 1)
+  y <- survival::Surv(time, status)
+
+  sp <- cbind("t=3" = c(0.1, 0.3, 0.6, 0.8))
+  auc <- auc_survmat(y, predicted = sp, t_star = 3)
+  expect_named(auc, "auc")
+  expect_equal(unname(auc), 1, tolerance = 1e-12)
+
+  auc_last <- auc_survmat(y, predicted = sp, t_star = NULL)
+  expect_equal(unname(auc_last), unname(auc), tolerance = 1e-12)
+
+  metrics_tbl <- list_metrics()
+  expect_true("auc" %in% metrics_tbl$metric)
+  expect_identical(metrics_tbl$direction[metrics_tbl$metric == "auc"], "maximize")
+
+  expect_error(
+    auc_survmat(y, predicted = sp, t_star = 5),
+    "not found in predicted survival matrix"
+  )
+})
+
 test_that("brier reduces to unweighted score when no censoring; checks length", {
   testthat::skip_on_cran()
   testthat::skip_if_not_installed("survival")
