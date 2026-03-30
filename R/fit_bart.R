@@ -155,6 +155,8 @@ predict_bart <- function(object, newdata, times) {
 #'   The first entry is used as the primary selection metric.
 #' @param folds Integer; number of cross‐validation folds (default \code{5}).
 #' @param seed Integer random seed for reproducibility (default \code{123}).
+#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if \code{TRUE}, refits the best configuration on the
 #'   full data and returns it. If \code{FALSE}, returns a results table.
 #'
