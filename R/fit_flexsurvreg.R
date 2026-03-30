@@ -119,6 +119,8 @@ predict_flexsurvreg <- function(object, newdata, times, ...) {
 #'   (default = \code{c("cindex", "ibs")}).
 #' @param folds Integer, number of cross-validation folds (default = 5).
 #' @param seed Random seed for reproducibility.
+#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if \code{TRUE}, refits the best-performing model
 #'   on the full dataset and returns it. If \code{FALSE}, returns the tuning results.
 #' @param ... Additional arguments passed to \code{\link{fit_flexsurvreg}}.
