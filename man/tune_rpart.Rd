@@ -34,6 +34,9 @@ Must include \code{minsplit}, \code{cp}, and \code{maxdepth}.}
 
 \item{seed}{Random seed for reproducibility.}
 
+\item{ncores}{Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+for fold evaluation (default \code{1}).}
+
 \item{refit_best}{Logical; if \code{TRUE}, the best hyperparameter combination is refitted on the full dataset.}
 
 \item{...}{Additional arguments passed to \code{\link[=fit_rpart]{fit_rpart()}}.}
