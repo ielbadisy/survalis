@@ -63,8 +63,8 @@ shap_td <- compute_shap(
   model         = mod,
   newdata       = veteran[100, , drop = FALSE],
   baseline_data = veteran,
-  times         = c(100, 200, 300),
-  sample.size   = 50,         # small for example speed
+  times         = c(100, 200),
+  sample.size   = 5,          # small for example speed
   aggregate     = FALSE
 )
 head(shap_td)
@@ -74,8 +74,8 @@ shap_meanabs <- compute_shap(
   model         = mod,
   newdata       = veteran[100, , drop = FALSE],
   baseline_data = veteran,
-  times         = c(100, 200, 300),
-  sample.size   = 50,
+  times         = c(100, 200),
+  sample.size   = 5,
   aggregate     = TRUE,
   method        = "meanabs"
 )
