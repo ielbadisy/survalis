@@ -34,6 +34,9 @@ tune_flexsurvreg(
 
 \item{seed}{Random seed for reproducibility.}
 
+\item{ncores}{Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+for fold evaluation (default \code{1}).}
+
 \item{refit_best}{Logical; if \code{TRUE}, refits the best-performing model
 on the full dataset and returns it. If \code{FALSE}, returns the tuning results.}
 
