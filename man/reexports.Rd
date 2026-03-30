@@ -5,6 +5,9 @@
 \alias{reexports}
 \alias{Surv}
 \title{Re-export Surv from survival}
+\examples{
+Surv(c(5, 8, 12), c(1, 0, 1))
+}
 \keyword{internal}
 \description{
 These objects are imported from other packages. Follow the links
