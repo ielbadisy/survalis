@@ -1,7 +1,7 @@
 Package: survalis
 Type: Package
 Title: Interpretable Survival Machine Learning Framework
-Version: 0.6.0
+Version: 0.7.0
 Author: Imad El Badisy [aut, cre]
 Maintainer: Imad El Badisy <elbadisyimad@gmail.com>
 Authors@R: 
@@ -20,6 +20,16 @@ Imports:
     functionals,
     nnls,
     rpart,
+    tibble,
+    rsample,
+    aftgee,
+    aorsf,
+    bnnSurvival,
+    pec,
+    party,
+    ranger,
+    survdnn,
+    survivalsvm,
     randomForestSRC,
     xgboost,
     BART,
@@ -27,12 +37,8 @@ Imports:
     glmnet,
     mboost,
     rstpm2,
-    gbm,
     timereg,
-    nnet,
     partykit,
-    progress,
-    future,
     gower,
     pracma,
     torch,
@@ -40,7 +46,6 @@ Imports:
     dplyr, 
     glue,
     cli,
-    methods,
     purrr,
     rlang,
     tidyr
@@ -51,17 +56,7 @@ Suggests:
     roxygen2,
     covr,
     stats,
-    utils,
-    tibble,
-    rsample,
-    aftgee,
-    aorsf,
-    bnnSurvival,
-    pec,
-    party,
-    ranger,
-    survdnn,
-    survivalsvm
+    utils
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Config/testthat/edition: 3
