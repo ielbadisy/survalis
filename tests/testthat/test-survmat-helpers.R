@@ -37,9 +37,29 @@ test_that("score_survmodel() standardizes prediction matrices before scoring", {
     class = "mlsurv_model"
   )
 
-  res <- score_survmodel(mod, times = c(100, 200), metrics = c("cindex", "ibs"))
+  res <- score_survmodel(mod, times = c(100, 200), metrics = c("cindex", "auc", "ibs"))
 
   expect_s3_class(res, "tbl_df")
-  expect_setequal(res$metric, c("cindex", "ibs"))
+  expect_setequal(res$metric, c("cindex", "auc", "ibs"))
   expect_true(all(is.finite(res$value)))
+})
+
+test_that("plot_survmat() returns ggplot objects for individual and grouped curves", {
+  S <- data.frame(
+    `t=1` = c(0.95, 0.90, 0.92),
+    `t=2` = c(0.80, 0.70, 0.78),
+    `t=3` = c(0.60, 0.45, 0.55),
+    check.names = FALSE
+  )
+
+  expect_s3_class(plot_survmat(S), "ggplot")
+  expect_s3_class(
+    plot_survmat(S, group = c("A", "B", "A"), show_individual = TRUE),
+    "ggplot"
+  )
+
+  expect_error(
+    plot_survmat(S, group = c("A", "B")),
+    "length equal to nrow"
+  )
 })
