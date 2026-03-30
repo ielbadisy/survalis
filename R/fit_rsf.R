@@ -145,6 +145,8 @@ predict_rsf <- function(object, newdata, times = NULL, ...) {
 #'   (e.g., `"cindex"`, `"ibs"`). The first entry is the primary selection metric.
 #' @param folds Integer; number of cross-validation folds.
 #' @param seed Integer random seed for reproducibility.
+#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if `TRUE`, refits the best configuration on the
 #'   full data and returns it, with tuning results attached.
 #' @param ... Additional arguments forwarded to the underlying engine where applicable.
