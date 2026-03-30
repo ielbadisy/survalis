@@ -319,7 +319,8 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
 #' res$outer_summary
 #' }
 #'
-#' @seealso [benchmark_default_survlearners()], [cv_survlearner()]
+#' @seealso \code{\link{benchmark_default_survlearners}},
+#'   \code{\link{cv_survlearner}}
 #' @export
 benchmark_tuned_survlearners <- function(formula, data, learners, times,
                                          metrics = c("cindex", "ibs"),
