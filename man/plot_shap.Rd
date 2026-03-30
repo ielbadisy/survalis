@@ -25,13 +25,13 @@ Plots time-dependent SHAP estimates (lines over time) or aggregated SHAP
 # Time-dependent SHAP
 mod <- fit_coxph(survival::Surv(time, status) ~ age + karno + celltype, data = veteran)
 shap_td <- compute_shap(mod, veteran[10, , drop = FALSE],
-veteran, times = c(50, 100, 150), sample.size = 20)
+veteran, times = c(50, 100), sample.size = 5)
 p1 <- plot_shap(shap_td)      # auto -> time plot
 
 # Aggregated SHAP
 shap_ag <- compute_shap(mod, veteran[10, , drop = FALSE],
-veteran, times = c(50, 100, 150),
-sample.size = 20, aggregate = TRUE, method = "meanabs")
+veteran, times = c(50, 100),
+sample.size = 5, aggregate = TRUE, method = "meanabs")
 p2 <- plot_shap(shap_ag)      # auto -> bar plot
 }
 }
