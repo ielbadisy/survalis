@@ -309,6 +309,7 @@ cv_survmetalearner <- function(formula, data, times,
       dplyr::mutate(value = purrr::map(metric, function(metric) {
         switch(metric,
                "cindex" = cindex_survmat(surv_test, predicted = preds_test, t_star = max(times)),
+               "auc"    = auc_survmat(surv_test, predicted = preds_test, t_star = max(times)),
                "brier"  = if (length(times) != 1) stop("Brier requires single time") else
                  brier(surv_test, pre_sp = preds_test[, 1], t_star = times),
                "ibs"    = ibs_survmat(surv_test, preds_test, times),
