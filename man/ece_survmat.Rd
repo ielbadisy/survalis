@@ -39,3 +39,11 @@ The (weighted) ECE is
 }
 with \eqn{w_k = n_k / N}.
 }
+\examples{
+y <- survival::Surv(
+  time = c(1, 2, 3, 4, 6, 7, 8, 9),
+  event = c(1, 1, 0, 1, 0, 1, 1, 0)
+)
+sp <- cbind("t=5" = c(0.15, 0.20, 0.35, 0.40, 0.55, 0.65, 0.75, 0.80))
+ece_survmat(y, sp_matrix = sp, t_star = 5, n_bins = 4)
+}
