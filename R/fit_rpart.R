@@ -138,6 +138,8 @@ predict_rpart <- function(object, newdata, times, ...) {
 #' @param metrics Character vector of evaluation metrics to compute (e.g., `"cindex"`, `"ibs"`).
 #' @param folds Number of cross-validation folds. Default is `5`.
 #' @param seed Random seed for reproducibility.
+#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if `TRUE`, the best hyperparameter combination is refitted on the full dataset.
 #' @param ... Additional arguments passed to [fit_rpart()].
 #'
