@@ -151,6 +151,7 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
     dplyr::mutate(value = lapply(metric, function(metric) {
       switch(metric,
         "cindex" = cindex_survmat(surv_obj, predicted = pred, t_star = max(times)),
+        "auc" = auc_survmat(surv_obj, predicted = pred, t_star = max(times)),
         "brier" = {
           if (length(times) != 1) stop("Brier requires a single time point.")
           brier(surv_obj, pre_sp = pred[, 1], t_star = times)
@@ -175,7 +176,7 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
 
 
 .nested_surv_param_cols <- function(tuning_results) {
-  metric_cols <- c("cindex", "brier", "ibs", "iae", "ise", "ece")
+  metric_cols <- c("cindex", "auc", "brier", "ibs", "iae", "ise", "ece")
   setdiff(names(tuning_results), c(metric_cols, "failed"))
 }
 
