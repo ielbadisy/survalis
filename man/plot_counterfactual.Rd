@@ -32,6 +32,8 @@ Visualizes counterfactual feature changes returned by
 survival gain or penalized gain.
 }
 \examples{
-# cf <- compute_counterfactual(mod, newdata = veteran[1, , drop = FALSE], times = 100, target_time = 100)
+# cf <- compute_counterfactual(
+#   mod, newdata = veteran[1, , drop = FALSE], times = 100, target_time = 100
+# )
 # plot_counterfactual(cf)
 }
