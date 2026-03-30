@@ -53,6 +53,11 @@ test_that("core interpretability methods return expected structures", {
     c("feature", "original_value", "suggested_value", "survival_gain", "change_cost", "penalized_gain") %in%
       names(counterfactual)
   ))
+
+  interp_methods <- list_interpretability_methods()
+  cf_row <- interp_methods[interp_methods$compute == "compute_counterfactual", , drop = FALSE]
+  expect_identical(cf_row$plot, "plot_counterfactual")
+  expect_true(cf_row$has_plot)
 })
 
 test_that("interaction, variable importance, and calibration helpers run", {
@@ -203,6 +208,12 @@ test_that("interpretability plotting helpers return plot objects", {
     mod, df[1, , drop = FALSE], df,
     times = times, target_time = 100, k = 3, penalized = FALSE
   )
+  counterfactual <- compute_counterfactual(
+    mod, df[1, , drop = FALSE],
+    times = times, target_time = 100,
+    features_to_change = c("age", "karno", "trt"),
+    grid.size = 10
+  )
   tree_surrogate <- compute_tree_surrogate(mod, df, times = c(100, 150), minsplit = 20, cp = 0.05)
   inter_time <- compute_interactions(mod, df, times = times, features = c("age", "karno", "trt"), type = "time", grid.size = 5)
   varimp <- compute_varimp(mod, times = 100, metric = "brier", n_repetitions = 2, seed = 1)
@@ -217,6 +228,7 @@ test_that("interpretability plotting helpers return plot objects", {
   expect_s3_class(plot_pdp(pdp, feature = "age", which = "integrated"), "ggplot")
   expect_s3_class(plot_ale(ale, feature = "age", which = "per_time"), "ggplot")
   expect_s3_class(plot_ale(ale, feature = "age", which = "integrated"), "ggplot")
+  expect_s3_class(plot_counterfactual(counterfactual), "ggplot")
   expect_s3_class(plot_surrogate(surrogate), "ggplot")
   expect_s3_class(plot_tree_surrogate(tree_surrogate, type = "importance"), "ggplot")
   expect_s3_class(plot_interactions(inter_time, type = "time"), "ggplot")
