@@ -161,6 +161,8 @@ predict_bnnsurv <- function(object, newdata, times = NULL) {
 #'   The first entry is treated as the primary ranking metric.
 #' @param folds Integer number of cross-validation folds. Default \code{5}.
 #' @param seed Integer random seed for reproducibility.
+#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if \code{TRUE}, refits the best configuration on
 #'   the full data and returns that model. Otherwise returns the results table.
 #'
