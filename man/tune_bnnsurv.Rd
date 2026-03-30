@@ -35,6 +35,9 @@ The first entry is treated as the primary ranking metric.}
 
 \item{seed}{Integer random seed for reproducibility.}
 
+\item{ncores}{Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+for fold evaluation (default \code{1}).}
+
 \item{refit_best}{Logical; if \code{TRUE}, refits the best configuration on
 the full data and returns that model. Otherwise returns the results table.}
 }
