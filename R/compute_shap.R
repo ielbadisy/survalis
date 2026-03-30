@@ -43,8 +43,8 @@
 #'   model         = mod,
 #'   newdata       = veteran[100, , drop = FALSE],
 #'   baseline_data = veteran,
-#'   times         = c(100, 200, 300),
-#'   sample.size   = 50,         # small for example speed
+#'   times         = c(100, 200),
+#'   sample.size   = 5,          # small for example speed
 #'   aggregate     = FALSE
 #' )
 #' head(shap_td)
@@ -54,8 +54,8 @@
 #'   model         = mod,
 #'   newdata       = veteran[100, , drop = FALSE],
 #'   baseline_data = veteran,
-#'   times         = c(100, 200, 300),
-#'   sample.size   = 50,
+#'   times         = c(100, 200),
+#'   sample.size   = 5,
 #'   aggregate     = TRUE,
 #'   method        = "meanabs"
 #' )
@@ -176,13 +176,13 @@ return(final_result)
 #' # Time-dependent SHAP
 #' mod <- fit_coxph(survival::Surv(time, status) ~ age + karno + celltype, data = veteran)
 #' shap_td <- compute_shap(mod, veteran[10, , drop = FALSE],
-#' veteran, times = c(50, 100, 150), sample.size = 20)
+#' veteran, times = c(50, 100), sample.size = 5)
 #' p1 <- plot_shap(shap_td)      # auto -> time plot
 #'
 #' # Aggregated SHAP
 #' shap_ag <- compute_shap(mod, veteran[10, , drop = FALSE],
-#' veteran, times = c(50, 100, 150),
-#' sample.size = 20, aggregate = TRUE, method = "meanabs")
+#' veteran, times = c(50, 100),
+#' sample.size = 5, aggregate = TRUE, method = "meanabs")
 #' p2 <- plot_shap(shap_ag)      # auto -> bar plot
 #' }
 #' @export
@@ -233,7 +233,6 @@ ggplot(shapley_result, ggplot2::aes(x = phi, y = feature, fill = direction)) +
   theme_minimal(base_size = 14)
 }
 }
-
 
 
 
