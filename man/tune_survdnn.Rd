@@ -14,6 +14,7 @@ tune_survdnn(
   metrics = c("cindex", "ibs"),
   folds = 3,
   seed = 42,
+  ncores = 1,
   refit_best = FALSE,
   ...
 )
