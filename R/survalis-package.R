@@ -16,6 +16,9 @@ if (getRversion() >= "2.15.1") {
 
 
 #' Re-export Surv from survival
+#'
+#' @examples
+#' Surv(c(5, 8, 12), c(1, 0, 1))
 #' @importFrom survival Surv
 #' @export
 survival::Surv
@@ -96,5 +99,4 @@ utils::globalVariables(c(
   # others seen in notes
   "splits","ale","integrated_ale","type"
 ))
-
 
