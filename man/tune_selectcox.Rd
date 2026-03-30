@@ -37,6 +37,9 @@ selection metric.}
 
 \item{seed}{Integer random seed for reproducibility.}
 
+\item{ncores}{Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+for fold evaluation (default \code{1}).}
+
 \item{refit_best}{Logical; if \code{TRUE}, refits the best rule on the full data
 and returns it as an \code{mlsurv_model} (with tuning results attached).}
 
