@@ -149,6 +149,8 @@ predict_cforest <- function(object, newdata, times, ...) {
 #'   (default = `c("cindex", "ibs")`).
 #' @param folds Integer, number of cross-validation folds (default = `5`).
 #' @param seed Integer, random seed for reproducibility.
+#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical, if `TRUE` refits a model with the best-performing
 #'   hyperparameters and returns it; otherwise returns a summary table of results.
 #' @param ... Additional arguments passed to [fit_cforest()].
