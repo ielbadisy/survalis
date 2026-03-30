@@ -16,7 +16,8 @@ score_survmodel(
 \item{times}{Numeric vector of evaluation times. For \code{"brier"}, must be a single time.}
 
 \item{metrics}{Character vector of metrics to compute. Supported:
-\code{"cindex"}, \code{"ibs"}, \code{"brier"}, \code{"iae"}, \code{"ise"}, \code{"ece"}.}
+\code{"cindex"}, \code{"auc"}, \code{"ibs"}, \code{"brier"},
+\code{"iae"}, \code{"ise"}, \code{"ece"}.}
 }
 \value{
 A tibble with columns \code{metric} and \code{value}.
