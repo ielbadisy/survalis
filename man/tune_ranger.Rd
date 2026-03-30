@@ -34,6 +34,9 @@ columns \code{num.trees}, \code{mtry}, and \code{min.node.size}.}
 
 \item{seed}{Random seed for reproducibility.}
 
+\item{ncores}{Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+for fold evaluation (default \code{1}).}
+
 \item{refit_best}{Logical; if \code{TRUE}, refits the model using the best parameters.}
 
 \item{...}{Additional arguments passed to \code{\link{fit_ranger}}.}
