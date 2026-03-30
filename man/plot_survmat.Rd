@@ -50,7 +50,8 @@ requested aggregation function.
 \examples{
 S <- data.frame(`t=1` = c(0.95, 0.90, 0.92),
                 `t=2` = c(0.80, 0.70, 0.78),
-                `t=3` = c(0.60, 0.45, 0.55))
+                `t=3` = c(0.60, 0.45, 0.55),
+                check.names = FALSE)
 plot_survmat(S)
 plot_survmat(S, group = c("A", "B", "A"))
 
