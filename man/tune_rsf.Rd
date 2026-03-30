@@ -12,6 +12,7 @@ tune_rsf(
   metrics = c("cindex", "ibs"),
   folds = 5,
   seed = 123,
+  ncores = 1,
   refit_best = FALSE,
   ...
 )
