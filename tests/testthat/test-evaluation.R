@@ -161,3 +161,44 @@ test_that("ece_survmat computes a bounded single-time calibration error", {
     "single numeric value"
   )
 })
+
+test_that("cv_survlearner returns the same results with one or multiple cores", {
+  testthat::skip_on_cran()
+  testthat::skip_if_not_installed("survival")
+  testthat::skip_if_not_installed("rsample")
+
+  df <- survival::veteran[, c("time", "status", "age", "karno")]
+  form <- survival::Surv(time, status) ~ age + karno
+
+  cv1 <- cv_survlearner(
+    formula = form,
+    data = df,
+    fit_fun = fit_coxph,
+    pred_fun = predict_coxph,
+    times = 80,
+    metrics = c("cindex", "ibs"),
+    folds = 3,
+    seed = 123,
+    verbose = FALSE,
+    ncores = 1,
+    pb = FALSE
+  )
+
+  cv2 <- cv_survlearner(
+    formula = form,
+    data = df,
+    fit_fun = fit_coxph,
+    pred_fun = predict_coxph,
+    times = 80,
+    metrics = c("cindex", "ibs"),
+    folds = 3,
+    seed = 123,
+    verbose = FALSE,
+    ncores = 2,
+    pb = FALSE
+  )
+
+  expect_equal(cv1$value, cv2$value, tolerance = 1e-12)
+  expect_identical(cv1$metric, cv2$metric)
+  expect_identical(cv1$fold, cv2$fold)
+})
