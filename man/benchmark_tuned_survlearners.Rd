@@ -74,5 +74,5 @@ res$outer_summary
 }
 }
 \seealso{
-\code{\link{benchmark_default_survlearners()}}, \code{\link{cv_survlearner()}}
+\code{\link{benchmark_default_survlearners}}, \code{\link{cv_survlearner}}
 }
