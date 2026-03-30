@@ -34,8 +34,6 @@ survival::Surv
 #' @importFrom mboost blackboost
 #' @importFrom BART surv.bart
 #' @importFrom xgboost xgb.train xgb.cv xgb.DMatrix
-#' @importFrom gbm gbm
-#' @importFrom nnet nnet
 #' @importFrom rstpm2 stpm2 gsm nsx
 #'
 #' @importFrom stats model.frame model.matrix model.response delete.response
@@ -44,8 +42,6 @@ survival::Surv
 #'   coef predict.lm residuals lm glm binomial
 #'
 #' @importFrom utils tail head combn
-#'
-#' @importFrom methods is
 #'
 #' @importFrom dplyr select mutate arrange group_by summarise filter pull
 #'   across everything all_of bind_cols bind_rows distinct
@@ -60,11 +56,7 @@ survival::Surv
 #'
 #' @importFrom rlang .data enquo sym
 #'
-#' @importFrom future plan multisession sequential
-#'
 #' @importFrom parallel detectCores makeCluster stopCluster
-#'
-#' @importFrom progress progress_bar
 #' @importFrom stats aggregate dist reorder reshape time var
 #' @importFrom utils capture.output getFromNamespace
 #' @importFrom ggplot2 geom_jitter geom_smooth geom_errorbar geom_abline coord_fixed coord_flip geom_col
@@ -73,7 +65,6 @@ survival::Surv
 #' @importFrom pracma trapz
 #' @importFrom data.table as.data.table setDT rbindlist
 #' @importFrom gower gower_dist
-#' @importFrom torch torch_tensor
 #' @importFrom glmnet glmnet
 #' @importFrom ggplot2 ggplot aes geom_line geom_point geom_col
 #' @importFrom ggplot2 geom_errorbar geom_jitter geom_abline geom_smooth geom_vline
@@ -93,10 +84,9 @@ utils::globalVariables(c(
   "metric","value","n","se","learner","scaled_importance","weight",
   "feature","feature1","feature2","feature_label","feature_value",
   "surv_prob","mean_pred_surv","lower_ci","upper_ci","calib_result",
-  "bin","direction","count","time",
+  "bin","direction","count","time","id","outer_fold",
   # data.table-esque
   ".N",".id",
   # others seen in notes
-  "splits","ale","integrated_ale","type"
+  "splits","ale","integrated_ale","type","change_label","hjust"
 ))
-
