@@ -41,6 +41,9 @@ selection metric.}
 
 \item{seed}{Integer random seed for reproducibility.}
 
+\item{ncores}{Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+for fold evaluation (default \code{1}).}
+
 \item{refit_best}{Logical; if \code{TRUE}, refits the best configuration on the
 full data and returns it as the result (with tuning attributes).}
 
@@ -65,7 +68,7 @@ row is passed through to \code{fit_survdnn()}, so the grid can include any
 supported engine argument exposed by this wrapper.
 }
 \examples{
-\donttest{
+\dontrun{
 if (requireNamespace("survdnn", quietly = TRUE) &&
     requireNamespace("torch", quietly = TRUE) &&
     torch::torch_is_installed()) {
