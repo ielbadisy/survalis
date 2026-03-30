@@ -188,6 +188,8 @@ predict_xgboost <- function(object, newdata, times = NULL) {
 #'   The first entry is treated as the primary selection metric for ordering.
 #' @param folds Integer number of CV folds.
 #' @param seed Integer random seed for reproducibility.
+#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#'   for fold evaluation (default \code{1}).
 #'
 #' @return A \code{tibble} with one row per grid configuration, containing:
 #' \describe{
