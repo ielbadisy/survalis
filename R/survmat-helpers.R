@@ -103,6 +103,29 @@
   as.data.frame(out)
 }
 
+#' Infer time points from survmat column names
+#'
+#' Internal helper that parses \code{"t=<time>"} column names when an explicit
+#' time vector is not supplied.
+#'
+#' @param S A survival-probability matrix or data frame.
+#'
+#' @return Numeric vector of inferred times.
+#' @keywords internal
+.infer_survmat_times <- function(S) {
+  cn <- colnames(S)
+  if (is.null(cn) || !all(grepl("^t=", cn))) {
+    stop("`times` must be supplied when `S` does not have `t=<time>` column names.")
+  }
+
+  times <- suppressWarnings(as.numeric(sub("^t=", "", cn)))
+  if (anyNA(times)) {
+    stop("Could not parse numeric times from `S` column names.")
+  }
+
+  times
+}
+
 #' Reconstruct Cox-style survival curves from linear predictors
 #'
 #' Internal helper shared by Cox-family learners to produce comparable survival
@@ -311,4 +334,146 @@ survmat_to_quantile <- function(S, times, p = 0.5) {
     out[i] <- if (is.na(j)) NA_real_ else times[j]
   }
   out
+}
+
+#' Plot Predicted Survival Curves from a survmat
+#'
+#' Plots one or more predicted survival curves from a survival-probability
+#' matrix. By default, each row of \code{S} is shown as an individual curve. If
+#' a \code{group} vector is supplied, curves are summarized by group using the
+#' requested aggregation function.
+#'
+#' @param S A `surv_mat`: numeric matrix/data.frame of survival probabilities.
+#' @param times Optional numeric vector of time points corresponding to columns
+#'   of \code{S}. If omitted, times are inferred from column names of the form
+#'   \code{"t=<time>"}.
+#' @param group Optional vector of group labels of length \code{nrow(S)}. When
+#'   supplied, grouped summary curves are plotted.
+#' @param ids Optional integer vector of row ids to subset before plotting.
+#' @param summary_fun Aggregation for grouped curves; one of \code{"mean"}
+#'   (default) or \code{"median"}.
+#' @param show_individual Logical. If \code{NULL} (default), individual curves
+#'   are shown only when \code{group} is omitted. If \code{TRUE}, individual
+#'   curves are overlaid beneath the grouped summary curves.
+#' @param alpha Alpha transparency for individual curves (default \code{0.2}).
+#' @param linewidth Line width for plotted curves (default \code{0.7}).
+#'
+#' @return A \pkg{ggplot2} object.
+#'
+#' @examples
+#' S <- data.frame(`t=1` = c(0.95, 0.90, 0.92),
+#'                 `t=2` = c(0.80, 0.70, 0.78),
+#'                 `t=3` = c(0.60, 0.45, 0.55))
+#' plot_survmat(S)
+#' plot_survmat(S, group = c("A", "B", "A"))
+#'
+#' @export
+plot_survmat <- function(S,
+                         times = NULL,
+                         group = NULL,
+                         ids = NULL,
+                         summary_fun = c("mean", "median"),
+                         show_individual = NULL,
+                         alpha = 0.2,
+                         linewidth = 0.7) {
+  summary_fun <- match.arg(summary_fun)
+
+  if (is.null(times)) {
+    times <- .infer_survmat_times(S)
+  }
+
+  S <- .survmat_as_matrix(S, times = times, strict_colnames = FALSE, clamp = TRUE)
+  plot_df <- as.data.frame(S)
+  plot_df$.id <- seq_len(nrow(plot_df))
+
+  if (!is.null(ids)) {
+    plot_df <- plot_df[plot_df$.id %in% ids, , drop = FALSE]
+  }
+
+  if (!nrow(plot_df)) {
+    stop("No rows remain to plot.")
+  }
+
+  if (is.null(show_individual)) {
+    show_individual <- is.null(group)
+  }
+
+  if (!is.null(group)) {
+    if (length(group) != nrow(S)) {
+      stop("`group` must have length equal to nrow(S).")
+    }
+    plot_df$group <- factor(group[plot_df$.id])
+  }
+
+  plot_long <- tidyr::pivot_longer(
+    plot_df,
+    cols = grep("^t=", names(plot_df), value = TRUE),
+    names_to = "time",
+    values_to = "surv_prob"
+  )
+  plot_long$time <- as.numeric(sub("^t=", "", plot_long$time))
+
+  if (is.null(group)) {
+    if (isTRUE(show_individual)) {
+      return(
+        ggplot2::ggplot(
+          plot_long,
+          ggplot2::aes(x = time, y = surv_prob, group = .id)
+        ) +
+          ggplot2::geom_line(alpha = alpha, linewidth = linewidth, color = "steelblue") +
+          ggplot2::labs(
+            title = "Predicted survival curves",
+            x = "Time",
+            y = "Survival probability"
+          ) +
+          ggplot2::theme_minimal()
+      )
+    }
+
+    summary_df <- plot_long |>
+      dplyr::group_by(time) |>
+      dplyr::summarise(
+        surv_prob = if (summary_fun == "mean") mean(surv_prob) else stats::median(surv_prob),
+        .groups = "drop"
+      )
+
+    return(
+      ggplot2::ggplot(summary_df, ggplot2::aes(x = time, y = surv_prob)) +
+        ggplot2::geom_line(linewidth = linewidth + 0.2, color = "steelblue") +
+        ggplot2::labs(
+          title = paste("Predicted survival curve (", summary_fun, " summary)", sep = ""),
+          x = "Time",
+          y = "Survival probability"
+        ) +
+        ggplot2::theme_minimal()
+    )
+  }
+
+  summary_df <- plot_long |>
+    dplyr::group_by(group, time) |>
+    dplyr::summarise(
+      surv_prob = if (summary_fun == "mean") mean(surv_prob) else stats::median(surv_prob),
+      .groups = "drop"
+    )
+
+  p <- ggplot2::ggplot(summary_df, ggplot2::aes(x = time, y = surv_prob, color = group)) +
+    ggplot2::geom_line(linewidth = linewidth + 0.2) +
+    ggplot2::labs(
+      title = paste("Predicted survival curves by group (", summary_fun, " summary)", sep = ""),
+      x = "Time",
+      y = "Survival probability",
+      color = "Group"
+    ) +
+    ggplot2::theme_minimal()
+
+  if (isTRUE(show_individual)) {
+    p <- p + ggplot2::geom_line(
+      data = plot_long,
+      ggplot2::aes(group = .id),
+      alpha = alpha,
+      linewidth = linewidth
+    )
+  }
+
+  p
 }
