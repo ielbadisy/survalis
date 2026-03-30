@@ -117,6 +117,8 @@ predict_selectcox <- function(object, newdata, times) {
 #'   selection metric.
 #' @param folds Number of cross‑validation folds.
 #' @param seed Integer random seed for reproducibility.
+#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if `TRUE`, refits the best rule on the full data
 #'   and returns it as an `mlsurv_model` (with tuning results attached).
 #' @param ... Additional arguments forwarded to the underlying engine where applicable.
