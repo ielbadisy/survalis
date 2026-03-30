@@ -161,7 +161,87 @@ compute_counterfactual <- function(model, newdata, times, target_time,
   return(final_result)
 }
 
+#' Plot Counterfactual Recommendations
+#'
+#' Visualizes counterfactual feature changes returned by
+#' \code{\link{compute_counterfactual}}, ranking recommendations by either raw
+#' survival gain or penalized gain.
+#'
+#' @param counterfactual_df A data frame returned by \code{compute_counterfactual()}.
+#' @param metric Character scalar; one of \code{"penalized_gain"} (default) or
+#'   \code{"survival_gain"} indicating which column to plot on the x-axis.
+#' @param top_n Optional integer limiting the plot to the top \code{n} features
+#'   after sorting by \code{metric}.
+#' @param include_negative Logical; if \code{FALSE} (default), only positive-gain
+#'   recommendations are shown.
+#'
+#' @return A \pkg{ggplot2} object.
+#'
+#' @examples
+#' # cf <- compute_counterfactual(mod, newdata = veteran[1, , drop = FALSE], times = 100, target_time = 100)
+#' # plot_counterfactual(cf)
+#' @export
+plot_counterfactual <- function(counterfactual_df,
+                                metric = c("penalized_gain", "survival_gain"),
+                                top_n = NULL,
+                                include_negative = FALSE) {
+  metric <- match.arg(metric)
 
+  required_cols <- c(
+    "feature", "original_value", "suggested_value",
+    "survival_gain", "change_cost", "penalized_gain"
+  )
+  missing_cols <- setdiff(required_cols, names(counterfactual_df))
+  if (length(missing_cols)) {
+    stop(
+      "`counterfactual_df` must contain columns: ",
+      paste(required_cols, collapse = ", ")
+    )
+  }
 
+  plot_df <- as.data.frame(counterfactual_df, stringsAsFactors = FALSE)
+  plot_df[[metric]] <- as.numeric(plot_df[[metric]])
 
+  if (!isTRUE(include_negative)) {
+    positive_df <- plot_df[plot_df[[metric]] > 0, , drop = FALSE]
+    if (nrow(positive_df)) {
+      plot_df <- positive_df
+    }
+  }
+
+  plot_df <- plot_df[order(plot_df[[metric]], decreasing = TRUE), , drop = FALSE]
+  if (!is.null(top_n)) {
+    top_n <- as.integer(top_n)
+    if (!is.finite(top_n) || top_n < 1) {
+      stop("`top_n` must be a positive integer.")
+    }
+    plot_df <- utils::head(plot_df, top_n)
+  }
+
+  plot_df$feature <- factor(plot_df$feature, levels = rev(plot_df$feature))
+  plot_df$change_label <- paste0(plot_df$original_value, " -> ", plot_df$suggested_value)
+  plot_df$direction <- ifelse(plot_df[[metric]] >= 0, "increase", "decrease")
+  plot_df$hjust <- ifelse(plot_df[[metric]] >= 0, -0.05, 1.05)
+
+  ggplot2::ggplot(
+    plot_df,
+    ggplot2::aes(x = .data[[metric]], y = feature, fill = direction)
+  ) +
+    ggplot2::geom_col(width = 0.7, show.legend = FALSE) +
+    ggplot2::geom_text(
+      ggplot2::aes(label = change_label, hjust = hjust),
+      size = 3.5
+    ) +
+    ggplot2::scale_fill_manual(values = c(increase = "steelblue", decrease = "tomato")) +
+    ggplot2::labs(
+      title = "Counterfactual feature recommendations",
+      x = if (metric == "penalized_gain") "Penalized survival gain" else "Survival gain",
+      y = NULL
+    ) +
+    ggplot2::theme_minimal() +
+    ggplot2::xlim(
+      min(0, min(plot_df[[metric]], na.rm = TRUE)),
+      max(plot_df[[metric]], na.rm = TRUE) * 1.25
+    )
+}
 
