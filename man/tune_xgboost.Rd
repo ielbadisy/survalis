@@ -35,6 +35,9 @@ The first entry is treated as the primary selection metric for ordering.}
 \item{folds}{Integer number of CV folds.}
 
 \item{seed}{Integer random seed for reproducibility.}
+
+\item{ncores}{Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+for fold evaluation (default \code{1}).}
 }
 \value{
 A \code{tibble} with one row per grid configuration, containing:
