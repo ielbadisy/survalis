@@ -17,4 +17,8 @@
 #'
 #' @source \pkg{survival} package, originally from
 #' Kalbfleisch and Prentice (1980) *The Statistical Analysis of Failure Time Data*.
+#'
+#' @examples
+#' head(veteran)
+#' summary(veteran$time)
 "veteran"
