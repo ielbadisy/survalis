@@ -13,7 +13,8 @@ tune_xgboost(
     c(0.5, 1), objective = "survival:aft", stringsAsFactors = FALSE),
   metrics = c("cindex", "ibs"),
   folds = 5,
-  seed = 123
+  seed = 123,
+  ncores = 1
 )
 }
 \arguments{
