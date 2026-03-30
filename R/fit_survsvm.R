@@ -191,6 +191,8 @@ predict_survsvm <- function(object, newdata, times, dist = "exp", shape = 1) {
 #'   include `gamma.mu` and `kernel`. Use \code{list(gamma.mu = c(...), kernel = c(...))}.
 #' @param folds Number of cross-validation folds.
 #' @param seed Integer random seed for reproducibility.
+#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if `TRUE`, refits the best configuration on the
 #'   full data and returns it as the result (with tuning attributes).
 #' @param dist Parametric mapping for predictions during CV: `"exp"` or `"weibull"`.
