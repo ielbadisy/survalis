@@ -121,6 +121,8 @@ predict_ranger <- function(object, newdata, times) {
 #' @param metrics Character vector of evaluation metrics (e.g., \code{"cindex"}, \code{"ibs"}).
 #' @param folds Number of cross-validation folds.
 #' @param seed Random seed for reproducibility.
+#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if \code{TRUE}, refits the model using the best parameters.
 #' @param ... Additional arguments passed to \code{\link{fit_ranger}}.
 #'
