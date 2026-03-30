@@ -77,7 +77,7 @@ list_interpretability_methods <- function() {
     "compute_tree_surrogate",
     "compute_varimp",
     "compute_interactions",
-    "compute_counterfactual"  # no plot helper (yet)
+    "compute_counterfactual"
   )
 
   plot_candidates <- c(
@@ -88,7 +88,7 @@ list_interpretability_methods <- function() {
     "plot_tree_surrogate",
     "plot_varimp",
     "plot_interactions",
-    NA_character_              # aligns with compute_counterfactual
+    "plot_counterfactual"
   )
 
   stopifnot(length(compute_candidates) == length(plot_candidates))
@@ -144,10 +144,11 @@ list_tunable_survlearners <- function() {
 #' @export
 list_metrics <- function() {
   tibble::tibble(
-    metric    = c("cindex", "brier", "ibs", "iae", "ise", "ece"),
-    direction = c("maximize", "minimize", "minimize", "minimize", "minimize", "minimize"),
+    metric    = c("cindex", "auc", "brier", "ibs", "iae", "ise", "ece"),
+    direction = c("maximize", "maximize", "minimize", "minimize", "minimize", "minimize", "minimize"),
     summary   = c(
       "Harrell-style concordance index for survival predictions.",
+      "Cumulative/dynamic time-dependent AUC at a selected evaluation time.",
       "Brier Score at specified evaluation time(s) (IPCW-weighted when needed).",
       "Integrated Brier Score over an evaluation time grid (IPCW-weighted).",
       "Integrated absolute error against the Kaplan-Meier curve.",
@@ -155,6 +156,7 @@ list_metrics <- function() {
       "Expected calibration error at a single evaluation time."
     ),
     range     = c(
+      "[0, 1] (higher is better)",
       "[0, 1] (higher is better)",
       "[0, 1] (lower is better)",
       "[0, 1] (lower is better)",
