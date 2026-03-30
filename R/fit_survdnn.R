@@ -90,6 +90,9 @@ fit_survdnn <- function(formula, data,
 
   stopifnot(requireNamespace("survdnn", quietly = TRUE))
   stopifnot(requireNamespace("torch", quietly = TRUE))
+  if (!torch::torch_is_installed()) {
+    stop("The 'torch' package is installed, but the LibTorch runtime is missing. Run torch::install_torch() first.")
+  }
 
   model <- survdnn::survdnn(
     formula = formula,
@@ -170,6 +173,9 @@ fit_survdnn <- function(formula, data,
 predict_survdnn <- function(object, newdata, times = NULL,
                             type = c("survival", "lp", "risk"), ...) {
 
+  if (!requireNamespace("torch", quietly = TRUE) || !torch::torch_is_installed()) {
+    stop("Prediction with survdnn requires an installed LibTorch runtime. Run torch::install_torch() first.")
+  }
 
   if (!is.null(object$learner) && object$learner != "survdnn") {
     warning("Object passed to predict_survdnn() may not come from fit_survdnn().")
@@ -210,6 +216,8 @@ predict_survdnn <- function(object, newdata, times = NULL,
 #'   selection metric.
 #' @param folds Number of cross-validation folds.
 #' @param seed Integer random seed for reproducibility.
+#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if `TRUE`, refits the best configuration on the
 #'   full data and returns it as the result (with tuning attributes).
 #' @param ... Additional arguments forwarded to the underlying engine where applicable.
@@ -229,7 +237,7 @@ predict_survdnn <- function(object, newdata, times = NULL,
 #' @seealso [fit_survdnn()], [predict_survdnn()]
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' if (requireNamespace("survdnn", quietly = TRUE) &&
 #'     requireNamespace("torch", quietly = TRUE) &&
 #'     torch::torch_is_installed()) {
