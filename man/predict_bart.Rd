@@ -30,11 +30,18 @@ returning one survival estimate per requested time.
 }
 \examples{
 \dontshow{if (requireNamespace("BART", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+ex_data <- veteran[1:40, c("time", "status", "age", "karno", "celltype")]
 mod_bart <- fit_bart(
   Surv(time, status) ~ age + karno + celltype,
-  data = veteran
+  data = ex_data,
+  K = 1,
+  ntree = 5,
+  ndpost = 20,
+  nskip = 5,
+  mc.cores = 1,
+  seed = 42
 )
-predict_bart(mod_bart, newdata = veteran[1:5, ], times = c(10, 30, 60))
+predict_bart(mod_bart, newdata = ex_data[1:5, ], times = c(10, 30, 60))
 \dontshow{\}) # examplesIf}
 }
 \seealso{
