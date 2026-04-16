@@ -29,9 +29,16 @@
 #' @seealso \code{\link{predict_bart}}, \code{\link[BART]{surv.bart}}
 #'
 #' @examplesIf requireNamespace("BART", quietly = TRUE)
+#' ex_data <- veteran[1:40, c("time", "status", "age", "karno", "celltype")]
 #' mod_bart <- fit_bart(
 #'   Surv(time, status) ~ age + karno + celltype,
-#'   data = veteran
+#'   data = ex_data,
+#'   K = 1,
+#'   ntree = 5,
+#'   ndpost = 20,
+#'   nskip = 5,
+#'   mc.cores = 1,
+#'   seed = 42
 #' )
 #' @export
 
@@ -48,7 +55,11 @@ fit_bart <- function(formula, data, K = 3, ...) {
 
   time_vec   <- y[, "time"]
   status_vec <- y[, "status"]
-  x <- model.matrix(formula, data = mf)[, -1, drop = FALSE]
+  terms_obj <- stats::terms(formula, data = data)
+  xlevels <- stats::.getXlevels(terms_obj, mf)
+  x <- stats::model.matrix(terms_obj, data = mf)[, -1, drop = FALSE]
+  x_cols <- colnames(x)
+  x_contrasts <- attr(x, "contrasts")
 
   # silence verbose output
   invisible(
@@ -69,7 +80,11 @@ fit_bart <- function(formula, data, K = 3, ...) {
       learner = "bart",
       formula = formula,
       data = data,
-      eval_times = bart_fit$times
+      eval_times = bart_fit$times,
+      terms = stats::delete.response(terms_obj),
+      xlevels = xlevels,
+      x_cols = x_cols,
+      x_contrasts = x_contrasts
     ),
     class = "mlsurv_model",
     engine = "BART"
@@ -100,11 +115,18 @@ fit_bart <- function(formula, data, K = 3, ...) {
 #' @seealso \code{\link{fit_bart}}, \code{\link[BART]{surv.bart}}
 #'
 #' @examplesIf requireNamespace("BART", quietly = TRUE)
+#' ex_data <- veteran[1:40, c("time", "status", "age", "karno", "celltype")]
 #' mod_bart <- fit_bart(
 #'   Surv(time, status) ~ age + karno + celltype,
-#'   data = veteran
+#'   data = ex_data,
+#'   K = 1,
+#'   ntree = 5,
+#'   ndpost = 20,
+#'   nskip = 5,
+#'   mc.cores = 1,
+#'   seed = 42
 #' )
-#' predict_bart(mod_bart, newdata = veteran[1:5, ], times = c(10, 30, 60))
+#' predict_bart(mod_bart, newdata = ex_data[1:5, ], times = c(10, 30, 60))
 #' @export
 
 
@@ -118,23 +140,64 @@ predict_bart <- function(object, newdata, times) {
 
   stopifnot(requireNamespace("BART", quietly = TRUE))
 
-  newx <- model.matrix(object$formula, data = newdata)[, -1, drop = FALSE]
+  if (!is.null(object$terms) && !is.null(object$x_cols)) {
+    mf_new <- stats::model.frame(object$terms, data = newdata,
+                                 xlev = object$xlevels, na.action = stats::na.pass)
+    newx <- stats::model.matrix(object$terms, data = mf_new,
+                                contrasts.arg = object$x_contrasts)
+    if ("(Intercept)" %in% colnames(newx)) {
+      newx <- newx[, colnames(newx) != "(Intercept)", drop = FALSE]
+    }
+    missing_cols <- setdiff(object$x_cols, colnames(newx))
+    if (length(missing_cols) > 0) {
+      for (nm in missing_cols) {
+        newx <- cbind(newx, setNames(data.frame(rep(0, nrow(newx))), nm))
+      }
+    }
+    newx <- as.matrix(newx[, object$x_cols, drop = FALSE])
+  } else {
+    newx <- model.matrix(object$formula, data = newdata)[, -1, drop = FALSE]
+  }
+
+  n_obs <- nrow(newx)
   K <- length(object$eval_times)
+  if (K < 1) stop("Fitted BART model does not contain valid evaluation times.")
 
-  newx_expanded <- cbind(
-    t = object$eval_times,
-    newx[rep(seq_len(nrow(newx)), each = K), ]
-  )
+  if (K == 1) {
+    newx_with_t <- cbind(t = rep(object$eval_times[1], n_obs), newx)
+  } else {
+    newx_with_t <- cbind(
+      t = object$eval_times,
+      newx[rep(seq_len(n_obs), each = K), , drop = FALSE]
+    )
+  }
 
-  # silently run prediction (suppresses C++ output)
+  newx_pred <- newx_with_t
+  if (!is.null(object$model$rm.const)) {
+    newx_pred <- newx_pred[, object$model$rm.const, drop = FALSE]
+  }
+
+  expected_p <- length(object$model$treedraws$cutpoints)
+  if (ncol(newx_pred) != expected_p) {
+    stop("Prediction design matrix has unexpected number of columns for the fitted BART model.")
+  }
+
   invisible(capture.output(
-    pred_values <- predict(object$model, newdata = newx_expanded)$surv.test.mean
+    pred_values <- predict(object$model, newdata = as.matrix(newx_pred))$surv.test.mean
   ))
 
-  prob_matrix <- matrix(pred_values, nrow = nrow(newx), ncol = K, byrow = TRUE)
+  if (length(pred_values) == n_obs) {
+    prob_matrix <- matrix(pred_values, nrow = n_obs, ncol = 1, byrow = TRUE)
+    eval_times <- object$eval_times[1]
+  } else if (length(pred_values) == n_obs * K) {
+    prob_matrix <- matrix(pred_values, nrow = n_obs, ncol = K, byrow = TRUE)
+    eval_times <- object$eval_times
+  } else {
+    stop("Unexpected prediction shape returned by BART.")
+  }
 
   # align internal BART times to requested times via nearest neighbor match
-  mapped_times <- sapply(times, function(t) which.min(abs(object$eval_times - t)))
+  mapped_times <- sapply(times, function(t) which.min(abs(eval_times - t)))
   survmat <- prob_matrix[, mapped_times, drop = FALSE]
   .finalize_survmat(survmat, times = times)
 

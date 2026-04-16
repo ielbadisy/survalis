@@ -39,9 +39,16 @@ object stores the engine's internal evaluation times in \code{$eval_times}
 }
 \examples{
 \dontshow{if (requireNamespace("BART", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+ex_data <- veteran[1:40, c("time", "status", "age", "karno", "celltype")]
 mod_bart <- fit_bart(
   Surv(time, status) ~ age + karno + celltype,
-  data = veteran
+  data = ex_data,
+  K = 1,
+  ntree = 5,
+  ndpost = 20,
+  nskip = 5,
+  mc.cores = 1,
+  seed = 42
 )
 \dontshow{\}) # examplesIf}
 }
