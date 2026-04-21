@@ -65,13 +65,18 @@ be skipped with a warning. At least one learner must complete successfully or an
 error is raised.
 }
 \examples{
-# learners <- c("coxph","ranger","glmnet")
-# res <- benchmark_default_survlearners(
-#   Surv(time, status) ~ age + karno + trt, veteran,
-#   learners = learners, times = c(100,200,300),
-#   metrics = c("cindex","ibs"), folds = 3, seed = 42
-# )
-# dplyr::glimpse(res)
+\donttest{
+res <- benchmark_default_survlearners(
+  Surv(time, status) ~ age + karno + trt,
+  data = veteran,
+  learners = c("coxph", "rpart"),
+  times = c(80, 160),
+  metrics = c("cindex", "ibs"),
+  folds = 2,
+  seed = 1
+)
+head(res)
+}
 
 }
 \seealso{

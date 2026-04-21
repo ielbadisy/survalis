@@ -61,14 +61,14 @@ best-fitting model; otherwise, it returns a tuning results table.
 mod_ranger_best <- tune_ranger(
   formula = Surv(time, status) ~ age + karno + celltype,
   data = veteran,
-  times = c(100, 200, 300),
+  times = c(80, 160),
   param_grid = expand.grid(
-    num.trees = c(100, 300),
-    mtry = c(1, 2),
-    min.node.size = c(3, 5)
+    num.trees = c(25),
+    mtry = c(2),
+    min.node.size = c(5)
   ),
   metrics = c("cindex", "ibs"),
-  folds = 3,
+  folds = 2,
   refit_best = TRUE
 )
 summary(mod_ranger_best)

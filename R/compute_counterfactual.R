@@ -34,17 +34,18 @@
 #' (e.g., \code{predict_coxph} for \code{learner = "coxph"}).
 #'
 #' @examples
-#' # Uses only {survival} (already in Imports) and your internal `veteran` dataset
-#' veteran$A <- veteran$trt
-#' mod <- fit_coxph(survival::Surv(time, status) ~ A + age + karno, data = veteran)
+#' df <- veteran
+#' df$A <- df$trt
+#' mod <- fit_coxph(survival::Surv(time, status) ~ A + age + karno, data = df)
 #'
 #' cf <- compute_counterfactual(
 #'   model = mod,
-#'   newdata = veteran[1, , drop = FALSE],   # exactly one individual
+#'   newdata = df[1, , drop = FALSE],
 #'   times = c(50, 100, 150),
 #'   target_time = 100,
 #'   features_to_change = c("A", "age", "karno"),
-#'   cost_penalty = 0.01
+#'   grid.size = 10,
+#'   cost_penalty = 0.02
 #' )
 #' head(cf)
 #'
@@ -178,10 +179,18 @@ compute_counterfactual <- function(model, newdata, times, target_time,
 #' @return A \pkg{ggplot2} object.
 #'
 #' @examples
-#' # cf <- compute_counterfactual(
-#' #   mod, newdata = veteran[1, , drop = FALSE], times = 100, target_time = 100
-#' # )
-#' # plot_counterfactual(cf)
+#' df <- veteran
+#' df$A <- df$trt
+#' mod <- fit_coxph(survival::Surv(time, status) ~ A + age + karno, data = df)
+#' cf <- compute_counterfactual(
+#'   model = mod,
+#'   newdata = df[1, , drop = FALSE],
+#'   times = c(50, 100, 150),
+#'   target_time = 100,
+#'   features_to_change = c("A", "age", "karno"),
+#'   grid.size = 10
+#' )
+#' plot_counterfactual(cf)
 #' @export
 plot_counterfactual <- function(counterfactual_df,
                                 metric = c("penalized_gain", "survival_gain"),

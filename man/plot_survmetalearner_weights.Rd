@@ -17,5 +17,23 @@ Visualizes the learned nonnegative NNLS stacking weights \eqn{w_\ell(t)} over ti
 for each base learner.
 }
 \examples{
-# plot_survmetalearner_weights(meta_model)
+form <- Surv(time, status) ~ age + karno + trt
+times <- c(80, 160)
+mod_cox <- fit_coxph(form, data = veteran)
+mod_rpart <- fit_rpart(form, data = veteran)
+base_models <- list(coxph = mod_cox, rpart = mod_rpart)
+base_preds <- list(
+  coxph = predict_coxph(mod_cox, newdata = veteran, times = times),
+  rpart = predict_rpart(mod_rpart, newdata = veteran, times = times)
+)
+meta_model <- fit_survmetalearner(
+  base_preds = base_preds,
+  time = veteran$time,
+  status = veteran$status,
+  times = times,
+  base_models = base_models,
+  formula = form,
+  data = veteran
+)
+plot_survmetalearner_weights(meta_model)
 }

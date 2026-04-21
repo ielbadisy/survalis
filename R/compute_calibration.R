@@ -38,13 +38,18 @@
 #' }
 #'
 #' @examples
-#' # mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
-#' # calib <- compute_calibration(
-#' #   model = mod_cox, data = veteran,
-#' #   time = "time", status = "status",
-#' #   eval_time = 80, n_bins = 10, n_boot = 30
-#' # )
-#' # plot_calibration(calib)
+#' mod <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+#' calib <- compute_calibration(
+#'   model = mod,
+#'   data = veteran,
+#'   time = "time",
+#'   status = "status",
+#'   eval_time = 80,
+#'   n_bins = 4,
+#'   n_boot = 5,
+#'   seed = 1
+#' )
+#' head(calib$calibration_table)
 #'
 #' @seealso [plot_calibration()]
 #' @export
@@ -147,8 +152,18 @@ compute_calibration <- function(model, data, time, status,
 #' than predicted), while points below indicate overprediction.
 #'
 #' @examples
-#' # p <- plot_calibration(calib)
-#' # p
+#' mod <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+#' calib <- compute_calibration(
+#'   model = mod,
+#'   data = veteran,
+#'   time = "time",
+#'   status = "status",
+#'   eval_time = 80,
+#'   n_bins = 4,
+#'   n_boot = 5,
+#'   seed = 1
+#' )
+#' plot_calibration(calib)
 #'
 #' @seealso [compute_calibration()]
 #' @export
@@ -178,5 +193,4 @@ plot_calibration <- function(calib_output, smooth = TRUE) {
 
   return(p)
 }
-
 

@@ -235,7 +235,6 @@ predict_bart <- function(object, newdata, times) {
 #'
 #' @examplesIf requireNamespace("BART", quietly = TRUE)
 #' \donttest{
-#' # Evaluate a grid without refitting
 #' grid <- expand.grid(K = c(3), ntree = c(50), power = c(2), base = c(0.75, 0.95))
 #' res <- tune_bart(
 #'   formula = Surv(time, status) ~ age + karno + celltype,
@@ -246,7 +245,6 @@ predict_bart <- function(object, newdata, times) {
 #' )
 #' print(res)
 #'
-#' # Refit best model
 #' mod_bart <- tune_bart(
 #'   formula = Surv(time, status) ~ age + karno + celltype,
 #'   data = veteran,

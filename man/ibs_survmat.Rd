@@ -23,5 +23,10 @@ Computes the Integrated Brier Score (IBS) over a vector of times, using
 discrete left Riemann integration of IPCW Brier scores.
 }
 \examples{
-# ibs_survmat(Surv(time, status), sp_matrix = sp, times = c(90,180,365))
+y <- survival::Surv(time = veteran$time, event = veteran$status)
+times <- c(60, 120)
+lp <- stats::plogis(scale(veteran$karno))
+sp <- cbind("t=60" = pmin(1, lp + 0.05), "t=120" = pmax(0, lp - 0.05))
+colnames(sp) <- c("t=60", "t=120")
+ibs_survmat(y, sp_matrix = sp, times = times)
 }

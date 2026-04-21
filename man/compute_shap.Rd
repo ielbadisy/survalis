@@ -58,18 +58,16 @@ The prediction function is inferred from \code{model$learner} as
 \donttest{
 mod <- fit_coxph(survival::Surv(time, status) ~ age + karno + celltype, data = veteran)
 
-# Explain one patient at a few times
 shap_td <- compute_shap(
   model         = mod,
   newdata       = veteran[100, , drop = FALSE],
   baseline_data = veteran,
   times         = c(100, 200),
-  sample.size   = 5,          # small for example speed
+  sample.size   = 5,
   aggregate     = FALSE
 )
 head(shap_td)
 
-# Aggregate across time (mean absolute contribution)
 shap_meanabs <- compute_shap(
   model         = mod,
   newdata       = veteran[100, , drop = FALSE],

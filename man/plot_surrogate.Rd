@@ -21,5 +21,14 @@ Visualizes the signed local effects from \code{\link{compute_surrogate}} as a
 horizontal bar chart, optionally limiting to the top \code{n} contributors.
 }
 \examples{
-# plot_surrogate(local_expl, top_n = 10)
+mod <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+local_expl <- compute_surrogate(
+  model = mod,
+  newdata = veteran[2, , drop = FALSE],
+  baseline_data = veteran,
+  times = c(80, 160),
+  target_time = 80,
+  k = 3
+)
+plot_surrogate(local_expl, top_n = 3)
 }

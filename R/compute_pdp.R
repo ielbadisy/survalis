@@ -38,10 +38,16 @@
 #' }
 #'
 #' @examples
-#' # mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
-#' # pdp_age <- compute_pdp(mod_ranger, data = veteran, feature = "age",
-#' #                        times = c(100, 200, 300), method = "pdp+ice")
-#' # str(pdp_age)
+#' mod <- fit_coxph(Surv(time, status) ~ age + karno + trt, data = veteran)
+#' pdp_age <- compute_pdp(
+#'   model = mod,
+#'   data = veteran,
+#'   feature = "age",
+#'   times = c(80, 160),
+#'   method = "pdp+ice",
+#'   grid.size = 8
+#' )
+#' head(pdp_age$results)
 #'
 #' @export
 
@@ -169,8 +175,17 @@ compute_pdp <- function(model, data, feature, times,
 #' @return A \pkg{ggplot2} object.
 #'
 #' @examples
-#' # plot_pdp(pdp_age, feature = "age", which = "per_time")
-#' # plot_pdp(pdp_age, feature = "age", which = "integrated", smooth = TRUE)
+#' mod <- fit_coxph(Surv(time, status) ~ age + karno + trt, data = veteran)
+#' pdp_age <- compute_pdp(
+#'   model = mod,
+#'   data = veteran,
+#'   feature = "age",
+#'   times = c(80, 160),
+#'   method = "pdp+ice",
+#'   grid.size = 8
+#' )
+#' plot_pdp(pdp_age, feature = "age", which = "per_time")
+#' plot_pdp(pdp_age, feature = "age", which = "integrated", smooth = TRUE)
 #'
 #' @export
 
@@ -294,5 +309,4 @@ plot_pdp <- function(pdp_ice_output, feature,
 
   return(p)
 }
-
 

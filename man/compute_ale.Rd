@@ -47,10 +47,15 @@ For survival models, predictions are survival probabilities at \code{times}.
 The returned ALE curves are centered (mean zero across the grid) per time.
 }
 \examples{
-# mod <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
-# ale_res <- compute_ale(mod, newdata = veteran, feature = "karno",
-#                        times = c(100, 200, 300))
-# head(ale_res$ale)
+mod <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+ale_res <- compute_ale(
+  model = mod,
+  newdata = veteran,
+  feature = "karno",
+  times = c(80, 160),
+  grid.size = 8
+)
+head(ale_res$ale)
 
 }
 \seealso{

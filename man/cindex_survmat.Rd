@@ -27,5 +27,11 @@ Risk scores are defined as \code{1 - S(t)} at the chosen time. Ties receive
 partial credit (0.5). Pairs not comparable due to censoring are excluded.
 }
 \examples{
-# cindex_survmat(Surv(time, status), sp_matrix, t_star = 365)
+y <- survival::Surv(time = veteran$time, event = veteran$status)
+sp <- matrix(
+  stats::plogis(scale(veteran$karno)),
+  ncol = 1,
+  dimnames = list(NULL, "t=100")
+)
+cindex_survmat(y, predicted = sp, t_star = 100)
 }

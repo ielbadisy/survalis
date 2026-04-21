@@ -148,7 +148,6 @@ predict_rpart <- function(object, newdata, times, ...) {
 #'
 #' @examples
 #'
-#' # Example tuning without refit
 #' res_rpart <- tune_rpart(
 #'   formula = Surv(time, status) ~ age + karno + celltype,
 #'   data = veteran,
@@ -166,7 +165,6 @@ predict_rpart <- function(object, newdata, times, ...) {
 #'
 #' print(res_rpart)
 #'
-#' # Example tuning with refit
 #' mod_rpart_best <- tune_rpart(
 #'   formula = Surv(time, status) ~ age + karno + celltype,
 #'   data = veteran,

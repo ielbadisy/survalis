@@ -38,18 +38,16 @@
 #' \donttest{
 #' mod <- fit_coxph(survival::Surv(time, status) ~ age + karno + celltype, data = veteran)
 #'
-#' # Explain one patient at a few times
 #' shap_td <- compute_shap(
 #'   model         = mod,
 #'   newdata       = veteran[100, , drop = FALSE],
 #'   baseline_data = veteran,
 #'   times         = c(100, 200),
-#'   sample.size   = 5,          # small for example speed
+#'   sample.size   = 5,
 #'   aggregate     = FALSE
 #' )
 #' head(shap_td)
 #'
-#' # Aggregate across time (mean absolute contribution)
 #' shap_meanabs <- compute_shap(
 #'   model         = mod,
 #'   newdata       = veteran[100, , drop = FALSE],
@@ -173,13 +171,11 @@ return(final_result)
 #'
 #' @examples
 #' \donttest{
-#' # Time-dependent SHAP
 #' mod <- fit_coxph(survival::Surv(time, status) ~ age + karno + celltype, data = veteran)
 #' shap_td <- compute_shap(mod, veteran[10, , drop = FALSE],
 #' veteran, times = c(50, 100), sample.size = 5)
 #' p1 <- plot_shap(shap_td)      # auto -> time plot
 #'
-#' # Aggregated SHAP
 #' shap_ag <- compute_shap(mod, veteran[10, , drop = FALSE],
 #' veteran, times = c(50, 100),
 #' sample.size = 5, aggregate = TRUE, method = "meanabs")
@@ -233,6 +229,4 @@ ggplot(shapley_result, ggplot2::aes(x = phi, y = feature, fill = direction)) +
   theme_minimal(base_size = 14)
 }
 }
-
-
 

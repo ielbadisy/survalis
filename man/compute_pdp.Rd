@@ -52,9 +52,15 @@ If multiple \code{times} are supplied, outputs are stacked in long format with a
 when more than one time is provided.
 }
 \examples{
-# mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
-# pdp_age <- compute_pdp(mod_ranger, data = veteran, feature = "age",
-#                        times = c(100, 200, 300), method = "pdp+ice")
-# str(pdp_age)
+mod <- fit_coxph(Surv(time, status) ~ age + karno + trt, data = veteran)
+pdp_age <- compute_pdp(
+  model = mod,
+  data = veteran,
+  feature = "age",
+  times = c(80, 160),
+  method = "pdp+ice",
+  grid.size = 8
+)
+head(pdp_age$results)
 
 }

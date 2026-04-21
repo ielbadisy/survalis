@@ -28,5 +28,7 @@ The censoring distribution \eqn{G(t)} is estimated via Kaplan-Meier on
 undefined or zero.
 }
 \examples{
-# brier(Surv(time, status), pre_sp = sp[,1], t_star = 180)
+y <- survival::Surv(time = veteran$time, event = veteran$status)
+pre_sp <- stats::plogis(scale(veteran$karno))
+brier(y, pre_sp = pre_sp, t_star = 100)
 }

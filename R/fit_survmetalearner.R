@@ -40,7 +40,25 @@
 #'   \code{\link{cv_survmetalearner}}
 #'
 #' @examples
-#' # See cv_survmetalearner() and predict_survmetalearner() examples.
+#' form <- Surv(time, status) ~ age + karno + trt
+#' times <- c(80, 160)
+#' mod_cox <- fit_coxph(form, data = veteran)
+#' mod_rpart <- fit_rpart(form, data = veteran)
+#' base_models <- list(coxph = mod_cox, rpart = mod_rpart)
+#' base_preds <- list(
+#'   coxph = predict_coxph(mod_cox, newdata = veteran, times = times),
+#'   rpart = predict_rpart(mod_rpart, newdata = veteran, times = times)
+#' )
+#' meta_model <- fit_survmetalearner(
+#'   base_preds = base_preds,
+#'   time = veteran$time,
+#'   status = veteran$status,
+#'   times = times,
+#'   base_models = base_models,
+#'   formula = form,
+#'   data = veteran
+#' )
+#' meta_model$weights
 #' @export
 
 fit_survmetalearner <- function(base_preds, time, status, times,
@@ -101,7 +119,25 @@ fit_survmetalearner <- function(base_preds, time, status, times,
 #' @seealso \code{\link{fit_survmetalearner}}, \code{\link{plot_survmetalearner_weights}}
 #'
 #' @examples
-#' # pred <- predict_survmetalearner(meta_model, newdata = df_test, times = c(200, 500, 800))
+#' form <- Surv(time, status) ~ age + karno + trt
+#' times <- c(80, 160)
+#' mod_cox <- fit_coxph(form, data = veteran)
+#' mod_rpart <- fit_rpart(form, data = veteran)
+#' base_models <- list(coxph = mod_cox, rpart = mod_rpart)
+#' base_preds <- list(
+#'   coxph = predict_coxph(mod_cox, newdata = veteran, times = times),
+#'   rpart = predict_rpart(mod_rpart, newdata = veteran, times = times)
+#' )
+#' meta_model <- fit_survmetalearner(
+#'   base_preds = base_preds,
+#'   time = veteran$time,
+#'   status = veteran$status,
+#'   times = times,
+#'   base_models = base_models,
+#'   formula = form,
+#'   data = veteran
+#' )
+#' predict_survmetalearner(meta_model, newdata = veteran[1:3, ], times = times)
 #' @export
 
 predict_survmetalearner <- function(model, newdata, times) {
@@ -146,7 +182,25 @@ predict_survmetalearner <- function(model, newdata, times) {
 #' @return A \pkg{ggplot2} object showing weight trajectories (one line per learner).
 #'
 #' @examples
-#' # plot_survmetalearner_weights(meta_model)
+#' form <- Surv(time, status) ~ age + karno + trt
+#' times <- c(80, 160)
+#' mod_cox <- fit_coxph(form, data = veteran)
+#' mod_rpart <- fit_rpart(form, data = veteran)
+#' base_models <- list(coxph = mod_cox, rpart = mod_rpart)
+#' base_preds <- list(
+#'   coxph = predict_coxph(mod_cox, newdata = veteran, times = times),
+#'   rpart = predict_rpart(mod_rpart, newdata = veteran, times = times)
+#' )
+#' meta_model <- fit_survmetalearner(
+#'   base_preds = base_preds,
+#'   time = veteran$time,
+#'   status = veteran$status,
+#'   times = times,
+#'   base_models = base_models,
+#'   formula = form,
+#'   data = veteran
+#' )
+#' plot_survmetalearner_weights(meta_model)
 #' @export
 
 plot_survmetalearner_weights <- function(model) {
@@ -205,26 +259,21 @@ plot_survmetalearner_weights <- function(model) {
 #'   \code{\link{plot_survmetalearner_weights}}
 #'
 #' @examples
-#' \dontrun{
-#' form  <- Surv(time, status) ~ age + karno + trt + diagtime + celltype
-#' times <- c(200, 500, 800)
-#'
-#' # Fit a few base learners (examples)
-#' mod_rpart   <- fit_rpart(form, data = veteran)
-#' mod_ranger  <- fit_ranger(form, data = veteran)
-#' mod_cforest <- fit_cforest(form, data = veteran)
-#'
-#' base_models <- list(rpart = mod_rpart, ranger = mod_ranger, cforest = mod_cforest)
+#' \donttest{
+#' form <- Surv(time, status) ~ age + karno + trt
+#' times <- c(80, 160)
+#' mod_cox <- fit_coxph(form, data = veteran)
+#' mod_rpart <- fit_rpart(form, data = veteran)
+#' base_models <- list(coxph = mod_cox, rpart = mod_rpart)
 #' base_preds  <- list(
-#'   rpart   = predict_rpart(mod_rpart,   veteran, times),
-#'   ranger  = predict_ranger(mod_ranger, veteran, times),
-#'   cforest = predict_cforest(mod_cforest, veteran, times)
+#'   coxph = predict_coxph(mod_cox, veteran, times),
+#'   rpart = predict_rpart(mod_rpart, veteran, times)
 #' )
 #'
 #' cv_res <- cv_survmetalearner(
 #'   formula = form, data = veteran, times = times,
 #'   base_models = base_models, base_preds = base_preds,
-#'   folds = 3, metrics = c("cindex","ibs")
+#'   folds = 2, metrics = c("cindex", "ibs"), seed = 1, verbose = FALSE
 #' )
 #'
 #' cv_res$summary

@@ -85,14 +85,14 @@ exactly \code{k} if available).
 }
 \examples{
 \donttest{
- mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
- local_expl <- compute_surrogate(
- model = mod_ranger,
- newdata = veteran[2, ],
- baseline_data = veteran,
- times = c(100, 200, 300),
- target_time = 100,
- k = 5
+mod <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+local_expl <- compute_surrogate(
+  model = mod,
+  newdata = veteran[2, , drop = FALSE],
+  baseline_data = veteran,
+  times = c(80, 160),
+  target_time = 80,
+  k = 3
 )
 head(local_expl)
 }

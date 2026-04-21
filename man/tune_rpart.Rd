@@ -51,7 +51,6 @@ cross-validation, returning either a table of results or the best fitted model.
 }
 \examples{
 
-# Example tuning without refit
 res_rpart <- tune_rpart(
   formula = Surv(time, status) ~ age + karno + celltype,
   data = veteran,
@@ -69,7 +68,6 @@ res_rpart <- tune_rpart(
 
 print(res_rpart)
 
-# Example tuning with refit
 mod_rpart_best <- tune_rpart(
   formula = Surv(time, status) ~ age + karno + celltype,
   data = veteran,

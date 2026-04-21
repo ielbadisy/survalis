@@ -22,8 +22,12 @@ Creates a wide table summarizing each learner's performance as
 \code{mean  sd} per metric, suitable for reporting.
 }
 \examples{
-# tbl <- summarize_benchmark_results(res, digits = 2)
-# tbl
+res <- tibble::tibble(
+  learner = c("coxph", "coxph", "rpart", "rpart"),
+  metric = c("cindex", "ibs", "cindex", "ibs"),
+  value = c(0.64, 0.19, 0.60, 0.23)
+)
+summarize_benchmark_results(res, digits = 2)
 
 }
 \seealso{

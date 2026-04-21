@@ -32,8 +32,16 @@ Visualizes counterfactual feature changes returned by
 survival gain or penalized gain.
 }
 \examples{
-# cf <- compute_counterfactual(
-#   mod, newdata = veteran[1, , drop = FALSE], times = 100, target_time = 100
-# )
-# plot_counterfactual(cf)
+df <- veteran
+df$A <- df$trt
+mod <- fit_coxph(survival::Surv(time, status) ~ A + age + karno, data = df)
+cf <- compute_counterfactual(
+  model = mod,
+  newdata = df[1, , drop = FALSE],
+  times = c(50, 100, 150),
+  target_time = 100,
+  features_to_change = c("A", "age", "karno"),
+  grid.size = 10
+)
+plot_counterfactual(cf)
 }

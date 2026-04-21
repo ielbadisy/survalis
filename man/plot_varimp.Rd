@@ -20,6 +20,15 @@ Creates a dot plot of permutation-based variable importance, using either the
 scaled importance (default) or the raw importance column.
 }
 \examples{
-# p1 <- plot_varimp(imp, use_scaled = TRUE)
-# p2 <- plot_varimp(imp, use_scaled = FALSE)
+mod <- fit_coxph(survival::Surv(time, status) ~ age + karno + celltype, data = veteran)
+imp <- compute_varimp(
+  model = mod,
+  times = 80,
+  metric = "brier",
+  n_repetitions = 3,
+  seed = 1,
+  subset = 40
+)
+plot_varimp(imp, use_scaled = TRUE)
+plot_varimp(imp, use_scaled = FALSE)
 }

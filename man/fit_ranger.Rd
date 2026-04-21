@@ -33,7 +33,11 @@ stores the result in a standardized \code{mlsurv_model} object.
 }
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE)) withAutoprint(\{ # examplesIf}
-mod <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
+mod <- fit_ranger(
+  Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  num.trees = 25
+)
 summary(mod)
 \dontshow{\}) # examplesIf}
 }

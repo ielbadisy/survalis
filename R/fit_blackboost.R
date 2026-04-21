@@ -194,7 +194,6 @@ predict_blackboost <- function(object, newdata, times, ...) {
 #'
 #' @examples
 #' \donttest{
-#' # Grid search only
 #' res_blackboost <- tune_blackboost(
 #'   formula = Surv(time, status) ~ age + karno + celltype,
 #'   data = veteran,
@@ -209,7 +208,6 @@ predict_blackboost <- function(object, newdata, times, ...) {
 #' )
 #' print(res_blackboost)
 #'
-#' # Refit best model
 #' mod_blackboost_best <- tune_blackboost(
 #'   formula = Surv(time, status) ~ age + karno + celltype,
 #'   data = veteran,

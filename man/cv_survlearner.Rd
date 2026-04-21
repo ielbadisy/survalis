@@ -74,19 +74,16 @@ per-fold identifiers (\code{id}, \code{fold}) and returns a list ready for
 \code{dplyr::bind_rows()}.
 }
 \examples{
-\dontrun{
-library(survival)
-data(veteran)
+\donttest{
 cv_results <- cv_survlearner(
-  formula = Surv(time, status) ~ karno,
+  formula = Surv(time, status) ~ age + karno,
   data = veteran,
-  fit_fun = fit_bart,
-  pred_fun = predict_bart,
-  times = c(10, 100, 600, 900),
+  fit_fun = fit_coxph,
+  pred_fun = predict_coxph,
+  times = c(80, 160),
   metrics = c("cindex", "ibs"),
-  folds = 5,
-  ncores = max(1, parallel::detectCores() - 1),
-  pb = TRUE
+  folds = 2,
+  seed = 1
 )
 }
 

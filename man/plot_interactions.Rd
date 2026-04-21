@@ -26,16 +26,17 @@ or (iii) time-varying interaction trajectories.
 \strong{time}: Lines show interaction strength vs. time for each feature.
 }
 \examples{
-# ia1 <- compute_interactions(mod_ranger, veteran, times = c(100,200,300),
-#                             target_time = 200, type = "1way")
-# plot_interactions(ia1, type = "1way")
-#
-# ia2 <- compute_interactions(mod_ranger, veteran, times = c(100,200,300),
-#                             target_time = 200, type = "heatmap")
-# plot_interactions(ia2, type = "heatmap")
-#
-# ia3 <- compute_interactions(mod_ranger, veteran, times = c(100,200,300),
-#                             type = "time")
-# plot_interactions(ia3, type = "time")
+mod <- fit_coxph(Surv(time, status) ~ age + karno + trt, data = veteran)
+times <- c(80, 160)
+ia <- compute_interactions(
+  model = mod,
+  data = veteran,
+  times = times,
+  target_time = 80,
+  features = c("age", "karno"),
+  type = "1way",
+  grid.size = 6
+)
+plot_interactions(ia, type = "1way")
 
 }

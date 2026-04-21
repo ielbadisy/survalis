@@ -70,7 +70,6 @@ The \code{min_events} column of \code{param_grid} is passed to the engine as
 \examples{
 \dontshow{if (requireNamespace("aorsf", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 \donttest{
-  # Cross-validated tuning (small grid to keep runtime light)
   res_orsf <- tune_orsf(
     formula    = Surv(time, status) ~ age + karno,
     data       = veteran,
@@ -85,7 +84,6 @@ The \code{min_events} column of \code{param_grid} is passed to the engine as
   )
   print(res_orsf)
 
-  # Refit the best model on the full data
   mod_orsf_best <- tune_orsf(
     formula    = Surv(time, status) ~ age + karno,
     data       = veteran,

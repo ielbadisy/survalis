@@ -27,8 +27,13 @@ Extracts the top‑performing learner(s) under a chosen metric from benchmark
 results, using the average value across folds.
 }
 \examples{
-# best_survlearner(res, metric = "cindex")
-# best_survlearner(res, metric = "ibs")  # minimized by default
+res <- tibble::tibble(
+  learner = c("coxph", "coxph", "rpart", "rpart"),
+  metric = c("cindex", "ibs", "cindex", "ibs"),
+  value = c(0.64, 0.19, 0.60, 0.23)
+)
+best_survlearner(res, metric = "cindex")
+best_survlearner(res, metric = "ibs")
 
 }
 \seealso{

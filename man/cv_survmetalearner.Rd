@@ -62,26 +62,21 @@ For each fold: (1) subset \code{base_preds} to the analysis indices;
 (4) compute requested metrics. After CV, a final meta‑learner is fit on the full data.
 }
 \examples{
-\dontrun{
-form  <- Surv(time, status) ~ age + karno + trt + diagtime + celltype
-times <- c(200, 500, 800)
-
-# Fit a few base learners (examples)
-mod_rpart   <- fit_rpart(form, data = veteran)
-mod_ranger  <- fit_ranger(form, data = veteran)
-mod_cforest <- fit_cforest(form, data = veteran)
-
-base_models <- list(rpart = mod_rpart, ranger = mod_ranger, cforest = mod_cforest)
+\donttest{
+form <- Surv(time, status) ~ age + karno + trt
+times <- c(80, 160)
+mod_cox <- fit_coxph(form, data = veteran)
+mod_rpart <- fit_rpart(form, data = veteran)
+base_models <- list(coxph = mod_cox, rpart = mod_rpart)
 base_preds  <- list(
-  rpart   = predict_rpart(mod_rpart,   veteran, times),
-  ranger  = predict_ranger(mod_ranger, veteran, times),
-  cforest = predict_cforest(mod_cforest, veteran, times)
+  coxph = predict_coxph(mod_cox, veteran, times),
+  rpart = predict_rpart(mod_rpart, veteran, times)
 )
 
 cv_res <- cv_survmetalearner(
   formula = form, data = veteran, times = times,
   base_models = base_models, base_preds = base_preds,
-  folds = 3, metrics = c("cindex","ibs")
+  folds = 2, metrics = c("cindex", "ibs"), seed = 1, verbose = FALSE
 )
 
 cv_res$summary

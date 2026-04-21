@@ -65,13 +65,18 @@ fit on the bin's rows, and bootstrap percentile (2.5\%, 97.5\%) CIs on the
 observed survival computed by resampling rows with replacement.
 }
 \examples{
-# mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
-# calib <- compute_calibration(
-#   model = mod_cox, data = veteran,
-#   time = "time", status = "status",
-#   eval_time = 80, n_bins = 10, n_boot = 30
-# )
-# plot_calibration(calib)
+mod <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+calib <- compute_calibration(
+  model = mod,
+  data = veteran,
+  time = "time",
+  status = "status",
+  eval_time = 80,
+  n_bins = 4,
+  n_boot = 5,
+  seed = 1
+)
+head(calib$calibration_table)
 
 }
 \seealso{

@@ -48,7 +48,16 @@ For categorical features, shows ICE as boxplots per level and PDP as point summa
 \code{compute_pdp()}); numeric features can be smoothed with \code{smooth=TRUE}.
 }
 \examples{
-# plot_pdp(pdp_age, feature = "age", which = "per_time")
-# plot_pdp(pdp_age, feature = "age", which = "integrated", smooth = TRUE)
+mod <- fit_coxph(Surv(time, status) ~ age + karno + trt, data = veteran)
+pdp_age <- compute_pdp(
+  model = mod,
+  data = veteran,
+  feature = "age",
+  times = c(80, 160),
+  method = "pdp+ice",
+  grid.size = 8
+)
+plot_pdp(pdp_age, feature = "age", which = "per_time")
+plot_pdp(pdp_age, feature = "age", which = "integrated", smooth = TRUE)
 
 }
