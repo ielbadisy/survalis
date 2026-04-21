@@ -59,7 +59,25 @@ probabilities at \eqn{t}. The NNLS solution from \pkg{nnls} is renormalized
 to sum to 1 (if the solution is all zeros, weights remain \code{NA} for that time).
 }
 \examples{
-# See cv_survmetalearner() and predict_survmetalearner() examples.
+form <- Surv(time, status) ~ age + karno + trt
+times <- c(80, 160)
+mod_cox <- fit_coxph(form, data = veteran)
+mod_rpart <- fit_rpart(form, data = veteran)
+base_models <- list(coxph = mod_cox, rpart = mod_rpart)
+base_preds <- list(
+  coxph = predict_coxph(mod_cox, newdata = veteran, times = times),
+  rpart = predict_rpart(mod_rpart, newdata = veteran, times = times)
+)
+meta_model <- fit_survmetalearner(
+  base_preds = base_preds,
+  time = veteran$time,
+  status = veteran$status,
+  times = times,
+  base_models = base_models,
+  formula = form,
+  data = veteran
+)
+meta_model$weights
 }
 \seealso{
 \code{\link{predict_survmetalearner}}, \code{\link{plot_survmetalearner_weights}},

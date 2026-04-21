@@ -49,11 +49,17 @@
 #' \emph{Annals of Applied Statistics}. (Friedman's \eqn{H} interaction measure.)
 #'
 #' @examples
-#' # mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
-#' # times <- c(100, 200, 300)
-#' # compute_interactions(mod_ranger, veteran, times, target_time = 200, type = "1way")
-#' # compute_interactions(mod_ranger, veteran, times, target_time = 200, type = "heatmap")
-#' # compute_interactions(mod_ranger, veteran, times, type = "time")
+#' mod <- fit_coxph(Surv(time, status) ~ age + karno + trt, data = veteran)
+#' times <- c(80, 160)
+#' compute_interactions(
+#'   model = mod,
+#'   data = veteran,
+#'   times = times,
+#'   target_time = 80,
+#'   features = c("age", "karno"),
+#'   type = "1way",
+#'   grid.size = 6
+#' )
 #'
 #' @export
 
@@ -180,17 +186,18 @@ compute_interactions <- function(model, data, times,
 #' @return A \pkg{ggplot2} object.
 #'
 #' @examples
-#' # ia1 <- compute_interactions(mod_ranger, veteran, times = c(100,200,300),
-#' #                             target_time = 200, type = "1way")
-#' # plot_interactions(ia1, type = "1way")
-#' #
-#' # ia2 <- compute_interactions(mod_ranger, veteran, times = c(100,200,300),
-#' #                             target_time = 200, type = "heatmap")
-#' # plot_interactions(ia2, type = "heatmap")
-#' #
-#' # ia3 <- compute_interactions(mod_ranger, veteran, times = c(100,200,300),
-#' #                             type = "time")
-#' # plot_interactions(ia3, type = "time")
+#' mod <- fit_coxph(Surv(time, status) ~ age + karno + trt, data = veteran)
+#' times <- c(80, 160)
+#' ia <- compute_interactions(
+#'   model = mod,
+#'   data = veteran,
+#'   times = times,
+#'   target_time = 80,
+#'   features = c("age", "karno"),
+#'   type = "1way",
+#'   grid.size = 6
+#' )
+#' plot_interactions(ia, type = "1way")
 #'
 #' @export
 

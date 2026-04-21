@@ -9,12 +9,23 @@ Authors@R:
              family = "El Badisy",
              role = c("aut", "cre"),
              email = "elbadisyimad@gmail.com"))
-Description: A modular framework for interpretable survival machine learning.
-  It provides built-in wrappers for a range of survival learners that produce
-  time-indexed survival probability predictions. The package includes tools
-  for cross-validation, learner benchmarking, hyperparameter tuning,
-  calibration, and model explanation, built around a standardized structure and coordinated learner-specific fitting,
-  prediction, and tuning.
+Description: The 'survalis' package is a modular toolkit for interpretable
+  survival machine learning with a unified interface for fitting, prediction,
+  evaluation, and interpretation.
+  It includes semiparametric, parametric, tree-based, ensemble, boosting,
+  kernel, and deep-learning survival learners, together with benchmarking,
+  scoring, calibration, and model-agnostic interpretation utilities.
+  Representative methodological anchors include Cox (1972)
+  <doi:10.1111/j.2517-6161.1972.tb00899.x>, Royston and Parmar (2002)
+  <doi:10.1002/sim.1203>, Ishwaran et al. (2008) <doi:10.1214/08-AOAS169>,
+  Jaeger et al. (2019) <doi:10.1214/19-AOAS1261>, Harrell et al. (1982)
+  <doi:10.1001/jama.1982.03320430047030>, Graf et al. (1999)
+  <doi:10.1002/(SICI)1097-0258(19990915/30)18:17/18<2529::AID-SIM274>3.0.CO;2-5>,
+  Friedman (2001) <doi:10.1214/aos/1013203451>, Apley and Zhu (2020)
+  <doi:10.1111/rssb.12377>, and Lundberg and Lee (2017)
+  <https://papers.nips.cc/paper/7062-a-unified-approach-to-interpreting-model-predictions>,
+  and other related methods for survival modeling, prediction, and
+  interpretation.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

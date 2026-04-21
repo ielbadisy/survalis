@@ -24,5 +24,10 @@ is the Kaplan-Meier curve. Integration uses KM event times and a left
 Riemann sum.
 }
 \examples{
-# ise_survmat(Surv(time, status), sp, times)
+y <- survival::Surv(time = veteran$time, event = veteran$status)
+times <- c(60, 120)
+lp <- stats::plogis(scale(veteran$karno))
+sp <- cbind("t=60" = pmin(1, lp + 0.05), "t=120" = pmax(0, lp - 0.05))
+colnames(sp) <- c("t=60", "t=120")
+ise_survmat(y, sp_matrix = sp, times = times)
 }

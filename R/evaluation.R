@@ -17,7 +17,13 @@
 #' @return A named numeric scalar: \code{"C index"}.
 #'
 #' @examples
-#' # cindex_survmat(Surv(time, status), sp_matrix, t_star = 365)
+#' y <- survival::Surv(time = veteran$time, event = veteran$status)
+#' sp <- matrix(
+#'   stats::plogis(scale(veteran$karno)),
+#'   ncol = 1,
+#'   dimnames = list(NULL, "t=100")
+#' )
+#' cindex_survmat(y, predicted = sp, t_star = 100)
 #' @export
 
 cindex_survmat <- function(object, predicted, t_star = NULL) {
@@ -90,7 +96,13 @@ cindex_survmat <- function(object, predicted, t_star = NULL) {
 #' @return A named numeric scalar: \code{"auc"}.
 #'
 #' @examples
-#' # auc_survmat(Surv(time, status), predicted = sp_matrix, t_star = 365)
+#' y <- survival::Surv(time = veteran$time, event = veteran$status)
+#' sp <- matrix(
+#'   stats::plogis(scale(veteran$karno)),
+#'   ncol = 1,
+#'   dimnames = list(NULL, "t=100")
+#' )
+#' auc_survmat(y, predicted = sp, t_star = 100)
 #' @export
 auc_survmat <- function(object, predicted, t_star = NULL) {
   if (!inherits(object, "Surv")) stop("object must be a survival object (from Surv())")
@@ -171,7 +183,9 @@ auc_survmat <- function(object, predicted, t_star = NULL) {
 #' @return A named numeric scalar: \code{"brier"}.
 #'
 #' @examples
-#' # brier(Surv(time, status), pre_sp = sp[,1], t_star = 180)
+#' y <- survival::Surv(time = veteran$time, event = veteran$status)
+#' pre_sp <- stats::plogis(scale(veteran$karno))
+#' brier(y, pre_sp = pre_sp, t_star = 100)
 #' @export
 
 brier <- function(object, pre_sp, t_star) {
@@ -226,7 +240,12 @@ brier <- function(object, pre_sp, t_star) {
 #' @return A named numeric scalar: \code{"ibs"}.
 #'
 #' @examples
-#' # ibs_survmat(Surv(time, status), sp_matrix = sp, times = c(90,180,365))
+#' y <- survival::Surv(time = veteran$time, event = veteran$status)
+#' times <- c(60, 120)
+#' lp <- stats::plogis(scale(veteran$karno))
+#' sp <- cbind("t=60" = pmin(1, lp + 0.05), "t=120" = pmax(0, lp - 0.05))
+#' colnames(sp) <- c("t=60", "t=120")
+#' ibs_survmat(y, sp_matrix = sp, times = times)
 #' @export
 
 ibs_survmat <- function(object, sp_matrix, times) {
@@ -263,7 +282,12 @@ ibs_survmat <- function(object, sp_matrix, times) {
 #' @return A named numeric scalar: \code{"iae"}.
 #'
 #' @examples
-#' # iae_survmat(Surv(time, status), sp, times)
+#' y <- survival::Surv(time = veteran$time, event = veteran$status)
+#' times <- c(60, 120)
+#' lp <- stats::plogis(scale(veteran$karno))
+#' sp <- cbind("t=60" = pmin(1, lp + 0.05), "t=120" = pmax(0, lp - 0.05))
+#' colnames(sp) <- c("t=60", "t=120")
+#' iae_survmat(y, sp_matrix = sp, times = times)
 #' @export
 
 iae_survmat <- function(object, sp_matrix, times) {
@@ -300,7 +324,12 @@ iae_survmat <- function(object, sp_matrix, times) {
 #' @return A named numeric scalar: \code{"ise"}.
 #'
 #' @examples
-#' # ise_survmat(Surv(time, status), sp, times)
+#' y <- survival::Surv(time = veteran$time, event = veteran$status)
+#' times <- c(60, 120)
+#' lp <- stats::plogis(scale(veteran$karno))
+#' sp <- cbind("t=60" = pmin(1, lp + 0.05), "t=120" = pmax(0, lp - 0.05))
+#' colnames(sp) <- c("t=60", "t=120")
+#' ise_survmat(y, sp_matrix = sp, times = times)
 #' @export
 
 ise_survmat <- function(object, sp_matrix, times) {
@@ -503,19 +532,16 @@ round(ece, 6)
 #'   \code{id}, \code{fold}, \code{metric}, and \code{value}.
 #'
 #' @examples
-#' \dontrun{
-#' library(survival)
-#' data(veteran)
+#' \donttest{
 #' cv_results <- cv_survlearner(
-#'   formula = Surv(time, status) ~ karno,
+#'   formula = Surv(time, status) ~ age + karno,
 #'   data = veteran,
-#'   fit_fun = fit_bart,
-#'   pred_fun = predict_bart,
-#'   times = c(10, 100, 600, 900),
+#'   fit_fun = fit_coxph,
+#'   pred_fun = predict_coxph,
+#'   times = c(80, 160),
 #'   metrics = c("cindex", "ibs"),
-#'   folds = 5,
-#'   ncores = max(1, parallel::detectCores() - 1),
-#'   pb = TRUE
+#'   folds = 2,
+#'   seed = 1
 #' )
 #' }
 #'
@@ -624,7 +650,11 @@ tibble::tibble(metric = metrics) |>
 #'   \code{se}, \code{lower}, \code{upper}.
 #'
 #' @examples
-#' # cv_summary(cv_results)
+#' cv_results <- tibble::tibble(
+#'   metric = c("cindex", "cindex", "ibs", "ibs"),
+#'   value = c(0.62, 0.66, 0.19, 0.21)
+#' )
+#' cv_summary(cv_results)
 #' @export
 
 cv_summary <- function(cv_results) {
@@ -652,7 +682,11 @@ cv_summary <- function(cv_results) {
 #' @return A \pkg{ggplot2} object.
 #'
 #' @examples
-#' # cv_plot(cv_results)
+#' cv_results <- tibble::tibble(
+#'   metric = c("cindex", "cindex", "ibs", "ibs"),
+#'   value = c(0.62, 0.66, 0.19, 0.21)
+#' )
+#' cv_plot(cv_results)
 #' @export
 
 cv_plot <- function(cv_results) {
@@ -685,7 +719,12 @@ cv_plot <- function(cv_results) {
 #' @return A tibble with columns \code{metric} and \code{value}.
 #'
 #' @examples
-#' # score_survmodel(fitted_model, times = c(90, 180), metrics = c("ibs", "cindex"))
+#' fitted_model <- fit_coxph(Surv(time, status) ~ age + karno + trt, data = veteran)
+#' score_survmodel(
+#'   fitted_model,
+#'   times = c(80, 160),
+#'   metrics = c("cindex", "ibs")
+#' )
 #' @export
 
 score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", "iae", "ise")) {

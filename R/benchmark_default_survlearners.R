@@ -35,13 +35,18 @@
 #' with an extra column \code{learner} identifying the source learner.
 #'
 #' @examples
-#' # learners <- c("coxph","ranger","glmnet")
-#' # res <- benchmark_default_survlearners(
-#' #   Surv(time, status) ~ age + karno + trt, veteran,
-#' #   learners = learners, times = c(100,200,300),
-#' #   metrics = c("cindex","ibs"), folds = 3, seed = 42
-#' # )
-#' # dplyr::glimpse(res)
+#' \donttest{
+#' res <- benchmark_default_survlearners(
+#'   Surv(time, status) ~ age + karno + trt,
+#'   data = veteran,
+#'   learners = c("coxph", "rpart"),
+#'   times = c(80, 160),
+#'   metrics = c("cindex", "ibs"),
+#'   folds = 2,
+#'   seed = 1
+#' )
+#' head(res)
+#' }
 #'
 #' @seealso [cv_survlearner()], [plot_benchmark()], [summarise_benchmark()]
 #' @export
@@ -570,8 +575,12 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
 #' \code{sd}, \code{n}, \code{se}, \code{lower}, \code{upper}.
 #'
 #' @examples
-#' # summ <- summarise_benchmark(res)
-#' # summ
+#' res <- tibble::tibble(
+#'   learner = c("coxph", "coxph", "rpart", "rpart"),
+#'   metric = c("cindex", "ibs", "cindex", "ibs"),
+#'   value = c(0.64, 0.19, 0.60, 0.23)
+#' )
+#' summarise_benchmark(res)
 #'
 #' @seealso [benchmark_default_survlearners()], [plot_benchmark()],
 #'   [summarize_benchmark_results()]
@@ -605,7 +614,12 @@ summarise_benchmark <- function(benchmark_results) {
 #' @return A \pkg{ggplot2} object.
 #'
 #' @examples
-#' # plot_benchmark(res)
+#' res <- tibble::tibble(
+#'   learner = c("coxph", "coxph", "rpart", "rpart"),
+#'   metric = c("cindex", "ibs", "cindex", "ibs"),
+#'   value = c(0.64, 0.19, 0.60, 0.23)
+#' )
+#' plot_benchmark(res)
 #'
 #' @seealso [benchmark_default_survlearners()], [summarise_benchmark()]
 #' @export
@@ -639,8 +653,12 @@ plot_benchmark <- function(benchmark_results) {
 #'   containing formatted strings \code{"mean  sd"}.
 #'
 #' @examples
-#' # tbl <- summarize_benchmark_results(res, digits = 2)
-#' # tbl
+#' res <- tibble::tibble(
+#'   learner = c("coxph", "coxph", "rpart", "rpart"),
+#'   metric = c("cindex", "ibs", "cindex", "ibs"),
+#'   value = c(0.64, 0.19, 0.60, 0.23)
+#' )
+#' summarize_benchmark_results(res, digits = 2)
 #'
 #' @seealso [summarise_benchmark()], [benchmark_default_survlearners()]
 #' @export
@@ -689,8 +707,13 @@ summarize_benchmark_results <- function(results, digits = 3) {
 #'   average \code{value} for the best learner(s). Ties are returned as multiple rows.
 #'
 #' @examples
-#' # best_survlearner(res, metric = "cindex")
-#' # best_survlearner(res, metric = "ibs")  # minimized by default
+#' res <- tibble::tibble(
+#'   learner = c("coxph", "coxph", "rpart", "rpart"),
+#'   metric = c("cindex", "ibs", "cindex", "ibs"),
+#'   value = c(0.64, 0.19, 0.60, 0.23)
+#' )
+#' best_survlearner(res, metric = "cindex")
+#' best_survlearner(res, metric = "ibs")
 #'
 #' @seealso [benchmark_default_survlearners()], [summarise_benchmark()]
 #' @export

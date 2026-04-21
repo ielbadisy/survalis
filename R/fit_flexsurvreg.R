@@ -131,14 +131,12 @@ predict_flexsurvreg <- function(object, newdata, times, ...) {
 #'
 #' @examples
 #'
-#' # Distribution tuning without refitting
 #' res <- tune_flexsurvreg(Surv(time, status) ~ age + karno + celltype,
 #'                         data = veteran,
 #'                         param_grid = c("weibull", "exponential", "lognormal"),
 #'                         times = c(100, 200, 300))
 #' print(res)
 #'
-#' # Refit the best distribution
 #' best_mod <- tune_flexsurvreg(Surv(time, status) ~ age + karno + celltype,
 #'                              data = veteran,
 #'                              param_grid = c("weibull", "exponential", "lognormal"),

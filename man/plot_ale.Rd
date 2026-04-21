@@ -36,8 +36,16 @@ evaluation times. The integrated plot summarizes the average effect over the
 supplied time grid (simple mean across times of the centered ALE values).
 }
 \examples{
-# p1 <- plot_ale(ale_res, feature = "karno", which = "per_time")
-# p2 <- plot_ale(ale_res, feature = "karno", which = "integrated", smooth = TRUE)
+mod <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+ale_res <- compute_ale(
+  model = mod,
+  newdata = veteran,
+  feature = "karno",
+  times = c(80, 160),
+  grid.size = 8
+)
+plot_ale(ale_res, feature = "karno", which = "per_time")
+plot_ale(ale_res, feature = "karno", which = "integrated", smooth = TRUE)
 
 }
 \seealso{

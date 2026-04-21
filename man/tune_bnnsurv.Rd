@@ -68,7 +68,6 @@ grid <- expand.grid(
   stringsAsFactors = FALSE
 )
 
-# Performance table
 res <- tune_bnnsurv(
   formula = Surv(time, status) ~ age + karno + diagtime + prior,
   data = veteran,
@@ -78,7 +77,6 @@ res <- tune_bnnsurv(
 )
 res
 
-# Best refitted model
 best <- tune_bnnsurv(
   formula = Surv(time, status) ~ age + karno + diagtime + prior,
   data = veteran,

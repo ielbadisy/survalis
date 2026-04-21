@@ -31,5 +31,11 @@ computed over case-control pairs using inverse-probability-of-censoring
 weights for cases and partial credit (0.5) for ties.
 }
 \examples{
-# auc_survmat(Surv(time, status), predicted = sp_matrix, t_star = 365)
+y <- survival::Surv(time = veteran$time, event = veteran$status)
+sp <- matrix(
+  stats::plogis(scale(veteran$karno)),
+  ncol = 1,
+  dimnames = list(NULL, "t=100")
+)
+auc_survmat(y, predicted = sp, t_star = 100)
 }

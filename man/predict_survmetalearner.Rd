@@ -29,7 +29,25 @@ Stacked predictions are computed as \eqn{\hat{S}(t \mid x) = \sum_\ell w_\ell(t)
 where \eqn{w_\ell(t)} are the learned nonnegative weights for time \eqn{t}.
 }
 \examples{
-# pred <- predict_survmetalearner(meta_model, newdata = df_test, times = c(200, 500, 800))
+form <- Surv(time, status) ~ age + karno + trt
+times <- c(80, 160)
+mod_cox <- fit_coxph(form, data = veteran)
+mod_rpart <- fit_rpart(form, data = veteran)
+base_models <- list(coxph = mod_cox, rpart = mod_rpart)
+base_preds <- list(
+  coxph = predict_coxph(mod_cox, newdata = veteran, times = times),
+  rpart = predict_rpart(mod_rpart, newdata = veteran, times = times)
+)
+meta_model <- fit_survmetalearner(
+  base_preds = base_preds,
+  time = veteran$time,
+  status = veteran$status,
+  times = times,
+  base_models = base_models,
+  formula = form,
+  data = veteran
+)
+predict_survmetalearner(meta_model, newdata = veteran[1:3, ], times = times)
 }
 \seealso{
 \code{\link{fit_survmetalearner}}, \code{\link{plot_survmetalearner_weights}}

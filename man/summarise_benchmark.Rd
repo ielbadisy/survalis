@@ -21,8 +21,12 @@ mean, standard deviation, standard error, and an approximate 95\% Wald
 confidence interval.
 }
 \examples{
-# summ <- summarise_benchmark(res)
-# summ
+res <- tibble::tibble(
+  learner = c("coxph", "coxph", "rpart", "rpart"),
+  metric = c("cindex", "ibs", "cindex", "ibs"),
+  value = c(0.64, 0.19, 0.60, 0.23)
+)
+summarise_benchmark(res)
 
 }
 \seealso{

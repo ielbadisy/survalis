@@ -27,7 +27,11 @@ survival curves are interpolated to match the requested \code{times}.
 }
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE)) withAutoprint(\{ # examplesIf}
-mod <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
+mod <- fit_ranger(
+  Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  num.trees = 25
+)
 predict_ranger(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 \dontshow{\}) # examplesIf}
 }

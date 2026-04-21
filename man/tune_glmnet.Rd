@@ -59,7 +59,6 @@ Optionally refits the best model on the full dataset.
 
 param_grid <- expand.grid(alpha = seq(0, 1, by = 0.25))
 
-# Evaluate grid without refitting
 res_glmnet <- tune_glmnet(
   formula = Surv(time, status) ~ age + karno + celltype,
   data = veteran,
@@ -70,7 +69,6 @@ res_glmnet <- tune_glmnet(
 )
 print(res_glmnet)
 
-# Refit best model directly
 mod_glmnet_best <- tune_glmnet(
   formula = Surv(time, status) ~ age + karno + celltype,
   data = veteran,

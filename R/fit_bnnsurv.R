@@ -188,7 +188,6 @@ predict_bnnsurv <- function(object, newdata, times = NULL) {
 #'   stringsAsFactors = FALSE
 #' )
 #'
-#' # Performance table
 #' res <- tune_bnnsurv(
 #'   formula = Surv(time, status) ~ age + karno + diagtime + prior,
 #'   data = veteran,
@@ -198,7 +197,6 @@ predict_bnnsurv <- function(object, newdata, times = NULL) {
 #' )
 #' res
 #'
-#' # Best refitted model
 #' best <- tune_bnnsurv(
 #'   formula = Surv(time, status) ~ age + karno + diagtime + prior,
 #'   data = veteran,

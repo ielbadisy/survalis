@@ -34,10 +34,15 @@
 #' }
 #'
 #' @examples
-#' # mod <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
-#' # ale_res <- compute_ale(mod, newdata = veteran, feature = "karno",
-#' #                        times = c(100, 200, 300))
-#' # head(ale_res$ale)
+#' mod <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+#' ale_res <- compute_ale(
+#'   model = mod,
+#'   newdata = veteran,
+#'   feature = "karno",
+#'   times = c(80, 160),
+#'   grid.size = 8
+#' )
+#' head(ale_res$ale)
 #'
 #' @seealso [plot_ale()], [compute_pdp()]
 #' @export
@@ -110,8 +115,16 @@ compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
 #' @return A `ggplot2` object.
 #'
 #' @examples
-#' # p1 <- plot_ale(ale_res, feature = "karno", which = "per_time")
-#' # p2 <- plot_ale(ale_res, feature = "karno", which = "integrated", smooth = TRUE)
+#' mod <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
+#' ale_res <- compute_ale(
+#'   model = mod,
+#'   newdata = veteran,
+#'   feature = "karno",
+#'   times = c(80, 160),
+#'   grid.size = 8
+#' )
+#' plot_ale(ale_res, feature = "karno", which = "per_time")
+#' plot_ale(ale_res, feature = "karno", which = "integrated", smooth = TRUE)
 #'
 #' @seealso [compute_ale()], [compute_pdp()], [plot_pdp()]
 #' @export
@@ -153,4 +166,3 @@ plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), s
 
   stop("Invalid 'which' argument or missing integrated data.")
 }
-

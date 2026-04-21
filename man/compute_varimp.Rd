@@ -49,14 +49,14 @@ and the chosen metric is compared to the baseline (unpermuted) value. The
 \examples{
 \donttest{
 mod <- fit_coxph(survival::Surv(time, status) ~ age + karno + celltype, data = veteran)
-shap_td <- compute_shap(
-  model         = mod,
-  newdata       = veteran[10, , drop = FALSE],
-  baseline_data = veteran,
-  times         = c(100),   # one time point
-  sample.size   = 8,        # small MC
-  aggregate     = FALSE
+imp <- compute_varimp(
+  model = mod,
+  times = 80,
+  metric = "brier",
+  n_repetitions = 3,
+  seed = 1,
+  subset = 40
 )
-head(shap_td)
+head(imp)
 }
 }

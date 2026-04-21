@@ -154,7 +154,6 @@ predict_orsf <- function(object, newdata, times, ...) {
 #'
 #' @examplesIf requireNamespace("aorsf", quietly = TRUE)
 #' \donttest{
-#'   # Cross-validated tuning (small grid to keep runtime light)
 #'   res_orsf <- tune_orsf(
 #'     formula    = Surv(time, status) ~ age + karno,
 #'     data       = veteran,
@@ -169,7 +168,6 @@ predict_orsf <- function(object, newdata, times, ...) {
 #'   )
 #'   print(res_orsf)
 #'
-#'   # Refit the best model on the full data
 #'   mod_orsf_best <- tune_orsf(
 #'     formula    = Surv(time, status) ~ age + karno,
 #'     data       = veteran,

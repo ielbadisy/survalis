@@ -75,8 +75,6 @@ times <- c(100, 300, 500)
 predict_survsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "exp")
 predict_survsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "weibull", shape = 1.5)
 
-#-------------------
-
 cv_results_svm <- cv_survlearner(
   formula = Surv(time, status) ~ age + celltype + karno,
   data = veteran,

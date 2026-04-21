@@ -34,5 +34,10 @@ builds a \code{Surv} object from \code{model$formula}, and computes the metrics.
 If \code{"brier"} is requested with multiple \code{times}, an error is thrown.
 }
 \examples{
-# score_survmodel(fitted_model, times = c(90, 180), metrics = c("ibs", "cindex"))
+fitted_model <- fit_coxph(Surv(time, status) ~ age + karno + trt, data = veteran)
+score_survmodel(
+  fitted_model,
+  times = c(80, 160),
+  metrics = c("cindex", "ibs")
+)
 }

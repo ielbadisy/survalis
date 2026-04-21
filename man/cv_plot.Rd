@@ -17,5 +17,9 @@ Visualizes per-fold metric values from \code{\link{cv_survlearner}} using a
 boxplot with jittered points.
 }
 \examples{
-# cv_plot(cv_results)
+cv_results <- tibble::tibble(
+  metric = c("cindex", "cindex", "ibs", "ibs"),
+  value = c(0.62, 0.66, 0.19, 0.21)
+)
+cv_plot(cv_results)
 }

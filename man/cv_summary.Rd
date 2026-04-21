@@ -18,5 +18,9 @@ Produces mean, standard deviation, standard error, and 95\\% Wald intervals
 for each metric returned by \code{\link{cv_survlearner}}.
 }
 \examples{
-# cv_summary(cv_results)
+cv_results <- tibble::tibble(
+  metric = c("cindex", "cindex", "ibs", "ibs"),
+  value = c(0.62, 0.66, 0.19, 0.21)
+)
+cv_summary(cv_results)
 }
