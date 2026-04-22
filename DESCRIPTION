@@ -9,9 +9,9 @@ Authors@R:
              family = "El Badisy",
              role = c("aut", "cre"),
              email = "elbadisyimad@gmail.com"))
-Description: The 'survalis' package is a modular toolkit for interpretable
-  survival machine learning with a unified interface for fitting, prediction,
-  evaluation, and interpretation.
+Description: A modular toolkit for interpretable survival machine learning
+  with a unified interface for fitting, prediction, evaluation, and
+  interpretation.
   It includes semiparametric, parametric, tree-based, ensemble, boosting,
   kernel, and deep-learning survival learners, together with benchmarking,
   scoring, calibration, and model-agnostic interpretation utilities.
