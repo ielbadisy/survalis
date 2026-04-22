@@ -51,7 +51,7 @@ For each evaluation time, the function:
 If multiple \code{times} are provided, results are stored for each time point.
 }
 \examples{
-\dontrun{
+\donttest{
 mod_ranger <- fit_ranger(Surv(time, status) ~ age + karno + celltype, data = veteran)
 tree_ranger <- compute_tree_surrogate(
   model = mod_ranger,

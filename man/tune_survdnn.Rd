@@ -68,7 +68,7 @@ row is passed through to \code{fit_survdnn()}, so the grid can include any
 supported engine argument exposed by this wrapper.
 }
 \examples{
-\dontrun{
+\donttest{
 if (requireNamespace("survdnn", quietly = TRUE) &&
     requireNamespace("torch", quietly = TRUE) &&
     torch::torch_is_installed()) {

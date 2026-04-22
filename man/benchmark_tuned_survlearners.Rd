@@ -61,7 +61,7 @@ using the learner's existing \code{tune_*()} implementation only on the outer
 training data.
 }
 \examples{
-\dontrun{
+\donttest{
 res <- benchmark_tuned_survlearners(
   Surv(time, status) ~ age + karno + trt,
   data = veteran,
