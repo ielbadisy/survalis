@@ -20,7 +20,7 @@ Description: A modular toolkit for interpretable survival machine learning
   <doi:10.1002/sim.1203>, Ishwaran et al. (2008) <doi:10.1214/08-AOAS169>,
   Jaeger et al. (2019) <doi:10.1214/19-AOAS1261>, Harrell et al. (1982)
   <doi:10.1001/jama.1982.03320430047030>, Graf et al. (1999)
-  <doi:10.1002/(SICI)1097-0258(19990915/30)18:17/18<2529::AID-SIM274>3.0.CO;2-5>,
+  <doi:10.1002/(SICI)1097-0258(19990915/30)18:17/18%3C2529::AID-SIM274%3E3.0.CO;2-5>,
   Friedman (2001) <doi:10.1214/aos/1013203451>, Apley and Zhu (2020)
   <doi:10.1111/rssb.12377>, and Lundberg and Lee (2017)
   <https://papers.nips.cc/paper/7062-a-unified-approach-to-interpreting-model-predictions>,

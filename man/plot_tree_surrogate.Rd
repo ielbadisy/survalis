@@ -36,7 +36,7 @@ and plotted as a bar chart.
 Requires the \code{partykit} package for tree plotting and \code{ggplot2} for importance plotting.
 }
 \examples{
-\dontrun{
+\donttest{
 plot_tree_surrogate(tree_ranger, type = "tree")
 plot_tree_surrogate(tree_ranger, type = "importance", top_n = 5)
 }
