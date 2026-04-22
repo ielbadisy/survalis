@@ -27,6 +27,8 @@ Description: A modular toolkit for interpretable survival machine learning
   and other related methods for survival modeling, prediction, and
   interpretation.
 License: MIT + file LICENSE
+URL: https://github.com/ielbadisy/survalis
+BugReports: https://github.com/ielbadisy/survalis/issues
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 4.1)
