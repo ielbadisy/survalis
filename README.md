@@ -5,14 +5,17 @@
 survival analysis in R. It supports a wide range of learners, evaluation
 metrics, cross-validation and interpretability methods.
 
+`survalis` is available on CRAN:
+<https://CRAN.R-project.org/package=survalis>.
+
 ## Installation
 
 ``` r
-# Install from GitHub
-remotes::install_github("ielbadisy/survalis")
+# Install the released version from CRAN
+install.packages("survalis")
 
-# Or from source
-install.packages("survalis_0.7.0.tar.gz", repos = NULL, type = "source")
+# Or install the development version from GitHub
+remotes::install_github("ielbadisy/survalis")
 ```
 
 ## Core philosophy
