@@ -304,16 +304,34 @@ tune_survsvm <- function(formula, data, times,
   }
 
   if (refit_best) {
-    best <- results[1, ]
-    model <- fit_survsvm(
-      formula = formula,
-      data = data,
-      gamma.mu = best$gamma.mu,
-      kernel = best$kernel,
-      type = fixed_type,
-      opt.meth = fixed_opt_meth,
-      diff.meth = fixed_diff_meth
-    )
+    model <- NULL
+    for (i in seq_len(nrow(results))) {
+      candidate <- results[i, ]
+      model <- tryCatch(
+        fit_survsvm(
+          formula = formula,
+          data = data,
+          gamma.mu = candidate$gamma.mu,
+          kernel = candidate$kernel,
+          type = fixed_type,
+          opt.meth = fixed_opt_meth,
+          diff.meth = fixed_diff_meth
+        ),
+        error = function(e) {
+          warning(glue(
+            "Refit failed for rank {i} (gamma.mu={candidate$gamma.mu}, ",
+            "kernel={candidate$kernel}): {e$message}. Trying next candidate."
+          ))
+          NULL
+        }
+      )
+      if (!is.null(model)) break
+    }
+
+    if (is.null(model)) {
+      stop("Refitting on the full data failed for every candidate in the tuning grid.")
+    }
+
     attr(model, "tuning_results") <- results
     class(model) <- c("tune_surv", class(model))
     return(model)

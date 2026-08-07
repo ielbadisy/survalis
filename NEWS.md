@@ -1,5 +1,9 @@
 # survalis 0.7.1
 
+* Fixed `tune_survsvm(refit_best = TRUE)` crashing when the top-ranked grid
+  candidate fails to refit on the full dataset (e.g., a `quadprog` QP
+  infeasibility that only manifests on certain BLAS backends); it now falls
+  back to the next-best candidate and only errors if every candidate fails.
 * Revised DESCRIPTION to include CRAN-compliant, family-level methodological references using validated DOI/URL anchors and representative (non-exhaustive) wording.
 * Reworked examples across evaluation, benchmarking, interpretation, and meta-learner topics to remove commented code and provide executable minimal examples.
 * Replaced unnecessary `\\dontrun{}` wrappers with `\\donttest{}` for executable-but-longer workflows and kept fast examples unwrapped where feasible.
