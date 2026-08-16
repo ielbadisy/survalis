@@ -178,7 +178,7 @@ tune_ranger <- function(formula, data, times,
                         ...) {
 
   # cv loop
-  res <- purrr::pmap_dfr(param_grid, function(num.trees, mtry, min.node.size) {
+  res <- .pmap_rbind_dt(param_grid, function(num.trees, mtry, min.node.size) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -196,24 +196,17 @@ tune_ranger <- function(formula, data, times,
     )
 
     summary <- cv_summary(cv_results)
-    tibble::tibble(num.trees, mtry, min.node.size) |>
-      dplyr::bind_cols(
-        tidyr::pivot_wider(summary[, c("metric", "mean")],
-                           names_from = metric, values_from = mean)
-      )
+    .wide_metric_row(list(num.trees = num.trees, mtry = mtry, min.node.size = min.node.size), summary)
   })
 
-  if (metrics[1] %in% c("cindex", "auc", "accuracy")) {
-    res <- dplyr::arrange(res, dplyr::desc(.data[[metrics[1]]]))
-  } else {
-    res <- dplyr::arrange(res, .data[[metrics[1]]])
-  }
+  maximize <- metrics[1] %in% c("cindex", "auc", "accuracy")
+  res <- .arrange_by_metric_dt(res, metrics[1], maximize)
 
   if (refit_best) {
     best <- res[1, ]
     mod <- fit_ranger(
       formula = formula,
-      data = tidyr::drop_na(data, all.vars(formula)),
+      data = .complete_cases_df(data, all.vars(formula)),
       num.trees = best$num.trees,
       mtry = best$mtry,
       min.node.size = best$min.node.size,

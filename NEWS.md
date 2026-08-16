@@ -1,3 +1,7 @@
+# survalis 0.7.12
+
+* Migrated `tune_ranger()` from dplyr/tidyr/purrr/tibble to data.table.
+
 # survalis 0.7.11
 
 * Fixed `benchmark_tuned_survlearners()` silently dropping learners whose
