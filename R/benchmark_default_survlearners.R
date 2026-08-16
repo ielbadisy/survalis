@@ -630,6 +630,8 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
 #' @param benchmark_results A data frame produced by
 #'   \code{benchmark_default_survlearners()}, containing at least
 #'   \code{learner}, \code{metric}, and \code{value}.
+#' @param digits Integer number of decimal places for \code{mean}, \code{sd},
+#'   \code{se}, \code{lower}, \code{upper} (default \code{3}).
 #'
 #' @return A data.table with columns \code{learner}, \code{metric}, \code{mean},
 #' \code{sd}, \code{n}, \code{se}, \code{lower}, \code{upper}.
@@ -646,7 +648,7 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
 #'   [summarize_benchmark_results()]
 #' @export
 
-summarise_benchmark <- function(benchmark_results) {
+summarise_benchmark <- function(benchmark_results, digits = 3) {
   DT <- data.table::as.data.table(benchmark_results)
   out <- DT[, list(
     mean = mean(value, na.rm = TRUE),
@@ -656,6 +658,8 @@ summarise_benchmark <- function(benchmark_results) {
   out[, se := sd / sqrt(n)]
   out[, lower := mean - 1.96 * se]
   out[, upper := mean + 1.96 * se]
+  out[, c("mean", "sd", "se", "lower", "upper") :=
+    lapply(.SD, round, digits = digits), .SDcols = c("mean", "sd", "se", "lower", "upper")]
   out[]
 }
 

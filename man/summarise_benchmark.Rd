@@ -4,15 +4,18 @@
 \alias{summarise_benchmark}
 \title{Summarise Benchmark Results (Mean  SD with Wald CI)}
 \usage{
-summarise_benchmark(benchmark_results)
+summarise_benchmark(benchmark_results, digits = 3)
 }
 \arguments{
 \item{benchmark_results}{A data frame produced by
 \code{benchmark_default_survlearners()}, containing at least
 \code{learner}, \code{metric}, and \code{value}.}
+
+\item{digits}{Integer number of decimal places for \code{mean}, \code{sd},
+\code{se}, \code{lower}, \code{upper} (default \code{3}).}
 }
 \value{
-A tibble with columns \code{learner}, \code{metric}, \code{mean},
+A data.table with columns \code{learner}, \code{metric}, \code{mean},
 \code{sd}, \code{n}, \code{se}, \code{lower}, \code{upper}.
 }
 \description{
