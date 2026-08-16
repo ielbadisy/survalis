@@ -63,12 +63,13 @@ best model on the full dataset.
 \details{
 \strong{Evaluation.} Internally calls \code{cv_survlearner()} with
 \code{fit_survdnn()}/\code{predict_survdnn()} so tuning uses the same code paths as
-production. Hyperparameters are combined via \code{tidyr::crossing()} and each
-row is passed through to \code{fit_survdnn()}, so the grid can include any
-supported engine argument exposed by this wrapper.
+production. Hyperparameters are cross-joined over their unique levels
+(list-valued entries such as \code{hidden} supported) and each row is passed
+through to \code{fit_survdnn()}, so the grid can include any supported engine
+argument exposed by this wrapper.
 }
 \examples{
-\donttest{
+\dontrun{
 if (requireNamespace("survdnn", quietly = TRUE) &&
     requireNamespace("torch", quietly = TRUE) &&
     torch::torch_is_installed()) {
