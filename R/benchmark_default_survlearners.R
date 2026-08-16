@@ -1,4 +1,95 @@
 
+#' Benchmark Survival Learners (Meta Function)
+#'
+#' The single entry point for comparing multiple survival learners. With
+#' \code{tune = FALSE} (default), each learner is run with fixed
+#' hyperparameters via \code{\link{benchmark_default_survlearners}}. With
+#' \code{tune = TRUE}, each learner is tuned internally per outer fold via
+#' nested cross-validation using \code{\link{benchmark_tuned_survlearners}}.
+#'
+#' @param formula A survival formula of the form \code{Surv(time, status) ~ x1 + x2 + ...}.
+#' @param data A data frame containing the variables in \code{formula}.
+#' @param learners Character vector of learner ids (without prefixes), e.g.
+#'   \code{c("ranger", "coxph", "glmnet")}.
+#' @param times Numeric vector of evaluation time points for survival predictions.
+#' @param metrics Character vector of metrics to compute/optimize.
+#' @param tune Logical; if \code{FALSE} (default), benchmarks learners with
+#'   fixed hyperparameters (\code{folds}, \code{ncores} apply). If \code{TRUE},
+#'   tunes each learner via nested CV (\code{outer_folds}, \code{inner_folds},
+#'   \code{inner_ncores}, \code{learner_args}, \code{refit_final} apply).
+#' @param folds Integer number of CV folds; used only when \code{tune = FALSE}.
+#' @param outer_folds,inner_folds Integer numbers of outer/inner CV folds; used
+#'   only when \code{tune = TRUE}.
+#' @param seed Integer random seed.
+#' @param ncores Integer CPU cores for fold-level mapping; used only when
+#'   \code{tune = FALSE}.
+#' @param inner_ncores Integer CPU cores for each learner's inner tuning CV;
+#'   used only when \code{tune = TRUE}.
+#' @param learner_args Optional named list of learner-specific tuning
+#'   arguments; used only when \code{tune = TRUE}. See
+#'   \code{\link{benchmark_tuned_survlearners}}.
+#' @param refit_final Logical; if \code{TRUE} (and \code{tune = TRUE}), tunes
+#'   and refits each learner on the full dataset in addition to the outer CV.
+#' @param verbose Logical; print progress.
+#' @param suppress_errors Logical; if \code{TRUE} (default), per-learner
+#'   errors are caught and reported via \code{warning()} instead of stopping
+#'   the whole benchmark.
+#' @param ... Additional arguments forwarded to \code{benchmark_default_survlearners()}
+#'   (fit arguments) when \code{tune = FALSE}, or to \code{benchmark_tuned_survlearners()}
+#'   (common tuning arguments) when \code{tune = TRUE}.
+#'
+#' @return With \code{tune = FALSE}, a data frame of CV results (see
+#'   \code{\link{benchmark_default_survlearners}}). With \code{tune = TRUE}, a
+#'   list of class \code{"nested_surv_benchmark"} (see
+#'   \code{\link{benchmark_tuned_survlearners}}).
+#'
+#' @examples
+#' \donttest{
+#' res <- benchmark(
+#'   Surv(time, status) ~ age + karno + trt,
+#'   data = veteran,
+#'   learners = c("coxph", "rpart"),
+#'   times = c(80, 160),
+#'   metrics = c("cindex", "ibs"),
+#'   folds = 2,
+#'   seed = 1
+#' )
+#' head(res)
+#' }
+#'
+#' @seealso [benchmark_default_survlearners()], [benchmark_tuned_survlearners()]
+#' @export
+benchmark <- function(formula, data, learners, times,
+                      metrics = c("cindex", "ibs"),
+                      tune = FALSE,
+                      folds = 5,
+                      outer_folds = 5,
+                      inner_folds = 5,
+                      seed = 123,
+                      ncores = 1,
+                      inner_ncores = 1,
+                      learner_args = list(),
+                      refit_final = FALSE,
+                      verbose = FALSE,
+                      suppress_errors = TRUE,
+                      ...) {
+  if (isTRUE(tune)) {
+    benchmark_tuned_survlearners(
+      formula = formula, data = data, learners = learners, times = times,
+      metrics = metrics, outer_folds = outer_folds, inner_folds = inner_folds,
+      seed = seed, inner_ncores = inner_ncores, learner_args = learner_args,
+      refit_final = refit_final, verbose = verbose,
+      suppress_errors = suppress_errors, ...
+    )
+  } else {
+    benchmark_default_survlearners(
+      formula = formula, data = data, learners = learners, times = times,
+      metrics = metrics, folds = folds, seed = seed, ncores = ncores,
+      verbose = verbose, suppress_errors = suppress_errors, ...
+    )
+  }
+}
+
 #' Benchmark Multiple Survival Learners (Cross-Validation Wrapper)
 #'
 #' Runs \code{cv_survlearner()} for a set of learner names (e.g., \code{"ranger"},
