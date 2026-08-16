@@ -1,3 +1,10 @@
+# survalis 0.8.3
+
+* Normalized `base_size` to the shared `theme_survalis()` default (13)
+  everywhere — `compute_shap.R`, `fit_survmetalearner.R`'s weights plot, and
+  `plot_benchmark()` previously carried over a hardcoded `base_size = 14`
+  from before the theme retrofit (PR #22).
+
 # survalis 0.8.2
 
 * Migrated `compute_shap()`, `compute_shap_mean()`, `compute_calibration()`,
