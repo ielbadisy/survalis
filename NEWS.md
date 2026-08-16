@@ -1,3 +1,9 @@
+# survalis 0.8.0
+
+* Migrated `cv_survmetalearner()` from dplyr/tidyr/purrr/tibble to
+  data.table, reusing the shared `.score_metrics()` helper instead of a
+  third duplicated copy of the per-metric scoring `switch()` block.
+
 # survalis 0.7.27
 
 * Migrated `list_survlearners()`, `list_interpretability_methods()`, and
