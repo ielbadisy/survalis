@@ -94,32 +94,25 @@ compute_calibration <- function(model, data, time, status,
   df <- data.frame(pred_surv = pred_surv, time = time, status = status, bin = bins)
 
   # calibration table
-  calibration_table <- df |>
-    group_by(bin) |>
-    summarise(
+  calibration_table <- data.table::as.data.table(df)[, {
+    surv_fit <- survfit(Surv(time, status) ~ 1, data = .SD)
+    surv_summary <- summary(surv_fit, times = eval_time, extend = TRUE)
+    list(
       mean_pred_surv = mean(pred_surv, na.rm = TRUE),
-      observed_surv = {
-        surv_fit <- survfit(Surv(time, status) ~ 1, data = pick(everything()))
-        surv_summary <- summary(surv_fit, times = eval_time, extend = TRUE)
-        if (length(surv_summary$surv) == 0) NA else surv_summary$surv
-      },
-      .groups = "drop"
+      observed_surv = if (length(surv_summary$surv) == 0) NA else surv_summary$surv
     )
+  }, keyby = bin]
 
   # bootstrap CIs
   boot_results <- replicate(n_boot, {
     idx <- sample(seq_len(nrow(df)), replace = TRUE)
-    df_boot <- df[idx, ]
-    df_boot |>
-      group_by(bin) |>
-      summarise(
-        observed_surv = {
-          surv_fit <- survfit(Surv(time, status) ~ 1, data = pick(everything()))
-          surv_summary <- summary(surv_fit, times = eval_time, extend = TRUE)
-          if (length(surv_summary$surv) == 0) NA else surv_summary$surv
-        }, .groups = "drop"
-      ) |>
-      pull(observed_surv)
+    df_boot <- data.table::as.data.table(df[idx, ])
+    out <- df_boot[, {
+      surv_fit <- survfit(Surv(time, status) ~ 1, data = .SD)
+      surv_summary <- summary(surv_fit, times = eval_time, extend = TRUE)
+      list(observed_surv = if (length(surv_summary$surv) == 0) NA else surv_summary$surv)
+    }, keyby = bin]
+    out$observed_surv
   }, simplify = "matrix")
 
   boot_ci <- apply(boot_results, 1, function(x) quantile(x, probs = c(0.025, 0.975), na.rm = TRUE))

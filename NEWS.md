@@ -1,3 +1,13 @@
+# survalis 0.8.2
+
+* Migrated `compute_shap()`, `compute_shap_mean()`, `compute_calibration()`,
+  and `plot_survmetalearner_weights()` from dplyr/tidyr to data.table. This
+  was the remaining unqualified (non-`dplyr::`-prefixed) dplyr/tidyr usage
+  missed by the original file-by-file migration inventory.
+* `dplyr`, `tidyr`, `purrr`, and `tibble` are now fully removed from
+  `Imports` — the package no longer depends on any tidyverse package for
+  its data-manipulation code; `data.table` is the sole engine throughout.
+
 # survalis 0.8.1
 
 * Migrated the nested/tuned-CV half of `benchmark_default_survlearners.R`

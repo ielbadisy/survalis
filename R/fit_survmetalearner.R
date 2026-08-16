@@ -209,9 +209,11 @@ plot_survmetalearner_weights <- function(model) {
   W <- as.data.frame(model$weights)
   W$learner <- rownames(model$weights)
 
-  W_long <- W |>
-    pivot_longer(-learner, names_to = "time", values_to = "weight") |>
-    mutate(time = as.numeric(sub("t=", "", time)))
+  W_long <- data.table::melt(
+    data.table::as.data.table(W),
+    id.vars = "learner", variable.name = "time", value.name = "weight"
+  )
+  W_long$time <- as.numeric(sub("t=", "", W_long$time))
 
   ggplot(W_long, aes(x = time, y = weight, color = learner)) +
     geom_line(linewidth = 1.2) +

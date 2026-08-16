@@ -43,11 +43,6 @@ survival::Surv
 #'
 #' @importFrom utils tail head combn
 #'
-#' @importFrom dplyr select mutate arrange group_by summarise filter pull
-#'   across everything all_of bind_cols bind_rows distinct
-#'
-#' @importFrom tidyr pivot_longer pivot_wider drop_na nest unnest
-#'
 #' @importFrom ggplot2 ggplot aes geom_line geom_point geom_bar geom_histogram
 #'   geom_boxplot labs theme_minimal theme element_text facet_wrap
 #'   scale_color_manual scale_fill_manual
@@ -58,7 +53,6 @@ survival::Surv
 #' @importFrom stats aggregate dist reorder reshape time var
 #' @importFrom utils capture.output getFromNamespace
 #' @importFrom ggplot2 geom_jitter geom_smooth geom_errorbar geom_abline coord_fixed coord_flip coord_cartesian geom_col
-#' @importFrom dplyr any_of pick
 #' @importFrom stats pnorm
 #' @importFrom pracma trapz
 #' @importFrom data.table as.data.table setDT rbindlist
