@@ -1,3 +1,9 @@
+# survalis 0.7.22
+
+* Migrated `tune_glmnet()` from dplyr/tidyr/purrr/tibble to data.table,
+  including its `tidyr::crossing()` grid-expansion step (now
+  `data.table::CJ()`, a sorted-unique cross join with matching semantics).
+
 # survalis 0.7.21
 
 * Migrated `tune_selectcox()` from dplyr/tidyr/purrr/tibble to data.table.

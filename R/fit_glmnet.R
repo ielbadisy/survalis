@@ -183,9 +183,9 @@ tune_glmnet <- function(formula, data, times,
                         refit_best = FALSE,
                         ...) {
 
-  grid_df <- tidyr::crossing(!!!param_grid)
+  grid_df <- do.call(data.table::CJ, as.list(param_grid))
 
-  results <- purrr::pmap_dfr(grid_df, function(alpha) {
+  results <- .pmap_rbind_dt(grid_df, function(alpha) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -201,21 +201,11 @@ tune_glmnet <- function(formula, data, times,
     )
 
     summary <- cv_summary(cv_results)
-    tibble::tibble(alpha = alpha) |>
-      dplyr::bind_cols(
-        tidyr::pivot_wider(
-          summary[, c("metric", "mean")],
-          names_from = metric,
-          values_from = mean
-        )
-      )
+    .wide_metric_row(list(alpha = alpha), summary)
   })
 
-  if (metrics[1] %in% c("cindex", "auc", "accuracy")) {
-    results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
-  } else {
-    results <- results |> dplyr::arrange(!!rlang::sym(metrics[1]))
-  }
+  maximize <- metrics[1] %in% c("cindex", "auc", "accuracy")
+  results <- .arrange_by_metric_dt(results, metrics[1], maximize)
 
   if (!refit_best) {
     class(results) <- c("tuned_surv", class(results))
