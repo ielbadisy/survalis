@@ -21,9 +21,11 @@ A named numeric scalar: \code{"auc"}.
 \description{
 Computes a cumulative/dynamic time-dependent AUC using predicted survival
 probabilities at a specified time point (or the last column if \code{t_star}
-is \code{NULL}). Cases are subjects with an observed event by \code{t_star};
-controls are subjects known to survive beyond \code{t_star}. Subjects
-censored before \code{t_star} are handled through IPCW weighting.
+is \code{NULL}), following the Uno et al. (2007) / Heagerty and Zheng (2005)
+estimator as implemented in the \pkg{timeROC} package. Cases are subjects
+with an observed event strictly before \code{t_star}; controls are subjects
+known to survive beyond \code{t_star}. Subjects censored before \code{t_star}
+are handled through IPCW weighting.
 }
 \details{
 Risk scores are defined as \code{1 - S(t)} at the chosen time. The AUC is

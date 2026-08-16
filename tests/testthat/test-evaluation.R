@@ -57,6 +57,34 @@ test_that("auc_survmat works on simple data and is listed as a supported metric"
   )
 })
 
+test_that("timeroc_survmat agrees numerically with timeROC::timeROC()", {
+  testthat::skip_on_cran()
+  testthat::skip_if_not_installed("survival")
+  testthat::skip_if_not_installed("timeROC")
+
+  data(veteran, package = "survalis")
+  mod <- fit_coxph(
+    survival::Surv(time, status) ~ age + karno + trt + celltype,
+    data = veteran
+  )
+  times <- c(30, 90, 180, 300)
+  pred <- predict_coxph(mod, newdata = veteran, times = times)
+  y <- survival::Surv(veteran$time, veteran$status)
+
+  ours <- timeroc_survmat(y, predicted = pred, times = times)
+  expect_s3_class(ours, "timeroc_survmat")
+  expect_named(ours, c("time", "auc"))
+  expect_equal(ours$time, times)
+
+  lp <- predict(mod$model, newdata = veteran, type = "lp")
+  ref <- timeROC::timeROC(
+    T = veteran$time, delta = veteran$status, marker = lp,
+    cause = 1, times = times, weighting = "marginal"
+  )
+
+  expect_equal(ours$auc, unname(ref$AUC), tolerance = 1e-3)
+})
+
 test_that("brier reduces to unweighted score when no censoring; checks length", {
   testthat::skip_on_cran()
   testthat::skip_if_not_installed("survival")
