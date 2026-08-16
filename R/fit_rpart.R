@@ -194,7 +194,7 @@ tune_rpart <- function(formula, data, times,
                        ncores = 1,
                        refit_best = TRUE,
                        ...) {
-  res <- purrr::pmap_dfr(param_grid, function(minsplit, cp, maxdepth) {
+  res <- .pmap_rbind_dt(param_grid, function(minsplit, cp, maxdepth) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -212,29 +212,17 @@ tune_rpart <- function(formula, data, times,
     )
 
     summary <- cv_summary(cv_results)
-
-    tibble::tibble(
-      minsplit = minsplit,
-      cp = cp,
-      maxdepth = maxdepth
-    ) |>
-      dplyr::bind_cols(
-        tidyr::pivot_wider(summary[, c("metric", "mean")],
-                           names_from = metric, values_from = mean)
-      )
+    .wide_metric_row(list(minsplit = minsplit, cp = cp, maxdepth = maxdepth), summary)
   })
 
-  if (metrics[1] %in% c("cindex", "auc", "accuracy")) {
-    res <- dplyr::arrange(res, dplyr::desc(!!sym(metrics[1])))
-  } else {
-    res <- dplyr::arrange(res, !!sym(metrics[1]))
-  }
+  maximize <- metrics[1] %in% c("cindex", "auc", "accuracy")
+  res <- .arrange_by_metric_dt(res, metrics[1], maximize)
 
   if (refit_best) {
     best_params <- res[1, ]
     model <- fit_rpart(
       formula = formula,
-      data = tidyr::drop_na(data, all.vars(formula)),
+      data = .complete_cases_df(data, all.vars(formula)),
       minsplit = best_params$minsplit,
       cp = best_params$cp,
       maxdepth = best_params$maxdepth,
