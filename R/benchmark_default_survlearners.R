@@ -631,7 +631,7 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
 #'   \code{benchmark_default_survlearners()}, containing at least
 #'   \code{learner}, \code{metric}, and \code{value}.
 #'
-#' @return A tibble with columns \code{learner}, \code{metric}, \code{mean},
+#' @return A data.table with columns \code{learner}, \code{metric}, \code{mean},
 #' \code{sd}, \code{n}, \code{se}, \code{lower}, \code{upper}.
 #'
 #' @examples
@@ -693,7 +693,7 @@ plot_benchmark <- function(benchmark_results) {
       x = "Learner",
       y = "Metric Value"
     ) +
-    theme_survalis(base_size = 14)
+    theme_survalis()
 }
 
 

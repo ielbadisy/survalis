@@ -218,7 +218,7 @@ plot_survmetalearner_weights <- function(model) {
   ggplot(W_long, aes(x = time, y = weight, color = learner)) +
     geom_line(linewidth = 1.2) +
     labs(x = "Time", y = "Weight", title = "NNLS stacking weights over time") +
-    theme_survalis(base_size = 14)
+    theme_survalis()
 }
 
 #' Cross‑Validate a Stacked Survival Meta‑Learner
