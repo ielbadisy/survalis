@@ -4,13 +4,16 @@
 \alias{cv_summary}
 \title{Summarize Cross-Validation Results}
 \usage{
-cv_summary(cv_results)
+cv_summary(cv_results, digits = 3)
 }
 \arguments{
 \item{cv_results}{A tibble/data frame as returned by \code{cv_survlearner()}.}
+
+\item{digits}{Integer number of decimal places for \code{mean}, \code{sd},
+\code{se}, \code{lower}, \code{upper} (default \code{3}).}
 }
 \value{
-A tibble with columns: \code{metric}, \code{mean}, \code{sd}, \code{n},
+A data.table with columns: \code{metric}, \code{mean}, \code{sd}, \code{n},
 \code{se}, \code{lower}, \code{upper}.
 }
 \description{
@@ -18,7 +21,7 @@ Produces mean, standard deviation, standard error, and 95\\% Wald intervals
 for each metric returned by \code{\link{cv_survlearner}}.
 }
 \examples{
-cv_results <- tibble::tibble(
+cv_results <- data.frame(
   metric = c("cindex", "cindex", "ibs", "ibs"),
   value = c(0.62, 0.66, 0.19, 0.21)
 )

@@ -1,3 +1,17 @@
+# survalis 0.7.5
+
+* Migrated the core CV/metrics engine (`cv_survlearner()`, `cv_summary()`,
+  `score_survmodel()`) from dplyr/tidyr/tibble/purrr to data.table; `data.table`
+  is now the main data-manipulation engine going forward, replacing the
+  dplyr/tidyverse approach used previously. This is a first step; the
+  remaining tuning/fitting code (`tune_*()`/`fit_*()`) still uses dplyr/purrr
+  and will be migrated incrementally.
+* `cv_summary()` and `score_survmodel()`/`cv_survlearner()` metric values now
+  round to 3 decimals by default (`digits = 3` argument on `cv_summary()`).
+* These functions now return `data.table` objects instead of tibbles
+  (`is.data.frame()` still holds; code relying on `tibble`-specific behavior
+  should call `tibble::as_tibble()` explicitly).
+
 # survalis 0.7.4
 
 * Added `timeroc_survmat()`, a vectorized cumulative/dynamic time-dependent

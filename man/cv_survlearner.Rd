@@ -50,7 +50,7 @@ returning a survival-probability matrix/data frame (columns named \code{"t=<time
 \item{...}{Additional arguments forwarded to \code{fit_fun}.}
 }
 \value{
-A tibble with columns: \code{splits} (rsample split object),
+A \code{data.table} with columns: \code{splits} (rsample split object),
 \code{id}, \code{fold}, \code{metric}, and \code{value}.
 }
 \description{
@@ -71,7 +71,7 @@ The routine:
 
 Fold iteration is performed via \code{functionals::fmapn()}, which preserves
 per-fold identifiers (\code{id}, \code{fold}) and returns a list ready for
-\code{dplyr::bind_rows()}.
+\code{data.table::rbindlist()}.
 }
 \examples{
 \donttest{
