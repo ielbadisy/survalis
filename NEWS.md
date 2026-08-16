@@ -1,3 +1,15 @@
+# survalis 0.7.11
+
+* Fixed `benchmark_tuned_survlearners()` silently dropping learners whose
+  `tune_*()` has been migrated to data.table: `tuning_results[1, cols, drop = FALSE]`
+  relies on data.frame `[` semantics, but data.table's `[` does not select
+  columns when `cols` is a variable (only a literal character vector
+  triggers that) — it was returning the raw column-name vector instead of
+  a one-row parameter table, causing every fold to error and the learner
+  to be dropped with a warning. Added `.select_cols()` in `R/dt-utils.R`
+  that selects columns correctly for either a data.frame/tibble or a
+  data.table, so the nested-tuning code stays agnostic to migration state.
+
 # survalis 0.7.10
 
 * Retrofitted all existing plotting functions to use `theme_survalis()`

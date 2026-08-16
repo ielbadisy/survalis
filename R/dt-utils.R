@@ -21,3 +21,16 @@
   data.table::setorderv(dt, metric, order = if (maximize) -1L else 1L)
   dt[]
 }
+
+# data.table's `[i, j]` does NOT select columns when `j` is a variable
+# holding column names (only a literal character vector triggers that);
+# a plain data.frame/tibble's `[i, j, drop = FALSE]` does. This selects
+# columns correctly for either, so callers can stay agnostic to whether
+# an upstream tune_*() has been migrated to data.table yet.
+.select_cols <- function(x, cols) {
+  if (data.table::is.data.table(x)) {
+    x[, cols, with = FALSE]
+  } else {
+    x[, cols, drop = FALSE]
+  }
+}

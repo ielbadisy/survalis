@@ -1,7 +1,7 @@
 Package: survalis
 Type: Package
 Title: Interpretable Survival Machine Learning Framework
-Version: 0.7.10
+Version: 0.7.11
 Author: Imad El Badisy [aut, cre]
 Maintainer: Imad El Badisy <elbadisyimad@gmail.com>
 Authors@R: 
