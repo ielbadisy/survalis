@@ -1,3 +1,11 @@
+# survalis 0.7.9
+
+* Added `plot_survcurve()`, a survminer-inspired Kaplan-Meier curve with
+  confidence ribbon, log-rank p-value annotation, and an aligned
+  number-at-risk table, built natively on `theme_survalis()` /
+  `scale_color_survalis()` (no dependency on the survminer package). The
+  risk table uses `patchwork` (added to Suggests).
+
 # survalis 0.7.8
 
 * Added `theme_survalis()`, a shared ggplot2 theme, and
