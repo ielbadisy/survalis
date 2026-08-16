@@ -1,3 +1,10 @@
+# survalis 0.7.24
+
+* Migrated `tune_survdnn()` from dplyr/tidyr/purrr/tibble to data.table,
+  including the list-valued `hidden` architecture parameter (grid expansion
+  built manually over unique levels per parameter, since `data.table::CJ()`
+  doesn't support list-valued columns).
+
 # survalis 0.7.23
 
 * Migrated `tune_survsvm()` from dplyr/tidyr/purrr/tibble to data.table

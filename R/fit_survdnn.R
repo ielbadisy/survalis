@@ -230,9 +230,10 @@ predict_survdnn <- function(object, newdata, times = NULL,
 #' @details
 #' \strong{Evaluation.} Internally calls `cv_survlearner()` with
 #' `fit_survdnn()`/`predict_survdnn()` so tuning uses the same code paths as
-#' production. Hyperparameters are combined via `tidyr::crossing()` and each
-#' row is passed through to `fit_survdnn()`, so the grid can include any
-#' supported engine argument exposed by this wrapper.
+#' production. Hyperparameters are cross-joined over their unique levels
+#' (list-valued entries such as `hidden` supported) and each row is passed
+#' through to `fit_survdnn()`, so the grid can include any supported engine
+#' argument exposed by this wrapper.
 #'
 #' @seealso [fit_survdnn()], [predict_survdnn()]
 #'
@@ -287,22 +288,25 @@ tune_survdnn <- function(formula, data, times,
   stopifnot(!missing(formula), !missing(data), !missing(times), !missing(param_grid))
   stopifnot(is.list(param_grid))
 
-  param_df <- tidyr::crossing(!!!param_grid)
+  # Cross-join param_grid (data.table::CJ doesn't support list-valued entries
+  # like `hidden`, so build the grid manually over unique levels per param).
+  list_valued <- vapply(param_grid, is.list, logical(1))
+  levels_list <- lapply(param_grid, function(x) if (is.list(x)) x else unique(x))
+  idx_grid <- do.call(
+    expand.grid,
+    c(lapply(levels_list, seq_along), list(KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
+  )
+  param_df <- data.table::as.data.table(idx_grid)
+  for (nm in names(param_grid)) {
+    param_df[[nm]] <- levels_list[[nm]][param_df[[nm]]]
+  }
+
   extra_args <- list(...)
   higher_is_better <- metrics[1] %in% c("cindex", "auc", "accuracy")
 
-  as_tibble_row <- function(params) {
-    tibble::as_tibble(purrr::imap(params, function(x, nm) {
-      if (is.list(param_df[[nm]]) || length(x) != 1L || is.list(x)) {
-        list(x)
-      } else {
-        x
-      }
-    }))
-  }
+  row_results <- lapply(seq_len(nrow(param_df)), function(i) {
+    params <- lapply(as.list(param_df[i, ]), function(x) if (is.list(x)) x[[1]] else x)
 
-  results <- purrr::map_dfr(seq_len(nrow(param_df)), function(i) {
-    params <- purrr::map(param_df[i, , drop = FALSE], ~ .x[[1]])
     set.seed(seed)
     cv_args <- c(
       list(
@@ -321,22 +325,19 @@ tune_survdnn <- function(formula, data, times,
       extra_args
     )
     cv_results <- do.call(cv_survlearner, cv_args)
-
     summary <- cv_summary(cv_results)
 
-    as_tibble_row(params) |>
-      dplyr::bind_cols(
-        tidyr::pivot_wider(summary[, c("metric", "mean")],
-                           names_from = metric,
-                           values_from = mean)
-      )
-  })
+    row_params <- lapply(names(params), function(nm) {
+      x <- params[[nm]]
+      if (list_valued[[nm]] || length(x) != 1L) list(x) else x
+    })
+    names(row_params) <- names(params)
 
-  if (higher_is_better) {
-    results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
-  } else {
-    results <- results |> dplyr::arrange(!!rlang::sym(metrics[1]))
-  }
+    .wide_metric_row(row_params, summary)
+  })
+  results <- data.table::rbindlist(row_results, fill = TRUE)
+
+  results <- .arrange_by_metric_dt(results, metrics[1], higher_is_better)
 
   if (!refit_best) {
     class(results) <- c("tuned_surv", class(results))
@@ -345,11 +346,15 @@ tune_survdnn <- function(formula, data, times,
     return(results)
   } else {
     best_row <- results[1, ]
-    best_params <- purrr::map(best_row[names(param_df)], ~ .x[[1]])
+    best_params <- lapply(names(param_df), function(nm) {
+      x <- best_row[[nm]]
+      if (is.list(x)) x[[1]] else x
+    })
+    names(best_params) <- names(param_df)
     fit_args <- c(
       list(
         formula = formula,
-        data = tidyr::drop_na(data, all.vars(formula)),
+        data = .complete_cases_df(data, all.vars(formula)),
         verbose = FALSE
       ),
       best_params,
