@@ -14,6 +14,42 @@ test_that("benchmark and tuning wrappers expose explicit core controls", {
   expect_true("inner_ncores" %in% names(formals(benchmark_tuned_survlearners)))
 })
 
+test_that("benchmark() dispatches to default or tuned benchmarking via tune=", {
+  skip_on_cran()
+  skip_if_not_installed("survival")
+  skip_if_not_installed("glmnet")
+
+  Surv <- survival::Surv
+  df <- survival::veteran
+
+  res_default <- benchmark(
+    Surv(time, status) ~ age + karno + trt,
+    data = df,
+    learners = c("coxph", "rpart"),
+    times = c(80, 160),
+    metrics = c("cindex", "ibs"),
+    tune = FALSE,
+    folds = 2,
+    seed = 1
+  )
+  expect_true(is.data.frame(res_default))
+  expect_setequal(unique(res_default$learner), c("coxph", "rpart"))
+
+  res_tuned <- benchmark(
+    Surv(time, status) ~ age + karno + celltype,
+    data = df,
+    learners = "glmnet",
+    times = c(90, 180),
+    metrics = c("cindex", "ibs"),
+    tune = TRUE,
+    outer_folds = 2,
+    inner_folds = 2,
+    seed = 1,
+    learner_args = list(glmnet = list(tune = list(param_grid = list(alpha = c(0, 1)))))
+  )
+  expect_s3_class(res_tuned, "nested_surv_benchmark")
+})
+
 test_that("benchmark_tuned_survlearners() returns nested CV results and final refits", {
   skip_on_cran()
   skip_if_not_installed("ranger")

@@ -1,3 +1,12 @@
+# survalis 0.7.6
+
+* Added `benchmark()`, the single entry point for comparing survival
+  learners: `tune = FALSE` (default) dispatches to
+  `benchmark_default_survlearners()`, `tune = TRUE` dispatches to
+  `benchmark_tuned_survlearners()` (nested CV with per-learner tuning).
+  `benchmark_default_survlearners()` and `benchmark_tuned_survlearners()`
+  remain available directly.
+
 # survalis 0.7.5
 
 * Migrated the core CV/metrics engine (`cv_survlearner()`, `cv_summary()`,
