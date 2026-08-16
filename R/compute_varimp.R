@@ -176,5 +176,5 @@ plot_varimp <- function(varimp_df, use_scaled = TRUE) {
       x = if (use_scaled) "Scaled importance (%)" else "Raw importance",
       title = "Permutation-based variable importance"
     ) +
-    ggplot2::theme_minimal()
+    theme_survalis()
 }

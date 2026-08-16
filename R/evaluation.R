@@ -757,7 +757,7 @@ cv_plot <- function(cv_results) {
     geom_boxplot(fill = "skyblue", outlier.shape = NA, alpha = 0.3) +
     geom_jitter(width = 0.15, alpha = 0.5) +
     labs(title = "Cross-Validation Performance", x = "Metric", y = "Value") +
-    theme_minimal()
+    theme_survalis()
 }
 
 

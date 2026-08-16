@@ -221,7 +221,7 @@ plot_pdp <- function(pdp_ice_output, feature,
                               alpha = alpha_ice, fill = "pink") +
         geom_point(data = pdp_integrated, aes(x = .data[[feature]], y = .data$integrated_surv),
                             shape = 21, size = 3, fill = "black") +
-        theme_minimal(base_size = 13) +
+        theme_survalis(base_size = 13) +
         labs(
           title = paste("Integrated PDP with ICE Boxplot for", feature),
           x = feature,
@@ -230,7 +230,7 @@ plot_pdp <- function(pdp_ice_output, feature,
       return(p)
     } else {
       p <- ggplot(pdp_integrated, aes(x = .data[[feature]], y = .data$integrated_surv)) +
-        theme_minimal(base_size = 13) +
+        theme_survalis(base_size = 13) +
         labs(
           title = paste("Integrated PDP over Survival Time:", feature),
           x = feature,
@@ -258,7 +258,7 @@ plot_pdp <- function(pdp_ice_output, feature,
 
   if (is_categorical) {
     p <- ggplot(plot_data, aes(x = .data[[feature]], y = surv_prob, fill = type)) +
-      theme_minimal(base_size = 13) +
+      theme_survalis(base_size = 13) +
       facet_wrap(~ time) +
       coord_cartesian(ylim = c(0, 1)) +
       labs(
@@ -289,7 +289,7 @@ plot_pdp <- function(pdp_ice_output, feature,
         color = type
       )
     ) +
-      theme_minimal(base_size = 13) +
+      theme_survalis(base_size = 13) +
       facet_wrap(~ time) +
       coord_cartesian(ylim = c(0, 1)) +
       labs(

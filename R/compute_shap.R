@@ -201,7 +201,7 @@ ggplot(shapley_result, ggplot2::aes(x = time, y = phi, color = feature)) +
     x = "Time",
     y = "SHAP value"
   ) +
-  theme_minimal(base_size = 14)
+  theme_survalis(base_size = 14)
 } else {
 shap_method <- attr(shapley_result, "shap_method", exact = TRUE)
 shap_method <- if (is.null(shap_method)) "integral" else shap_method
@@ -226,7 +226,7 @@ ggplot(shapley_result, ggplot2::aes(x = phi, y = feature, fill = direction)) +
     x = "SHAP value",
     y = "Feature"
   ) +
-  theme_minimal(base_size = 14)
+  theme_survalis(base_size = 14)
 }
 }
 

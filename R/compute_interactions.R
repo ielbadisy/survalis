@@ -206,19 +206,19 @@ plot_interactions <- function(object, type = c("1way", "heatmap", "time")) {
   if (type == "1way") {
   ggplot(object, ggplot2::aes(x = interaction, y = reorder(feature, interaction))) +
       geom_col(fill = "steelblue") +
-      theme_minimal() +
+      theme_survalis() +
       labs(x = "Interaction strength (H)", y = "Feature")
   } else if (type == "heatmap") {
     ggplot(object, ggplot2::aes(x = feature1, y = feature2, fill = interaction)) +
       geom_tile() +
       scale_fill_gradient(low = "white", high = "steelblue") +
-      theme_minimal() +
+      theme_survalis() +
       labs(title = "Pairwise Interaction Heatmap")
   } else {
     ggplot(object, ggplot2::aes(x = time, y = interaction, color = feature)) +
       geom_line(linewidth = 1.2) +
       geom_point(size = 2) +
-      theme_minimal() +
+      theme_survalis() +
       labs(title = "Time-Varying Feature Interactions", x = "Time", y = "Interaction Strength")
   }
 }

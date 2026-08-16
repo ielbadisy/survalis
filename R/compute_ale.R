@@ -148,7 +148,7 @@ plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), s
     p <- ggplot(df_long, aes(x = feature_value, y = ale, color = time, group = time)) +
       geom_line() +
       labs(title = paste("ALE curves for", feature), x = feature, y = "ALE effect") +
-      theme_minimal()
+      theme_survalis()
     if (smooth) p <- p + geom_smooth(se = FALSE, method = "loess")
     return(p)
   }
@@ -159,7 +159,7 @@ plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), s
       geom_line() +
       geom_point() +
       labs(title = paste("Integrated ALE curve for", feature), x = feature, y = "Integrated ALE") +
-      theme_minimal()
+      theme_survalis()
     if (smooth) p <- p + geom_smooth(se = FALSE, method = "loess")
     return(p)
   }

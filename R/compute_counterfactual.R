@@ -249,7 +249,7 @@ plot_counterfactual <- function(counterfactual_df,
       x = if (metric == "penalized_gain") "Penalized survival gain" else "Survival gain",
       y = NULL
     ) +
-    ggplot2::theme_minimal() +
+    theme_survalis() +
     ggplot2::xlim(
       min(0, min(plot_df[[metric]], na.rm = TRUE)),
       max(plot_df[[metric]], na.rm = TRUE) * 1.25

@@ -725,7 +725,7 @@ plot_benchmark <- function(benchmark_results) {
       x = "Learner",
       y = "Metric Value"
     ) +
-    ggplot2::theme_minimal(base_size = 14)
+    theme_survalis(base_size = 14)
 }
 
 

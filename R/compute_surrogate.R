@@ -229,7 +229,7 @@ plot_surrogate <- function(surrogate_df, top_n = NULL) {
       title = paste0("Surrogate Explanation at Target Time = ", target_time)
     ) +
     scale_fill_manual(values = c("Positive" = "#4CAF50", "Negative" = "#F44336")) +
-    theme_minimal() +
+    theme_survalis() +
     theme(legend.position = "none")
 }
 

@@ -1,3 +1,14 @@
+# survalis 0.7.10
+
+* Retrofitted all existing plotting functions to use `theme_survalis()`
+  instead of ad-hoc `theme_minimal()` calls with inconsistent `base_size`
+  values, so package figures share one consistent visual style: `plot_ale()`,
+  survmat plotting helpers, `plot_surrogate()`/`plot_shap()`, `cv_plot()`,
+  `plot_pdp()`, `plot_interactions()`, `plot_counterfactual()`,
+  `plot_tree_surrogate()`, `plot_benchmark()`, `plot_varimp()`,
+  `fit_survmetalearner()`'s plotting path. Hardcoded per-plot colors are
+  unchanged in this pass (follow-up).
+
 # survalis 0.7.9
 
 * Added `plot_survcurve()`, a survminer-inspired Kaplan-Meier curve with

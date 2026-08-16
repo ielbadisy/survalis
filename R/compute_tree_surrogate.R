@@ -173,7 +173,7 @@ plot_tree_surrogate <- function(tree_surrogate, type = c("tree", "importance"), 
         x = "Feature",
         y = "Split Count"
       ) +
-      ggplot2::theme_minimal()
+      theme_survalis()
   }
 }
 
