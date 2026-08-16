@@ -1,3 +1,9 @@
+# survalis 0.7.26
+
+* Migrated `plot_survmat()` from dplyr/tidyr to data.table
+  (`data.table::melt()` for the wide-to-long reshape, `[.data.table` with
+  `by =` for the group/time summaries).
+
 # survalis 0.7.25
 
 * Migrated `compute_varimp()` from dplyr/purrr/tibble to data.table.
