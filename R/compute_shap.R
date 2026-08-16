@@ -127,11 +127,12 @@ all_results[[as.character(current_time)]] <- result_df
 final_result <- do.call(rbind, all_results)
 
 if (aggregate) {
-phi_wide <- final_result |>
-select(feature, time, phi) |>
-pivot_wider(names_from = time, values_from = phi)
+phi_wide <- data.table::dcast(
+  data.table::as.data.table(final_result)[, list(feature, time, phi)],
+  feature ~ time, value.var = "phi"
+)
 
-phi_matrix <- as.matrix(phi_wide[, -1])
+phi_matrix <- as.matrix(phi_wide[, -1, with = FALSE])
 rownames(phi_matrix) <- phi_wide$feature
 
 agg_phi <- switch(

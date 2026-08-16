@@ -17,10 +17,8 @@ compute_shap_mean <- function(model, newdata, baseline_data, times,
   })
   
   # combine and average phi across rows
-  shap_df <- bind_rows(shap_list, .id = "id")
-  shap_mean <- shap_df |>
-    group_by(feature) |>
-    summarise(phi = mean(phi, na.rm = TRUE), .groups = "drop")
+  shap_df <- data.table::rbindlist(shap_list, idcol = "id", fill = TRUE)
+  shap_mean <- shap_df[, list(phi = mean(phi, na.rm = TRUE)), by = feature]
   
   attr(shap_mean, "shap_method") <- method
   return(shap_mean)
