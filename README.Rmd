@@ -127,7 +127,43 @@ cv_summary(cv_res)
 
 
 
-**4. Visualize interpretation**
+**4. Benchmark multiple learners**
+
+`benchmark()` is the single entry point for comparing learners: `tune = FALSE`
+(default) runs each with fixed hyperparameters; `tune = TRUE` tunes each
+learner internally via nested cross-validation.
+
+```{r}
+bench_res <- benchmark(
+  Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  learners = c("coxph", "rpart", "ranger"),
+  times = c(80, 160),
+  metrics = c("cindex", "ibs"),
+  folds = 3,
+  seed = 1
+  )
+
+summarise_benchmark(bench_res)
+plot_benchmark(bench_res)
+```
+
+
+
+**5. Kaplan-Meier curves**
+
+`plot_survcurve()` produces a styled Kaplan-Meier curve with a confidence
+ribbon, log-rank p-value, and an aligned number-at-risk table, in the spirit
+of `survminer::ggsurvplot()` but implemented natively (no dependency on
+survminer).
+
+```{r}
+plot_survcurve(Surv(time, status) ~ trt, data = veteran)
+```
+
+
+
+**6. Visualize interpretation**
 ```{r}
 shap_meanabs <- compute_shap(
   model         = mod_cox,
@@ -270,7 +306,7 @@ counterfactuals <- compute_counterfactual(
 counterfactuals
 ```
 
-**5. Calibration**
+**7. Calibration**
 
 ```{r}
 compute_calibration(

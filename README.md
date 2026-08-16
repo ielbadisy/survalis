@@ -36,68 +36,118 @@ remotes::install_github("ielbadisy/survalis")
 library(survalis)
 # See all available learners
 list_survlearners()
-#> # A tibble: 19 × 8
-#>    learner         fit      predict tune  has_fit has_predict has_tune available
-#>    <chr>           <chr>    <chr>   <chr> <lgl>   <lgl>       <lgl>    <lgl>    
-#>  1 coxph           fit_cox… predic… <NA>  TRUE    TRUE        FALSE    TRUE     
-#>  2 aalen           fit_aal… predic… <NA>  TRUE    TRUE        FALSE    TRUE     
-#>  3 glmnet          fit_glm… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  4 selectcox       fit_sel… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  5 aftgee          fit_aft… predic… <NA>  TRUE    TRUE        FALSE    TRUE     
-#>  6 flexsurvreg     fit_fle… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  7 stpm2           fit_stp… predic… <NA>  TRUE    TRUE        FALSE    TRUE     
-#>  8 bnnsurv         fit_bnn… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  9 rpart           fit_rpa… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 10 bart            fit_bart predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 11 xgboost         fit_xgb… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 12 ranger          fit_ran… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 13 rsf             fit_rsf  predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 14 cforest         fit_cfo… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 15 blackboost      fit_bla… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 16 survsvm         fit_sur… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 17 survdnn         fit_sur… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 18 orsf            fit_orsf predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 19 survmetalearner fit_sur… predic… <NA>  TRUE    TRUE        FALSE    TRUE
+#>             learner                 fit                 predict
+#>              <char>              <char>                  <char>
+#>  1:           coxph           fit_coxph           predict_coxph
+#>  2:           aalen           fit_aalen           predict_aalen
+#>  3:          glmnet          fit_glmnet          predict_glmnet
+#>  4:       selectcox       fit_selectcox       predict_selectcox
+#>  5:          aftgee          fit_aftgee          predict_aftgee
+#>  6:     flexsurvreg     fit_flexsurvreg     predict_flexsurvreg
+#>  7:           stpm2           fit_stpm2           predict_stpm2
+#>  8:         bnnsurv         fit_bnnsurv         predict_bnnsurv
+#>  9:           rpart           fit_rpart           predict_rpart
+#> 10:            bart            fit_bart            predict_bart
+#> 11:         xgboost         fit_xgboost         predict_xgboost
+#> 12:          ranger          fit_ranger          predict_ranger
+#> 13:             rsf             fit_rsf             predict_rsf
+#> 14:         cforest         fit_cforest         predict_cforest
+#> 15:      blackboost      fit_blackboost      predict_blackboost
+#> 16:         survsvm         fit_survsvm         predict_survsvm
+#> 17:         survdnn         fit_survdnn         predict_survdnn
+#> 18:            orsf            fit_orsf            predict_orsf
+#> 19: survmetalearner fit_survmetalearner predict_survmetalearner
+#>                 tune has_fit has_predict has_tune available
+#>               <char>  <lgcl>      <lgcl>   <lgcl>    <lgcl>
+#>  1:             <NA>    TRUE        TRUE    FALSE      TRUE
+#>  2:             <NA>    TRUE        TRUE    FALSE      TRUE
+#>  3:      tune_glmnet    TRUE        TRUE     TRUE      TRUE
+#>  4:   tune_selectcox    TRUE        TRUE     TRUE      TRUE
+#>  5:             <NA>    TRUE        TRUE    FALSE      TRUE
+#>  6: tune_flexsurvreg    TRUE        TRUE     TRUE      TRUE
+#>  7:             <NA>    TRUE        TRUE    FALSE      TRUE
+#>  8:     tune_bnnsurv    TRUE        TRUE     TRUE      TRUE
+#>  9:       tune_rpart    TRUE        TRUE     TRUE      TRUE
+#> 10:        tune_bart    TRUE        TRUE     TRUE      TRUE
+#> 11:     tune_xgboost    TRUE        TRUE     TRUE      TRUE
+#> 12:      tune_ranger    TRUE        TRUE     TRUE      TRUE
+#> 13:         tune_rsf    TRUE        TRUE     TRUE      TRUE
+#> 14:     tune_cforest    TRUE        TRUE     TRUE      TRUE
+#> 15:  tune_blackboost    TRUE        TRUE     TRUE      TRUE
+#> 16:     tune_survsvm    TRUE        TRUE     TRUE      TRUE
+#> 17:     tune_survdnn    TRUE        TRUE     TRUE      TRUE
+#> 18:        tune_orsf    TRUE        TRUE     TRUE      TRUE
+#> 19:             <NA>    TRUE        TRUE    FALSE      TRUE
 
 # See only tunable learners (those with a tune_* function)
 list_survlearners(has_tune = TRUE)
-#> # A tibble: 14 × 8
-#>    learner     fit          predict tune  has_fit has_predict has_tune available
-#>    <chr>       <chr>        <chr>   <chr> <lgl>   <lgl>       <lgl>    <lgl>    
-#>  1 glmnet      fit_glmnet   predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  2 selectcox   fit_selectc… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  3 flexsurvreg fit_flexsur… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  4 bnnsurv     fit_bnnsurv  predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  5 rpart       fit_rpart    predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  6 bart        fit_bart     predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  7 xgboost     fit_xgboost  predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  8 ranger      fit_ranger   predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  9 rsf         fit_rsf      predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 10 cforest     fit_cforest  predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 11 blackboost  fit_blackbo… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 12 survsvm     fit_survsvm  predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 13 survdnn     fit_survdnn  predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 14 orsf        fit_orsf     predic… tune… TRUE    TRUE        TRUE     TRUE
+#>         learner             fit             predict             tune has_fit
+#>          <char>          <char>              <char>           <char>  <lgcl>
+#>  1:      glmnet      fit_glmnet      predict_glmnet      tune_glmnet    TRUE
+#>  2:   selectcox   fit_selectcox   predict_selectcox   tune_selectcox    TRUE
+#>  3: flexsurvreg fit_flexsurvreg predict_flexsurvreg tune_flexsurvreg    TRUE
+#>  4:     bnnsurv     fit_bnnsurv     predict_bnnsurv     tune_bnnsurv    TRUE
+#>  5:       rpart       fit_rpart       predict_rpart       tune_rpart    TRUE
+#>  6:        bart        fit_bart        predict_bart        tune_bart    TRUE
+#>  7:     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE
+#>  8:      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
+#>  9:         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
+#> 10:     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
+#> 11:  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
+#> 12:     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
+#> 13:     survdnn     fit_survdnn     predict_survdnn     tune_survdnn    TRUE
+#> 14:        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
+#>     has_predict has_tune available
+#>          <lgcl>   <lgcl>    <lgcl>
+#>  1:        TRUE     TRUE      TRUE
+#>  2:        TRUE     TRUE      TRUE
+#>  3:        TRUE     TRUE      TRUE
+#>  4:        TRUE     TRUE      TRUE
+#>  5:        TRUE     TRUE      TRUE
+#>  6:        TRUE     TRUE      TRUE
+#>  7:        TRUE     TRUE      TRUE
+#>  8:        TRUE     TRUE      TRUE
+#>  9:        TRUE     TRUE      TRUE
+#> 10:        TRUE     TRUE      TRUE
+#> 11:        TRUE     TRUE      TRUE
+#> 12:        TRUE     TRUE      TRUE
+#> 13:        TRUE     TRUE      TRUE
+#> 14:        TRUE     TRUE      TRUE
 
 # Shortcut for tunable learners
 list_tunable_survlearners()
-#> # A tibble: 14 × 8
-#>    learner     fit          predict tune  has_fit has_predict has_tune available
-#>    <chr>       <chr>        <chr>   <chr> <lgl>   <lgl>       <lgl>    <lgl>    
-#>  1 glmnet      fit_glmnet   predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  2 selectcox   fit_selectc… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  3 flexsurvreg fit_flexsur… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  4 bnnsurv     fit_bnnsurv  predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  5 rpart       fit_rpart    predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  6 bart        fit_bart     predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  7 xgboost     fit_xgboost  predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  8 ranger      fit_ranger   predic… tune… TRUE    TRUE        TRUE     TRUE     
-#>  9 rsf         fit_rsf      predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 10 cforest     fit_cforest  predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 11 blackboost  fit_blackbo… predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 12 survsvm     fit_survsvm  predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 13 survdnn     fit_survdnn  predic… tune… TRUE    TRUE        TRUE     TRUE     
-#> 14 orsf        fit_orsf     predic… tune… TRUE    TRUE        TRUE     TRUE
+#>         learner             fit             predict             tune has_fit
+#>          <char>          <char>              <char>           <char>  <lgcl>
+#>  1:      glmnet      fit_glmnet      predict_glmnet      tune_glmnet    TRUE
+#>  2:   selectcox   fit_selectcox   predict_selectcox   tune_selectcox    TRUE
+#>  3: flexsurvreg fit_flexsurvreg predict_flexsurvreg tune_flexsurvreg    TRUE
+#>  4:     bnnsurv     fit_bnnsurv     predict_bnnsurv     tune_bnnsurv    TRUE
+#>  5:       rpart       fit_rpart       predict_rpart       tune_rpart    TRUE
+#>  6:        bart        fit_bart        predict_bart        tune_bart    TRUE
+#>  7:     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE
+#>  8:      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
+#>  9:         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
+#> 10:     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
+#> 11:  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
+#> 12:     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
+#> 13:     survdnn     fit_survdnn     predict_survdnn     tune_survdnn    TRUE
+#> 14:        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
+#>     has_predict has_tune available
+#>          <lgcl>   <lgcl>    <lgcl>
+#>  1:        TRUE     TRUE      TRUE
+#>  2:        TRUE     TRUE      TRUE
+#>  3:        TRUE     TRUE      TRUE
+#>  4:        TRUE     TRUE      TRUE
+#>  5:        TRUE     TRUE      TRUE
+#>  6:        TRUE     TRUE      TRUE
+#>  7:        TRUE     TRUE      TRUE
+#>  8:        TRUE     TRUE      TRUE
+#>  9:        TRUE     TRUE      TRUE
+#> 10:        TRUE     TRUE      TRUE
+#> 11:        TRUE     TRUE      TRUE
+#> 12:        TRUE     TRUE      TRUE
+#> 13:        TRUE     TRUE      TRUE
+#> 14:        TRUE     TRUE      TRUE
 ```
 
 ### List interpretability tools
@@ -105,30 +155,29 @@ list_tunable_survlearners()
 ``` r
 # List available interpretability methods
 list_interpretability_methods()
-#> # A tibble: 8 × 4
-#>   compute                plot                has_compute has_plot
-#>   <chr>                  <chr>               <lgl>       <lgl>   
-#> 1 compute_shap           plot_shap           TRUE        TRUE    
-#> 2 compute_pdp            plot_pdp            TRUE        TRUE    
-#> 3 compute_ale            plot_ale            TRUE        TRUE    
-#> 4 compute_surrogate      plot_surrogate      TRUE        TRUE    
-#> 5 compute_tree_surrogate plot_tree_surrogate TRUE        TRUE    
-#> 6 compute_varimp         plot_varimp         TRUE        TRUE    
-#> 7 compute_interactions   plot_interactions   TRUE        TRUE    
-#> 8 compute_counterfactual <NA>                TRUE        FALSE
+#>                   compute                plot has_compute has_plot
+#>                    <char>              <char>      <lgcl>   <lgcl>
+#> 1:           compute_shap           plot_shap        TRUE     TRUE
+#> 2:            compute_pdp            plot_pdp        TRUE     TRUE
+#> 3:            compute_ale            plot_ale        TRUE     TRUE
+#> 4:      compute_surrogate      plot_surrogate        TRUE     TRUE
+#> 5: compute_tree_surrogate plot_tree_surrogate        TRUE     TRUE
+#> 6:         compute_varimp         plot_varimp        TRUE     TRUE
+#> 7:   compute_interactions   plot_interactions        TRUE     TRUE
+#> 8: compute_counterfactual plot_counterfactual        TRUE     TRUE
 
 # Show which compute_* methods have a plot_* counterpart
 subset(list_interpretability_methods(), !is.na(plot))
-#> # A tibble: 7 × 4
-#>   compute                plot                has_compute has_plot
-#>   <chr>                  <chr>               <lgl>       <lgl>   
-#> 1 compute_shap           plot_shap           TRUE        TRUE    
-#> 2 compute_pdp            plot_pdp            TRUE        TRUE    
-#> 3 compute_ale            plot_ale            TRUE        TRUE    
-#> 4 compute_surrogate      plot_surrogate      TRUE        TRUE    
-#> 5 compute_tree_surrogate plot_tree_surrogate TRUE        TRUE    
-#> 6 compute_varimp         plot_varimp         TRUE        TRUE    
-#> 7 compute_interactions   plot_interactions   TRUE        TRUE
+#>                   compute                plot has_compute has_plot
+#>                    <char>              <char>      <lgcl>   <lgcl>
+#> 1:           compute_shap           plot_shap        TRUE     TRUE
+#> 2:            compute_pdp            plot_pdp        TRUE     TRUE
+#> 3:            compute_ale            plot_ale        TRUE     TRUE
+#> 4:      compute_surrogate      plot_surrogate        TRUE     TRUE
+#> 5: compute_tree_surrogate plot_tree_surrogate        TRUE     TRUE
+#> 6:         compute_varimp         plot_varimp        TRUE     TRUE
+#> 7:   compute_interactions   plot_interactions        TRUE     TRUE
+#> 8: compute_counterfactual plot_counterfactual        TRUE     TRUE
 ```
 
 ### List evaluation metrics
@@ -136,12 +185,33 @@ subset(list_interpretability_methods(), !is.na(plot))
 ``` r
 # List available metrics used in cross-validation and scoring
 list_metrics()
-#> # A tibble: 3 × 4
-#>   metric direction summary                                                 range
-#>   <chr>  <chr>     <chr>                                                   <chr>
-#> 1 cindex maximize  Harrell-style concordance index for survival predictio… [0, …
-#> 2 brier  minimize  Brier Score at specified evaluation time(s) (IPCW-weig… [0, …
-#> 3 ibs    minimize  Integrated Brier Score over an evaluation time grid (I… [0, …
+#>    metric direction
+#>    <char>    <char>
+#> 1: cindex  maximize
+#> 2:    auc  maximize
+#> 3:  brier  minimize
+#> 4:    ibs  minimize
+#> 5:    iae  minimize
+#> 6:    ise  minimize
+#> 7:    ece  minimize
+#>                                                                     summary
+#>                                                                      <char>
+#> 1:                Harrell-style concordance index for survival predictions.
+#> 2:     Cumulative/dynamic time-dependent AUC at a selected evaluation time.
+#> 3: Brier Score at specified evaluation time(s) (IPCW-weighted when needed).
+#> 4:     Integrated Brier Score over an evaluation time grid (IPCW-weighted).
+#> 5:                Integrated absolute error against the Kaplan-Meier curve.
+#> 6:                 Integrated squared error against the Kaplan-Meier curve.
+#> 7:                  Expected calibration error at a single evaluation time.
+#>                         range
+#>                        <char>
+#> 1:  [0, 1] (higher is better)
+#> 2:  [0, 1] (higher is better)
+#> 3:   [0, 1] (lower is better)
+#> 4:   [0, 1] (lower is better)
+#> 5: [0, Inf) (lower is better)
+#> 6: [0, Inf) (lower is better)
+#> 7:   [0, 1] (lower is better)
 ```
 
 ## Basic Workflow
@@ -184,11 +254,10 @@ Direct evalution (single split):
 ``` r
 score <- score_survmodel(mod_cox, times = c(100, 200), metrics = c("cindex", "ibs"))
 score
-#> # A tibble: 2 × 2
-#>   metric value
-#>   <chr>  <dbl>
-#> 1 cindex 0.734
-#> 2 ibs    0.160
+#>    metric value
+#>    <char> <num>
+#> 1: cindex 0.734
+#> 2:    ibs 0.160
 ```
 
 ``` r
@@ -205,31 +274,75 @@ cv_res <- cv_survlearner(
   )
 
 cv_res
-#> # A tibble: 10 × 5
-#>    splits           id     fold metric value
-#>    <list>           <chr> <int> <chr>  <dbl>
-#>  1 <split [109/28]> Fold1     1 cindex 0.699
-#>  2 <split [109/28]> Fold1     1 ibs    0.227
-#>  3 <split [109/28]> Fold2     2 cindex 0.812
-#>  4 <split [109/28]> Fold2     2 ibs    0.141
-#>  5 <split [110/27]> Fold3     3 cindex 0.695
-#>  6 <split [110/27]> Fold3     3 ibs    0.217
-#>  7 <split [110/27]> Fold4     4 cindex 0.698
-#>  8 <split [110/27]> Fold4     4 ibs    0.188
-#>  9 <split [110/27]> Fold5     5 cindex 0.688
-#> 10 <split [110/27]> Fold5     5 ibs    0.138
+#>                          splits     id  fold metric value
+#>                          <list> <char> <int> <char> <num>
+#>  1: <vfold_split[109x28x137x8]>  Fold1     1 cindex 0.699
+#>  2: <vfold_split[109x28x137x8]>  Fold1     1    ibs 0.227
+#>  3: <vfold_split[109x28x137x8]>  Fold2     2 cindex 0.812
+#>  4: <vfold_split[109x28x137x8]>  Fold2     2    ibs 0.141
+#>  5: <vfold_split[110x27x137x8]>  Fold3     3 cindex 0.695
+#>  6: <vfold_split[110x27x137x8]>  Fold3     3    ibs 0.217
+#>  7: <vfold_split[110x27x137x8]>  Fold4     4 cindex 0.698
+#>  8: <vfold_split[110x27x137x8]>  Fold4     4    ibs 0.188
+#>  9: <vfold_split[110x27x137x8]>  Fold5     5 cindex 0.688
+#> 10: <vfold_split[110x27x137x8]>  Fold5     5    ibs 0.138
 ```
 
 ``` r
 cv_summary(cv_res)
-#> # A tibble: 2 × 7
-#>   metric  mean     sd     n     se lower upper
-#>   <chr>  <dbl>  <dbl> <int>  <dbl> <dbl> <dbl>
-#> 1 cindex 0.718 0.0528     5 0.0236 0.672 0.765
-#> 2 ibs    0.182 0.0417     5 0.0186 0.146 0.219
+#>    metric  mean    sd     n    se lower upper
+#>    <char> <num> <num> <int> <num> <num> <num>
+#> 1: cindex 0.718 0.053     5 0.023 0.672 0.764
+#> 2:    ibs 0.182 0.042     5 0.019 0.146 0.219
 ```
 
-**4. Visualize interpretation**
+**4. Benchmark multiple learners**
+
+`benchmark()` is the single entry point for comparing learners:
+`tune = FALSE` (default) runs each with fixed hyperparameters;
+`tune = TRUE` tunes each learner internally via nested cross-validation.
+
+``` r
+bench_res <- benchmark(
+  Surv(time, status) ~ age + karno + celltype,
+  data = veteran,
+  learners = c("coxph", "rpart", "ranger"),
+  times = c(80, 160),
+  metrics = c("cindex", "ibs"),
+  folds = 3,
+  seed = 1
+  )
+
+summarise_benchmark(bench_res)
+#>    learner metric      mean          sd     n          se     lower     upper
+#>     <char> <char>     <num>       <num> <int>       <num>     <num>     <num>
+#> 1:   coxph cindex 0.7306667 0.032593455     3 0.018817840 0.6937837 0.7675496
+#> 2:   coxph    ibs 0.1790000 0.009539392     3 0.005507571 0.1682052 0.1897948
+#> 3:   rpart cindex 0.7073333 0.029670412     3 0.017130220 0.6737581 0.7409086
+#> 4:   rpart    ibs 0.2160000 0.010816654     3 0.006244998 0.2037598 0.2282402
+#> 5:  ranger cindex 0.6863333 0.047815618     3 0.027606360 0.6322249 0.7404418
+#> 6:  ranger    ibs 0.1976667 0.005507571     3 0.003179797 0.1914343 0.2038991
+plot_benchmark(bench_res)
+```
+
+<img src="man/figures/README-unnamed-chunk-11-1.png" alt="" width="100%" />
+
+**5. Kaplan-Meier curves**
+
+`plot_survcurve()` produces a styled Kaplan-Meier curve with a
+confidence ribbon, log-rank p-value, and an aligned number-at-risk
+table, in the spirit of `survminer::ggsurvplot()` but implemented
+natively (no dependency on survminer).
+
+``` r
+plot_survcurve(Surv(time, status) ~ trt, data = veteran)
+#> Warning: Removed 2 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
+```
+
+<img src="man/figures/README-unnamed-chunk-12-1.png" alt="" width="100%" />
+
+**6. Visualize interpretation**
 
 ``` r
 shap_meanabs <- compute_shap(
@@ -244,19 +357,19 @@ shap_meanabs <- compute_shap(
 
 shap_meanabs
 #>           feature         phi
-#> trt           trt 0.000000000
-#> celltype celltype 0.005850095
-#> karno       karno 0.045326970
+#> age           age 0.003908879
+#> celltype celltype 0.005120004
 #> diagtime diagtime 0.000000000
-#> age           age 0.002540069
+#> karno       karno 0.036640340
 #> prior       prior 0.000000000
+#> trt           trt 0.000000000
 ```
 
 ``` r
 plot_shap(shap_meanabs)
 ```
 
-<img src="man/figures/README-unnamed-chunk-12-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-14-1.png" alt="" width="100%" />
 
 ### More interpretability methods
 
@@ -276,31 +389,16 @@ pdp_age <- compute_pdp(
   )
 
 plot_pdp(pdp_age, feature = "age", which = "per_time")
-#> Warning: `aes_string()` was deprecated in ggplot2 3.0.0.
-#> ℹ Please use tidy evaluation idioms with `aes()`.
-#> ℹ See also `vignette("ggplot2-in-packages")` for more information.
-#> ℹ The deprecated feature was likely used in the survalis package.
-#>   Please report the issue to the authors.
-#> This warning is displayed once per session.
-#> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
-#> generated.
-#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-#> ℹ Please use `linewidth` instead.
-#> ℹ The deprecated feature was likely used in the survalis package.
-#>   Please report the issue to the authors.
-#> This warning is displayed once per session.
-#> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
-#> generated.
 ```
 
-<img src="man/figures/README-unnamed-chunk-13-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-15-1.png" alt="" width="100%" />
 
 ``` r
 plot_pdp(pdp_age, feature = "age", which = "integrated", smooth = TRUE)
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-<img src="man/figures/README-unnamed-chunk-13-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-15-2.png" alt="" width="100%" />
 
 **Accumulated local effects**
 
@@ -315,14 +413,14 @@ ale_karno <- compute_ale(
 plot_ale(ale_karno, feature = "karno", which = "per_time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-14-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-16-1.png" alt="" width="100%" />
 
 ``` r
 plot_ale(ale_karno, feature = "karno", which = "integrated", smooth = TRUE)
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-<img src="man/figures/README-unnamed-chunk-14-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-16-2.png" alt="" width="100%" />
 
 **Local surrogate explanation**
 
@@ -346,7 +444,7 @@ local_surrogate
 plot_surrogate(local_surrogate, top_n = 10)
 ```
 
-<img src="man/figures/README-unnamed-chunk-15-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-17-1.png" alt="" width="100%" />
 
 **Tree surrogate**
 
@@ -360,7 +458,7 @@ tree_surrogate <- compute_tree_surrogate(
 plot_tree_surrogate(tree_surrogate, type = "importance", top_n = 5)
 ```
 
-<img src="man/figures/README-unnamed-chunk-16-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-18-1.png" alt="" width="100%" />
 
 ``` r
 # plot_tree_surrogate(tree_surrogate, type = "tree")
@@ -378,19 +476,18 @@ varimp_res <- compute_varimp(
   )
 
 varimp_res
-#> # A tibble: 6 × 5
-#>   feature  importance importance_05 importance_95 scaled_importance
-#>   <chr>         <dbl>         <dbl>         <dbl>             <dbl>
-#> 1 karno       0.0624          0.192         0.223            100   
-#> 2 celltype    0.0446          0.185         0.201             71.5 
-#> 3 age        -0.00180         0.144         0.146              2.89
-#> 4 trt         0               0.147         0.147              0   
-#> 5 diagtime    0               0.147         0.147              0   
-#> 6 prior       0               0.147         0.147              0
+#>     feature importance importance_05 importance_95 scaled_importance
+#>      <char>      <num>         <num>         <num>             <num>
+#> 1:    karno     0.0672        0.1964        0.2296         100.00000
+#> 2: celltype     0.0468        0.1864        0.2044          69.64286
+#> 3:      age    -0.0022        0.1440        0.1458           3.27381
+#> 4:      trt     0.0000        0.1470        0.1470           0.00000
+#> 5: diagtime     0.0000        0.1470        0.1470           0.00000
+#> 6:    prior     0.0000        0.1470        0.1470           0.00000
 plot_varimp(varimp_res)
 ```
 
-<img src="man/figures/README-unnamed-chunk-17-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-19-1.png" alt="" width="100%" />
 
 **Feature interactions**
 
@@ -421,19 +518,19 @@ interaction_time <- compute_interactions(
 plot_interactions(interaction_1way, type = "1way")
 ```
 
-<img src="man/figures/README-unnamed-chunk-18-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-20-1.png" alt="" width="100%" />
 
 ``` r
 plot_interactions(interaction_heatmap, type = "heatmap")
 ```
 
-<img src="man/figures/README-unnamed-chunk-18-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-20-2.png" alt="" width="100%" />
 
 ``` r
 plot_interactions(interaction_time, type = "time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-18-3.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-20-3.png" alt="" width="100%" />
 
 **Counterfactual explanations**
 
@@ -458,7 +555,7 @@ counterfactuals
 #> 3        -0.0010
 ```
 
-**5. Calibration**
+**7. Calibration**
 
 ``` r
 compute_calibration(
@@ -468,7 +565,7 @@ compute_calibration(
    ) |> plot_calibration()
 ```
 
-<img src="man/figures/README-unnamed-chunk-20-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-22-1.png" alt="" width="100%" />
 
 ## Citing
 
