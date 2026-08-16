@@ -196,7 +196,7 @@ tune_rsf <- function(formula, data, times,
                        refit_best = FALSE,
                        ...) {
 
-  results <- purrr::pmap_dfr(param_grid, function(ntree, mtry, nodesize) {
+  results <- .pmap_rbind_dt(param_grid, function(ntree, mtry, nodesize) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -214,23 +214,11 @@ tune_rsf <- function(formula, data, times,
     )
 
     summary <- cv_summary(cv_results)
-
-    tibble::tibble(
-      ntree = ntree,
-      mtry = mtry,
-      nodesize = nodesize
-    ) |>
-      dplyr::bind_cols(
-        tidyr::pivot_wider(summary[, c("metric", "mean")],
-                           names_from = metric, values_from = mean)
-      )
+    .wide_metric_row(list(ntree = ntree, mtry = mtry, nodesize = nodesize), summary)
   })
 
-  if (metrics[1] %in% c("cindex", "auc", "accuracy")) {
-    results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
-  } else {
-    results <- results |> dplyr::arrange(!!rlang::sym(metrics[1]))
-  }
+  maximize <- metrics[1] %in% c("cindex", "auc", "accuracy")
+  results <- .arrange_by_metric_dt(results, metrics[1], maximize)
 
   if (!refit_best) {
     class(results) <- c("tuned_surv", class(results))  # like other learners
@@ -241,7 +229,7 @@ tune_rsf <- function(formula, data, times,
     best_row <- results[1, ]
     best_model <- fit_rsf(
       formula = formula,
-      data = tidyr::drop_na(data, all.vars(formula)),
+      data = .complete_cases_df(data, all.vars(formula)),
       ntree = best_row$ntree,
       mtry = best_row$mtry,
       nodesize = best_row$nodesize,

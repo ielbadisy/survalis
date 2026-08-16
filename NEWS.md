@@ -1,3 +1,7 @@
+# survalis 0.7.17
+
+* Migrated `tune_rsf()` from dplyr/tidyr/purrr/tibble to data.table.
+
 # survalis 0.7.16
 
 * Migrated `tune_orsf()` from dplyr/tidyr/purrr/tibble to data.table.
