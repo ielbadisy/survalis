@@ -86,7 +86,7 @@ utils::globalVariables(c(
   "surv_prob","mean_pred_surv","lower_ci","upper_ci","calib_result",
   "bin","direction","count","time","id","outer_fold",
   # data.table-esque
-  ".N",".id",
+  ".N",".id",".SD",":=","lower","upper",
   # others seen in notes
   "splits","ale","integrated_ale","type","change_label","hjust"
 ))

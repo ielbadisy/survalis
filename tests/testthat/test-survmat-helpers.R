@@ -39,7 +39,7 @@ test_that("score_survmodel() standardizes prediction matrices before scoring", {
 
   res <- score_survmodel(mod, times = c(100, 200), metrics = c("cindex", "auc", "ibs"))
 
-  expect_s3_class(res, "tbl_df")
+  expect_s3_class(res, "data.table")
   expect_setequal(res$metric, c("cindex", "auc", "ibs"))
   expect_true(all(is.finite(res$value)))
 })
