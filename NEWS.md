@@ -1,3 +1,9 @@
+# survalis 0.7.3
+
+* Fixed `plot_pdp()` per-time facets using free y-axis scales, which made
+  survival probability panels visually incomparable across facets; now uses
+  a fixed `[0, 1]` scale via `coord_cartesian()`.
+
 # survalis 0.7.2
 
 * Fixed `tune_survsvm(refit_best = TRUE)` crashing when the top-ranked grid

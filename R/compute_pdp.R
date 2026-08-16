@@ -259,7 +259,8 @@ plot_pdp <- function(pdp_ice_output, feature,
   if (is_categorical) {
     p <- ggplot(plot_data, aes(x = .data[[feature]], y = surv_prob, fill = type)) +
       theme_minimal(base_size = 13) +
-      facet_wrap(~ time, scales = "free_y") +
+      facet_wrap(~ time) +
+      coord_cartesian(ylim = c(0, 1)) +
       labs(
         title = paste("Survival", toupper(method), "for", feature),
         x = feature,
@@ -289,7 +290,8 @@ plot_pdp <- function(pdp_ice_output, feature,
       )
     ) +
       theme_minimal(base_size = 13) +
-      facet_wrap(~ time, scales = "free_y") +
+      facet_wrap(~ time) +
+      coord_cartesian(ylim = c(0, 1)) +
       labs(
         title = paste("Survival", toupper(method), "for", feature),
         x = feature,
