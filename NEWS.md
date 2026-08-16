@@ -1,3 +1,7 @@
+# survalis 0.7.19
+
+* Migrated `tune_blackboost()` from dplyr/tidyr/purrr/tibble to data.table.
+
 # survalis 0.7.18
 
 * Migrated `tune_bart()` from dplyr/tidyr/purrr/tibble to data.table.

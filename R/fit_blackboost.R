@@ -238,7 +238,7 @@ tune_blackboost <- function(formula, data, times,
                         refit_best = FALSE,
                         ...) {
 
-  results <- purrr::pmap_dfr(param_grid, function(mstop, nu, maxdepth) {
+  results <- .pmap_rbind_dt(param_grid, function(mstop, nu, maxdepth) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -256,23 +256,11 @@ tune_blackboost <- function(formula, data, times,
     )
 
     summary <- cv_summary(cv_results)
-
-    tibble::tibble(
-      mstop = mstop,
-      nu = nu,
-      maxdepth = maxdepth
-    ) |>
-      dplyr::bind_cols(
-        tidyr::pivot_wider(summary[, c("metric", "mean")],
-                           names_from = metric, values_from = mean)
-      )
+    .wide_metric_row(list(mstop = mstop, nu = nu, maxdepth = maxdepth), summary)
   })
 
-  if (metrics[1] %in% c("cindex", "auc", "accuracy")) {
-    results <- results |> dplyr::arrange(dplyr::desc(!!rlang::sym(metrics[1])))
-  } else {
-    results <- results |> dplyr::arrange(!!rlang::sym(metrics[1]))
-  }
+  maximize <- metrics[1] %in% c("cindex", "auc", "accuracy")
+  results <- .arrange_by_metric_dt(results, metrics[1], maximize)
 
   if (!refit_best) {
     class(results) <- c("tuned_surv", class(results))
