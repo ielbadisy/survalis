@@ -27,7 +27,7 @@ Extracts the top‑performing learner(s) under a chosen metric from benchmark
 results, using the average value across folds.
 }
 \examples{
-res <- tibble::tibble(
+res <- data.frame(
   learner = c("coxph", "coxph", "rpart", "rpart"),
   metric = c("cindex", "ibs", "cindex", "ibs"),
   value = c(0.64, 0.19, 0.60, 0.23)
