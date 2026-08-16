@@ -1,3 +1,15 @@
+# survalis 0.7.4
+
+* Added `timeroc_survmat()`, a vectorized cumulative/dynamic time-dependent
+  AUC curve over a vector of evaluation times (Uno et al. 2007 / Heagerty
+  and Zheng 2005 estimator), matching `timeROC::timeROC(weighting = "marginal")`
+  to ~1e-3.
+* Fixed `auc_survmat()` to define cases as events strictly before `t_star`
+  (`time < t_star`) rather than `time <= t_star`, matching the canonical
+  Uno/timeROC definition; this corrects the `"auc"` metric used throughout
+  `score_survmodel()`, `benchmark_*()`, and `fit_survmetalearner()`.
+* Added `timeROC` to Suggests for numerical validation in tests.
+
 # survalis 0.7.3
 
 * Fixed `plot_pdp()` per-time facets using free y-axis scales, which made

@@ -1,7 +1,7 @@
 Package: survalis
 Type: Package
 Title: Interpretable Survival Machine Learning Framework
-Version: 0.7.3
+Version: 0.7.4
 Author: Imad El Badisy [aut, cre]
 Maintainer: Imad El Badisy <elbadisyimad@gmail.com>
 Authors@R: 
@@ -74,7 +74,8 @@ Suggests:
     roxygen2,
     covr,
     stats,
-    utils
+    utils,
+    timeROC
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Config/testthat/edition: 3

@@ -78,9 +78,11 @@ cindex_survmat <- function(object, predicted, t_star = NULL) {
 #'
 #' Computes a cumulative/dynamic time-dependent AUC using predicted survival
 #' probabilities at a specified time point (or the last column if \code{t_star}
-#' is \code{NULL}). Cases are subjects with an observed event by \code{t_star};
-#' controls are subjects known to survive beyond \code{t_star}. Subjects
-#' censored before \code{t_star} are handled through IPCW weighting.
+#' is \code{NULL}), following the Uno et al. (2007) / Heagerty and Zheng (2005)
+#' estimator as implemented in the \pkg{timeROC} package. Cases are subjects
+#' with an observed event strictly before \code{t_star}; controls are subjects
+#' known to survive beyond \code{t_star}. Subjects censored before \code{t_star}
+#' are handled through IPCW weighting.
 #'
 #' @param object A \code{\link[survival]{Surv}} object of length \eqn{n}.
 #' @param predicted An \code{n x k} matrix or data frame of survival probabilities
@@ -127,7 +129,7 @@ auc_survmat <- function(object, predicted, t_star = NULL) {
   }
 
   risk_score <- 1 - surv_prob
-  cases <- which(time <= t_star & status == 1)
+  cases <- which(time < t_star & status == 1)
   controls <- which(time > t_star)
 
   if (!length(cases) || !length(controls)) {
@@ -162,6 +164,54 @@ auc_survmat <- function(object, predicted, t_star = NULL) {
 
   names(auc_value) <- "auc"
   round(auc_value, 6)
+}
+
+#' Time-Dependent ROC/AUC Curve from a Survival-Probability Matrix
+#'
+#' Computes the cumulative/dynamic time-dependent AUC (Uno et al., 2007;
+#' Heagerty and Zheng, 2005) at each time in \code{times}, using marginal
+#' (Kaplan-Meier) inverse-probability-of-censoring weighting for cases. This
+#' is a thin vectorized wrapper around \code{\link{auc_survmat}} that returns
+#' a full \eqn{AUC(t)} curve instead of a single time point, matching the
+#' quantity reported by \code{timeROC::timeROC()} with
+#' \code{weighting = "marginal"}.
+#'
+#' @param object A \code{\link[survival]{Surv}} object of length \eqn{n}.
+#' @param predicted An \code{n x k} matrix or data frame of survival probabilities
+#'   with columns named \code{"t=<time>"}, one column per entry of \code{times}.
+#' @param times Numeric vector of evaluation time points; each must have a
+#'   matching \code{"t=<time>"} column in \code{predicted}.
+#'
+#' @return A \code{data.frame} (class \code{"timeroc_survmat"}) with columns
+#'   \code{time} and \code{auc}, one row per entry of \code{times}.
+#'
+#' @seealso [auc_survmat()]
+#'
+#' @references
+#' Uno H, Cai T, Tian L, Wei LJ (2007). Evaluating prediction rules for
+#' t-year survivors with censored regression models. \doi{10.1198/016214507000000149}
+#'
+#' Heagerty PJ, Zheng Y (2005). Survival model predictive accuracy and ROC
+#' curves. \doi{10.1111/j.0006-341X.2005.030814.x}
+#'
+#' @examples
+#' y <- survival::Surv(time = veteran$time, event = veteran$status)
+#' times <- c(30, 90, 180)
+#' sp <- sapply(times, function(t) stats::plogis(-scale(veteran$karno) + log(t) / 5))
+#' colnames(sp) <- paste0("t=", times)
+#' timeroc_survmat(y, predicted = sp, times = times)
+#' @export
+timeroc_survmat <- function(object, predicted, times) {
+  if (!inherits(object, "Surv")) stop("object must be a survival object (from Surv())")
+  if (!length(times)) stop("times must be a non-empty numeric vector.")
+
+  auc_vals <- vapply(times, function(t_star) {
+    unname(auc_survmat(object, predicted = predicted, t_star = t_star))
+  }, numeric(1))
+
+  out <- data.frame(time = times, auc = auc_vals)
+  class(out) <- c("timeroc_survmat", class(out))
+  out
 }
 
 #' Brier Score with IPCW for a Single Time Point
