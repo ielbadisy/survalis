@@ -305,7 +305,7 @@ cv_survmetalearner <- function(formula, data, times,
   set.seed(seed)
   rsplits <- rsample::vfold_cv(data, v = folds)
 
-  results <- purrr::map_dfr(seq_along(rsplits$splits), function(i) {
+  results <- .map_rbind_dt(seq_along(rsplits$splits), function(i) {
     split <- rsplits$splits[[i]]
     train <- rsample::analysis(split)
     test  <- rsample::assessment(split)
@@ -351,25 +351,8 @@ cv_survmetalearner <- function(formula, data, times,
     surv_test <- survival::Surv(time_test, status_test)
 
     # score metrics
-    tibble::tibble(
-      fold = i,
-      metric = metrics
-    ) |>
-      dplyr::mutate(value = purrr::map(metric, function(metric) {
-        switch(metric,
-               "cindex" = cindex_survmat(surv_test, predicted = preds_test, t_star = max(times)),
-               "auc"    = auc_survmat(surv_test, predicted = preds_test, t_star = max(times)),
-               "brier"  = if (length(times) != 1) stop("Brier requires single time") else
-                 brier(surv_test, pre_sp = preds_test[, 1], t_star = times),
-               "ibs"    = ibs_survmat(surv_test, preds_test, times),
-               "iae"    = iae_survmat(surv_test, preds_test, times),
-               "ise"    = ise_survmat(surv_test, preds_test, times),
-               "ece"    = if (length(times) != 1) stop("ECE requires single time") else
-                 ece_survmat(surv_test, preds_test, t_star = times),
-               stop("Unknown metric: ", metric)
-        )
-      })) |>
-      tidyr::unnest(cols = value)
+    scored <- .score_metrics(surv_test, preds_test, times, metrics)
+    data.table::data.table(fold = i, metric = scored$metric, value = scored$value)
   })
 
   # Fit final survmetalearner on full data
@@ -396,7 +379,7 @@ cv_survmetalearner <- function(formula, data, times,
   structure(list(
     model = meta_model,
     cv_results = results,
-    summary = results |> dplyr::group_by(metric) |> dplyr::summarise(mean = mean(value), sd = sd(value)),
+    summary = results[, list(mean = mean(value), sd = sd(value)), by = metric],
     folds = folds,
     metrics = metrics
   ), class = "cv_survmetalearner_result")
