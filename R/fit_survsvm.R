@@ -248,14 +248,14 @@ tune_survsvm <- function(formula, data, times,
                              refit_best = FALSE,
                              dist = "exp", shape = 1) {
   stopifnot(is.list(param_grid))
-  param_df <- tidyr::crossing(!!!param_grid)
+  param_df <- do.call(data.table::CJ, param_grid)
 
   # Fixed safe defaults
   fixed_type <- "regression"
   fixed_opt_meth <- "quadprog"
   fixed_diff_meth <- NULL
 
-  results <- purrr::pmap_dfr(param_df, function(gamma.mu, kernel) {
+  results <- .pmap_rbind_dt(param_df, function(gamma.mu, kernel) {
     set.seed(seed)
     tryCatch({
       res_cv <- cv_survlearner(
@@ -276,15 +276,7 @@ tune_survsvm <- function(formula, data, times,
       )
 
       summary <- cv_summary(res_cv)
-
-      tibble::tibble(
-        gamma.mu = gamma.mu,
-        kernel = kernel
-      ) |>
-        dplyr::bind_cols(
-          tidyr::pivot_wider(summary[, c("metric", "mean")],
-                             names_from = metric, values_from = mean)
-        )
+      .wide_metric_row(list(gamma.mu = gamma.mu, kernel = kernel), summary)
     }, error = function(e) {
       invisible(cat(glue("Skipping (gamma.mu={gamma.mu}, kernel={kernel}): {e$message}\n"),
                     file = "errors.log", append = TRUE)) ## keep a trace without showing it on the console
@@ -297,11 +289,8 @@ tune_survsvm <- function(formula, data, times,
     return(NULL)
   }
 
-  if (metrics[1] %in% c("cindex", "auc", "accuracy")) {
-    results <- dplyr::arrange(results, dplyr::desc(.data[[metrics[1]]]))
-  } else {
-    results <- dplyr::arrange(results, .data[[metrics[1]]])
-  }
+  maximize <- metrics[1] %in% c("cindex", "auc", "accuracy")
+  results <- .arrange_by_metric_dt(results, metrics[1], maximize)
 
   if (refit_best) {
     model <- NULL

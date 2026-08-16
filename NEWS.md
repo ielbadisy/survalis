@@ -1,3 +1,9 @@
+# survalis 0.7.23
+
+* Migrated `tune_survsvm()` from dplyr/tidyr/purrr/tibble to data.table
+  (grid expansion via `data.table::CJ()`); the CRAN-motivated refit-fallback
+  behavior (PR #14) is unchanged and still verified passing.
+
 # survalis 0.7.22
 
 * Migrated `tune_glmnet()` from dplyr/tidyr/purrr/tibble to data.table,
