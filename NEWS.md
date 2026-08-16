@@ -1,3 +1,10 @@
+# survalis 0.8.4
+
+* `summarise_benchmark()` now rounds `mean`/`sd`/`se`/`lower`/`upper` to 3
+  decimals by default (`digits = 3` argument), matching `cv_summary()`'s
+  convention — it previously returned full-precision values (e.g.
+  `sd = 0.014142136`).
+
 # survalis 0.8.3
 
 * Normalized `base_size` to the shared `theme_survalis()` default (13)
