@@ -1,3 +1,7 @@
+# survalis 0.7.25
+
+* Migrated `compute_varimp()` from dplyr/purrr/tibble to data.table.
+
 # survalis 0.7.24
 
 * Migrated `tune_survdnn()` from dplyr/tidyr/purrr/tibble to data.table,

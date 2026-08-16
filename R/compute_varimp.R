@@ -82,24 +82,20 @@ compute_varimp <- function(model, times,
     status_vector <- data[[status_col]]
   }
 
-  # Compute baseline loss
+  # Compute baseline loss (single metric requested, so a single row/value)
   model$data <- data  # ensure correct data
-  original_loss <- score_survmodel(model, times = times, metrics = metric) |>
-    dplyr::filter(metric == !!metric) |>
-    dplyr::pull(value)
+  original_loss <- score_survmodel(model, times = times, metrics = metric)$value
 
   exclude_vars <- c(time_col, status_col)
   covariates <- setdiff(names(data), exclude_vars)
   if (!is.null(seed)) set.seed(seed)
 
-  results <- purrr::map(covariates, function(v) {
+  result <- .map_rbind_dt(covariates, function(v) {
     scores <- replicate(n_repetitions, {
       data_perm <- data
       data_perm[[v]] <- sample(data_perm[[v]])
       model$data <- data_perm  # inject permuted data
-      score_survmodel(model, times = times, metrics = metric) |>
-        dplyr::filter(metric == !!metric) |>
-        dplyr::pull(value)
+      score_survmodel(model, times = times, metrics = metric)$value
     })
 
     imp <- switch(importance_type,
@@ -110,7 +106,7 @@ compute_varimp <- function(model, times,
     imp_05 <- quantile(scores, 0.05)
     imp_95 <- quantile(scores, 0.95)
 
-    tibble::tibble(
+    data.table::data.table(
       feature = v,
       importance = imp,
       importance_05 = imp_05,
@@ -118,14 +114,12 @@ compute_varimp <- function(model, times,
     )
   })
 
-  result <- dplyr::bind_rows(results)
-
   result$scaled_importance <- switch(importance_type,
                                      "mean"  = 100 * (result$importance - original_loss) / original_loss,
                                      "delta" = 100 * abs(result$importance) / max(abs(result$importance), na.rm = TRUE)
   )
 
-  dplyr::arrange(result, dplyr::desc(scaled_importance))
+  .arrange_by_metric_dt(result, "scaled_importance", maximize = TRUE)
 }
 
 
