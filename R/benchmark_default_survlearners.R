@@ -197,7 +197,7 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
   })
 
   # combine results
-  results_combined <- dplyr::bind_rows(results_list)
+  results_combined <- data.table::rbindlist(results_list, fill = TRUE)
   if (nrow(results_combined) == 0) {
     stop("All learners failed or returned empty results.")
   }
@@ -214,7 +214,7 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
 
   all_vars <- all.vars(formula)
   n_before <- nrow(data)
-  data <- tidyr::drop_na(data, dplyr::all_of(all_vars))
+  data <- .complete_cases_df(data, all_vars)
   n_after <- nrow(data)
 
   if (verbose && n_after < n_before) {
@@ -243,26 +243,7 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
 
   surv_obj <- survival::Surv(time = data[[time_col]], event = status_vector)
 
-  tibble::tibble(metric = metrics) |>
-    dplyr::mutate(value = lapply(metric, function(metric) {
-      switch(metric,
-        "cindex" = cindex_survmat(surv_obj, predicted = pred, t_star = max(times)),
-        "auc" = auc_survmat(surv_obj, predicted = pred, t_star = max(times)),
-        "brier" = {
-          if (length(times) != 1) stop("Brier requires a single time point.")
-          brier(surv_obj, pre_sp = pred[, 1], t_star = times)
-        },
-        "ibs" = ibs_survmat(surv_obj, sp_matrix = pred, times = times),
-        "iae" = iae_survmat(surv_obj, sp_matrix = pred, times = times),
-        "ise" = ise_survmat(surv_obj, sp_matrix = pred, times = times),
-        "ece" = {
-          if (length(times) != 1) stop("ECE requires a single time point.")
-          ece_survmat(surv_obj, sp_matrix = pred, t_star = times)
-        },
-        stop("Unknown metric: ", metric)
-      )
-    })) |>
-    tidyr::unnest(cols = value)
+  .score_metrics(surv_obj, pred, times, metrics)
 }
 
 
@@ -302,11 +283,7 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
     stop("All tuning configurations failed or returned NA for the primary metric.")
   }
 
-  if (.nested_surv_higher_is_better(primary_metric)) {
-    dplyr::arrange(tuning_results, dplyr::desc(.data[[primary_metric]]))
-  } else {
-    dplyr::arrange(tuning_results, .data[[primary_metric]])
-  }
+  .arrange_by_metric_dt(tuning_results, primary_metric, .nested_surv_higher_is_better(primary_metric))
 }
 
 
@@ -551,21 +528,13 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
           pred = pred,
           times = times,
           metrics = metrics
-        ) |>
-          dplyr::mutate(
-            learner = learner,
-            id = fold_id,
-            outer_fold = i
-          ) |>
-          dplyr::relocate(learner, id, outer_fold)
+        )
+        scores[, `:=`(learner = learner, id = fold_id, outer_fold = i)]
+        data.table::setcolorder(scores, c("learner", "id", "outer_fold"))
 
-        params <- tibble::as_tibble(best_param_df) |>
-          dplyr::mutate(
-            learner = learner,
-            id = fold_id,
-            outer_fold = i
-          ) |>
-          dplyr::relocate(learner, id, outer_fold)
+        params <- data.table::as.data.table(best_param_df)
+        params[, `:=`(learner = learner, id = fold_id, outer_fold = i)]
+        data.table::setcolorder(params, c("learner", "id", "outer_fold"))
 
         list(scores = scores, params = params)
       }, error = function(e) {
@@ -583,8 +552,8 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
       }
     }
 
-    outer_results[[learner]] <- dplyr::bind_rows(learner_results)
-    selected_params[[learner]] <- dplyr::bind_rows(learner_params)
+    outer_results[[learner]] <- data.table::rbindlist(learner_results, fill = TRUE)
+    selected_params[[learner]] <- data.table::rbindlist(learner_params, fill = TRUE)
 
     if (isTRUE(refit_final)) {
       final_model <- tryCatch({
@@ -623,8 +592,8 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
     }
   }
 
-  outer_results <- dplyr::bind_rows(outer_results)
-  selected_params <- dplyr::bind_rows(selected_params)
+  outer_results <- data.table::rbindlist(outer_results, fill = TRUE)
+  selected_params <- data.table::rbindlist(selected_params, fill = TRUE)
 
   if (nrow(outer_results) == 0L) {
     stop("All learners failed or returned empty nested CV results.")
@@ -666,7 +635,7 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
 #' \code{sd}, \code{n}, \code{se}, \code{lower}, \code{upper}.
 #'
 #' @examples
-#' res <- tibble::tibble(
+#' res <- data.frame(
 #'   learner = c("coxph", "coxph", "rpart", "rpart"),
 #'   metric = c("cindex", "ibs", "cindex", "ibs"),
 #'   value = c(0.64, 0.19, 0.60, 0.23)
@@ -678,17 +647,16 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
 #' @export
 
 summarise_benchmark <- function(benchmark_results) {
-  benchmark_results |>
-    dplyr::group_by(learner, metric) |>
-    dplyr::summarise(
-      mean = mean(value, na.rm = TRUE),
-      sd   = sd(value, na.rm = TRUE),
-      n    = dplyr::n(),
-      se   = sd / sqrt(n),
-      lower = mean - 1.96 * se,
-      upper = mean + 1.96 * se,
-      .groups = "drop"
-    )
+  DT <- data.table::as.data.table(benchmark_results)
+  out <- DT[, list(
+    mean = mean(value, na.rm = TRUE),
+    sd   = stats::sd(value, na.rm = TRUE),
+    n    = .N
+  ), by = list(learner, metric)]
+  out[, se := sd / sqrt(n)]
+  out[, lower := mean - 1.96 * se]
+  out[, upper := mean + 1.96 * se]
+  out[]
 }
 
 
@@ -705,7 +673,7 @@ summarise_benchmark <- function(benchmark_results) {
 #' @return A \pkg{ggplot2} object.
 #'
 #' @examples
-#' res <- tibble::tibble(
+#' res <- data.frame(
 #'   learner = c("coxph", "coxph", "rpart", "rpart"),
 #'   metric = c("cindex", "ibs", "cindex", "ibs"),
 #'   value = c(0.64, 0.19, 0.60, 0.23)
@@ -744,7 +712,7 @@ plot_benchmark <- function(benchmark_results) {
 #'   containing formatted strings \code{"mean  sd"}.
 #'
 #' @examples
-#' res <- tibble::tibble(
+#' res <- data.frame(
 #'   learner = c("coxph", "coxph", "rpart", "rpart"),
 #'   metric = c("cindex", "ibs", "cindex", "ibs"),
 #'   value = c(0.64, 0.19, 0.60, 0.23)
@@ -758,22 +726,16 @@ summarize_benchmark_results <- function(results, digits = 3) {
 
   stopifnot(is.data.frame(results), all(c("learner", "metric", "value") %in% colnames(results)))
 
-  results |>
-    dplyr::group_by(learner, metric) |>
-    dplyr::summarise(
-      mean = mean(value, na.rm = TRUE),
-      sd   = sd(value, na.rm = TRUE),
-      .groups = "drop"
-    ) |>
-    dplyr::mutate(
-      summary = sprintf("%.*f  %.*f", digits, mean, digits, sd)
-    ) |>
-    tidyr::pivot_wider(
-      id_cols = learner,
-      names_from = metric,
-      values_from = summary
-    ) |>
-    dplyr::arrange(learner)
+  DT <- data.table::as.data.table(results)
+  summarised <- DT[, list(
+    mean = mean(value, na.rm = TRUE),
+    sd   = stats::sd(value, na.rm = TRUE)
+  ), by = list(learner, metric)]
+  summarised[, summary := sprintf("%.*f  %.*f", digits, mean, digits, sd)]
+
+  out <- data.table::dcast(summarised, learner ~ metric, value.var = "summary")
+  data.table::setorderv(out, "learner")
+  out[]
 }
 
 
@@ -798,7 +760,7 @@ summarize_benchmark_results <- function(results, digits = 3) {
 #'   average \code{value} for the best learner(s). Ties are returned as multiple rows.
 #'
 #' @examples
-#' res <- tibble::tibble(
+#' res <- data.frame(
 #'   learner = c("coxph", "coxph", "rpart", "rpart"),
 #'   metric = c("cindex", "ibs", "cindex", "ibs"),
 #'   value = c(0.64, 0.19, 0.60, 0.23)
@@ -819,13 +781,11 @@ best_survlearner <- function(benchmark_results, metric, maximize = NULL) {
     maximize <- !(metric %in% c("ibs", "brier", "iae", "ise", "ece"))
   }
 
-  summary <- benchmark_results |>
-    dplyr::filter(metric == !!metric) |>
-    dplyr::group_by(learner, metric) |>
-    dplyr::summarise(value = mean(value, na.rm = TRUE), .groups = "drop")
+  target_metric <- metric
+  DT <- data.table::as.data.table(benchmark_results)
+  summary <- DT[metric == target_metric, list(value = mean(value, na.rm = TRUE)), by = list(learner, metric)]
 
-  best <- summary |>
-    dplyr::filter(if (maximize) value == max(value) else value == min(value))
+  best <- if (maximize) summary[value == max(value)] else summary[value == min(value)]
 
-  return(best)
+  return(best[])
   }

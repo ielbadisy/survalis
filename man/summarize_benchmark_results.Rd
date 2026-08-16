@@ -22,7 +22,7 @@ Creates a wide table summarizing each learner's performance as
 \code{mean  sd} per metric, suitable for reporting.
 }
 \examples{
-res <- tibble::tibble(
+res <- data.frame(
   learner = c("coxph", "coxph", "rpart", "rpart"),
   metric = c("cindex", "ibs", "cindex", "ibs"),
   value = c(0.64, 0.19, 0.60, 0.23)

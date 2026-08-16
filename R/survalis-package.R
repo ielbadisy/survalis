@@ -48,8 +48,6 @@ survival::Surv
 #'
 #' @importFrom tidyr pivot_longer pivot_wider drop_na nest unnest
 #'
-#' @importFrom purrr map map2 pmap pmap_dbl imap_dbl map_dfr map_lgl
-#'
 #' @importFrom ggplot2 ggplot aes geom_line geom_point geom_bar geom_histogram
 #'   geom_boxplot labs theme_minimal theme element_text facet_wrap
 #'   scale_color_manual scale_fill_manual

@@ -1,3 +1,14 @@
+# survalis 0.8.1
+
+* Migrated the nested/tuned-CV half of `benchmark_default_survlearners.R`
+  (`benchmark_default_survlearners()`, `.nested_surv_*` helpers,
+  `summarise_benchmark()`, `summarize_benchmark_results()`,
+  `best_survlearner()`) from dplyr/tidyr/tibble to data.table. This
+  completes the file-by-file dplyr/tidyverse -> data.table migration across
+  the package. Reuses the shared `.score_metrics()` helper in
+  `.nested_surv_score_predictions()` instead of a fifth duplicated copy of
+  the per-metric scoring `switch()` block.
+
 # survalis 0.8.0
 
 * Migrated `cv_survmetalearner()` from dplyr/tidyr/purrr/tibble to

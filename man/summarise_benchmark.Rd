@@ -21,7 +21,7 @@ mean, standard deviation, standard error, and an approximate 95\% Wald
 confidence interval.
 }
 \examples{
-res <- tibble::tibble(
+res <- data.frame(
   learner = c("coxph", "coxph", "rpart", "rpart"),
   metric = c("cindex", "ibs", "cindex", "ibs"),
   value = c(0.64, 0.19, 0.60, 0.23)

@@ -19,7 +19,7 @@ Produces box‑and‑jitter plots of CV metric values per learner, faceted by
 metric for quick visual comparison.
 }
 \examples{
-res <- tibble::tibble(
+res <- data.frame(
   learner = c("coxph", "coxph", "rpart", "rpart"),
   metric = c("cindex", "ibs", "cindex", "ibs"),
   value = c(0.64, 0.19, 0.60, 0.23)
