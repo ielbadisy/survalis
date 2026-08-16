@@ -7,7 +7,7 @@
 list_interpretability_methods()
 }
 \value{
-A tibble with columns \code{compute}, \code{plot},
+A data.table with columns \code{compute}, \code{plot},
 \code{has_compute}, and \code{has_plot}.
 }
 \description{

@@ -14,7 +14,7 @@
 #' @param has_tune Logical (default `FALSE`). If `TRUE`, return only learners
 #'   that have a corresponding `tune_*` function. If `FALSE`, return all.
 #'
-#' @return A tibble with columns:
+#' @return A data.table with columns:
 #'   \itemize{
 #'     \item \code{learner} – learner id (e.g., "ranger")
 #'     \item \code{fit}, \code{predict}, \code{tune} – function names (tune may be \code{NA})
@@ -36,7 +36,7 @@ list_survlearners <- function(has_tune = FALSE) {
 
   fun_exists <- function(x) isTRUE(exists(x, mode = "function", inherits = TRUE))
 
-  tbl <- tibble::tibble(
+  tbl <- data.table::data.table(
     learner = ids,
     fit     = paste0("fit_", ids),
     predict = paste0("predict_", ids),
@@ -62,7 +62,7 @@ list_survlearners <- function(has_tune = FALSE) {
 #' Returns a table mapping each \code{compute_*} function to its paired
 #' \code{plot_*} helper (if any). Methods without a plot helper show \code{NA}.
 #'
-#' @return A tibble with columns \code{compute}, \code{plot},
+#' @return A data.table with columns \code{compute}, \code{plot},
 #'   \code{has_compute}, and \code{has_plot}.
 #' @examples
 #' list_interpretability_methods()
@@ -98,7 +98,7 @@ list_interpretability_methods <- function() {
     isTRUE(exists(x, mode = "function", inherits = TRUE))
   }
 
-  tibble::tibble(
+  data.table::data.table(
     compute     = compute_candidates,
     plot        = plot_candidates,
     has_compute = vapply(compute_candidates, fun_exists, logical(1)),
@@ -138,12 +138,12 @@ list_tunable_survlearners <- function() {
 #' - `summary`: brief description.
 #' - `range`: typical value range.
 #'
-#' @return A tibble/data.frame with one row per metric.
+#' @return A data.table with one row per metric.
 #' @examples
 #' list_metrics()
 #' @export
 list_metrics <- function() {
-  tibble::tibble(
+  data.table::data.table(
     metric    = c("cindex", "auc", "brier", "ibs", "iae", "ise", "ece"),
     direction = c("maximize", "maximize", "minimize", "minimize", "minimize", "minimize", "minimize"),
     summary   = c(
