@@ -406,11 +406,11 @@ plot_survmat <- function(S,
     plot_df$group <- factor(group[plot_df$.id])
   }
 
-  plot_long <- tidyr::pivot_longer(
-    plot_df,
-    cols = grep("^t=", names(plot_df), value = TRUE),
-    names_to = "time",
-    values_to = "surv_prob"
+  plot_long <- data.table::melt(
+    data.table::as.data.table(plot_df),
+    measure.vars = grep("^t=", names(plot_df), value = TRUE),
+    variable.name = "time",
+    value.name = "surv_prob"
   )
   plot_long$time <- as.numeric(sub("^t=", "", plot_long$time))
 
@@ -431,12 +431,9 @@ plot_survmat <- function(S,
       )
     }
 
-    summary_df <- plot_long |>
-      dplyr::group_by(time) |>
-      dplyr::summarise(
-        surv_prob = if (summary_fun == "mean") mean(surv_prob) else stats::median(surv_prob),
-        .groups = "drop"
-      )
+    summary_df <- plot_long[, list(
+      surv_prob = if (summary_fun == "mean") mean(surv_prob) else stats::median(surv_prob)
+    ), by = time]
 
     return(
       ggplot2::ggplot(summary_df, ggplot2::aes(x = time, y = surv_prob)) +
@@ -450,12 +447,9 @@ plot_survmat <- function(S,
     )
   }
 
-  summary_df <- plot_long |>
-    dplyr::group_by(group, time) |>
-    dplyr::summarise(
-      surv_prob = if (summary_fun == "mean") mean(surv_prob) else stats::median(surv_prob),
-      .groups = "drop"
-    )
+  summary_df <- plot_long[, list(
+    surv_prob = if (summary_fun == "mean") mean(surv_prob) else stats::median(surv_prob)
+  ), by = list(group, time)]
 
   p <- ggplot2::ggplot(summary_df, ggplot2::aes(x = time, y = surv_prob, color = group)) +
     ggplot2::geom_line(linewidth = linewidth + 0.2) +
