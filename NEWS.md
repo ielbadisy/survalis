@@ -2,13 +2,13 @@
 
 * `summarise_benchmark()` now rounds `mean`/`sd`/`se`/`lower`/`upper` to 3
   decimals by default (`digits = 3` argument), matching `cv_summary()`'s
-  convention — it previously returned full-precision values (e.g.
+  convention; it previously returned full-precision values (e.g.
   `sd = 0.014142136`).
 
 # survalis 0.8.3
 
 * Normalized `base_size` to the shared `theme_survalis()` default (13)
-  everywhere — `compute_shap.R`, `fit_survmetalearner.R`'s weights plot, and
+  everywhere: `compute_shap.R`, `fit_survmetalearner.R`'s weights plot, and
   `plot_benchmark()` previously carried over a hardcoded `base_size = 14`
   from before the theme retrofit (PR #22).
 
@@ -19,7 +19,7 @@
   was the remaining unqualified (non-`dplyr::`-prefixed) dplyr/tidyr usage
   missed by the original file-by-file migration inventory.
 * `dplyr`, `tidyr`, `purrr`, and `tibble` are now fully removed from
-  `Imports` — the package no longer depends on any tidyverse package for
+  `Imports`: the package no longer depends on any tidyverse package for
   its data-manipulation code; `data.table` is the sole engine throughout.
 
 # survalis 0.8.1
@@ -123,7 +123,7 @@
   `tune_*()` has been migrated to data.table: `tuning_results[1, cols, drop = FALSE]`
   relies on data.frame `[` semantics, but data.table's `[` does not select
   columns when `cols` is a variable (only a literal character vector
-  triggers that) — it was returning the raw column-name vector instead of
+  triggers that); it was returning the raw column-name vector instead of
   a one-row parameter table, causing every fold to error and the learner
   to be dropped with a warning. Added `.select_cols()` in `R/dt-utils.R`
   that selects columns correctly for either a data.frame/tibble or a
