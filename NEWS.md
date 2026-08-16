@@ -1,3 +1,7 @@
+# survalis 0.7.14
+
+* Migrated `tune_bnnsurv()` from dplyr/tidyr/purrr/tibble to data.table.
+
 # survalis 0.7.13
 
 * Migrated `tune_xgboost()` from dplyr/tidyr/purrr/tibble to data.table.

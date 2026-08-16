@@ -221,7 +221,9 @@ tune_bnnsurv <- function(formula, data, times,
                          seed = 123,
                          ncores = 1,
                          refit_best = FALSE) {
-  results <- purrr::pmap_dfr(param_grid, function(k, num_base_learners, sample_fraction) {
+  results <- .pmap_rbind_dt(param_grid, function(k, num_base_learners, sample_fraction) {
+    params <- list(k = k, num_base_learners = num_base_learners, sample_fraction = sample_fraction)
+
     cv_result <- tryCatch({
       cv_survlearner(
         formula = formula,
@@ -240,40 +242,22 @@ tune_bnnsurv <- function(formula, data, times,
     }, error = function(e) NULL)
 
     if (is.null(cv_result)) {
-      return(tibble::tibble(
-        k = k,
-        num_base_learners = num_base_learners,
-        sample_fraction = sample_fraction,
-        failed = TRUE
-      ))
+      return(do.call(data.table::data.table, c(params, list(failed = TRUE))))
     }
 
     summary <- cv_summary(cv_result)
-
-    tibble::tibble(
-      k = k,
-      num_base_learners = num_base_learners,
-      sample_fraction = sample_fraction,
-      failed = FALSE
-    ) |>
-      dplyr::bind_cols(
-        tidyr::pivot_wider(summary[, c("metric", "mean")],
-                           names_from = metric, values_from = mean)
-      )
+    .wide_metric_row(c(params, list(failed = FALSE)), summary)
   })
 
-  results <- results[!results[["failed"]], , drop = FALSE]
+  results <- results[!results$failed]
 
   if (nrow(results) == 0) {
     warning("All tuning combinations failed.")
-    return(tibble::tibble())
+    return(data.table::data.table())
   }
 
-  if (metrics[1] %in% c("cindex", "auc", "accuracy")) {
-    results <- dplyr::arrange(results, dplyr::desc(.data[[metrics[1]]]))
-  } else {
-    results <- dplyr::arrange(results, .data[[metrics[1]]])
-  }
+  maximize <- metrics[1] %in% c("cindex", "auc", "accuracy")
+  results <- .arrange_by_metric_dt(results, metrics[1], maximize)
 
   if (refit_best) {
     best <- results[1, ]
