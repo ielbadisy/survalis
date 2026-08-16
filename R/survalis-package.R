@@ -59,7 +59,7 @@ survival::Surv
 #' @importFrom parallel detectCores makeCluster stopCluster
 #' @importFrom stats aggregate dist reorder reshape time var
 #' @importFrom utils capture.output getFromNamespace
-#' @importFrom ggplot2 geom_jitter geom_smooth geom_errorbar geom_abline coord_fixed coord_flip geom_col
+#' @importFrom ggplot2 geom_jitter geom_smooth geom_errorbar geom_abline coord_fixed coord_flip coord_cartesian geom_col
 #' @importFrom dplyr any_of pick
 #' @importFrom stats pnorm
 #' @importFrom pracma trapz
