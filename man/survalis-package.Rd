@@ -8,6 +8,14 @@
 \description{
 Core learners, tuning, evaluation, and interpretability utilities for survival analysis.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://CRAN.R-project.org/package=survalis}
+  \item Report bugs at \url{https://github.com/ielbadisy/survalis/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Imad El Badisy \email{elbadisyimad@gmail.com}
 

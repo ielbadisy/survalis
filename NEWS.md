@@ -1,3 +1,15 @@
+# survalis 0.8.5
+
+* Fixed GitHub Actions CI, which had been failing since before this
+  development cycle: `man/compute_tree_surrogate.Rd`, `man/plot_tree_surrogate.Rd`,
+  and `man/tune_survdnn.Rd` were stale, hand-drifted copies using
+  `\donttest{}` (which runs under `R CMD check --run-donttest`, as CI does)
+  instead of the `\dontrun{}` already present in the roxygen source,
+  causing `plot_tree_surrogate(tree_ranger, ...)` to fail on an undefined
+  `tree_ranger` object. Regenerated all three from source via
+  `devtools::document()`; verified locally with
+  `R CMD check --run-donttest` (Status: OK), matching the CI configuration.
+
 # survalis 0.8.4
 
 * `summarise_benchmark()` now rounds `mean`/`sd`/`se`/`lower`/`upper` to 3
