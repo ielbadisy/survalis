@@ -534,7 +534,7 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
           tune_args = tune_args
         )
 
-        best_param_df <- tuning_results[1, .nested_surv_param_cols(tuning_results), drop = FALSE]
+        best_param_df <- .select_cols(tuning_results[1, ], .nested_surv_param_cols(tuning_results))
         fit_args <- c(
           list(formula = formula, data = train),
           .nested_surv_row_to_list(best_param_df),
@@ -600,7 +600,7 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
           tune_args = tune_args
         )
 
-        final_param_df <- final_tuning[1, .nested_surv_param_cols(final_tuning), drop = FALSE]
+        final_param_df <- .select_cols(final_tuning[1, ], .nested_surv_param_cols(final_tuning))
         fit_args <- c(
           list(formula = formula, data = data),
           .nested_surv_row_to_list(final_param_df),
