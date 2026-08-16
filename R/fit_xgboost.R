@@ -259,12 +259,21 @@ tune_xgboost <- function(formula, data, times,
 
   .higher_is_better <- function(metric) metric %in% c("cindex", "auc", "accuracy")
 
-  results <- purrr::pmap_dfr(
+  results <- .pmap_rbind_dt(
     param_grid,
     function(nrounds, max_depth, eta,
              aft_loss_distribution,
              aft_loss_distribution_scale,
              objective) {
+
+      params <- list(
+        nrounds = nrounds,
+        max_depth = max_depth,
+        eta = eta,
+        aft_loss_distribution = aft_loss_distribution,
+        aft_loss_distribution_scale = aft_loss_distribution_scale,
+        objective = objective
+      )
 
       cv_results <- tryCatch({
         cv_survlearner(
@@ -288,44 +297,17 @@ tune_xgboost <- function(formula, data, times,
       }, error = function(e) NULL)
 
       if (is.null(cv_results)) {
-        return(tibble::tibble(
-          nrounds = nrounds,
-          max_depth = max_depth,
-          eta = eta,
-          aft_loss_distribution = aft_loss_distribution,
-          aft_loss_distribution_scale = aft_loss_distribution_scale,
-          objective = objective,
-          failed = TRUE
-        ))
+        return(do.call(data.table::data.table, c(params, list(failed = TRUE))))
       }
 
       smry <- cv_summary(cv_results)[, c("metric", "mean")]
-      tibble::tibble(
-        nrounds = nrounds,
-        max_depth = max_depth,
-        eta = eta,
-        aft_loss_distribution = aft_loss_distribution,
-        aft_loss_distribution_scale = aft_loss_distribution_scale,
-        objective = objective,
-        failed = FALSE
-      ) |>
-        dplyr::bind_cols(
-          tidyr::pivot_wider(
-            smry,
-            names_from  = "metric",
-            values_from = "mean"
-          )
-        )
+      .wide_metric_row(c(params, list(failed = FALSE)), smry)
     }
   )
 
   primary <- metrics[1]
   if (primary %in% names(results)) {
-    if (.higher_is_better(primary)) {
-      results <- dplyr::arrange(results, dplyr::desc(rlang::.data[[primary]]))
-    } else {
-      results <- dplyr::arrange(results, rlang::.data[[primary]])
-    }
+    results <- .arrange_by_metric_dt(results, primary, .higher_is_better(primary))
   }
 
   results
