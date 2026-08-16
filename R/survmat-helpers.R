@@ -427,7 +427,7 @@ plot_survmat <- function(S,
             x = "Time",
             y = "Survival probability"
           ) +
-          ggplot2::theme_minimal()
+          theme_survalis()
       )
     }
 
@@ -446,7 +446,7 @@ plot_survmat <- function(S,
           x = "Time",
           y = "Survival probability"
         ) +
-        ggplot2::theme_minimal()
+        theme_survalis()
     )
   }
 
@@ -465,7 +465,7 @@ plot_survmat <- function(S,
       y = "Survival probability",
       color = "Group"
     ) +
-    ggplot2::theme_minimal()
+    theme_survalis()
 
   if (isTRUE(show_individual)) {
     p <- p + ggplot2::geom_line(

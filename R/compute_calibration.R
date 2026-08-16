@@ -185,7 +185,7 @@ plot_calibration <- function(calib_output, smooth = TRUE) {
       title = paste0("Calibration at t = ", etime, " | ", calib_output$learner)#,
       #subtitle = paste0("n_bins = ", nbins, ", Bootstrap = ", nboot, " resamples")
     ) +
-    theme_minimal()
+    theme_survalis()
 
   if (smooth) {
     p <- p + geom_smooth(method = "loess", se = FALSE, color = "blue", formula = y ~ x)
