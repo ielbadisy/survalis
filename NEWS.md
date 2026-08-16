@@ -1,3 +1,10 @@
+# survalis 0.7.7
+
+* Migrated `tune_rpart()` from dplyr/tidyr/purrr/tibble to data.table.
+  Added internal data.table helpers (`R/dt-utils.R`) shared by the ongoing
+  file-by-file migration of the remaining `tune_*()`/`fit_*()` grid-search
+  code (tracked in the project TODO).
+
 # survalis 0.7.6
 
 * Added `benchmark()`, the single entry point for comparing survival
