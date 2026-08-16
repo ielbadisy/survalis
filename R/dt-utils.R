@@ -6,6 +6,11 @@
   data.table::rbindlist(results, fill = TRUE)
 }
 
+.map_rbind_dt <- function(x, f) {
+  results <- lapply(x, f)
+  data.table::rbindlist(results, fill = TRUE)
+}
+
 .complete_cases_df <- function(data, vars) {
   DT <- data.table::as.data.table(data)
   as.data.frame(DT[stats::complete.cases(DT[, vars, with = FALSE])])

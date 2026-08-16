@@ -1,3 +1,10 @@
+# survalis 0.7.20
+
+* Migrated `tune_flexsurvreg()` from dplyr/tidyr/purrr/tibble to data.table.
+  Added `.map_rbind_dt()` in `R/dt-utils.R`, a data.table replacement for
+  `purrr::map_dfr()` over a plain vector (as opposed to `.pmap_rbind_dt()`
+  for a parameter grid).
+
 # survalis 0.7.19
 
 * Migrated `tune_blackboost()` from dplyr/tidyr/purrr/tibble to data.table.
