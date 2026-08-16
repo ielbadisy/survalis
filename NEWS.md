@@ -1,3 +1,7 @@
+# survalis 0.7.21
+
+* Migrated `tune_selectcox()` from dplyr/tidyr/purrr/tibble to data.table.
+
 # survalis 0.7.20
 
 * Migrated `tune_flexsurvreg()` from dplyr/tidyr/purrr/tibble to data.table.

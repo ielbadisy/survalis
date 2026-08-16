@@ -172,7 +172,7 @@ tune_selectcox <- function(formula, data, times,
                            refit_best = TRUE,
                            ...) {
 
-  results <- purrr::map_dfr(rules, function(rule) {
+  results <- .map_rbind_dt(rules, function(rule) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -188,25 +188,17 @@ tune_selectcox <- function(formula, data, times,
     )
 
     summary <- cv_summary(cv_results)
-
-    tibble::tibble(rule = rule) |>
-      dplyr::bind_cols(
-        tidyr::pivot_wider(summary[, c("metric", "mean")],
-                           names_from = metric, values_from = mean)
-      )
+    .wide_metric_row(list(rule = rule), summary)
   })
 
-  if (metrics[1] %in% c("cindex", "auc", "accuracy")) {
-    results <- dplyr::arrange(results, dplyr::desc(!!sym(metrics[1])))
-  } else {
-    results <- dplyr::arrange(results, !!sym(metrics[1]))
-  }
+  maximize <- metrics[1] %in% c("cindex", "auc", "accuracy")
+  results <- .arrange_by_metric_dt(results, metrics[1], maximize)
 
   if (refit_best) {
     best_rule <- results$rule[1]
     model <- fit_selectcox(
       formula = formula,
-      data = tidyr::drop_na(data, all.vars(formula)),
+      data = .complete_cases_df(data, all.vars(formula)),
       rule = best_rule,
       ...
     )
