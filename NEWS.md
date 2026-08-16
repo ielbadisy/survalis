@@ -1,3 +1,11 @@
+# survalis 0.7.8
+
+* Added `theme_survalis()`, a shared ggplot2 theme, and
+  `scale_color_survalis()`/`scale_fill_survalis()`, colorblind-friendly
+  discrete scales (ColorBrewer "Dark2"-based, recycled/interpolated beyond
+  8 levels), for a consistent visual style across package figures. Not yet
+  applied to existing plotting functions (follow-up).
+
 # survalis 0.7.7
 
 * Migrated `tune_rpart()` from dplyr/tidyr/purrr/tibble to data.table.
