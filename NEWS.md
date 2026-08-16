@@ -1,3 +1,9 @@
+# survalis 0.7.27
+
+* Migrated `list_survlearners()`, `list_interpretability_methods()`, and
+  `list_metrics()` from `tibble::tibble()` to `data.table::data.table()`
+  (cosmetic descriptive tables, no behavior change).
+
 # survalis 0.7.26
 
 * Migrated `plot_survmat()` from dplyr/tidyr to data.table
