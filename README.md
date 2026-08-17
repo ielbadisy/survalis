@@ -314,14 +314,14 @@ bench_res <- benchmark(
   )
 
 summarise_benchmark(bench_res)
-#>    learner metric      mean          sd     n          se     lower     upper
-#>     <char> <char>     <num>       <num> <int>       <num>     <num>     <num>
-#> 1:   coxph cindex 0.7306667 0.032593455     3 0.018817840 0.6937837 0.7675496
-#> 2:   coxph    ibs 0.1790000 0.009539392     3 0.005507571 0.1682052 0.1897948
-#> 3:   rpart cindex 0.7073333 0.029670412     3 0.017130220 0.6737581 0.7409086
-#> 4:   rpart    ibs 0.2160000 0.010816654     3 0.006244998 0.2037598 0.2282402
-#> 5:  ranger cindex 0.6863333 0.047815618     3 0.027606360 0.6322249 0.7404418
-#> 6:  ranger    ibs 0.1976667 0.005507571     3 0.003179797 0.1914343 0.2038991
+#>    learner metric  mean    sd     n    se lower upper
+#>     <char> <char> <num> <num> <int> <num> <num> <num>
+#> 1:   coxph cindex 0.731 0.033     3 0.019 0.694 0.768
+#> 2:   coxph    ibs 0.179 0.010     3 0.006 0.168 0.190
+#> 3:   rpart cindex 0.707 0.030     3 0.017 0.674 0.741
+#> 4:   rpart    ibs 0.216 0.011     3 0.006 0.204 0.228
+#> 5:  ranger cindex 0.686 0.048     3 0.028 0.632 0.740
+#> 6:  ranger    ibs 0.198 0.006     3 0.003 0.191 0.204
 plot_benchmark(bench_res)
 ```
 
