@@ -754,7 +754,7 @@ cv_summary <- function(cv_results, digits = 3) {
 
 cv_plot <- function(cv_results) {
   ggplot(cv_results, aes(x = metric, y = value)) +
-    geom_boxplot(fill = "skyblue", outlier.shape = NA, alpha = 0.3) +
+    geom_boxplot(fill = .survalis_palette[1], outlier.shape = NA, alpha = 0.3) +
     geom_jitter(width = 0.15, alpha = 0.5) +
     labs(title = "Cross-Validation Performance", x = "Metric", y = "Value") +
     theme_survalis()

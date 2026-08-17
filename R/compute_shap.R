@@ -197,6 +197,7 @@ if (type == "time") {
 ggplot(shapley_result, ggplot2::aes(x = time, y = phi, color = feature)) +
   geom_line(linewidth = 1) +
   geom_point(size = 2) +
+  scale_color_survalis() +
   labs(
     title = "Shapley Contributions Over Time",
     x = "Time",
@@ -220,7 +221,7 @@ shapley_result$direction <- ifelse(shapley_result$phi >= 0, "Positive", "Negativ
 
 ggplot(shapley_result, ggplot2::aes(x = phi, y = feature, fill = direction)) +
   geom_col(show.legend = FALSE) +
-  scale_fill_manual(values = c("Positive" = "#4CAF50", "Negative" = "#E53935")) +
+  scale_fill_manual(values = c("Positive" = .survalis_palette[1], "Negative" = .survalis_palette[2])) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray40") +
   labs(
     title = title,

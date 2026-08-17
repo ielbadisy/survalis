@@ -166,7 +166,7 @@ plot_tree_surrogate <- function(tree_surrogate, type = c("tree", "importance"), 
     avg_importance <- avg_importance[order(-avg_importance$count), ][1:min(top_n, nrow(avg_importance)), ]
 
     ggplot2::ggplot(avg_importance, ggplot2::aes(x = reorder(feature, count), y = count)) +
-      ggplot2::geom_bar(stat = "identity", fill = "steelblue") +
+      ggplot2::geom_bar(stat = "identity", fill = .survalis_palette[1]) +
       ggplot2::coord_flip() +
       ggplot2::labs(
         title = "Top Features by Split Count (All Times)",

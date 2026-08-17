@@ -217,6 +217,7 @@ plot_survmetalearner_weights <- function(model) {
 
   ggplot(W_long, aes(x = time, y = weight, color = learner)) +
     geom_line(linewidth = 1.2) +
+    scale_color_survalis() +
     labs(x = "Time", y = "Weight", title = "NNLS stacking weights over time") +
     theme_survalis()
 }

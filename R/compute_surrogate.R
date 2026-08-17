@@ -228,7 +228,7 @@ plot_surrogate <- function(surrogate_df, top_n = NULL) {
       y = "Local effect",
       title = paste0("Surrogate Explanation at Target Time = ", target_time)
     ) +
-    scale_fill_manual(values = c("Positive" = "#4CAF50", "Negative" = "#F44336")) +
+    scale_fill_manual(values = c("Positive" = .survalis_palette[1], "Negative" = .survalis_palette[2])) +
     theme_survalis() +
     theme(legend.position = "none")
 }
