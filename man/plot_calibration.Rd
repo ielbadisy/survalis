@@ -4,13 +4,17 @@
 \alias{plot_calibration}
 \title{Plot Calibration Curve for Survival Predictions}
 \usage{
-plot_calibration(calib_output, smooth = TRUE)
+plot_calibration(calib_output, smooth = TRUE, title)
 }
 \arguments{
 \item{calib_output}{Output list returned by \code{\link[=compute_calibration]{compute_calibration()}}.}
 
 \item{smooth}{Logical; if \code{TRUE}, overlays a LOESS smooth of
 \code{observed_surv ~ mean_pred_surv}.}
+
+\item{title}{Plot title. If missing, an automatically generated title is
+used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+requiring caption-only figures).}
 }
 \value{
 A \code{ggplot2} object showing bin-wise calibration points, bootstrap

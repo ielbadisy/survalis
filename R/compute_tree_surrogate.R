@@ -122,6 +122,10 @@ compute_tree_surrogate <- function(model, data, times, minsplit = 10, cp = 0.01)
 #'   - `"importance"`: displays a bar plot of top features ranked by split count.
 #' @param top_n Integer, the number of top features to display in the importance plot.
 #'              Ignored if `type = "tree"`.
+#' @param title Plot title for `type = "importance"`. If missing, an
+#'   automatically generated title is used. Pass `NULL` to omit the title
+#'   entirely (e.g., for journals requiring caption-only figures). Ignored
+#'   for `type = "tree"`, which titles each per-time tree panel individually.
 #'
 #' @details
 #' - If `type = "tree"`, a separate tree diagram is produced for each evaluation time.
@@ -141,7 +145,7 @@ compute_tree_surrogate <- function(model, data, times, minsplit = 10, cp = 0.01)
 #'
 #' @export
 
-plot_tree_surrogate <- function(tree_surrogate, type = c("tree", "importance"), top_n = 10) {
+plot_tree_surrogate <- function(tree_surrogate, type = c("tree", "importance"), top_n = 10, title) {
   if (!requireNamespace("partykit", quietly = TRUE)) stop("Please install 'partykit'.")
   if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Please install 'ggplot2'.")
   type <- match.arg(type)
@@ -165,15 +169,17 @@ plot_tree_surrogate <- function(tree_surrogate, type = c("tree", "importance"), 
     avg_importance <- aggregate(count ~ feature, data = all_importance, FUN = sum)
     avg_importance <- avg_importance[order(-avg_importance$count), ][1:min(top_n, nrow(avg_importance)), ]
 
-    ggplot2::ggplot(avg_importance, ggplot2::aes(x = reorder(feature, count), y = count)) +
+    if (missing(title)) title <- "Top Features by Split Count (All Times)"
+    p <- ggplot2::ggplot(avg_importance, ggplot2::aes(x = reorder(feature, count), y = count)) +
       ggplot2::geom_bar(stat = "identity", fill = .survalis_palette[1]) +
       ggplot2::coord_flip() +
       ggplot2::labs(
-        title = "Top Features by Split Count (All Times)",
         x = "Feature",
         y = "Split Count"
       ) +
       theme_survalis()
+    if (!is.null(title)) p <- p + ggplot2::labs(title = title)
+    p
   }
 }
 

@@ -4,12 +4,16 @@
 \alias{plot_benchmark}
 \title{Plot Benchmark Distributions Across Learners}
 \usage{
-plot_benchmark(benchmark_results)
+plot_benchmark(benchmark_results, title)
 }
 \arguments{
 \item{benchmark_results}{A data frame from
 \code{benchmark_default_survlearners()} with columns \code{learner},
 \code{metric}, and \code{value}.}
+
+\item{title}{Plot title. If missing, an automatically generated title is
+used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+requiring caption-only figures).}
 }
 \value{
 A \pkg{ggplot2} object.

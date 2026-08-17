@@ -673,6 +673,9 @@ summarise_benchmark <- function(benchmark_results, digits = 3) {
 #' @param benchmark_results A data frame from
 #'   \code{benchmark_default_survlearners()} with columns \code{learner},
 #'   \code{metric}, and \code{value}.
+#' @param title Plot title. If missing, an automatically generated title is
+#'   used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+#'   requiring caption-only figures).
 #'
 #' @return A \pkg{ggplot2} object.
 #'
@@ -687,17 +690,19 @@ summarise_benchmark <- function(benchmark_results, digits = 3) {
 #' @seealso [benchmark_default_survlearners()], [summarise_benchmark()]
 #' @export
 
-plot_benchmark <- function(benchmark_results) {
-  ggplot(benchmark_results, ggplot2::aes(x = learner, y = value)) +
+plot_benchmark <- function(benchmark_results, title) {
+  if (missing(title)) title <- "Cross-Validated Performance of Survival Learners"
+  p <- ggplot(benchmark_results, ggplot2::aes(x = learner, y = value)) +
     geom_boxplot(fill = .survalis_palette[1], alpha = 0.4, outlier.shape = NA) +
     geom_jitter(width = 0.1, size = 2, alpha = 0.6) +
     facet_wrap(~ metric, scales = "free_y") +
     labs(
-      title = "Cross-Validated Performance of Survival Learners",
       x = "Learner",
       y = "Metric Value"
     ) +
     theme_survalis()
+  if (!is.null(title)) p <- p + labs(title = title)
+  p
 }
 
 

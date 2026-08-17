@@ -55,6 +55,9 @@
 #' @param legend.title Legend/strata title. If \code{NULL} (default), uses
 #'   the stratifying variable name, or is omitted entirely for an
 #'   unstratified curve.
+#' @param title Plot title. \code{NULL} (default) omits it, matching the
+#'   package's other \code{plot_*()} functions and suiting journals that
+#'   require caption-only figures.
 #'
 #' @return If \code{risk.table = FALSE}, a single \pkg{ggplot2} object. If
 #'   \code{risk.table = TRUE}, a combined \pkg{patchwork} object (KM curve
@@ -75,7 +78,8 @@ plot_survcurve <- function(formula, data,
                            break.time.by = NULL,
                            xlab = "Time",
                            ylab = "Survival probability",
-                           legend.title = NULL) {
+                           legend.title = NULL,
+                           title = NULL) {
   stopifnot(is.data.frame(data))
 
   fit <- survival::survfit(formula, data = data)
@@ -111,6 +115,8 @@ plot_survcurve <- function(formula, data,
     ggplot2::coord_cartesian(ylim = c(0, 1)) +
     ggplot2::labs(x = xlab, y = ylab, color = legend.title, fill = legend.title) +
     theme_survalis()
+
+  if (!is.null(title)) p <- p + ggplot2::labs(title = title)
 
   if (n_strata < 2) {
     p <- p + ggplot2::theme(legend.position = "none")

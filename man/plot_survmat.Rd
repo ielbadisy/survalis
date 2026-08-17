@@ -12,7 +12,8 @@ plot_survmat(
   summary_fun = c("mean", "median"),
   show_individual = NULL,
   alpha = 0.2,
-  linewidth = 0.7
+  linewidth = 0.7,
+  title
 )
 }
 \arguments{
@@ -37,6 +38,10 @@ curves are overlaid beneath the grouped summary curves.}
 \item{alpha}{Alpha transparency for individual curves (default \code{0.2}).}
 
 \item{linewidth}{Line width for plotted curves (default \code{0.7}).}
+
+\item{title}{Plot title. If missing, an automatically generated title is
+used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+requiring caption-only figures).}
 }
 \value{
 A \pkg{ggplot2} object.

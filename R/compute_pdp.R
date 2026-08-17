@@ -165,6 +165,9 @@ compute_pdp <- function(model, data, feature, times,
 #' @param alpha_ice Alpha transparency for ICE lines/boxes in per-time plots (default 0.2).
 #' @param smooth Logical; if `TRUE` and the feature is numeric, apply a smooth
 #'   curve (`loess`) for integrated PDP; otherwise draw a line.
+#' @param title Plot title. If missing, an automatically generated title is
+#'   used. Pass `NULL` to omit the title entirely (e.g., for journals
+#'   requiring caption-only figures).
 #'
 #' @details
 #' \strong{Per-time:} For numeric features, draws ICE lines and PDP overlays per time.
@@ -192,7 +195,7 @@ compute_pdp <- function(model, data, feature, times,
 plot_pdp <- function(pdp_ice_output, feature,
                      method = "pdp+ice", ids = NULL,
                      which = c("per_time", "integrated"),
-                     alpha_ice = 0.2, smooth = FALSE) {
+                     alpha_ice = 0.2, smooth = FALSE, title) {
   requireNamespace("ggplot2")
   requireNamespace("data.table")
 
@@ -216,26 +219,22 @@ plot_pdp <- function(pdp_ice_output, feature,
     pdp_integrated <- pdp_ice_output$pdp_integrated
 
     if (is_categorical) {
+      if (missing(title)) title <- paste("Integrated PDP with ICE Boxplot for", feature)
       p <- ggplot() +
         geom_boxplot(data = ice_integrated, aes(x = .data[[feature]], y = .data$integrated_surv),
                               alpha = alpha_ice, fill = .survalis_palette[4]) +
         geom_point(data = pdp_integrated, aes(x = .data[[feature]], y = .data$integrated_surv),
                             shape = 21, size = 3, fill = "black") +
         theme_survalis() +
-        labs(
-          title = paste("Integrated PDP with ICE Boxplot for", feature),
-          x = feature,
-          y = "Integrated Survival"
-        )
+        labs(x = feature, y = "Integrated Survival")
+      if (!is.null(title)) p <- p + labs(title = title)
       return(p)
     } else {
+      if (missing(title)) title <- paste("Integrated PDP over Survival Time:", feature)
       p <- ggplot(pdp_integrated, aes(x = .data[[feature]], y = .data$integrated_surv)) +
         theme_survalis() +
-        labs(
-          title = paste("Integrated PDP over Survival Time:", feature),
-          x = feature,
-          y = "Integrated Survival"
-        )
+        labs(x = feature, y = "Integrated Survival")
+      if (!is.null(title)) p <- p + labs(title = title)
       if (smooth) {
         p <- p + geom_smooth(method = "loess", se = FALSE, color = .survalis_palette[1], linewidth = 1.2)
       } else {
@@ -257,17 +256,18 @@ plot_pdp <- function(pdp_ice_output, feature,
   }
 
   if (is_categorical) {
+    if (missing(title)) title <- paste("Survival", toupper(method), "for", feature)
     p <- ggplot(plot_data, aes(x = .data[[feature]], y = surv_prob, fill = type)) +
       scale_fill_survalis() +
       theme_survalis() +
       facet_wrap(~ time) +
       coord_cartesian(ylim = c(0, 1)) +
       labs(
-        title = paste("Survival", toupper(method), "for", feature),
         x = feature,
         y = "Survival Probability",
         fill = "Type"
       )
+    if (!is.null(title)) p <- p + labs(title = title)
 
     if ("ice" %in% plot_data$type) {
       p <- p + geom_boxplot(data = plot_data[type == "ice"], alpha = alpha_ice, position = "dodge")
@@ -281,6 +281,7 @@ plot_pdp <- function(pdp_ice_output, feature,
     }
 
   } else {
+    if (missing(title)) title <- paste("Survival", toupper(method), "for", feature)
     p <- ggplot(
       plot_data,
       aes(
@@ -295,12 +296,12 @@ plot_pdp <- function(pdp_ice_output, feature,
       facet_wrap(~ time) +
       coord_cartesian(ylim = c(0, 1)) +
       labs(
-        title = paste("Survival", toupper(method), "for", feature),
         x = feature,
         y = "Survival Probability",
         color = NULL
       ) +
       guides(color = guide_legend(override.aes = list(alpha = 1)))
+    if (!is.null(title)) p <- p + labs(title = title)
 
     if ("ice" %in% plot_data$type) {
       p <- p + geom_line(data = plot_data[type == "ice"], alpha = alpha_ice)

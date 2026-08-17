@@ -136,6 +136,9 @@ compute_calibration <- function(model, data, time, status,
 #' @param calib_output Output list returned by [compute_calibration()].
 #' @param smooth Logical; if `TRUE`, overlays a LOESS smooth of
 #'   `observed_surv ~ mean_pred_surv`.
+#' @param title Plot title. If missing, an automatically generated title is
+#'   used. Pass `NULL` to omit the title entirely (e.g., for journals
+#'   requiring caption-only figures).
 #'
 #' @return A `ggplot2` object showing bin-wise calibration points, bootstrap
 #' error bars, the 45° reference line, and (optionally) a smooth curve.
@@ -161,11 +164,12 @@ compute_calibration <- function(model, data, time, status,
 #' @seealso [compute_calibration()]
 #' @export
 
-plot_calibration <- function(calib_output, smooth = TRUE) {
+plot_calibration <- function(calib_output, smooth = TRUE, title) {
   ct <- calib_output$calibration_table
   etime <- calib_output$eval_time
   nboot <- calib_output$n_boot
   nbins <- calib_output$n_bins
+  if (missing(title)) title <- paste0("Calibration at t = ", etime, " | ", calib_output$learner)
 
   p <- ggplot(ct, aes(x = mean_pred_surv, y = observed_surv)) +
     geom_point(size = 2) +
@@ -174,11 +178,10 @@ plot_calibration <- function(calib_output, smooth = TRUE) {
     coord_fixed(ratio = 1, xlim = c(0, 1), ylim = c(0, 1)) +
     labs(
       x = "Mean Predicted Survival",
-      y = "Observed Survival",
-      title = paste0("Calibration at t = ", etime, " | ", calib_output$learner)#,
-      #subtitle = paste0("n_bins = ", nbins, ", Bootstrap = ", nboot, " resamples")
+      y = "Observed Survival"
     ) +
     theme_survalis()
+  if (!is.null(title)) p <- p + labs(title = title)
 
   if (smooth) {
     p <- p + geom_smooth(method = "loess", se = FALSE, color = .survalis_palette[1], formula = y ~ x)

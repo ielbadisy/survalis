@@ -4,10 +4,14 @@
 \alias{cv_plot}
 \title{Boxplot of Cross-Validation Metric Distributions}
 \usage{
-cv_plot(cv_results)
+cv_plot(cv_results, title)
 }
 \arguments{
 \item{cv_results}{A tibble/data frame as returned by \code{cv_survlearner()}.}
+
+\item{title}{Plot title. If missing, an automatically generated title is
+used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+requiring caption-only figures).}
 }
 \value{
 A \pkg{ggplot2} object.

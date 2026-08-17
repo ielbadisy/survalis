@@ -1,3 +1,14 @@
+# survalis 0.9.0
+
+* Added a `title` argument to every plotting function (`plot_ale()`,
+  `plot_pdp()`, `plot_shap()`, `plot_interactions()`, `plot_calibration()`,
+  `plot_counterfactual()`, `plot_surrogate()`, `plot_tree_surrogate()`,
+  `plot_varimp()`, `plot_survmat()`, `plot_survmetalearner_weights()`,
+  `plot_benchmark()`, `cv_plot()`, `plot_survcurve()`). If omitted, the
+  previous automatically generated title is used (fully backward
+  compatible); pass `title = NULL` to omit the title entirely, for
+  journals that require caption-only figures.
+
 # survalis 0.8.9
 
 * Added a dashed zero-reference line to every plot that can show both

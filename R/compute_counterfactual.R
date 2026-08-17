@@ -175,6 +175,9 @@ compute_counterfactual <- function(model, newdata, times, target_time,
 #'   after sorting by \code{metric}.
 #' @param include_negative Logical; if \code{FALSE} (default), only positive-gain
 #'   recommendations are shown.
+#' @param title Plot title. If missing, an automatically generated title is
+#'   used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+#'   requiring caption-only figures).
 #'
 #' @return A \pkg{ggplot2} object.
 #'
@@ -195,8 +198,10 @@ compute_counterfactual <- function(model, newdata, times, target_time,
 plot_counterfactual <- function(counterfactual_df,
                                 metric = c("penalized_gain", "survival_gain"),
                                 top_n = NULL,
-                                include_negative = FALSE) {
+                                include_negative = FALSE,
+                                title) {
   metric <- match.arg(metric)
+  if (missing(title)) title <- "Counterfactual feature recommendations"
 
   required_cols <- c(
     "feature", "original_value", "suggested_value",
@@ -234,7 +239,7 @@ plot_counterfactual <- function(counterfactual_df,
   plot_df$direction <- ifelse(plot_df[[metric]] >= 0, "increase", "decrease")
   plot_df$hjust <- ifelse(plot_df[[metric]] >= 0, -0.05, 1.05)
 
-  ggplot2::ggplot(
+  p <- ggplot2::ggplot(
     plot_df,
     ggplot2::aes(x = .data[[metric]], y = feature, fill = direction)
   ) +
@@ -246,7 +251,6 @@ plot_counterfactual <- function(counterfactual_df,
     ) +
     ggplot2::scale_fill_manual(values = c(increase = .survalis_palette[1], decrease = .survalis_palette[2])) +
     ggplot2::labs(
-      title = "Counterfactual feature recommendations",
       x = if (metric == "penalized_gain") "Penalized survival gain" else "Survival gain",
       y = NULL
     ) +
@@ -255,4 +259,6 @@ plot_counterfactual <- function(counterfactual_df,
       min(0, min(plot_df[[metric]], na.rm = TRUE)),
       max(plot_df[[metric]], na.rm = TRUE) * 1.25
     )
+  if (!is.null(title)) p <- p + ggplot2::labs(title = title)
+  p
 }

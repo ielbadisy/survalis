@@ -11,7 +11,8 @@ plot_pdp(
   ids = NULL,
   which = c("per_time", "integrated"),
   alpha_ice = 0.2,
-  smooth = FALSE
+  smooth = FALSE,
+  title
 )
 }
 \arguments{
@@ -32,6 +33,10 @@ time-integrated PDP if available).}
 
 \item{smooth}{Logical; if \code{TRUE} and the feature is numeric, apply a smooth
 curve (\code{loess}) for integrated PDP; otherwise draw a line.}
+
+\item{title}{Plot title. If missing, an automatically generated title is
+used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+requiring caption-only figures).}
 }
 \value{
 A \pkg{ggplot2} object.

@@ -13,7 +13,8 @@ plot_survcurve(
   break.time.by = NULL,
   xlab = "Time",
   ylab = "Survival probability",
-  legend.title = NULL
+  legend.title = NULL,
+  title = NULL
 )
 }
 \arguments{
@@ -42,6 +43,10 @@ automatically via \code{pretty()}.}
 \item{legend.title}{Legend/strata title. If \code{NULL} (default), uses
 the stratifying variable name, or is omitted entirely for an
 unstratified curve.}
+
+\item{title}{Plot title. \code{NULL} (default) omits it, matching the
+package's other \code{plot_*()} functions and suiting journals that
+require caption-only figures.}
 }
 \value{
 If \code{risk.table = FALSE}, a single \pkg{ggplot2} object. If

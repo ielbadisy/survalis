@@ -106,6 +106,9 @@ compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
 #'   `"integrated"` to plot the time-averaged ALE (requires multiple `times`).
 #' @param smooth Logical; if `TRUE`, overlays a LOESS smooth on the plotted
 #'   curve(s).
+#' @param title Plot title. If missing, an automatically generated title is
+#'   used. Pass `NULL` to omit the title entirely (e.g., for journals
+#'   requiring caption-only figures).
 #'
 #' @details
 #' Per-time plots show how the feature's local effect varies across different
@@ -129,7 +132,7 @@ compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
 #' @seealso [compute_ale()], [compute_pdp()], [plot_pdp()]
 #' @export
 
-plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), smooth = FALSE) {
+plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), smooth = FALSE, title) {
   which <- match.arg(which)
 
   if (which == "per_time") {
@@ -144,25 +147,30 @@ plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), s
       direction = "long"
     )
     df_long$time <- gsub("t=", "", df_long$time)
+    if (missing(title)) title <- paste("ALE curves for", feature)
 
     p <- ggplot(df_long, aes(x = feature_value, y = ale, color = time, group = time)) +
       geom_hline(yintercept = 0, linetype = "dashed", color = "gray40") +
       geom_line() +
       scale_color_survalis() +
-      labs(title = paste("ALE curves for", feature), x = feature, y = "ALE effect") +
+      labs(x = feature, y = "ALE effect") +
       theme_survalis()
+    if (!is.null(title)) p <- p + labs(title = title)
     if (smooth) p <- p + geom_smooth(se = FALSE, method = "loess")
     return(p)
   }
 
   if (which == "integrated" && !is.null(ale_result$integrated)) {
     df <- ale_result$integrated
+    if (missing(title)) title <- paste("Integrated ALE curve for", feature)
+
     p <- ggplot(df, aes(x = feature_value, y = integrated_ale)) +
       geom_hline(yintercept = 0, linetype = "dashed", color = "gray40") +
       geom_line(color = .survalis_palette[1]) +
       geom_point(color = .survalis_palette[1]) +
-      labs(title = paste("Integrated ALE curve for", feature), x = feature, y = "Integrated ALE") +
+      labs(x = feature, y = "Integrated ALE") +
       theme_survalis()
+    if (!is.null(title)) p <- p + labs(title = title)
     if (smooth) p <- p + geom_smooth(se = FALSE, method = "loess", color = .survalis_palette[2])
     return(p)
   }

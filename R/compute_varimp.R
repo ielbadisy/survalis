@@ -154,6 +154,9 @@ compute_varimp <- function(model, times,
 #' @param varimp_df A data frame as returned by \code{\link{compute_varimp}}.
 #' @param use_scaled Logical; if \code{TRUE} (default), plot \code{scaled_importance}
 #'   (percent). If unavailable, falls back to raw \code{importance} with a warning.
+#' @param title Plot title. If missing, an automatically generated title is
+#'   used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+#'   requiring caption-only figures).
 #'
 #' @return A \pkg{ggplot2} object.
 #'
@@ -171,11 +174,12 @@ compute_varimp <- function(model, times,
 #' plot_varimp(imp, use_scaled = FALSE)
 #' @export
 
-plot_varimp <- function(varimp_df, use_scaled = TRUE) {
+plot_varimp <- function(varimp_df, use_scaled = TRUE, title) {
   if (use_scaled && (!"scaled_importance" %in% names(varimp_df) || all(is.na(varimp_df$scaled_importance)))) {
     warning("Scaled importance not available. Falling back to raw importance.")
     use_scaled <- FALSE
   }
+  if (missing(title)) title <- "Permutation-based variable importance"
 
   aes_x <- if (use_scaled) "scaled_importance" else "importance"
   feature_levels <- varimp_df$feature[order(varimp_df[[aes_x]])]
@@ -188,18 +192,20 @@ plot_varimp <- function(varimp_df, use_scaled = TRUE) {
     plot_df$feature <- factor(plot_df$feature, levels = feature_levels)
     value_col <- if (use_scaled) "scaled_value" else "value"
 
-    return(
-      ggplot2::ggplot(plot_df, ggplot2::aes(y = feature, x = .data[[value_col]])) +
+    p <- ggplot2::ggplot(plot_df, ggplot2::aes(y = feature, x = .data[[value_col]])) +
         ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray40") +
         ggplot2::geom_boxplot(fill = .survalis_palette[1], alpha = 0.6, outlier.alpha = 0.4) +
-        ggplot2::labs(y = NULL, x = xlab, title = "Permutation-based variable importance") +
+        ggplot2::labs(y = NULL, x = xlab) +
         theme_survalis()
-    )
+    if (!is.null(title)) p <- p + ggplot2::labs(title = title)
+    return(p)
   }
 
-  ggplot2::ggplot(varimp_df, ggplot2::aes(y = reorder(feature, !!sym(aes_x)), x = !!sym(aes_x))) +
+  p <- ggplot2::ggplot(varimp_df, ggplot2::aes(y = reorder(feature, !!sym(aes_x)), x = !!sym(aes_x))) +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray40") +
     ggplot2::geom_point(size = 3, color = .survalis_palette[1]) +
-    ggplot2::labs(y = NULL, x = xlab, title = "Permutation-based variable importance") +
+    ggplot2::labs(y = NULL, x = xlab) +
     theme_survalis()
+  if (!is.null(title)) p <- p + ggplot2::labs(title = title)
+  p
 }

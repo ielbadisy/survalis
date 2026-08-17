@@ -4,13 +4,17 @@
 \alias{plot_interactions}
 \title{Plot Interaction Strengths for Survival Models}
 \usage{
-plot_interactions(object, type = c("1way", "heatmap", "time"))
+plot_interactions(object, type = c("1way", "heatmap", "time"), title)
 }
 \arguments{
 \item{object}{A data frame returned by \code{compute_interactions()} whose
 columns match the requested \code{type}.}
 
 \item{type}{One of \code{"1way"}, \code{"heatmap"}, or \code{"time"}.}
+
+\item{title}{Plot title. If missing, an automatically generated title is
+used (none for \code{"1way"}). Pass \code{NULL} to omit the title
+entirely (e.g., for journals requiring caption-only figures).}
 }
 \value{
 A \pkg{ggplot2} object.

@@ -8,7 +8,8 @@ plot_ale(
   ale_result,
   feature,
   which = c("per_time", "integrated"),
-  smooth = FALSE
+  smooth = FALSE,
+  title
 )
 }
 \arguments{
@@ -21,6 +22,10 @@ plot_ale(
 
 \item{smooth}{Logical; if \code{TRUE}, overlays a LOESS smooth on the plotted
 curve(s).}
+
+\item{title}{Plot title. If missing, an automatically generated title is
+used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+requiring caption-only figures).}
 }
 \value{
 A \code{ggplot2} object.
