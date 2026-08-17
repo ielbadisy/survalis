@@ -221,6 +221,7 @@ plot_surrogate <- function(surrogate_df, top_n = NULL) {
   target_time <- if ("target_time" %in% names(surrogate_df)) surrogate_df$target_time[1] else NA
 
   ggplot(df, aes(x = reorder(feature_label, abs(effect)), y = effect, fill = sign)) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "gray40") +
     geom_col(width = 0.6) +
     coord_flip() +
     labs(

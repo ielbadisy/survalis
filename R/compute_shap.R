@@ -195,6 +195,7 @@ type <- if (is_time_dependent) "time" else "integrated"
 
 if (type == "time") {
 ggplot(shapley_result, ggplot2::aes(x = time, y = phi, color = feature)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray40") +
   geom_line(linewidth = 1) +
   geom_point(size = 2) +
   scale_color_survalis() +

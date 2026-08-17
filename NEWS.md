@@ -1,3 +1,11 @@
+# survalis 0.8.9
+
+* Added a dashed zero-reference line to every plot that can show both
+  negative and positive values (previously only `plot_shap()`'s bar chart
+  had one): `plot_ale()` (both `per_time` and `integrated`), `plot_shap()`'s
+  time-dependent curve, `plot_counterfactual()`, `plot_surrogate()`, and
+  `plot_varimp()`.
+
 # survalis 0.8.8
 
 * `plot_varimp()` now draws a boxplot of the full per-repetition permutation
