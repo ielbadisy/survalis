@@ -218,7 +218,7 @@ plot_pdp <- function(pdp_ice_output, feature,
     if (is_categorical) {
       p <- ggplot() +
         geom_boxplot(data = ice_integrated, aes(x = .data[[feature]], y = .data$integrated_surv),
-                              alpha = alpha_ice, fill = "pink") +
+                              alpha = alpha_ice, fill = .survalis_palette[4]) +
         geom_point(data = pdp_integrated, aes(x = .data[[feature]], y = .data$integrated_surv),
                             shape = 21, size = 3, fill = "black") +
         theme_survalis() +
@@ -237,9 +237,9 @@ plot_pdp <- function(pdp_ice_output, feature,
           y = "Integrated Survival"
         )
       if (smooth) {
-        p <- p + geom_smooth(method = "loess", se = FALSE, color = "steelblue", linewidth = 1.2)
+        p <- p + geom_smooth(method = "loess", se = FALSE, color = .survalis_palette[1], linewidth = 1.2)
       } else {
-        p <- p + geom_line(color = "steelblue", linewidth = 1.2)
+        p <- p + geom_line(color = .survalis_palette[1], linewidth = 1.2)
       }
       return(p)
     }
@@ -258,6 +258,7 @@ plot_pdp <- function(pdp_ice_output, feature,
 
   if (is_categorical) {
     p <- ggplot(plot_data, aes(x = .data[[feature]], y = surv_prob, fill = type)) +
+      scale_fill_survalis() +
       theme_survalis() +
       facet_wrap(~ time) +
       coord_cartesian(ylim = c(0, 1)) +
@@ -289,6 +290,7 @@ plot_pdp <- function(pdp_ice_output, feature,
         color = type
       )
     ) +
+      scale_color_survalis() +
       theme_survalis() +
       facet_wrap(~ time) +
       coord_cartesian(ylim = c(0, 1)) +

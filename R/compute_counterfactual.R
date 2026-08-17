@@ -243,7 +243,7 @@ plot_counterfactual <- function(counterfactual_df,
       ggplot2::aes(label = change_label, hjust = hjust),
       size = 3.5
     ) +
-    ggplot2::scale_fill_manual(values = c(increase = "steelblue", decrease = "tomato")) +
+    ggplot2::scale_fill_manual(values = c(increase = .survalis_palette[1], decrease = .survalis_palette[2])) +
     ggplot2::labs(
       title = "Counterfactual feature recommendations",
       x = if (metric == "penalized_gain") "Penalized survival gain" else "Survival gain",

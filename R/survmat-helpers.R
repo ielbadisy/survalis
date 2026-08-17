@@ -421,7 +421,7 @@ plot_survmat <- function(S,
           plot_long,
           ggplot2::aes(x = time, y = surv_prob, group = .id)
         ) +
-          ggplot2::geom_line(alpha = alpha, linewidth = linewidth, color = "steelblue") +
+          ggplot2::geom_line(alpha = alpha, linewidth = linewidth, color = .survalis_palette[1]) +
           ggplot2::labs(
             title = "Predicted survival curves",
             x = "Time",
@@ -437,7 +437,7 @@ plot_survmat <- function(S,
 
     return(
       ggplot2::ggplot(summary_df, ggplot2::aes(x = time, y = surv_prob)) +
-        ggplot2::geom_line(linewidth = linewidth + 0.2, color = "steelblue") +
+        ggplot2::geom_line(linewidth = linewidth + 0.2, color = .survalis_palette[1]) +
         ggplot2::labs(
           title = paste("Predicted survival curve (", summary_fun, " summary)", sep = ""),
           x = "Time",
@@ -453,6 +453,7 @@ plot_survmat <- function(S,
 
   p <- ggplot2::ggplot(summary_df, ggplot2::aes(x = time, y = surv_prob, color = group)) +
     ggplot2::geom_line(linewidth = linewidth + 0.2) +
+    scale_color_survalis() +
     ggplot2::labs(
       title = paste("Predicted survival curves by group (", summary_fun, " summary)", sep = ""),
       x = "Time",

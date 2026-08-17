@@ -181,7 +181,7 @@ plot_calibration <- function(calib_output, smooth = TRUE) {
     theme_survalis()
 
   if (smooth) {
-    p <- p + geom_smooth(method = "loess", se = FALSE, color = "blue", formula = y ~ x)
+    p <- p + geom_smooth(method = "loess", se = FALSE, color = .survalis_palette[1], formula = y ~ x)
   }
 
   return(p)

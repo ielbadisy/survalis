@@ -62,7 +62,7 @@ survival::Surv
 #' @importFrom ggplot2 geom_errorbar geom_jitter geom_abline geom_smooth geom_vline
 #' @importFrom ggplot2 labs theme_minimal coord_flip coord_fixed guides guide_legend
 #' @importFrom ggplot2 position_dodge stat_summary scale_fill_manual scale_color_discrete
-#' @importFrom ggplot2 geom_tile scale_fill_gradient
+#' @importFrom ggplot2 geom_tile
 #' @importFrom glue glue
 
 

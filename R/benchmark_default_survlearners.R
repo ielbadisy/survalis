@@ -689,7 +689,7 @@ summarise_benchmark <- function(benchmark_results, digits = 3) {
 
 plot_benchmark <- function(benchmark_results) {
   ggplot(benchmark_results, ggplot2::aes(x = learner, y = value)) +
-    geom_boxplot(fill = "lightblue", alpha = 0.4, outlier.shape = NA) +
+    geom_boxplot(fill = .survalis_palette[1], alpha = 0.4, outlier.shape = NA) +
     geom_jitter(width = 0.1, size = 2, alpha = 0.6) +
     facet_wrap(~ metric, scales = "free_y") +
     labs(

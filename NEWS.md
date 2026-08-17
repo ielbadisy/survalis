@@ -1,3 +1,21 @@
+# survalis 0.8.6
+
+* Fixed `plot_interactions(type = "heatmap")`, which was genuinely hard to
+  read: the `white -> steelblue` gradient had too little contrast in the
+  mid-range, and the diagonal (self-interaction, value 0) blended into the
+  low end of the scale. Switched to `scale_fill_viridis_c()` (perceptually
+  uniform, high contrast), added an explicit `na.value` for any genuinely
+  missing cells, and fixed a squished legend by widening the colorbar guide.
+* Unified color usage across all plotting functions: grouped plots
+  (`color`/`fill` mapped to a variable) previously fell back to ggplot2's
+  default hue palette everywhere except `plot_survcurve()`; they now all use
+  `scale_color_survalis()`/`scale_fill_survalis()`. Single-series hardcoded
+  colors (`"steelblue"`, `"skyblue"`, `"lightblue"`, `"pink"`, `"tomato"`,
+  plain `"blue"`, and ad-hoc green/red hex codes for positive/negative
+  direction) now draw from the same shared Dark2-based palette instead of
+  arbitrary named/hex colors. This was explicitly deferred in PR #22 and is
+  now closed out.
+
 # survalis 0.8.5
 
 * Fixed GitHub Actions CI, which had been failing since before this
