@@ -30,12 +30,18 @@ compute_varimp(
 \item{importance_type}{One of \code{"delta"} (default) or \code{"mean"}; see Details.}
 }
 \value{
-A data.frame with columns:
+A data.table with columns:
 \itemize{
 \item \code{feature}: feature name,
-\item \code{value}: importance value (change in metric),
+\item \code{importance}: importance value (change in metric),
+\item \code{importance_05}, \code{importance_95}: 5th/95th percentile of the
+per-repetition values used to compute \code{importance},
 \item \code{scaled_importance}: percent-scaled importance (see Details).
 }
+The full per-repetition values (one row per feature per repetition, columns
+\code{feature}, \code{repetition}, \code{value}, \code{scaled_value}) are attached
+as the \code{"raw_scores"} attribute, used by \code{\link{plot_varimp}()} to draw
+boxplots instead of a single point per feature.
 }
 \description{
 Estimates feature importance by measuring the change in a survival metric

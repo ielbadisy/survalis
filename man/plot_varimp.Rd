@@ -16,8 +16,11 @@ plot_varimp(varimp_df, use_scaled = TRUE)
 A \pkg{ggplot2} object.
 }
 \description{
-Creates a dot plot of permutation-based variable importance, using either the
-scaled importance (default) or the raw importance column.
+Plots the distribution of per-repetition permutation importance values as a
+boxplot per feature, using either the scaled importance (default) or the raw
+importance column. Falls back to a single point per feature (with no
+distribution shown) for \code{varimp_df} objects that lack the
+\code{"raw_scores"} attribute (e.g., hand-built summary tables).
 }
 \examples{
 mod <- fit_coxph(survival::Surv(time, status) ~ age + karno + celltype, data = veteran)
