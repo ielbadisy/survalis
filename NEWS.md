@@ -1,3 +1,13 @@
+# survalis 0.8.8
+
+* `plot_varimp()` now draws a boxplot of the full per-repetition permutation
+  distribution for each feature instead of a single point estimate with no
+  uncertainty shown. `compute_varimp()` retains the per-repetition values
+  (previously discarded after computing summary stats) as a `"raw_scores"`
+  attribute on its return value, used by `plot_varimp()`; falls back to the
+  previous point-plot behavior for objects without that attribute (e.g.
+  hand-built summary tables).
+
 # survalis 0.8.7
 
 * Flipped the direction of `plot_interactions(type = "heatmap")`'s viridis
