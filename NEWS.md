@@ -1,3 +1,9 @@
+# survalis 0.8.7
+
+* Flipped the direction of `plot_interactions(type = "heatmap")`'s viridis
+  scale so high interaction values are dark and low values are bright,
+  matching the conventional reading of heatmap intensity.
+
 # survalis 0.8.6
 
 * Fixed `plot_interactions(type = "heatmap")`, which was genuinely hard to
