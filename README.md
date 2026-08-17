@@ -1,6 +1,17 @@
 
 # Survalis: Unified Survival Machine Learning and Interpretability in R
 
+<!-- badges: start -->
+
+[![CRAN
+status](https://www.r-pkg.org/badges/version/survalis)](https://CRAN.R-project.org/package=survalis)
+[![R-CMD-check](https://github.com/ielbadisy/survalis/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ielbadisy/survalis/actions/workflows/R-CMD-check.yaml)
+[![CRAN
+downloads](https://cranlogs.r-pkg.org/badges/grand-total/survalis)](https://CRAN.R-project.org/package=survalis)
+[![License:
+MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<!-- badges: end -->
+
 `survalis` provides a unified framework for survival machine learning
 survival analysis in R. It supports a wide range of learners, evaluation
 metrics, cross-validation and interpretability methods.
