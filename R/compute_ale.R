@@ -146,6 +146,7 @@ plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), s
     df_long$time <- gsub("t=", "", df_long$time)
 
     p <- ggplot(df_long, aes(x = feature_value, y = ale, color = time, group = time)) +
+      geom_hline(yintercept = 0, linetype = "dashed", color = "gray40") +
       geom_line() +
       scale_color_survalis() +
       labs(title = paste("ALE curves for", feature), x = feature, y = "ALE effect") +
@@ -157,6 +158,7 @@ plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), s
   if (which == "integrated" && !is.null(ale_result$integrated)) {
     df <- ale_result$integrated
     p <- ggplot(df, aes(x = feature_value, y = integrated_ale)) +
+      geom_hline(yintercept = 0, linetype = "dashed", color = "gray40") +
       geom_line(color = .survalis_palette[1]) +
       geom_point(color = .survalis_palette[1]) +
       labs(title = paste("Integrated ALE curve for", feature), x = feature, y = "Integrated ALE") +

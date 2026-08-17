@@ -190,6 +190,7 @@ plot_varimp <- function(varimp_df, use_scaled = TRUE) {
 
     return(
       ggplot2::ggplot(plot_df, ggplot2::aes(y = feature, x = .data[[value_col]])) +
+        ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray40") +
         ggplot2::geom_boxplot(fill = .survalis_palette[1], alpha = 0.6, outlier.alpha = 0.4) +
         ggplot2::labs(y = NULL, x = xlab, title = "Permutation-based variable importance") +
         theme_survalis()
@@ -197,6 +198,7 @@ plot_varimp <- function(varimp_df, use_scaled = TRUE) {
   }
 
   ggplot2::ggplot(varimp_df, ggplot2::aes(y = reorder(feature, !!sym(aes_x)), x = !!sym(aes_x))) +
+    ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray40") +
     ggplot2::geom_point(size = 3, color = .survalis_palette[1]) +
     ggplot2::labs(y = NULL, x = xlab, title = "Permutation-based variable importance") +
     theme_survalis()

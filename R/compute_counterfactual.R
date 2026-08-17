@@ -238,6 +238,7 @@ plot_counterfactual <- function(counterfactual_df,
     plot_df,
     ggplot2::aes(x = .data[[metric]], y = feature, fill = direction)
   ) +
+    ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray40") +
     ggplot2::geom_col(width = 0.7, show.legend = FALSE) +
     ggplot2::geom_text(
       ggplot2::aes(label = change_label, hjust = hjust),
