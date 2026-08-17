@@ -167,6 +167,9 @@ return(final_result)
 #'   \code{time} column, a time plot is produced; otherwise an aggregated bar plot.
 #' @param type One of \code{"auto"} (default), \code{"time"}, or \code{"integrated"}.
 #'   With \code{"auto"}, the presence of a \code{time} column determines the plot type.
+#' @param title Plot title. If missing, an automatically generated title is
+#'   used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+#'   requiring caption-only figures).
 #'
 #' @return A \pkg{ggplot2} object.
 #'
@@ -184,7 +187,7 @@ return(final_result)
 #' }
 #' @export
 
-plot_shap <- function(shapley_result, type = c("auto")) {
+plot_shap <- function(shapley_result, type = c("auto"), title) {
 type <- match.arg(type)
 
 is_time_dependent <- "time" %in% colnames(shapley_result)
@@ -194,42 +197,47 @@ type <- if (is_time_dependent) "time" else "integrated"
 }
 
 if (type == "time") {
-ggplot(shapley_result, ggplot2::aes(x = time, y = phi, color = feature)) +
+if (missing(title)) title <- "Shapley Contributions Over Time"
+p <- ggplot(shapley_result, ggplot2::aes(x = time, y = phi, color = feature)) +
   geom_hline(yintercept = 0, linetype = "dashed", color = "gray40") +
   geom_line(linewidth = 1) +
   geom_point(size = 2) +
   scale_color_survalis() +
   labs(
-    title = "Shapley Contributions Over Time",
     x = "Time",
     y = "SHAP value"
   ) +
   theme_survalis()
+if (!is.null(title)) p <- p + labs(title = title)
+p
 } else {
 shap_method <- attr(shapley_result, "shap_method", exact = TRUE)
 shap_method <- if (is.null(shap_method)) "integral" else shap_method
 
-title <- switch(
-shap_method,
-meanabs = "Mean Absolute SHAP",
-integral = "Integrated SHAP",
-"SHAP Summary"
-)
+if (missing(title)) {
+  title <- switch(
+    shap_method,
+    meanabs = "Mean Absolute SHAP",
+    integral = "Integrated SHAP",
+    "SHAP Summary"
+  )
+}
 
 shapley_result <- shapley_result[order(shapley_result$phi), ]
 shapley_result$feature <- factor(shapley_result$feature, levels = shapley_result$feature)
 shapley_result$direction <- ifelse(shapley_result$phi >= 0, "Positive", "Negative")
 
-ggplot(shapley_result, ggplot2::aes(x = phi, y = feature, fill = direction)) +
+p <- ggplot(shapley_result, ggplot2::aes(x = phi, y = feature, fill = direction)) +
   geom_col(show.legend = FALSE) +
   scale_fill_manual(values = c("Positive" = .survalis_palette[1], "Negative" = .survalis_palette[2])) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray40") +
   labs(
-    title = title,
     x = "SHAP value",
     y = "Feature"
   ) +
   theme_survalis()
+if (!is.null(title)) p <- p + labs(title = title)
+p
 }
 }
 

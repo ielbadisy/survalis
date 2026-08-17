@@ -191,6 +191,9 @@ compute_surrogate <- function(model, newdata, baseline_data,
 #' @param surrogate_df A data frame returned by \code{compute_surrogate()}.
 #' @param top_n Optional integer; if provided, display only the top \code{top_n}
 #'   features by absolute effect.
+#' @param title Plot title. If missing, an automatically generated title is
+#'   used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+#'   requiring caption-only figures).
 #'
 #' @return A \pkg{ggplot2} object showing feature contributions
 #'   \eqn{\beta_j \cdot x_j} (positive/negative) at the target time.
@@ -208,7 +211,7 @@ compute_surrogate <- function(model, newdata, baseline_data,
 #' plot_surrogate(local_expl, top_n = 3)
 #' @export
 
-plot_surrogate <- function(surrogate_df, top_n = NULL) {
+plot_surrogate <- function(surrogate_df, top_n = NULL, title) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Please install 'ggplot2'.")
   df <- surrogate_df
   if (!is.null(top_n)) {
@@ -219,19 +222,21 @@ plot_surrogate <- function(surrogate_df, top_n = NULL) {
   df$sign <- ifelse(df$effect >= 0, "Positive", "Negative")
 
   target_time <- if ("target_time" %in% names(surrogate_df)) surrogate_df$target_time[1] else NA
+  if (missing(title)) title <- paste0("Surrogate Explanation at Target Time = ", target_time)
 
-  ggplot(df, aes(x = reorder(feature_label, abs(effect)), y = effect, fill = sign)) +
+  p <- ggplot(df, aes(x = reorder(feature_label, abs(effect)), y = effect, fill = sign)) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "gray40") +
     geom_col(width = 0.6) +
     coord_flip() +
     labs(
       x = NULL,
-      y = "Local effect",
-      title = paste0("Surrogate Explanation at Target Time = ", target_time)
+      y = "Local effect"
     ) +
     scale_fill_manual(values = c("Positive" = .survalis_palette[1], "Negative" = .survalis_palette[2])) +
     theme_survalis() +
     theme(legend.position = "none")
+  if (!is.null(title)) p <- p + labs(title = title)
+  p
 }
 
 

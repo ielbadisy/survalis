@@ -4,13 +4,17 @@
 \alias{plot_varimp}
 \title{Plot Permutation Variable Importance}
 \usage{
-plot_varimp(varimp_df, use_scaled = TRUE)
+plot_varimp(varimp_df, use_scaled = TRUE, title)
 }
 \arguments{
 \item{varimp_df}{A data frame as returned by \code{\link{compute_varimp}}.}
 
 \item{use_scaled}{Logical; if \code{TRUE} (default), plot \code{scaled_importance}
 (percent). If unavailable, falls back to raw \code{importance} with a warning.}
+
+\item{title}{Plot title. If missing, an automatically generated title is
+used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+requiring caption-only figures).}
 }
 \value{
 A \pkg{ggplot2} object.

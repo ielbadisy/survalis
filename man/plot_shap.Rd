@@ -4,7 +4,7 @@
 \alias{plot_shap}
 \title{Plot SHAP-like contributions for survival models}
 \usage{
-plot_shap(shapley_result, type = c("auto"))
+plot_shap(shapley_result, type = c("auto"), title)
 }
 \arguments{
 \item{shapley_result}{A data frame returned by \code{\link[=compute_shap]{compute_shap()}}. If it has a
@@ -12,6 +12,10 @@ plot_shap(shapley_result, type = c("auto"))
 
 \item{type}{One of \code{"auto"} (default), \code{"time"}, or \code{"integrated"}.
 With \code{"auto"}, the presence of a \code{time} column determines the plot type.}
+
+\item{title}{Plot title. If missing, an automatically generated title is
+used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+requiring caption-only figures).}
 }
 \value{
 A \pkg{ggplot2} object.

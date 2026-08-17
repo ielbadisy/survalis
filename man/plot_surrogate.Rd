@@ -4,13 +4,17 @@
 \alias{plot_surrogate}
 \title{Plot Local Surrogate Explanation}
 \usage{
-plot_surrogate(surrogate_df, top_n = NULL)
+plot_surrogate(surrogate_df, top_n = NULL, title)
 }
 \arguments{
 \item{surrogate_df}{A data frame returned by \code{compute_surrogate()}.}
 
 \item{top_n}{Optional integer; if provided, display only the top \code{top_n}
 features by absolute effect.}
+
+\item{title}{Plot title. If missing, an automatically generated title is
+used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+requiring caption-only figures).}
 }
 \value{
 A \pkg{ggplot2} object showing feature contributions

@@ -357,6 +357,9 @@ survmat_to_quantile <- function(S, times, p = 0.5) {
 #'   curves are overlaid beneath the grouped summary curves.
 #' @param alpha Alpha transparency for individual curves (default \code{0.2}).
 #' @param linewidth Line width for plotted curves (default \code{0.7}).
+#' @param title Plot title. If missing, an automatically generated title is
+#'   used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+#'   requiring caption-only figures).
 #'
 #' @return A \pkg{ggplot2} object.
 #'
@@ -376,7 +379,8 @@ plot_survmat <- function(S,
                          summary_fun = c("mean", "median"),
                          show_individual = NULL,
                          alpha = 0.2,
-                         linewidth = 0.7) {
+                         linewidth = 0.7,
+                         title) {
   summary_fun <- match.arg(summary_fun)
 
   if (is.null(times)) {
@@ -416,51 +420,52 @@ plot_survmat <- function(S,
 
   if (is.null(group)) {
     if (isTRUE(show_individual)) {
-      return(
-        ggplot2::ggplot(
+      if (missing(title)) title <- "Predicted survival curves"
+      p <- ggplot2::ggplot(
           plot_long,
           ggplot2::aes(x = time, y = surv_prob, group = .id)
         ) +
           ggplot2::geom_line(alpha = alpha, linewidth = linewidth, color = .survalis_palette[1]) +
           ggplot2::labs(
-            title = "Predicted survival curves",
             x = "Time",
             y = "Survival probability"
           ) +
           theme_survalis()
-      )
+      if (!is.null(title)) p <- p + ggplot2::labs(title = title)
+      return(p)
     }
 
     summary_df <- plot_long[, list(
       surv_prob = if (summary_fun == "mean") mean(surv_prob) else stats::median(surv_prob)
     ), by = time]
 
-    return(
-      ggplot2::ggplot(summary_df, ggplot2::aes(x = time, y = surv_prob)) +
+    if (missing(title)) title <- paste("Predicted survival curve (", summary_fun, " summary)", sep = "")
+    p <- ggplot2::ggplot(summary_df, ggplot2::aes(x = time, y = surv_prob)) +
         ggplot2::geom_line(linewidth = linewidth + 0.2, color = .survalis_palette[1]) +
         ggplot2::labs(
-          title = paste("Predicted survival curve (", summary_fun, " summary)", sep = ""),
           x = "Time",
           y = "Survival probability"
         ) +
         theme_survalis()
-    )
+    if (!is.null(title)) p <- p + ggplot2::labs(title = title)
+    return(p)
   }
 
   summary_df <- plot_long[, list(
     surv_prob = if (summary_fun == "mean") mean(surv_prob) else stats::median(surv_prob)
   ), by = list(group, time)]
 
+  if (missing(title)) title <- paste("Predicted survival curves by group (", summary_fun, " summary)", sep = "")
   p <- ggplot2::ggplot(summary_df, ggplot2::aes(x = time, y = surv_prob, color = group)) +
     ggplot2::geom_line(linewidth = linewidth + 0.2) +
     scale_color_survalis() +
     ggplot2::labs(
-      title = paste("Predicted survival curves by group (", summary_fun, " summary)", sep = ""),
       x = "Time",
       y = "Survival probability",
       color = "Group"
     ) +
     theme_survalis()
+  if (!is.null(title)) p <- p + ggplot2::labs(title = title)
 
   if (isTRUE(show_individual)) {
     p <- p + ggplot2::geom_line(

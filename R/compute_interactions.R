@@ -177,6 +177,9 @@ compute_interactions <- function(model, data, times,
 #' @param object A data frame returned by \code{compute_interactions()} whose
 #'   columns match the requested \code{type}.
 #' @param type One of \code{"1way"}, \code{"heatmap"}, or \code{"time"}.
+#' @param title Plot title. If missing, an automatically generated title is
+#'   used (none for \code{"1way"}). Pass \code{NULL} to omit the title
+#'   entirely (e.g., for journals requiring caption-only figures).
 #'
 #' @details
 #' \strong{1way}: Bars rank features by Friedman-H interaction strength at the target time.  
@@ -201,29 +204,37 @@ compute_interactions <- function(model, data, times,
 #'
 #' @export
 
-plot_interactions <- function(object, type = c("1way", "heatmap", "time")) {
+plot_interactions <- function(object, type = c("1way", "heatmap", "time"), title) {
   type <- match.arg(type)
   if (type == "1way") {
-  ggplot(object, ggplot2::aes(x = interaction, y = reorder(feature, interaction))) +
+  if (missing(title)) title <- NULL
+  p <- ggplot(object, ggplot2::aes(x = interaction, y = reorder(feature, interaction))) +
       geom_col(fill = .survalis_palette[1]) +
       theme_survalis() +
       labs(x = "Interaction strength (H)", y = "Feature")
+  if (!is.null(title)) p <- p + labs(title = title)
+  p
   } else if (type == "heatmap") {
-    ggplot(object, ggplot2::aes(x = feature1, y = feature2, fill = interaction)) +
+    if (missing(title)) title <- "Pairwise Interaction Heatmap"
+    p <- ggplot(object, ggplot2::aes(x = feature1, y = feature2, fill = interaction)) +
       geom_tile(color = "white", linewidth = 0.6) +
       ggplot2::scale_fill_viridis_c(
         direction = -1,
         na.value = "grey85",
         guide = ggplot2::guide_colorbar(barwidth = ggplot2::unit(5, "cm"), barheight = ggplot2::unit(0.4, "cm"))
       ) +
-      theme_survalis() +
-      labs(title = "Pairwise Interaction Heatmap")
+      theme_survalis()
+    if (!is.null(title)) p <- p + labs(title = title)
+    p
   } else {
-    ggplot(object, ggplot2::aes(x = time, y = interaction, color = feature)) +
+    if (missing(title)) title <- "Time-Varying Feature Interactions"
+    p <- ggplot(object, ggplot2::aes(x = time, y = interaction, color = feature)) +
       geom_line(linewidth = 1.2) +
       geom_point(size = 2) +
       scale_color_survalis() +
       theme_survalis() +
-      labs(title = "Time-Varying Feature Interactions", x = "Time", y = "Interaction Strength")
+      labs(x = "Time", y = "Interaction Strength")
+    if (!is.null(title)) p <- p + labs(title = title)
+    p
   }
 }

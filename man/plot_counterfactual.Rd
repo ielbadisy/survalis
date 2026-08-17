@@ -8,7 +8,8 @@ plot_counterfactual(
   counterfactual_df,
   metric = c("penalized_gain", "survival_gain"),
   top_n = NULL,
-  include_negative = FALSE
+  include_negative = FALSE,
+  title
 )
 }
 \arguments{
@@ -22,6 +23,10 @@ after sorting by \code{metric}.}
 
 \item{include_negative}{Logical; if \code{FALSE} (default), only positive-gain
 recommendations are shown.}
+
+\item{title}{Plot title. If missing, an automatically generated title is
+used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+requiring caption-only figures).}
 }
 \value{
 A \pkg{ggplot2} object.

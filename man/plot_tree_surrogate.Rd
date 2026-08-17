@@ -4,7 +4,12 @@
 \alias{plot_tree_surrogate}
 \title{Plot Tree-Based Surrogate Models or Feature Importances}
 \usage{
-plot_tree_surrogate(tree_surrogate, type = c("tree", "importance"), top_n = 10)
+plot_tree_surrogate(
+  tree_surrogate,
+  type = c("tree", "importance"),
+  top_n = 10,
+  title
+)
 }
 \arguments{
 \item{tree_surrogate}{An object of class \code{"tree_surrogate"}.}
@@ -17,6 +22,11 @@ plot_tree_surrogate(tree_surrogate, type = c("tree", "importance"), top_n = 10)
 
 \item{top_n}{Integer, the number of top features to display in the importance plot.
 Ignored if \code{type = "tree"}.}
+
+\item{title}{Plot title for \code{type = "importance"}. If missing, an
+automatically generated title is used. Pass \code{NULL} to omit the title
+entirely (e.g., for journals requiring caption-only figures). Ignored
+for \code{type = "tree"}, which titles each per-time tree panel individually.}
 }
 \value{
 A plot object (for \code{"importance"}) or printed tree diagrams (for \code{"tree"}).

@@ -178,6 +178,9 @@ predict_survmetalearner <- function(model, newdata, times) {
 #' for each base learner.
 #'
 #' @param model A \code{"survmetalearner"} object from \code{\link{fit_survmetalearner}}.
+#' @param title Plot title. If missing, an automatically generated title is
+#'   used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+#'   requiring caption-only figures).
 #'
 #' @return A \pkg{ggplot2} object showing weight trajectories (one line per learner).
 #'
@@ -203,8 +206,9 @@ predict_survmetalearner <- function(model, newdata, times) {
 #' plot_survmetalearner_weights(meta_model)
 #' @export
 
-plot_survmetalearner_weights <- function(model) {
+plot_survmetalearner_weights <- function(model, title) {
   stopifnot(inherits(model, "survmetalearner"))
+  if (missing(title)) title <- "NNLS stacking weights over time"
 
   W <- as.data.frame(model$weights)
   W$learner <- rownames(model$weights)
@@ -215,11 +219,13 @@ plot_survmetalearner_weights <- function(model) {
   )
   W_long$time <- as.numeric(sub("t=", "", W_long$time))
 
-  ggplot(W_long, aes(x = time, y = weight, color = learner)) +
+  p <- ggplot(W_long, aes(x = time, y = weight, color = learner)) +
     geom_line(linewidth = 1.2) +
     scale_color_survalis() +
-    labs(x = "Time", y = "Weight", title = "NNLS stacking weights over time") +
+    labs(x = "Time", y = "Weight") +
     theme_survalis()
+  if (!is.null(title)) p <- p + labs(title = title)
+  p
 }
 
 #' Cross‑Validate a Stacked Survival Meta‑Learner

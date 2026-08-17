@@ -4,10 +4,14 @@
 \alias{plot_survmetalearner_weights}
 \title{Plot Time‑Varying Stacking Weights}
 \usage{
-plot_survmetalearner_weights(model)
+plot_survmetalearner_weights(model, title)
 }
 \arguments{
 \item{model}{A \code{"survmetalearner"} object from \code{\link{fit_survmetalearner}}.}
+
+\item{title}{Plot title. If missing, an automatically generated title is
+used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+requiring caption-only figures).}
 }
 \value{
 A \pkg{ggplot2} object showing weight trajectories (one line per learner).

@@ -741,6 +741,9 @@ cv_summary <- function(cv_results, digits = 3) {
 #' boxplot with jittered points.
 #'
 #' @param cv_results A tibble/data frame as returned by \code{cv_survlearner()}.
+#' @param title Plot title. If missing, an automatically generated title is
+#'   used. Pass \code{NULL} to omit the title entirely (e.g., for journals
+#'   requiring caption-only figures).
 #'
 #' @return A \pkg{ggplot2} object.
 #'
@@ -752,12 +755,15 @@ cv_summary <- function(cv_results, digits = 3) {
 #' cv_plot(cv_results)
 #' @export
 
-cv_plot <- function(cv_results) {
-  ggplot(cv_results, aes(x = metric, y = value)) +
+cv_plot <- function(cv_results, title) {
+  if (missing(title)) title <- "Cross-Validation Performance"
+  p <- ggplot(cv_results, aes(x = metric, y = value)) +
     geom_boxplot(fill = .survalis_palette[1], outlier.shape = NA, alpha = 0.3) +
     geom_jitter(width = 0.15, alpha = 0.5) +
-    labs(title = "Cross-Validation Performance", x = "Metric", y = "Value") +
+    labs(x = "Metric", y = "Value") +
     theme_survalis()
+  if (!is.null(title)) p <- p + labs(title = title)
+  p
 }
 
 
