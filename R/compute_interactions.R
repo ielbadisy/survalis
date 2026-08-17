@@ -212,6 +212,7 @@ plot_interactions <- function(object, type = c("1way", "heatmap", "time")) {
     ggplot(object, ggplot2::aes(x = feature1, y = feature2, fill = interaction)) +
       geom_tile(color = "white", linewidth = 0.6) +
       ggplot2::scale_fill_viridis_c(
+        direction = -1,
         na.value = "grey85",
         guide = ggplot2::guide_colorbar(barwidth = ggplot2::unit(5, "cm"), barheight = ggplot2::unit(0.4, "cm"))
       ) +
