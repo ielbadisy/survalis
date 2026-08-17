@@ -478,12 +478,12 @@ varimp_res <- compute_varimp(
 varimp_res
 #>     feature importance importance_05 importance_95 scaled_importance
 #>      <char>      <num>         <num>         <num>             <num>
-#> 1:    karno     0.0672        0.1964        0.2296         100.00000
-#> 2: celltype     0.0468        0.1864        0.2044          69.64286
-#> 3:      age    -0.0022        0.1440        0.1458           3.27381
-#> 4:      trt     0.0000        0.1470        0.1470           0.00000
-#> 5: diagtime     0.0000        0.1470        0.1470           0.00000
-#> 6:    prior     0.0000        0.1470        0.1470           0.00000
+#> 1:    karno     0.0672        0.0494        0.0826         100.00000
+#> 2: celltype     0.0468        0.0394        0.0574          69.64286
+#> 3:      age    -0.0022       -0.0030       -0.0012           3.27381
+#> 4:      trt     0.0000        0.0000        0.0000           0.00000
+#> 5: diagtime     0.0000        0.0000        0.0000           0.00000
+#> 6:    prior     0.0000        0.0000        0.0000           0.00000
 plot_varimp(varimp_res)
 ```
 
