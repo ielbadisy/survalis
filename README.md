@@ -60,14 +60,17 @@ list_survlearners()
 #>  9:           rpart           fit_rpart           predict_rpart
 #> 10:            bart            fit_bart            predict_bart
 #> 11:         xgboost         fit_xgboost         predict_xgboost
-#> 12:          ranger          fit_ranger          predict_ranger
-#> 13:             rsf             fit_rsf             predict_rsf
-#> 14:         cforest         fit_cforest         predict_cforest
-#> 15:      blackboost      fit_blackboost      predict_blackboost
-#> 16:         survsvm         fit_survsvm         predict_survsvm
-#> 17:         survdnn         fit_survdnn         predict_survdnn
-#> 18:            orsf            fit_orsf            predict_orsf
-#> 19: survmetalearner fit_survmetalearner predict_survmetalearner
+#> 12:        coxboost        fit_coxboost        predict_coxboost
+#> 13:          ranger          fit_ranger          predict_ranger
+#> 14:             rsf             fit_rsf             predict_rsf
+#> 15:         cforest         fit_cforest         predict_cforest
+#> 16:      blackboost      fit_blackboost      predict_blackboost
+#> 17:         survsvm         fit_survsvm         predict_survsvm
+#> 18:         survdnn         fit_survdnn         predict_survdnn
+#> 19:            orsf            fit_orsf            predict_orsf
+#> 20: survmetalearner fit_survmetalearner predict_survmetalearner
+#>             learner                 fit                 predict
+#>              <char>              <char>                  <char>
 #>                 tune has_fit has_predict has_tune available
 #>               <char>  <lgcl>      <lgcl>   <lgcl>    <lgcl>
 #>  1:             <NA>    TRUE        TRUE    FALSE      TRUE
@@ -81,14 +84,17 @@ list_survlearners()
 #>  9:       tune_rpart    TRUE        TRUE     TRUE      TRUE
 #> 10:        tune_bart    TRUE        TRUE     TRUE      TRUE
 #> 11:     tune_xgboost    TRUE        TRUE     TRUE      TRUE
-#> 12:      tune_ranger    TRUE        TRUE     TRUE      TRUE
-#> 13:         tune_rsf    TRUE        TRUE     TRUE      TRUE
-#> 14:     tune_cforest    TRUE        TRUE     TRUE      TRUE
-#> 15:  tune_blackboost    TRUE        TRUE     TRUE      TRUE
-#> 16:     tune_survsvm    TRUE        TRUE     TRUE      TRUE
-#> 17:     tune_survdnn    TRUE        TRUE     TRUE      TRUE
-#> 18:        tune_orsf    TRUE        TRUE     TRUE      TRUE
-#> 19:             <NA>    TRUE        TRUE    FALSE      TRUE
+#> 12:    tune_coxboost    TRUE        TRUE     TRUE      TRUE
+#> 13:      tune_ranger    TRUE        TRUE     TRUE      TRUE
+#> 14:         tune_rsf    TRUE        TRUE     TRUE      TRUE
+#> 15:     tune_cforest    TRUE        TRUE     TRUE      TRUE
+#> 16:  tune_blackboost    TRUE        TRUE     TRUE      TRUE
+#> 17:     tune_survsvm    TRUE        TRUE     TRUE      TRUE
+#> 18:     tune_survdnn    TRUE        TRUE     TRUE      TRUE
+#> 19:        tune_orsf    TRUE        TRUE     TRUE      TRUE
+#> 20:             <NA>    TRUE        TRUE    FALSE      TRUE
+#>                 tune has_fit has_predict has_tune available
+#>               <char>  <lgcl>      <lgcl>   <lgcl>    <lgcl>
 
 # See only tunable learners (those with a tune_* function)
 list_survlearners(has_tune = TRUE)
@@ -101,13 +107,14 @@ list_survlearners(has_tune = TRUE)
 #>  5:       rpart       fit_rpart       predict_rpart       tune_rpart    TRUE
 #>  6:        bart        fit_bart        predict_bart        tune_bart    TRUE
 #>  7:     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE
-#>  8:      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
-#>  9:         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
-#> 10:     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
-#> 11:  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
-#> 12:     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
-#> 13:     survdnn     fit_survdnn     predict_survdnn     tune_survdnn    TRUE
-#> 14:        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
+#>  8:    coxboost    fit_coxboost    predict_coxboost    tune_coxboost    TRUE
+#>  9:      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
+#> 10:         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
+#> 11:     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
+#> 12:  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
+#> 13:     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
+#> 14:     survdnn     fit_survdnn     predict_survdnn     tune_survdnn    TRUE
+#> 15:        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
 #>     has_predict has_tune available
 #>          <lgcl>   <lgcl>    <lgcl>
 #>  1:        TRUE     TRUE      TRUE
@@ -124,6 +131,7 @@ list_survlearners(has_tune = TRUE)
 #> 12:        TRUE     TRUE      TRUE
 #> 13:        TRUE     TRUE      TRUE
 #> 14:        TRUE     TRUE      TRUE
+#> 15:        TRUE     TRUE      TRUE
 
 # Shortcut for tunable learners
 list_tunable_survlearners()
@@ -136,13 +144,14 @@ list_tunable_survlearners()
 #>  5:       rpart       fit_rpart       predict_rpart       tune_rpart    TRUE
 #>  6:        bart        fit_bart        predict_bart        tune_bart    TRUE
 #>  7:     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE
-#>  8:      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
-#>  9:         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
-#> 10:     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
-#> 11:  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
-#> 12:     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
-#> 13:     survdnn     fit_survdnn     predict_survdnn     tune_survdnn    TRUE
-#> 14:        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
+#>  8:    coxboost    fit_coxboost    predict_coxboost    tune_coxboost    TRUE
+#>  9:      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
+#> 10:         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
+#> 11:     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
+#> 12:  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
+#> 13:     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
+#> 14:     survdnn     fit_survdnn     predict_survdnn     tune_survdnn    TRUE
+#> 15:        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
 #>     has_predict has_tune available
 #>          <lgcl>   <lgcl>    <lgcl>
 #>  1:        TRUE     TRUE      TRUE
@@ -159,6 +168,7 @@ list_tunable_survlearners()
 #> 12:        TRUE     TRUE      TRUE
 #> 13:        TRUE     TRUE      TRUE
 #> 14:        TRUE     TRUE      TRUE
+#> 15:        TRUE     TRUE      TRUE
 ```
 
 ### List interpretability tools
