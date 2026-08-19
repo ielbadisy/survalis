@@ -30,7 +30,7 @@ list_survlearners <- function(has_tune = FALSE) {
   # curated order
   ids <- c(
     "coxph", "aalen", "glmnet", "selectcox", "aftgee", "flexsurvreg", "stpm2", "bnnsurv",
-    "rpart", "bart", "xgboost", "ranger", "rsf", "cforest", "blackboost", "survsvm",
+    "rpart", "bart", "xgboost", "coxboost", "ranger", "rsf", "cforest", "blackboost", "survsvm",
     "survdnn", "orsf", "survmetalearner"
   )
 

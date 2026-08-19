@@ -1,3 +1,11 @@
+# survalis 1.0.0
+
+* Added `CoxBoost` as a new survival learner: `fit_coxboost()`,
+  `predict_coxboost()`, and `tune_coxboost()`, wrapping the `CoxBoost`
+  package's likelihood-based componentwise boosting for the Cox partial
+  likelihood. Registered in `list_survlearners()` and usable directly
+  through `benchmark()`.
+
 # survalis 0.9.0
 
 * Added a `title` argument to every plotting function (`plot_ale()`,
