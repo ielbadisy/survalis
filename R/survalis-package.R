@@ -34,6 +34,7 @@ survival::Surv
 #' @importFrom mboost blackboost
 #' @importFrom BART surv.bart
 #' @importFrom xgboost xgb.train xgb.cv xgb.DMatrix
+#' @importFrom CoxBoost CoxBoost cv.CoxBoost
 #' @importFrom rstpm2 stpm2 gsm nsx
 #'
 #' @importFrom stats model.frame model.matrix model.response delete.response
