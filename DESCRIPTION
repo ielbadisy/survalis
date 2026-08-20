@@ -2,11 +2,11 @@ Package: survalis
 Type: Package
 Title: Interpretable Survival Machine Learning Framework
 Version: 1.0.0
-Author: Imad El Badisy [aut, cre]
-Maintainer: Imad El Badisy <elbadisyimad@gmail.com>
+Author: Imad EL BADISY [aut, cre]
+Maintainer: Imad EL BADISY <elbadisyimad@gmail.com>
 Authors@R: 
     c(person(given = "Imad",
-             family = "El Badisy",
+             family = "EL BADISY",
              role = c("aut", "cre"),
              email = "elbadisyimad@gmail.com"))
 Description: A modular toolkit for interpretable survival machine learning
@@ -27,7 +27,7 @@ Description: A modular toolkit for interpretable survival machine learning
   and other related methods for survival modeling, prediction, and
   interpretation.
 License: MIT + file LICENSE
-URL: https://CRAN.R-project.org/package=survalis
+URL: https://github.com/ielbadisy/survalis, https://CRAN.R-project.org/package=survalis
 BugReports: https://github.com/ielbadisy/survalis/issues
 Encoding: UTF-8
 LazyData: true
