@@ -5,6 +5,9 @@
   package's likelihood-based componentwise boosting for the Cox partial
   likelihood. Registered in `list_survlearners()` and usable directly
   through `benchmark()`.
+* Wrapped `tune_glmnet()`'s example in `\donttest{}` (per CRAN win-builder
+  pretest feedback: it exceeded the 5s/10s example runtime limit on
+  Debian/Windows).
 
 # survalis 0.9.0
 

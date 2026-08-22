@@ -149,7 +149,7 @@ predict_glmnet <- function(object, newdata, times, ...) {
 #' @seealso \code{\link{fit_glmnet}}, \code{\link{predict_glmnet}}
 #'
 #' @examples
-#'
+#' \donttest{
 #' param_grid <- expand.grid(alpha = seq(0, 1, by = 0.25))
 #'
 #' res_glmnet <- tune_glmnet(
@@ -171,6 +171,7 @@ predict_glmnet <- function(object, newdata, times, ...) {
 #' )
 #'
 #' summary(mod_glmnet_best)
+#' }
 #'
 #' @export
 

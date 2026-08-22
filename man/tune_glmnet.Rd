@@ -56,7 +56,7 @@ a grid of \code{alpha} values using cross-validation on one or more metrics.
 Optionally refits the best model on the full dataset.
 }
 \examples{
-
+\donttest{
 param_grid <- expand.grid(alpha = seq(0, 1, by = 0.25))
 
 res_glmnet <- tune_glmnet(
@@ -78,6 +78,7 @@ mod_glmnet_best <- tune_glmnet(
 )
 
 summary(mod_glmnet_best)
+}
 
 }
 \seealso{
