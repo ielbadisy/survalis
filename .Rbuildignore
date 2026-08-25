@@ -3,6 +3,10 @@
 ^LICENSE\.md$
 ^\.gitignore\.save$
 ^errors\.log$
+^\.claude$
+^survalis\.Rcheck$
+^survalis_[0-9.]+\.tar\.gz$
+^README\.html$
 
 
 ^cran-comments\.md$

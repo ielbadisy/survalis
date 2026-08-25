@@ -1,3 +1,25 @@
+# survalis 1.1.0
+
+* Added `screen_fdr()`: univariate-Cox variable screening with
+  Benjamini-Hochberg FDR control, with a `minscreen` backfill guarantee.
+* Added `estimate_rmst()` and `plot_rmst()`: standardized RMST
+  estimation via g-computation, with percentile bootstrap inference. Dispatch
+  between a marginal estimate and a two-arm causal-style contrast is by the
+  `trt_col` argument (`NULL` = marginal), matching `plot_survmat()`'s
+  existing `group` dispatch convention rather than separate function names.
+* Added `compute_shap_matrix()` and `plot_shap_beeswarm()`: a beeswarm view
+  of SHAP contributions time-integrated over the full prediction horizon,
+  built on `compute_shap()`'s existing per-time Shapley decomposition.
+  `compute_shap()` gained an explicit `features` argument (defaulting to
+  `setdiff(colnames(newdata), c(model$time, model$status))`), replacing a
+  hardcoded `c("time", "status", "event")` exclusion, for consistency with
+  `compute_interactions()`'s existing `features` argument.
+* Added `roc_survmat()` (full time-dependent ROC curve, IPCW-weighted like
+  `auc_survmat()`) and `dca_survmat()` (decision curve analysis / net benefit
+  for right-censored outcomes, using the same `Ĝ(t)` IPCW estimator as
+  `brier()` and `auc_survmat()`), each with `plot()`/`plot_roc()`/`plot_dca()`
+  methods.
+
 # survalis 1.0.0
 
 * Added `CoxBoost` as a new survival learner: `fit_coxboost()`,

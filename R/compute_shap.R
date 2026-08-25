@@ -14,6 +14,9 @@
 #' @param times Numeric vector of evaluation times (same scale as the outcome).
 #' @param sample.size Integer, number of random feature orderings to sample per
 #'   time (default \code{100}).
+#' @param features Optional character vector of covariate names to explain. If
+#'   \code{NULL} (default), inferred as \code{setdiff(colnames(newdata),
+#'   c(model$time, model$status))}, consistent with \code{\link{compute_interactions}}.
 #' @param aggregate Logical; if \code{TRUE}, aggregate contributions across
 #'   \code{times} into a single value per feature (see \code{method}).
 #' @param method Character; aggregation method if \code{aggregate=TRUE}:
@@ -64,6 +67,7 @@
 
 compute_shap <- function(model, newdata, baseline_data,
   times, sample.size = 100,
+  features = NULL,
   aggregate = FALSE,
   method = c("meanabs", "integral")) {
 stopifnot(nrow(newdata) == 1)
@@ -76,7 +80,11 @@ stop("Could not infer prediction function. Ensure model has a valid `learner` an
 
 
 predict_function <- get(paste0("predict_", model$learner))
-feature_names <- setdiff(colnames(newdata), c("time", "status", "event"))
+feature_names <- if (is.null(features)) {
+  setdiff(colnames(newdata), c(model$time, model$status))
+} else {
+  features
+}
 n_features <- length(feature_names)
 all_results <- list()
 

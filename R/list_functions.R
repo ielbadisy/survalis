@@ -77,7 +77,8 @@ list_interpretability_methods <- function() {
     "compute_tree_surrogate",
     "compute_varimp",
     "compute_interactions",
-    "compute_counterfactual"
+    "compute_counterfactual",
+    "compute_shap_matrix"
   )
 
   plot_candidates <- c(
@@ -88,7 +89,8 @@ list_interpretability_methods <- function() {
     "plot_tree_surrogate",
     "plot_varimp",
     "plot_interactions",
-    "plot_counterfactual"
+    "plot_counterfactual",
+    "plot_shap_beeswarm"
   )
 
   stopifnot(length(compute_candidates) == length(plot_candidates))
