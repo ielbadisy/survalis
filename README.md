@@ -12,9 +12,10 @@ downloads](https://cranlogs.r-pkg.org/badges/grand-total/survalis)](https://CRAN
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
-`survalis` provides a unified framework for survival machine learning
-survival analysis in R. It supports a wide range of learners, evaluation
-metrics, cross-validation and interpretability methods.
+`survalis` provides a unified framework for survival machine learning in
+R. It supports 20 learners, evaluation metrics, cross-validation,
+benchmarking, and model-agnostic interpretability methods through a
+common survival-probability matrix (`survmat`) interface.
 
 `survalis` is available on CRAN:
 <https://CRAN.R-project.org/package=survalis>.
@@ -27,6 +28,50 @@ install.packages("survalis")
 
 # Or install the development version from GitHub
 remotes::install_github("ielbadisy/survalis")
+```
+
+## New in version 1.1.0
+
+Version 1.1.0 adds a set of downstream tools that work with the same
+fitted models and `survmat` predictions used throughout the package:
+
+- `screen_fdr()` performs univariate Cox screening with
+  Benjamini-Hochberg FDR control and an optional minimum-screen
+  guarantee.
+- `estimate_rmst()` and `plot_rmst()` estimate standardized marginal
+  RMST or a two-group RMST contrast with percentile-bootstrap intervals.
+- `compute_shap_matrix()` and `plot_shap_beeswarm()` summarize
+  time-integrated SHAP contributions across observations.
+- `roc_survmat()` and `dca_survmat()` provide IPCW time-dependent ROC
+  and decision-curve analyses, with `plot_roc()` and `plot_dca()`
+  helpers.
+
+``` r
+# FDR screening
+selected <- screen_fdr(
+  Surv(time, status) ~ age + karno + diagtime + prior,
+  data = veteran,
+  alpha = 0.1,
+  minscreen = 2
+)
+
+# Standardized RMST contrast between treatment groups
+rmst <- estimate_rmst(
+  mod_cox,
+  data = veteran,
+  tau = 200,
+  times = seq(10, 300, by = 10),
+  trt_col = "trt",
+  R = 200,
+  seed = 1
+)
+
+# Time-dependent ROC and decision curves from survmat predictions
+pred_100 <- predict_coxph(mod_cox, veteran, times = 100)
+roc <- roc_survmat(Surv(veteran$time, veteran$status), pred_100, t_star = 100)
+dca <- dca_survmat(Surv(veteran$time, veteran$status), pred_100, t_star = 100)
+plot_roc(roc)
+plot_dca(dca)
 ```
 
 ## Core philosophy
@@ -346,7 +391,7 @@ summarise_benchmark(bench_res)
 plot_benchmark(bench_res)
 ```
 
-<img src="man/figures/README-unnamed-chunk-11-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-12-1.png" alt="" width="100%" />
 
 **5. Kaplan-Meier curves**
 
@@ -361,7 +406,7 @@ plot_survcurve(Surv(time, status) ~ trt, data = veteran)
 #> (`geom_ribbon()`).
 ```
 
-<img src="man/figures/README-unnamed-chunk-12-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-13-1.png" alt="" width="100%" />
 
 **6. Visualize interpretation**
 
@@ -390,7 +435,7 @@ shap_meanabs
 plot_shap(shap_meanabs)
 ```
 
-<img src="man/figures/README-unnamed-chunk-14-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-15-1.png" alt="" width="100%" />
 
 ### More interpretability methods
 
@@ -412,14 +457,14 @@ pdp_age <- compute_pdp(
 plot_pdp(pdp_age, feature = "age", which = "per_time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-15-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-16-1.png" alt="" width="100%" />
 
 ``` r
 plot_pdp(pdp_age, feature = "age", which = "integrated", smooth = TRUE)
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-<img src="man/figures/README-unnamed-chunk-15-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-16-2.png" alt="" width="100%" />
 
 **Accumulated local effects**
 
@@ -434,14 +479,14 @@ ale_karno <- compute_ale(
 plot_ale(ale_karno, feature = "karno", which = "per_time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-16-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-17-1.png" alt="" width="100%" />
 
 ``` r
 plot_ale(ale_karno, feature = "karno", which = "integrated", smooth = TRUE)
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-<img src="man/figures/README-unnamed-chunk-16-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-17-2.png" alt="" width="100%" />
 
 **Local surrogate explanation**
 
@@ -465,7 +510,7 @@ local_surrogate
 plot_surrogate(local_surrogate, top_n = 10)
 ```
 
-<img src="man/figures/README-unnamed-chunk-17-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-18-1.png" alt="" width="100%" />
 
 **Tree surrogate**
 
@@ -479,7 +524,7 @@ tree_surrogate <- compute_tree_surrogate(
 plot_tree_surrogate(tree_surrogate, type = "importance", top_n = 5)
 ```
 
-<img src="man/figures/README-unnamed-chunk-18-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-19-1.png" alt="" width="100%" />
 
 ``` r
 # plot_tree_surrogate(tree_surrogate, type = "tree")
@@ -508,7 +553,7 @@ varimp_res
 plot_varimp(varimp_res)
 ```
 
-<img src="man/figures/README-unnamed-chunk-19-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-20-1.png" alt="" width="100%" />
 
 **Feature interactions**
 
@@ -539,19 +584,19 @@ interaction_time <- compute_interactions(
 plot_interactions(interaction_1way, type = "1way")
 ```
 
-<img src="man/figures/README-unnamed-chunk-20-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-21-1.png" alt="" width="100%" />
 
 ``` r
 plot_interactions(interaction_heatmap, type = "heatmap")
 ```
 
-<img src="man/figures/README-unnamed-chunk-20-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-21-2.png" alt="" width="100%" />
 
 ``` r
 plot_interactions(interaction_time, type = "time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-20-3.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-21-3.png" alt="" width="100%" />
 
 **Counterfactual explanations**
 
@@ -586,7 +631,7 @@ compute_calibration(
    ) |> plot_calibration()
 ```
 
-<img src="man/figures/README-unnamed-chunk-22-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-23-1.png" alt="" width="100%" />
 
 ## Citing
 

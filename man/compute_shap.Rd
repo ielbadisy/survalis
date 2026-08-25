@@ -10,6 +10,7 @@ compute_shap(
   baseline_data,
   times,
   sample.size = 100,
+  features = NULL,
   aggregate = FALSE,
   method = c("meanabs", "integral")
 )
@@ -27,6 +28,10 @@ the training data used to fit \code{model}).}
 
 \item{sample.size}{Integer, number of random feature orderings to sample per
 time (default \code{100}).}
+
+\item{features}{Optional character vector of covariate names to explain. If
+\code{NULL} (default), inferred as \code{setdiff(colnames(newdata),
+  c(model$time, model$status))}, consistent with \code{\link{compute_interactions}}.}
 
 \item{aggregate}{Logical; if \code{TRUE}, aggregate contributions across
 \code{times} into a single value per feature (see \code{method}).}

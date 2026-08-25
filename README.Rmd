@@ -23,7 +23,10 @@ knitr::opts_chunk$set(
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
-`survalis` provides a unified framework for survival machine learning survival analysis in R. It supports a wide range of learners, evaluation metrics, cross-validation and interpretability methods.
+`survalis` provides a unified framework for survival machine learning in R. It
+supports 20 learners, evaluation metrics, cross-validation, benchmarking, and
+model-agnostic interpretability methods through a common survival-probability
+matrix (`survmat`) interface.
 
 `survalis` is available on CRAN: <https://CRAN.R-project.org/package=survalis>.
 
@@ -37,6 +40,50 @@ install.packages("survalis")
 
 # Or install the development version from GitHub
 remotes::install_github("ielbadisy/survalis")
+```
+
+
+
+## New in version 1.1.0
+
+Version 1.1.0 adds a set of downstream tools that work with the same fitted
+models and `survmat` predictions used throughout the package:
+
+* `screen_fdr()` performs univariate Cox screening with Benjamini-Hochberg FDR
+  control and an optional minimum-screen guarantee.
+* `estimate_rmst()` and `plot_rmst()` estimate standardized marginal RMST or a
+  two-group RMST contrast with percentile-bootstrap intervals.
+* `compute_shap_matrix()` and `plot_shap_beeswarm()` summarize time-integrated
+  SHAP contributions across observations.
+* `roc_survmat()` and `dca_survmat()` provide IPCW time-dependent ROC and
+  decision-curve analyses, with `plot_roc()` and `plot_dca()` helpers.
+
+```{r, eval = FALSE}
+# FDR screening
+selected <- screen_fdr(
+  Surv(time, status) ~ age + karno + diagtime + prior,
+  data = veteran,
+  alpha = 0.1,
+  minscreen = 2
+)
+
+# Standardized RMST contrast between treatment groups
+rmst <- estimate_rmst(
+  mod_cox,
+  data = veteran,
+  tau = 200,
+  times = seq(10, 300, by = 10),
+  trt_col = "trt",
+  R = 200,
+  seed = 1
+)
+
+# Time-dependent ROC and decision curves from survmat predictions
+pred_100 <- predict_coxph(mod_cox, veteran, times = 100)
+roc <- roc_survmat(Surv(veteran$time, veteran$status), pred_100, t_star = 100)
+dca <- dca_survmat(Surv(veteran$time, veteran$status), pred_100, t_star = 100)
+plot_roc(roc)
+plot_dca(dca)
 ```
 
 
