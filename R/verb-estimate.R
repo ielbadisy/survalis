@@ -69,6 +69,9 @@ estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio
   if (!is.finite(conf) || conf <= 0 || conf >= 1) stop("`conf` must be in (0, 1).", call. = FALSE)
   if (!is.null(seed)) set.seed(as.integer(seed))
 
+  op <- options(survalis.quiet_legacy = TRUE)
+  on.exit(options(op), add = TRUE)
+
   parsed <- .parse_surv_formula(formula, data)
   data <- .complete_cases_df(data, unique(c(all.vars(formula), treatment)))
 

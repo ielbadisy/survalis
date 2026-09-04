@@ -38,6 +38,9 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
   if (length(bad)) stop("Unknown model(s): ", paste(bad, collapse = ", "), ".", call. = FALSE)
   if (length(models) < 2L) stop("`models` must name at least two learners.", call. = FALSE)
 
+  op <- options(survalis.quiet_legacy = TRUE)
+  on.exit(options(op), add = TRUE)
+
   parsed <- .parse_surv_formula(formula, data)
   data <- .complete_cases_df(data, all.vars(formula))
   status <- .recode_status_vec(parsed, data)

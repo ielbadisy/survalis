@@ -82,6 +82,8 @@ evaluate.formula <- function(object, data, model, spec = list(), times = NULL,
 #' @keywords internal
 .evaluate_core <- function(formula, data, model, spec, times, resampling,
                            metrics, ncores = 1) {
+  op <- options(survalis.quiet_legacy = TRUE)
+  on.exit(options(op), add = TRUE)
   known <- list_survlearners()$learner
   if (!model %in% known) stop("Unknown model ", sQuote(model), ".", call. = FALSE)
   parsed <- .parse_surv_formula(formula, data)
