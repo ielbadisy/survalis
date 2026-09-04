@@ -24,11 +24,35 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 `survalis` provides a unified framework for survival machine learning in R. It
-supports 20 learners, evaluation metrics, cross-validation, benchmarking, and
+supports 22 learners, evaluation metrics, cross-validation, benchmarking, and
 model-agnostic interpretability methods through a common survival-probability
 matrix (`survmat`) interface.
 
 `survalis` is available on CRAN: <https://CRAN.R-project.org/package=survalis>.
+
+## New in version 2.0.0: the seven-verb interface
+
+```{r, eval = FALSE}
+library(survalis)
+f <- Surv(time, status) ~ age + karno + celltype
+
+m   <- fit(f, veteran, model = "ranger", spec = list(num.trees = 500))
+predict(m, veteran[1:5, ], times = c(90, 180, 365))          # survmat
+evaluate(m, times = c(90, 180, 365), resampling = cv(5))     # resampled metrics
+
+cmp <- compare(f, veteran, models = c("coxph", "ranger", "survdnn"),
+               times = c(90, 180, 365))
+plot(cmp)
+
+plot(interpret(m, "shap", newdata = veteran[1, ], times = 180))
+estimate(f, veteran, model = "ranger", treatment = "trt", tau = 365)
+```
+
+`fit()` / `predict()` / `evaluate()` / `tune()` / `compare()` / `interpret()` /
+`estimate()` cover the whole workflow. The granular `fit_*()` / `predict_*()` /
+`compute_*()` / `benchmark*()` functions from 1.x remain available for the 2.x
+series; see `vignette("from-1.0", package = "survalis")` and
+`?`survalis-deprecated``.
 
 
 

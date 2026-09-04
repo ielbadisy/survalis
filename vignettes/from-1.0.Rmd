@@ -1,0 +1,69 @@
+---
+title: "Moving from survalis 1.x to the 2.0 verbs"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Moving from survalis 1.x to the 2.0 verbs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+run <- requireNamespace("ranger", quietly = TRUE) &&
+  requireNamespace("pec", quietly = TRUE)
+```
+
+survalis 2.0 keeps every 1.x function working. Nothing you have written breaks.
+The granular helpers are now marked internal in the manual and print a one-time
+note per session; they are scheduled to become unexported in 3.0. This vignette
+shows the recommended replacements.
+
+## The mapping
+
+| survalis 1.x | survalis 2.0 |
+|---|---|
+| `fit_ranger(f, data, num.trees = 500)` | `fit(f, data, "ranger", spec = list(num.trees = 500))` |
+| `predict_ranger(m, nd, times)` | `predict(m, nd, times)` |
+| `predict_*()` then `survmat_to_rmst()` | `predict(m, nd, times, type = "rmst", tau = ...)` |
+| `predict_*()` then `survmat_to_quantile()` | `predict(m, nd, times, type = "median")` / `type = "quantile"` |
+| `cv_survlearner(f, data, fit_ranger, predict_ranger, times, folds = 5)` | `evaluate(f, data, "ranger", times = ..., resampling = cv(5))` |
+| `score_survmodel(m, times, metrics)` | `evaluate(m, times = ..., resampling = cv())` |
+| `tune_ranger(f, data, times, param_grid, refit_best = TRUE)` | `tune(f, data, "ranger", grid = param_grid, times = ...)` |
+| `benchmark(f, data, learners, times)` | `compare(f, data, models = learners, times = ...)` |
+| `best_survlearner(bench, metric)` | `print()` a `survalis_compare` (best is flagged) |
+| `compute_pdp(m, data, "karno", times)` | `interpret(m, "pdp", feature = "karno", times = ...)` |
+| `compute_shap(m, nd, data, times)` | `interpret(m, "shap", newdata = nd, times = ...)` |
+| `compute_varimp(m, times)` | `interpret(m, "varimp", times = ...)` |
+| `plot_pdp(res, "karno")` | `plot()` a `survalis_interpret` |
+| `estimate_rmst(m, data, tau, times, trt_col = "trt")` | `estimate(f, data, "<model>", treatment = "trt", tau = ...)` |
+
+## Side-by-side
+
+```{r, eval = run}
+library(survalis)
+f <- Surv(time, status) ~ age + karno + celltype
+
+# 1.x
+m1 <- fit_ranger(f, veteran, num.trees = 200)
+p1 <- predict_ranger(m1, veteran[1:3, ], times = c(90, 180))
+
+# 2.0
+m2 <- fit(f, veteran, "ranger", spec = list(num.trees = 200), seed = 1)
+p2 <- predict(m2, veteran[1:3, ], times = c(90, 180))
+
+round(as.matrix(p2), 3)
+```
+
+## What changed on purpose
+
+* **`predict()` always returns a `survmat`** for the curve types: an
+  `n x length(times)` matrix with the grid in `attr(x, "times")`. The
+  `"t=<time>"` column names are still there, so the `*_survmat()` metric helpers
+  keep accepting it.
+* **`times` is optional.** When omitted, `default_times()` builds a grid over
+  the observed event times and records it on the result (`res$times`), so a run
+  is reproducible.
+* **`evaluate()` / `compare()` take a resampling object** (`cv()`, `holdout()`,
+  `group_cv()`, `bootstrap()`) instead of a bare `folds` integer, and `compare()`
+  evaluates every model on the *same* folds.
+* **`fit()` engine arguments go in `spec`,** not `...`.
