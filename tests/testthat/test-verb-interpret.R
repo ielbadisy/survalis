@@ -22,6 +22,27 @@ test_that("interpret() dispatches pdp / ice / ale with a feature", {
   expect_s3_class(a, "survalis_interpret")
 })
 
+test_that("interpret() dispatches surrogate/tree_surrogate/interaction/counterfactual/calibration", {
+  skip_verb()
+  m <- mk()
+  s <- interpret(m, "surrogate", newdata = veteran[1, , drop = FALSE],
+                 times = c(90, 180), target_time = 180, k = 5)
+  expect_s3_class(s, "survalis_interpret")
+
+  ts <- interpret(m, "tree_surrogate", times = c(90, 180))
+  expect_s3_class(ts, "survalis_interpret")
+
+  ia <- interpret(m, "interaction", times = c(90, 180), target_time = 180, type = "1way")
+  expect_s3_class(ia, "survalis_interpret")
+
+  cf <- interpret(m, "counterfactual", newdata = veteran[1, , drop = FALSE],
+                  times = c(90, 180), target_time = 180)
+  expect_s3_class(cf, "survalis_interpret")
+
+  cal <- interpret(m, "calibration", eval_time = 90, n_boot = 5)
+  expect_s3_class(cal, "survalis_interpret")
+})
+
 test_that("interpret() dispatches varimp / permute alias and shap", {
   skip_verb()
   m <- mk()
@@ -33,6 +54,15 @@ test_that("interpret() dispatches varimp / permute alias and shap", {
   s <- interpret(m, "shap", newdata = veteran[5, ], times = c(90, 180),
                  sample.size = 5)
   expect_s3_class(s, "survalis_interpret")
+})
+
+test_that("interpret() shap_method reaches compute_shap()'s own aggregation method", {
+  skip_verb()
+  m <- mk()
+  agg <- interpret(m, "shap", newdata = veteran[5, ], times = c(90, 180),
+                   sample.size = 5, aggregate = TRUE, shap_method = "integral")
+  expect_s3_class(agg, "survalis_interpret")
+  expect_identical(attr(as.data.frame(agg), "shap_method"), "integral")
 })
 
 test_that("interpret() enforces method-specific required args", {

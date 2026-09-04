@@ -24,7 +24,10 @@ a single time (\code{calibration}) take \code{eval_time} in \code{...} or the so
 value.}
 
 \item{...}{Method-specific arguments, e.g. \code{feature} (pdp / ice / ale),
-\code{target_time} (counterfactual), \code{eval_time} (calibration), \code{K} (survcluster).}
+\code{target_time} (counterfactual), \code{eval_time} (calibration), \code{K}
+(survcluster). For \code{"shap"}, \code{compute_shap()}'s own aggregation \code{method}
+argument (\code{"meanabs"} / \code{"integral"}) is passed as \code{shap_method}, since
+\code{method} here already names the \code{interpret()} dispatch argument.}
 }
 \value{
 A \code{survalis_interpret} object wrapping the underlying \verb{compute_*}

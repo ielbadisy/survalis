@@ -17,7 +17,10 @@
 #'   a single time (`calibration`) take `eval_time` in `...` or the sole `times`
 #'   value.
 #' @param ... Method-specific arguments, e.g. `feature` (pdp / ice / ale),
-#'   `target_time` (counterfactual), `eval_time` (calibration), `K` (survcluster).
+#'   `target_time` (counterfactual), `eval_time` (calibration), `K`
+#'   (survcluster). For `"shap"`, `compute_shap()`'s own aggregation `method`
+#'   argument (`"meanabs"` / `"integral"`) is passed as `shap_method`, since
+#'   `method` here already names the `interpret()` dispatch argument.
 #'
 #' @return A `survalis_interpret` object wrapping the underlying `compute_*`
 #'   result, with `method`, `times`, and a `plot()` method that dispatches to the
@@ -38,6 +41,9 @@ interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..
   if (!inherits(fit, "mlsurv_model")) {
     stop("`fit` must come from fit() / tune().", call. = FALSE)
   }
+  op <- options(survalis.quiet_legacy = TRUE)
+  on.exit(options(op), add = TRUE)
+
   disp <- .interpret_dispatch()
   method <- match.arg(method, names(disp))
   entry <- disp[[method]]
@@ -89,6 +95,12 @@ interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..
         times = times), drop_known(dots, "feature")))
     }),
     shap = list(plot = "plot_shap", run = function(fit, newdata, data, times, dots) {
+      # `method` names interpret()'s own dispatch argument, so compute_shap()'s
+      # aggregation method (also called `method`) is reachable as `shap_method`.
+      if (!is.null(dots$shap_method)) {
+        dots$method <- dots$shap_method
+        dots$shap_method <- NULL
+      }
       do.call(compute_shap, c(list(model = fit, newdata = newdata[1, , drop = FALSE],
         baseline_data = data, times = times), dots))
     }),
@@ -111,8 +123,10 @@ interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..
         times = times, target_time = tt), drop_known(dots, "target_time")))
     }),
     surrogate = list(plot = "plot_surrogate", run = function(fit, newdata, data, times, dots) {
+      tt <- need(dots, "target_time", "surrogate")
       do.call(compute_surrogate, c(list(model = fit, newdata = newdata,
-        baseline_data = data), dots))
+        baseline_data = data, times = times, target_time = tt),
+        drop_known(dots, "target_time")))
     }),
     tree_surrogate = list(plot = "plot_tree_surrogate", run = function(fit, newdata, data, times, dots) {
       do.call(compute_tree_surrogate, c(list(model = fit, data = data, times = times), dots))
