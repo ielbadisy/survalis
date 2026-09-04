@@ -45,17 +45,35 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
   times <- .resolve_times(times, data[[parsed$time_col]], status)
 
   tuner <- get(paste0("tune_", model), envir = asNamespace("survalis"))
+  tf <- names(formals(tuner))
   args <- list(formula = formula, data = data, times = times,
                metrics = metric, folds = resampling$params$v,
-               seed = .null_default(resampling$params$seed, 123L),
-               ncores = ncores, refit_best = TRUE, ...)
+               seed = .null_default(resampling$params$seed, 123L))
+  if ("ncores" %in% tf) args$ncores <- ncores
   if (!is.null(grid)) args$param_grid <- grid
-  best_model <- do.call(tuner, args)
+  dots <- list(...)
+  if (length(dots) && "..." %in% tf) args <- c(args, dots)
 
-  results <- attr(best_model, "tuning_results")
+  if ("refit_best" %in% tf) {
+    args$refit_best <- TRUE
+    best_model <- do.call(tuner, args)
+    results <- as.data.frame(attr(best_model, "tuning_results"))
+  } else {
+    results <- as.data.frame(do.call(tuner, args))
+    if ("failed" %in% names(results)) {
+      keep <- !as.logical(results$failed)
+      if (any(keep)) results <- results[keep, , drop = FALSE]
+    }
+    results <- as.data.frame(.arrange_by_metric_dt(results, metric, .metric_maximize(metric)))
+    param_cols0 <- setdiff(names(results), c(intersect(names(results), list_metrics()$metric), "failed"))
+    spec0 <- as.list(results[1, param_cols0, drop = FALSE])
+    fit_fun <- get(paste0("fit_", model), envir = asNamespace("survalis"))
+    best_model <- do.call(fit_fun, c(list(formula = formula, data = data), spec0))
+  }
+
   metric_cols <- intersect(names(results), list_metrics()$metric)
-  param_cols <- setdiff(names(results), metric_cols)
-  best_row <- as.data.frame(results)[1, , drop = FALSE]
+  param_cols <- setdiff(names(results), c(metric_cols, "failed"))
+  best_row <- results[1, , drop = FALSE]
   spec <- as.list(best_row[, param_cols, drop = FALSE])
 
   fit_obj <- .as_survalis_fit(best_model, model_id = model, spec = spec,
