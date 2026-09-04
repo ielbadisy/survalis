@@ -10,3 +10,4 @@
 /survalis.Rcheck/
 /survalis_*.tar.gz
 /README.html
+tests/testthat/errors.log
