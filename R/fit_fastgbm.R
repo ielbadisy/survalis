@@ -26,8 +26,8 @@
 #'   \code{learner} (\code{"fastgbm"}), \code{formula}, \code{data}, \code{time},
 #'   \code{status}, and \code{objective}.
 #'
-#' @seealso \code{\link{predict_fastgbm}}, \code{\link{tune_fastgbm}},
-#'   \code{\link[fastgbm]{fastgbm}}
+#' @seealso \code{\link{predict_fastgbm}}, \code{\link[fastgbm]{fastgbm}},
+#'   \code{\link{fit}} for the verb interface
 #'
 #' @examplesIf requireNamespace("fastgbm", quietly = TRUE)
 #' mod <- fit_fastgbm(Surv(time, status) ~ age + karno + celltype, veteran,

@@ -28,8 +28,8 @@
 #'   \code{learner} (\code{"densemlp"}), \code{formula}, \code{data},
 #'   \code{time}, \code{status}, and \code{loss}.
 #'
-#' @seealso \code{\link{predict_densemlp}}, \code{\link{tune_densemlp}},
-#'   \code{\link[densemlp]{densemlp}}
+#' @seealso \code{\link{predict_densemlp}}, \code{\link[densemlp]{densemlp}},
+#'   \code{\link{fit}} for the verb interface
 #'
 #' @examplesIf requireNamespace("densemlp", quietly = TRUE)
 #' mod <- fit_densemlp(Surv(time, status) ~ age + karno + celltype, veteran,

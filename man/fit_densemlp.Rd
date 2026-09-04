@@ -61,7 +61,7 @@ summary(mod)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link{predict_densemlp}}, \code{\link{tune_densemlp}},
-\code{\link[densemlp]{densemlp}}
+\code{\link{predict_densemlp}}, \code{\link[densemlp]{densemlp}},
+\code{\link{fit}} for the verb interface
 }
 \keyword{internal}

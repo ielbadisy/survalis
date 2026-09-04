@@ -59,7 +59,7 @@ summary(mod)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link{predict_fastgbm}}, \code{\link{tune_fastgbm}},
-\code{\link[fastgbm]{fastgbm}}
+\code{\link{predict_fastgbm}}, \code{\link[fastgbm]{fastgbm}},
+\code{\link{fit}} for the verb interface
 }
 \keyword{internal}
