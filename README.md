@@ -118,6 +118,9 @@ plot_dca(dca)
 
 ``` r
 library(survalis)
+#> Registered S3 method overwritten by 'survalis':
+#>   method       from    
+#>   plot.formula graphics
 # See all available learners
 list_survlearners()
 #>             learner                 fit                 predict
@@ -404,7 +407,7 @@ table, in the spirit of `survminer::ggsurvplot()` but implemented
 natively (no dependency on survminer).
 
 ``` r
-plot_survcurve(Surv(time, status) ~ trt, data = veteran)
+plot(Surv(time, status) ~ trt, data = veteran)
 #> Warning: Removed 2 rows containing missing values or values outside the scale range
 #> (`geom_ribbon()`).
 ```

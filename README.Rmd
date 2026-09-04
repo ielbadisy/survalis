@@ -216,7 +216,7 @@ of `survminer::ggsurvplot()` but implemented natively (no dependency on
 survminer).
 
 ```{r}
-plot_survcurve(Surv(time, status) ~ trt, data = veteran)
+plot(Surv(time, status) ~ trt, data = veteran)
 ```
 
 
