@@ -51,6 +51,8 @@ Imports:
     unsurv,
     randomForestSRC,
     xgboost,
+    fastgbm,
+    densemlp,
     CoxBoost,
     BART,
     flexsurv,
