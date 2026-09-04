@@ -56,3 +56,4 @@ predict_survsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "weibul
 \seealso{
 \code{\link[=fit_survsvm]{fit_survsvm()}}, \code{\link[=tune_survsvm]{tune_survsvm()}}
 }
+\keyword{internal}

@@ -40,6 +40,7 @@
 #'   mc.cores = 1,
 #'   seed = 42
 #' )
+#' @keywords internal
 #' @export
 
 
@@ -127,6 +128,7 @@ fit_bart <- function(formula, data, K = 3, ...) {
 #'   seed = 42
 #' )
 #' predict_bart(mod_bart, newdata = ex_data[1:5, ], times = c(10, 30, 60))
+#' @keywords internal
 #' @export
 
 
@@ -254,6 +256,7 @@ predict_bart <- function(object, newdata, times) {
 #' )
 #' summary(mod_bart)
 #' }
+#' @keywords internal
 #' @export
 
 tune_bart <- function(formula, data, times,

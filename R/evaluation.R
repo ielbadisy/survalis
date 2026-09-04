@@ -431,6 +431,11 @@ ise_survmat <- function(object, sp_matrix, times) {
 #'
 #' @return A named numeric scalar: \code{"ece"}.
 #'
+#' @seealso The calibration *curve* is available as
+#'   \code{interpret(fit, method = "calibration")} (via
+#'   \code{compute_calibration()}); \code{ece_survmat()} is the scalar summary of
+#'   the same idea used by \code{evaluate(metrics = "ece")}.
+#'
 #' @examples
 #' y <- survival::Surv(
 #'   time = c(1, 2, 3, 4, 6, 7, 8, 9),
@@ -621,6 +626,7 @@ round(ece, 6)
 #' @seealso \code{\link[functionals]{fmapn}}
 #' @importFrom functionals fmapn
 #' @keywords survival cross-validation fmapn parallel
+#' @keywords internal
 #' @export
 
 cv_survlearner <- function(formula, data,
@@ -633,6 +639,7 @@ cv_survlearner <- function(formula, data,
   ncores = 1,
   pb = interactive(),
   ...) {
+  .legacy_notice()
 
 if ("." %in% all.vars(update(formula, . ~ 0))) {
 warning("Please avoid using '.' in the formula. Specify all predictors explicitly.")
@@ -717,9 +724,11 @@ data.table::data.table(
 #'   value = c(0.62, 0.66, 0.19, 0.21)
 #' )
 #' cv_summary(cv_results)
+#' @keywords internal
 #' @export
 
 cv_summary <- function(cv_results, digits = 3) {
+  .legacy_notice()
   DT <- data.table::as.data.table(cv_results)
   out <- DT[, list(
     mean = mean(value, na.rm = TRUE),
@@ -753,9 +762,11 @@ cv_summary <- function(cv_results, digits = 3) {
 #'   value = c(0.62, 0.66, 0.19, 0.21)
 #' )
 #' cv_plot(cv_results)
+#' @keywords internal
 #' @export
 
 cv_plot <- function(cv_results, title) {
+  .legacy_notice()
   if (missing(title)) title <- "Cross-Validation Performance"
   p <- ggplot(cv_results, aes(x = metric, y = value)) +
     geom_boxplot(fill = .survalis_palette[1], outlier.shape = NA, alpha = 0.3) +
@@ -794,9 +805,11 @@ cv_plot <- function(cv_results, title) {
 #'   times = c(80, 160),
 #'   metrics = c("cindex", "ibs")
 #' )
+#' @keywords internal
 #' @export
 
 score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", "iae", "ise")) {
+  .legacy_notice()
   stopifnot(inherits(model, "mlsurv_model"))
   stopifnot(!missing(times))
 

@@ -46,6 +46,7 @@
 #' predict_stpm2(mod_stpm2, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #' summary(mod_stpm2)
 #'
+#' @keywords internal
 #' @export
 
 fit_stpm2 <- function(formula, data, df = 4, ...) {
@@ -99,6 +100,7 @@ fit_stpm2 <- function(formula, data, df = 4, ...) {
 #'                        data = veteran, df = 4)
 #' predict_stpm2(mod_stpm2, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
+#' @keywords internal
 #' @export
 
 predict_stpm2 <- function(object, newdata, times, ...) {

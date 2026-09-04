@@ -84,9 +84,11 @@
 #'                           trt_col = "trt", R = 20, seed = 1)
 #' contrast$estimate
 #' }
+#' @keywords internal
 #' @export
 estimate_rmst <- function(model, data, tau, times, trt_col = NULL,
                           R = 200, conf = 0.95, seed = NULL) {
+  .legacy_notice()
   if (is.null(model$learner) || !exists(paste0("predict_", model$learner))) {
     stop("Could not infer prediction function. Ensure model was created using fit_*() and includes a valid 'learner'.")
   }

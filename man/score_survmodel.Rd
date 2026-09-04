@@ -41,3 +41,4 @@ score_survmodel(
   metrics = c("cindex", "ibs")
 )
 }
+\keyword{internal}

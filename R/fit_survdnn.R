@@ -69,6 +69,7 @@
 #'   print(pred)
 #' }
 #'
+#' @keywords internal
 #' @export
 
 fit_survdnn <- function(formula, data,
@@ -168,6 +169,7 @@ fit_survdnn <- function(formula, data,
 #'   print(pred)
 #' }
 #'
+#' @keywords internal
 #' @export
 
 predict_survdnn <- function(object, newdata, times = NULL,
@@ -265,6 +267,7 @@ predict_survdnn <- function(object, newdata, times = NULL,
 #' }
 #' }
 #'
+#' @keywords internal
 #' @export
 
 tune_survdnn <- function(formula, data, times,

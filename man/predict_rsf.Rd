@@ -46,3 +46,4 @@ print(round(pred_probs, 3))
 \seealso{
 \code{\link[=fit_rsf]{fit_rsf()}}, \code{\link[randomForestSRC]{predict.rfsrc}}
 }
+\keyword{internal}

@@ -77,3 +77,4 @@ summary(mod_ranger_best)
 \seealso{
 \code{\link{fit_ranger}}, \code{\link{predict_ranger}}
 }
+\keyword{internal}

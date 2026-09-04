@@ -39,6 +39,7 @@
 #' @examplesIf requireNamespace("pec", quietly = TRUE)
 #' mod <- fit_selectcox(Surv(time, status) ~ age + celltype + karno, data = veteran)
 #'
+#' @keywords internal
 #' @export
 
 fit_selectcox <- function(formula, data, rule = "aic") {
@@ -81,6 +82,7 @@ fit_selectcox <- function(formula, data, rule = "aic") {
 #' mod <- fit_selectcox(Surv(time, status) ~ age + celltype + karno, data = veteran)
 #' predict_selectcox(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
+#' @keywords internal
 #' @export
 
 predict_selectcox <- function(object, newdata, times) {
@@ -161,6 +163,7 @@ predict_selectcox <- function(object, newdata, times) {
 #'
 #' summary(mod_selectcox)
 #'
+#' @keywords internal
 #' @export
 
 tune_selectcox <- function(formula, data, times,

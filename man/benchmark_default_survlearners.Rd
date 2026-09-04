@@ -82,3 +82,4 @@ head(res)
 \seealso{
 \code{\link[=cv_survlearner]{cv_survlearner()}}, \code{\link[=plot_benchmark]{plot_benchmark()}}, \code{\link[=summarise_benchmark]{summarise_benchmark()}}
 }
+\keyword{internal}

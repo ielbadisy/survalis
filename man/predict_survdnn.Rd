@@ -59,3 +59,4 @@ if (requireNamespace("survdnn", quietly = TRUE) &&
 \seealso{
 \code{\link[=fit_survdnn]{fit_survdnn()}}, \code{\link[=tune_survdnn]{tune_survdnn()}}
 }
+\keyword{internal}

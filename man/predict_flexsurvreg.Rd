@@ -34,3 +34,4 @@ mod_flex <- fit_flexsurvreg(Surv(time, status) ~ age + celltype + karno,
 predict_flexsurvreg(mod_flex, newdata = veteran[1:5, ],
                     times = c(100, 200, 300))
 }
+\keyword{internal}

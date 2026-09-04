@@ -37,3 +37,4 @@ Generates survival-probability predictions from a CoxBoost
 \seealso{
 \code{\link[=fit_coxboost]{fit_coxboost()}}, \code{\link[=tune_coxboost]{tune_coxboost()}}
 }
+\keyword{internal}

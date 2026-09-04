@@ -4,10 +4,35 @@
 \name{survalis-package}
 \alias{survalis}
 \alias{survalis-package}
-\title{SurvALIS: Interpretable Survival Machine Learning}
+\title{survalis: Interpretable Survival Machine Learning}
 \description{
-Core learners, tuning, evaluation, and interpretability utilities for survival analysis.
+survalis provides a unified interface for fitting, predicting, evaluating,
+tuning, comparing, interpreting and standardising survival machine-learning
+models across 22 learners.
 }
+\section{The seven verbs}{
+
+The recommended interface, consistent with the \pkg{funcml} package:
+\describe{
+\item{\code{\link[=fit]{fit()}}}{fit a learner by id, returning a \code{survalis_fit}.}
+\item{\code{\link[=predict]{predict()}}}{typed predictions on a recorded time grid
+(\code{"survival"}, \code{"risk"}, \code{"chf"}, \code{"hazard"}, \code{"rmst"}, \code{"quantile"},
+\code{"median"}).}
+\item{\code{\link[=evaluate]{evaluate()}}}{resampled performance for a fit or a formula.}
+\item{\code{\link[=tune]{tune()}}}{grid search, returning the refit best model.}
+\item{\code{\link[=compare]{compare()}}}{paired multi-model leaderboard on shared folds.}
+\item{\code{\link[=interpret]{interpret()}}}{one entry point to the explanation methods.}
+\item{\code{\link[=estimate]{estimate()}}}{standardised binary-treatment contrast by
+G-computation.}
+}
+Resampling is described by \code{\link[=cv]{cv()}}, \code{\link[=holdout]{holdout()}}, \code{\link[=group_cv]{group_cv()}} and
+\code{\link[=bootstrap]{bootstrap()}}. Discover components with \code{\link[=list_survlearners]{list_survlearners()}},
+\code{\link[=list_metrics]{list_metrics()}} and \code{\link[=list_interpretability_methods]{list_interpretability_methods()}}.
+
+The granular \verb{fit_*()} / \verb{predict_*()} / \verb{tune_*()} / \verb{compute_*()} /
+\verb{benchmark*()} functions remain available; see \verb{?}survalis-deprecated``.
+}
+
 \seealso{
 Useful links:
 \itemize{

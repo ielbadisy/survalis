@@ -69,3 +69,4 @@ via \code{mboost::CoxPH()}. Use \code{mstop} and \code{nu} to control complexity
 Bühlmann P, Hothorn T (2007). Boosting algorithms: regularization, prediction
 and model fitting. \emph{Statistical Science}.
 }
+\keyword{internal}

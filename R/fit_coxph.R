@@ -30,6 +30,7 @@
 #' mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
 #' summary(mod_cox)
 #'
+#' @keywords internal
 #' @export
 
 fit_coxph <- function(formula, data, ...) {
@@ -72,6 +73,7 @@ fit_coxph <- function(formula, data, ...) {
 #' mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
 #' predict_coxph(mod_cox, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
+#' @keywords internal
 #' @export
 
 predict_coxph <- function(object, newdata, times) {

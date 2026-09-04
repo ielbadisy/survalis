@@ -41,3 +41,4 @@ mod_flex <- fit_flexsurvreg(Surv(time, status) ~ age + celltype + karno,
                             data = veteran,
                             dist = "weibull")
 }
+\keyword{internal}

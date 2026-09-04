@@ -47,3 +47,4 @@ predict_bart(mod_bart, newdata = ex_data[1:5, ], times = c(10, 30, 60))
 \seealso{
 \code{\link{fit_bart}}, \code{\link[BART]{surv.bart}}
 }
+\keyword{internal}

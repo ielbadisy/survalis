@@ -1,0 +1,86 @@
+---
+title: "Standardised treatment contrasts with estimate()"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Standardised treatment contrasts with estimate()}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+run <- requireNamespace("survival", quietly = TRUE) &&
+  requireNamespace("pec", quietly = TRUE)
+```
+
+`estimate()` turns any survalis learner into a plug-in **G-computation**
+(outcome-standardisation) estimator of a covariate-adjusted contrast between the
+two levels of a binary treatment.
+
+## What it computes
+
+Given `formula = Surv(time, status) ~ x1 + x2` (the right-hand side lists the
+**confounders**) and `treatment = "a"`, `estimate()`:
+
+1. fits the working model `Surv(time, status) ~ a * (x1 + x2)` with the chosen
+   learner,
+2. sets `a` to each level for **every** subject and predicts
+   $\hat S(t \mid X_i, a)$,
+3. averages over subjects to get counterfactual mean curves
+   $\bar S_a(t) = n^{-1} \sum_i \hat S(t \mid X_i, a)$,
+4. contrasts them into one of
+
+   | `estimand`        | quantity |
+   |-------------------|----------|
+   | `"RMST_diff"`     | $\int_0^\tau \bar S_1 - \int_0^\tau \bar S_0$ |
+   | `"RMST_ratio"`    | $\int_0^\tau \bar S_1 \big/ \int_0^\tau \bar S_0$ |
+   | `"survival_diff"` | $\bar S_1(\tau) - \bar S_0(\tau)$ |
+   | `"survival_ratio"`| $\bar S_1(\tau) \big/ \bar S_0(\tau)$ |
+
+## Example
+
+```{r, eval = run}
+library(survalis)
+
+est <- estimate(
+  Surv(time, status) ~ age + karno + celltype, data = veteran,
+  model = "coxph", estimand = "RMST_diff",
+  treatment = "trt", tau = 300,
+  R = 100, seed = 1
+)
+est
+```
+
+```{r, eval = run, fig.width = 6, fig.height = 4}
+plot(est)
+```
+
+## Inference
+
+The confidence interval is a nonparametric **subject bootstrap**. By default
+(`refit = TRUE`) the working model is refitted inside every replicate, so the
+interval reflects model-estimation error as well as sampling variability. For an
+expensive learner you can set `refit = FALSE` to get an interval that is
+*conditional on the fitted model* -- faster, but narrower than it should be.
+
+```{r, eval = run}
+summary(est)
+```
+
+## Assumptions
+
+`estimate()` is a **plug-in G-formula** estimator. It is *not* doubly robust and
+carries no protection against outcome-model misspecification beyond the
+treatment-by-confounder interactions it adds automatically. The estimate has a
+causal interpretation only under:
+
+* **consistency** -- the observed outcome equals the potential outcome under the
+  treatment actually received;
+* **no unmeasured confounding** given the covariates in `formula`;
+* **positivity** -- both treatment levels are possible for every covariate
+  pattern;
+* **no interference** between subjects;
+* a **correctly specified** outcome model.
+
+For a non-manipulable attribute (sex, a biomarker), read the result as a
+covariate-adjusted marginal contrast, not an effect.

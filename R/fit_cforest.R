@@ -34,6 +34,7 @@
 #' mod <- fit_cforest(Surv(time, status) ~ age + celltype + karno, data = veteran)
 #' head(predict_cforest(mod, newdata = veteran[1:5, ], times = c(100, 200)))
 #'
+#' @keywords internal
 #' @export
 
 fit_cforest <- function(formula, data,
@@ -98,6 +99,7 @@ fit_cforest <- function(formula, data,
 #' mod <- fit_cforest(Surv(time, status) ~ age + celltype + karno, data = veteran)
 #' predict_cforest(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
+#' @keywords internal
 #' @export
 
 predict_cforest <- function(object, newdata, times, ...) {
@@ -178,6 +180,7 @@ predict_cforest <- function(object, newdata, times, ...) {
 #' )
 #' print(res)
 #'
+#' @keywords internal
 #' @export
 
 tune_cforest <- function(formula, data, times,

@@ -44,6 +44,7 @@
 #'   )
 #'   }
 #'
+#' @keywords internal
 #' @export
 
 fit_xgboost <- function(formula, data,
@@ -142,6 +143,7 @@ fit_xgboost <- function(formula, data,
 #'   predict_xgboost(mod_xgb, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #' }
 #'
+#' @keywords internal
 #' @export
 
 predict_xgboost <- function(object, newdata, times = NULL) {
@@ -231,6 +233,7 @@ predict_xgboost <- function(object, newdata, times = NULL) {
 #'   head(res_xgb)
 #' }
 #'
+#' @keywords internal
 #' @export
 
 

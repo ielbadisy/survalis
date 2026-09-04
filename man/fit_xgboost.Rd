@@ -71,3 +71,4 @@ follow the Cox objective convention.
 \seealso{
 \code{\link[=predict_xgboost]{predict_xgboost()}}, \code{\link[=tune_xgboost]{tune_xgboost()}}
 }
+\keyword{internal}

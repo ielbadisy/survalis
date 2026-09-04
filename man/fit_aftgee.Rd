@@ -49,3 +49,4 @@ head(predict_aftgee(mod, newdata = veteran[1:5, ], times = c(20, 60, 120)))
 Jin, Z., Lin, D. Y., Wei, L. J., & Ying, Z. (2003). Rank-based inference for the
 accelerated failure time model. \emph{Biometrika}, 90(2), 341-353.
 }
+\keyword{internal}

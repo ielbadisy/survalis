@@ -67,3 +67,4 @@ best_mod <- tune_flexsurvreg(Surv(time, status) ~ age + karno + celltype,
                              refit_best = TRUE)
 summary(best_mod)
 }
+\keyword{internal}

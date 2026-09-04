@@ -33,3 +33,4 @@ summarize_benchmark_results(res, digits = 2)
 \seealso{
 \code{\link[=summarise_benchmark]{summarise_benchmark()}}, \code{\link[=benchmark_default_survlearners]{benchmark_default_survlearners()}}
 }
+\keyword{internal}

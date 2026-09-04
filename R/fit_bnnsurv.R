@@ -49,6 +49,7 @@
 #' )
 #' head(predict_bnnsurv(mod, newdata = veteran[1:5, ], times = c(50, 100)))
 #'
+#' @keywords internal
 #' @export
 
 fit_bnnsurv <- function(formula, data,
@@ -114,6 +115,7 @@ fit_bnnsurv <- function(formula, data,
 #' pred <- predict_bnnsurv(mod, newdata = veteran[1:3, ], times = c(50, 100, 200))
 #' pred
 #'
+#' @keywords internal
 #' @export
 
 predict_bnnsurv <- function(object, newdata, times = NULL) {
@@ -207,6 +209,7 @@ predict_bnnsurv <- function(object, newdata, times = NULL) {
 #' head(predict_bnnsurv(best, newdata = veteran[1:5, ], times = c(50, 100)))
 #' }
 #' 
+#' @keywords internal
 #' @export
 
 tune_bnnsurv <- function(formula, data, times,

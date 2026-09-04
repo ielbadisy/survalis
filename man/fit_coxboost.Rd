@@ -67,3 +67,4 @@ partial likelihood that updates one covariate per boosting step
 \seealso{
 \code{\link[=predict_coxboost]{predict_coxboost()}}, \code{\link[=tune_coxboost]{tune_coxboost()}}
 }
+\keyword{internal}

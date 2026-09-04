@@ -100,3 +100,4 @@ if (requireNamespace("survdnn", quietly = TRUE) &&
 \seealso{
 \code{\link[=fit_survdnn]{fit_survdnn()}}, \code{\link[=predict_survdnn]{predict_survdnn()}}
 }
+\keyword{internal}

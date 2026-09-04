@@ -1,8 +1,31 @@
 # R/survalis-package.R
 
-#' SurvALIS: Interpretable Survival Machine Learning
+#' survalis: Interpretable Survival Machine Learning
 #'
-#' Core learners, tuning, evaluation, and interpretability utilities for survival analysis.
+#' survalis provides a unified interface for fitting, predicting, evaluating,
+#' tuning, comparing, interpreting and standardising survival machine-learning
+#' models across 22 learners.
+#'
+#' @section The seven verbs:
+#' The recommended interface, consistent with the \pkg{funcml} package:
+#' \describe{
+#'   \item{[fit()]}{fit a learner by id, returning a `survalis_fit`.}
+#'   \item{[predict()]}{typed predictions on a recorded time grid
+#'     (`"survival"`, `"risk"`, `"chf"`, `"hazard"`, `"rmst"`, `"quantile"`,
+#'     `"median"`).}
+#'   \item{[evaluate()]}{resampled performance for a fit or a formula.}
+#'   \item{[tune()]}{grid search, returning the refit best model.}
+#'   \item{[compare()]}{paired multi-model leaderboard on shared folds.}
+#'   \item{[interpret()]}{one entry point to the explanation methods.}
+#'   \item{[estimate()]}{standardised binary-treatment contrast by
+#'     G-computation.}
+#' }
+#' Resampling is described by [cv()], [holdout()], [group_cv()] and
+#' [bootstrap()]. Discover components with [list_survlearners()],
+#' [list_metrics()] and [list_interpretability_methods()].
+#'
+#' The granular `fit_*()` / `predict_*()` / `tune_*()` / `compute_*()` /
+#' `benchmark*()` functions remain available; see `?`survalis-deprecated``.
 #'
 #' @keywords internal
 "_PACKAGE"
@@ -86,5 +109,7 @@ utils::globalVariables(c(
   "threshold","net_benefit","strategy","specificity","sensitivity",
   "tau","estimate","lo","hi","scaled_value",
   # new: compute_survcluster/plot_survcluster
-  "survival","subject","cluster"
+  "survival","subject","cluster",
+  # new in 1.3.0: verb result plot methods
+  "model","arm"
 ))

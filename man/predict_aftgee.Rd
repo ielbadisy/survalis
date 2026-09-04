@@ -36,3 +36,4 @@ For production use, prefer a parametric AFT fit where \eqn{\sigma} is estimated.
   predict_aftgee(mod, newdata = veteran[1:5, ], times = c(20, 60, 120))
 \dontshow{\}) # examplesIf}
 }
+\keyword{internal}

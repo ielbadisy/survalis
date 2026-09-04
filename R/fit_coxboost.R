@@ -42,6 +42,7 @@
 #'   )
 #'   }
 #'
+#' @keywords internal
 #' @export
 
 fit_coxboost <- function(formula, data,
@@ -110,6 +111,7 @@ fit_coxboost <- function(formula, data,
 #'   predict_coxboost(mod_cb, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #' }
 #'
+#' @keywords internal
 #' @export
 
 predict_coxboost <- function(object, newdata, times = NULL) {
@@ -180,6 +182,7 @@ predict_coxboost <- function(object, newdata, times = NULL) {
 #'   head(res_cb)
 #' }
 #'
+#' @keywords internal
 #' @export
 
 tune_coxboost <- function(formula, data, times,

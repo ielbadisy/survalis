@@ -26,3 +26,4 @@ with \code{\link{fit_aalen}}.
   head(predict_aalen(mod, newdata = veteran[1:5, ], times = 0:10))
 }
 }
+\keyword{internal}

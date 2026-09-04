@@ -81,3 +81,4 @@ summary(mod_bart)
 \seealso{
 \code{\link{fit_bart}}, \code{\link{predict_bart}}, \code{\link[BART]{surv.bart}}
 }
+\keyword{internal}

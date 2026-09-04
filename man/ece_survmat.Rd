@@ -47,3 +47,9 @@ y <- survival::Surv(
 sp <- cbind("t=5" = c(0.15, 0.20, 0.35, 0.40, 0.55, 0.65, 0.75, 0.80))
 ece_survmat(y, sp_matrix = sp, t_star = 5, n_bins = 4)
 }
+\seealso{
+The calibration \emph{curve} is available as
+\code{interpret(fit, method = "calibration")} (via
+\code{compute_calibration()}); \code{ece_survmat()} is the scalar summary of
+the same idea used by \code{evaluate(metrics = "ece")}.
+}

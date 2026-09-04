@@ -39,6 +39,7 @@
 #' pred_probs <- predict_rsf(mod_rsf, newdata = veteran[1:5, ], times = times)
 #' print(round(pred_probs, 3))
 #'
+#' @keywords internal
 #' @export
 
 fit_rsf <- function(formula, data,
@@ -101,6 +102,7 @@ fit_rsf <- function(formula, data,
 #' pred_probs <- predict_rsf(mod_rsf, newdata = veteran[1:5, ], times = times)
 #' print(round(pred_probs, 3))
 #'
+#' @keywords internal
 #' @export
 
 predict_rsf <- function(object, newdata, times = NULL, ...) {
@@ -181,6 +183,7 @@ predict_rsf <- function(object, newdata, times = NULL, ...) {
 #'
 #' summary(mod_rsf_best)
 #' }
+#' @keywords internal
 #' @export
 
 tune_rsf <- function(formula, data, times,

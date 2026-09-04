@@ -66,3 +66,4 @@ mod <- fit_cforest(Surv(time, status) ~ age + celltype + karno, data = veteran)
 head(predict_cforest(mod, newdata = veteran[1:5, ], times = c(100, 200)))
 \dontshow{\}) # examplesIf}
 }
+\keyword{internal}

@@ -92,3 +92,4 @@ summary(mod_selectcox)
 \seealso{
 \code{\link[=fit_selectcox]{fit_selectcox()}}, \code{\link[=predict_selectcox]{predict_selectcox()}}, \code{pec::selectCox()}
 }
+\keyword{internal}

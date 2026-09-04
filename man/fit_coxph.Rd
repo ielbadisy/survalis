@@ -41,3 +41,4 @@ mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran
 summary(mod_cox)
 \dontshow{\}) # examplesIf}
 }
+\keyword{internal}

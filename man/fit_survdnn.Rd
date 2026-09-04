@@ -116,3 +116,4 @@ if (requireNamespace("survdnn", quietly = TRUE) &&
 \seealso{
 \code{\link[=predict_survdnn]{predict_survdnn()}}, \code{\link[=tune_survdnn]{tune_survdnn()}}
 }
+\keyword{internal}

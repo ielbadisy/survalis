@@ -75,3 +75,4 @@ res <- tune_cforest(Surv(time, status) ~ age + celltype + karno,
 print(res)
 \dontshow{\}) # examplesIf}
 }
+\keyword{internal}

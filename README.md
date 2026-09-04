@@ -13,12 +13,36 @@ MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.or
 <!-- badges: end -->
 
 `survalis` provides a unified framework for survival machine learning in
-R. It supports 20 learners, evaluation metrics, cross-validation,
+R. It supports 22 learners, evaluation metrics, cross-validation,
 benchmarking, and model-agnostic interpretability methods through a
 common survival-probability matrix (`survmat`) interface.
 
 `survalis` is available on CRAN:
 <https://CRAN.R-project.org/package=survalis>.
+
+## New in version 1.3.0: the seven-verb interface
+
+``` r
+library(survalis)
+f <- Surv(time, status) ~ age + karno + celltype
+
+m   <- fit(f, veteran, model = "ranger", spec = list(num.trees = 500))
+predict(m, veteran[1:5, ], times = c(90, 180, 365))          # survmat
+evaluate(m, times = c(90, 180, 365), resampling = cv(5))     # resampled metrics
+
+cmp <- compare(f, veteran, models = c("coxph", "ranger", "survdnn"),
+               times = c(90, 180, 365))
+plot(cmp)
+
+plot(interpret(m, "shap", newdata = veteran[1, ], times = 180))
+estimate(f, veteran, model = "ranger", treatment = "trt", tau = 365)
+```
+
+`fit()` / `predict()` / `evaluate()` / `tune()` / `compare()` /
+`interpret()` / `estimate()` cover the whole workflow. The granular
+`fit_*()` / `predict_*()` / `compute_*()` / `benchmark*()` functions
+remain fully available; see `vignette("from-1.0", package = "survalis")`
+and `?`survalis-deprecated\`\`.
 
 ## Installation
 
@@ -106,14 +130,16 @@ list_survlearners()
 #> 10:            bart            fit_bart            predict_bart
 #> 11:         xgboost         fit_xgboost         predict_xgboost
 #> 12:        coxboost        fit_coxboost        predict_coxboost
-#> 13:          ranger          fit_ranger          predict_ranger
-#> 14:             rsf             fit_rsf             predict_rsf
-#> 15:         cforest         fit_cforest         predict_cforest
-#> 16:      blackboost      fit_blackboost      predict_blackboost
-#> 17:         survsvm         fit_survsvm         predict_survsvm
-#> 18:         survdnn         fit_survdnn         predict_survdnn
-#> 19:            orsf            fit_orsf            predict_orsf
-#> 20: survmetalearner fit_survmetalearner predict_survmetalearner
+#> 13:         fastgbm         fit_fastgbm         predict_fastgbm
+#> 14:          ranger          fit_ranger          predict_ranger
+#> 15:             rsf             fit_rsf             predict_rsf
+#> 16:         cforest         fit_cforest         predict_cforest
+#> 17:      blackboost      fit_blackboost      predict_blackboost
+#> 18:         survsvm         fit_survsvm         predict_survsvm
+#> 19:         survdnn         fit_survdnn         predict_survdnn
+#> 20:        densemlp        fit_densemlp        predict_densemlp
+#> 21:            orsf            fit_orsf            predict_orsf
+#> 22: survmetalearner fit_survmetalearner predict_survmetalearner
 #>             learner                 fit                 predict
 #>              <char>              <char>                  <char>
 #>                 tune has_fit has_predict has_tune available
@@ -130,14 +156,16 @@ list_survlearners()
 #> 10:        tune_bart    TRUE        TRUE     TRUE      TRUE
 #> 11:     tune_xgboost    TRUE        TRUE     TRUE      TRUE
 #> 12:    tune_coxboost    TRUE        TRUE     TRUE      TRUE
-#> 13:      tune_ranger    TRUE        TRUE     TRUE      TRUE
-#> 14:         tune_rsf    TRUE        TRUE     TRUE      TRUE
-#> 15:     tune_cforest    TRUE        TRUE     TRUE      TRUE
-#> 16:  tune_blackboost    TRUE        TRUE     TRUE      TRUE
-#> 17:     tune_survsvm    TRUE        TRUE     TRUE      TRUE
-#> 18:     tune_survdnn    TRUE        TRUE     TRUE      TRUE
-#> 19:        tune_orsf    TRUE        TRUE     TRUE      TRUE
+#> 13:             <NA>    TRUE        TRUE    FALSE      TRUE
+#> 14:      tune_ranger    TRUE        TRUE     TRUE      TRUE
+#> 15:         tune_rsf    TRUE        TRUE     TRUE      TRUE
+#> 16:     tune_cforest    TRUE        TRUE     TRUE      TRUE
+#> 17:  tune_blackboost    TRUE        TRUE     TRUE      TRUE
+#> 18:     tune_survsvm    TRUE        TRUE     TRUE      TRUE
+#> 19:     tune_survdnn    TRUE        TRUE     TRUE      TRUE
 #> 20:             <NA>    TRUE        TRUE    FALSE      TRUE
+#> 21:        tune_orsf    TRUE        TRUE     TRUE      TRUE
+#> 22:             <NA>    TRUE        TRUE    FALSE      TRUE
 #>                 tune has_fit has_predict has_tune available
 #>               <char>  <lgcl>      <lgcl>   <lgcl>    <lgcl>
 
@@ -221,29 +249,33 @@ list_tunable_survlearners()
 ``` r
 # List available interpretability methods
 list_interpretability_methods()
-#>                   compute                plot has_compute has_plot
-#>                    <char>              <char>      <lgcl>   <lgcl>
-#> 1:           compute_shap           plot_shap        TRUE     TRUE
-#> 2:            compute_pdp            plot_pdp        TRUE     TRUE
-#> 3:            compute_ale            plot_ale        TRUE     TRUE
-#> 4:      compute_surrogate      plot_surrogate        TRUE     TRUE
-#> 5: compute_tree_surrogate plot_tree_surrogate        TRUE     TRUE
-#> 6:         compute_varimp         plot_varimp        TRUE     TRUE
-#> 7:   compute_interactions   plot_interactions        TRUE     TRUE
-#> 8: compute_counterfactual plot_counterfactual        TRUE     TRUE
+#>                    compute                plot has_compute has_plot
+#>                     <char>              <char>      <lgcl>   <lgcl>
+#>  1:           compute_shap           plot_shap        TRUE     TRUE
+#>  2:            compute_pdp            plot_pdp        TRUE     TRUE
+#>  3:            compute_ale            plot_ale        TRUE     TRUE
+#>  4:      compute_surrogate      plot_surrogate        TRUE     TRUE
+#>  5: compute_tree_surrogate plot_tree_surrogate        TRUE     TRUE
+#>  6:         compute_varimp         plot_varimp        TRUE     TRUE
+#>  7:   compute_interactions   plot_interactions        TRUE     TRUE
+#>  8: compute_counterfactual plot_counterfactual        TRUE     TRUE
+#>  9:    compute_shap_matrix  plot_shap_beeswarm        TRUE     TRUE
+#> 10:    compute_survcluster    plot_survcluster        TRUE     TRUE
 
 # Show which compute_* methods have a plot_* counterpart
 subset(list_interpretability_methods(), !is.na(plot))
-#>                   compute                plot has_compute has_plot
-#>                    <char>              <char>      <lgcl>   <lgcl>
-#> 1:           compute_shap           plot_shap        TRUE     TRUE
-#> 2:            compute_pdp            plot_pdp        TRUE     TRUE
-#> 3:            compute_ale            plot_ale        TRUE     TRUE
-#> 4:      compute_surrogate      plot_surrogate        TRUE     TRUE
-#> 5: compute_tree_surrogate plot_tree_surrogate        TRUE     TRUE
-#> 6:         compute_varimp         plot_varimp        TRUE     TRUE
-#> 7:   compute_interactions   plot_interactions        TRUE     TRUE
-#> 8: compute_counterfactual plot_counterfactual        TRUE     TRUE
+#>                    compute                plot has_compute has_plot
+#>                     <char>              <char>      <lgcl>   <lgcl>
+#>  1:           compute_shap           plot_shap        TRUE     TRUE
+#>  2:            compute_pdp            plot_pdp        TRUE     TRUE
+#>  3:            compute_ale            plot_ale        TRUE     TRUE
+#>  4:      compute_surrogate      plot_surrogate        TRUE     TRUE
+#>  5: compute_tree_surrogate plot_tree_surrogate        TRUE     TRUE
+#>  6:         compute_varimp         plot_varimp        TRUE     TRUE
+#>  7:   compute_interactions   plot_interactions        TRUE     TRUE
+#>  8: compute_counterfactual plot_counterfactual        TRUE     TRUE
+#>  9:    compute_shap_matrix  plot_shap_beeswarm        TRUE     TRUE
+#> 10:    compute_survcluster    plot_survcluster        TRUE     TRUE
 ```
 
 ### List evaluation metrics
@@ -319,6 +351,8 @@ Direct evalution (single split):
 
 ``` r
 score <- score_survmodel(mod_cox, times = c(100, 200), metrics = c("cindex", "ibs"))
+#> Warning: You are calling a granular survalis function directly. The seven-verb interface (fit/predict/evaluate/tune/compare/interpret/estimate) is now recommended; these helpers become internal in a future release. See ?`survalis-deprecated`.
+#> This warning is displayed once per session.
 score
 #>    metric value
 #>    <char> <num>
@@ -391,7 +425,7 @@ summarise_benchmark(bench_res)
 plot_benchmark(bench_res)
 ```
 
-<img src="man/figures/README-unnamed-chunk-12-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-13-1.png" alt="" width="100%" />
 
 **5. Kaplan-Meier curves**
 
@@ -406,7 +440,7 @@ plot_survcurve(Surv(time, status) ~ trt, data = veteran)
 #> (`geom_ribbon()`).
 ```
 
-<img src="man/figures/README-unnamed-chunk-13-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-14-1.png" alt="" width="100%" />
 
 **6. Visualize interpretation**
 
@@ -435,7 +469,7 @@ shap_meanabs
 plot_shap(shap_meanabs)
 ```
 
-<img src="man/figures/README-unnamed-chunk-15-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-16-1.png" alt="" width="100%" />
 
 ### More interpretability methods
 
@@ -457,14 +491,14 @@ pdp_age <- compute_pdp(
 plot_pdp(pdp_age, feature = "age", which = "per_time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-16-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-17-1.png" alt="" width="100%" />
 
 ``` r
 plot_pdp(pdp_age, feature = "age", which = "integrated", smooth = TRUE)
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-<img src="man/figures/README-unnamed-chunk-16-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-17-2.png" alt="" width="100%" />
 
 **Accumulated local effects**
 
@@ -479,14 +513,14 @@ ale_karno <- compute_ale(
 plot_ale(ale_karno, feature = "karno", which = "per_time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-17-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-18-1.png" alt="" width="100%" />
 
 ``` r
 plot_ale(ale_karno, feature = "karno", which = "integrated", smooth = TRUE)
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-<img src="man/figures/README-unnamed-chunk-17-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-18-2.png" alt="" width="100%" />
 
 **Local surrogate explanation**
 
@@ -510,7 +544,7 @@ local_surrogate
 plot_surrogate(local_surrogate, top_n = 10)
 ```
 
-<img src="man/figures/README-unnamed-chunk-18-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-19-1.png" alt="" width="100%" />
 
 **Tree surrogate**
 
@@ -524,7 +558,7 @@ tree_surrogate <- compute_tree_surrogate(
 plot_tree_surrogate(tree_surrogate, type = "importance", top_n = 5)
 ```
 
-<img src="man/figures/README-unnamed-chunk-19-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-20-1.png" alt="" width="100%" />
 
 ``` r
 # plot_tree_surrogate(tree_surrogate, type = "tree")
@@ -553,7 +587,7 @@ varimp_res
 plot_varimp(varimp_res)
 ```
 
-<img src="man/figures/README-unnamed-chunk-20-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-21-1.png" alt="" width="100%" />
 
 **Feature interactions**
 
@@ -584,19 +618,19 @@ interaction_time <- compute_interactions(
 plot_interactions(interaction_1way, type = "1way")
 ```
 
-<img src="man/figures/README-unnamed-chunk-21-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-22-1.png" alt="" width="100%" />
 
 ``` r
 plot_interactions(interaction_heatmap, type = "heatmap")
 ```
 
-<img src="man/figures/README-unnamed-chunk-21-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-22-2.png" alt="" width="100%" />
 
 ``` r
 plot_interactions(interaction_time, type = "time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-21-3.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-22-3.png" alt="" width="100%" />
 
 **Counterfactual explanations**
 
@@ -631,7 +665,7 @@ compute_calibration(
    ) |> plot_calibration()
 ```
 
-<img src="man/figures/README-unnamed-chunk-23-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-24-1.png" alt="" width="100%" />
 
 ## Citing
 

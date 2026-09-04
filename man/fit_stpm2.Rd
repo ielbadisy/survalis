@@ -61,3 +61,4 @@ proportional‑odds models for censored survival data. \emph{Statistics in Medic
 Lambert PC, Royston P, Crowther MJ (2009). Restricted cubic splines for
 non‑proportional hazards. \emph{Statistics in Medicine}.
 }
+\keyword{internal}

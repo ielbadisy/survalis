@@ -52,3 +52,4 @@ predict_survmetalearner(meta_model, newdata = veteran[1:3, ], times = times)
 \seealso{
 \code{\link{fit_survmetalearner}}, \code{\link{plot_survmetalearner_weights}}
 }
+\keyword{internal}

@@ -38,6 +38,7 @@
 
 #'
 #' @importFrom stats model.frame model.matrix model.response terms
+#' @keywords internal
 #' @export
 
 fit_aftgee <- function(formula, data, corstr = "independence") {
@@ -86,6 +87,7 @@ fit_aftgee <- function(formula, data, corstr = "independence") {
 #'   predict_aftgee(mod, newdata = veteran[1:5, ], times = c(20, 60, 120))
 #'
 #' @importFrom stats delete.response model.matrix terms pnorm
+#' @keywords internal
 #' @export
 
 predict_aftgee <- function(object, newdata, times = NULL) {

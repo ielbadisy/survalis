@@ -59,6 +59,7 @@
 #'   data = veteran
 #' )
 #' meta_model$weights
+#' @keywords internal
 #' @export
 
 fit_survmetalearner <- function(base_preds, time, status, times,
@@ -138,6 +139,7 @@ fit_survmetalearner <- function(base_preds, time, status, times,
 #'   data = veteran
 #' )
 #' predict_survmetalearner(meta_model, newdata = veteran[1:3, ], times = times)
+#' @keywords internal
 #' @export
 
 predict_survmetalearner <- function(model, newdata, times) {
