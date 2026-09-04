@@ -1,3 +1,12 @@
+# survalis 1.2.0
+
+* Added `compute_survcluster()` and `plot_survcluster()`: unsupervised
+  clustering of predicted individualized survival curves via
+  `unsurv::unsurv()` (PAM on a weighted curve representation), registered
+  in `list_interpretability_methods()`. Added `unsurv` to `Imports` and
+  its paper's citation (El Badisy 2026, `<doi:10.1093/bioadv/vbag218>`)
+  to `Description`.
+
 # survalis 1.1.0
 
 * Added `screen_fdr()`: univariate-Cox variable screening with

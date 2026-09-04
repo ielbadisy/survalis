@@ -1,7 +1,7 @@
 Package: survalis
 Type: Package
 Title: Interpretable Survival Machine Learning Framework
-Version: 1.1.0
+Version: 1.2.0
 Author: Imad El Badisy [aut, cre]
 Maintainer: Imad El Badisy <elbadisyimad@gmail.com>
 Authors@R: 
@@ -25,7 +25,8 @@ Description: A modular toolkit for interpretable survival machine learning
   <doi:10.1111/rssb.12377>, and Lundberg and Lee (2017)
   <https://papers.nips.cc/paper/7062-a-unified-approach-to-interpreting-model-predictions>,
   and other related methods for survival modeling, prediction, and
-  interpretation.
+  interpretation. Clustering of individualized survival curves is described
+  in El Badisy (2026) <doi:10.1093/bioadv/vbag218>.
 License: MIT + file LICENSE
 URL: https://CRAN.R-project.org/package=survalis
 BugReports: https://github.com/ielbadisy/survalis/issues
@@ -47,6 +48,7 @@ Imports:
     ranger,
     survdnn,
     survivalsvm,
+    unsurv,
     randomForestSRC,
     xgboost,
     CoxBoost,
@@ -73,7 +75,8 @@ Suggests:
     stats,
     utils,
     timeROC,
-    patchwork
+    patchwork,
+    cluster
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Config/testthat/edition: 3

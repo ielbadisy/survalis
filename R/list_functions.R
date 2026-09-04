@@ -78,7 +78,8 @@ list_interpretability_methods <- function() {
     "compute_varimp",
     "compute_interactions",
     "compute_counterfactual",
-    "compute_shap_matrix"
+    "compute_shap_matrix",
+    "compute_survcluster"
   )
 
   plot_candidates <- c(
@@ -90,7 +91,8 @@ list_interpretability_methods <- function() {
     "plot_varimp",
     "plot_interactions",
     "plot_counterfactual",
-    "plot_shap_beeswarm"
+    "plot_shap_beeswarm",
+    "plot_survcluster"
   )
 
   stopifnot(length(compute_candidates) == length(plot_candidates))
