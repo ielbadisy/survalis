@@ -29,7 +29,7 @@ value.}
 \value{
 A \code{survalis_interpret} object wrapping the underlying \verb{compute_*}
 result, with \code{method}, \code{times}, and a \code{plot()} method that dispatches to the
-paired \verb{plot_*} helper.
+paired \verb{plot_*} helper. \code{as.data.frame()} returns the raw result frame.
 }
 \description{
 A single entry point to the package's model-agnostic explanation methods. The
@@ -44,4 +44,9 @@ m <- fit(Surv(time, status) ~ age + karno + celltype, veteran, "ranger",
 interpret(m, "pdp", feature = "karno", times = c(90, 180))
 interpret(m, "varimp", times = c(90, 180))
 \dontshow{\}) # examplesIf}
+}
+\seealso{
+For the scalar calibration summary use
+\code{evaluate(metrics = "ece")} / \code{\link[=ece_survmat]{ece_survmat()}}; \code{method = "calibration"} here
+is the calibration \emph{curve}.
 }

@@ -431,6 +431,11 @@ ise_survmat <- function(object, sp_matrix, times) {
 #'
 #' @return A named numeric scalar: \code{"ece"}.
 #'
+#' @seealso The calibration *curve* is available as
+#'   \code{interpret(fit, method = "calibration")} (via
+#'   \code{compute_calibration()}); \code{ece_survmat()} is the scalar summary of
+#'   the same idea used by \code{evaluate(metrics = "ece")}.
+#'
 #' @examples
 #' y <- survival::Surv(
 #'   time = c(1, 2, 3, 4, 6, 7, 8, 9),

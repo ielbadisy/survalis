@@ -21,7 +21,11 @@
 #'
 #' @return A `survalis_interpret` object wrapping the underlying `compute_*`
 #'   result, with `method`, `times`, and a `plot()` method that dispatches to the
-#'   paired `plot_*` helper.
+#'   paired `plot_*` helper. `as.data.frame()` returns the raw result frame.
+#'
+#' @seealso For the scalar calibration summary use
+#'   `evaluate(metrics = "ece")` / [ece_survmat()]; `method = "calibration"` here
+#'   is the calibration *curve*.
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE)
 #' m <- fit(Surv(time, status) ~ age + karno + celltype, veteran, "ranger",
