@@ -100,13 +100,17 @@ plot_dca(dca)
 
 ## Core philosophy
 
-- Consistent function patterns: `fit_*()`, `predict_*()`, `tune_*()`
-- Learners return standardized `mlsurv_model` objects
-- Predictions return `data.frame` of survival probabilities: `t=100`,
-  `t=200`, …
-- Evaluation is fully modular: plug any `fit_*`/`predict_*` with
-  `cv_survlearner()` or `score_survmodel()`
-- Designed for interpretability post prediction.
+- Seven verbs cover the whole workflow: `fit()`, `predict()`,
+  `evaluate()`, `tune()`, `compare()`, `interpret()`, `estimate()`
+- Every learner returns a standardized `survalis_fit` (a `mlsurv_model`
+  subclass)
+- Matrix predictions return a `survmat`: columns `t=100`, `t=200`, …,
+  with the grid recorded in `attr(x, "times")`
+- Evaluation is fully modular: any learner id works with
+  `evaluate()`/`compare()` under any
+  `cv()`/`holdout()`/`group_cv()`/`bootstrap()` resampling
+- Designed for interpretability post prediction, through a single
+  `interpret()` entry point
 
 ## Exploring the package
 
@@ -317,115 +321,80 @@ list_metrics()
 **1. Fit a model**
 
 ``` r
-mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
-summary(mod_cox)
-#> 
-#> ── coxph summary ───────────────────────────────────────────────────────────────
-#> Formula:
-#> Surv(time, status) ~ age + karno + celltype
-#> Engine: survival
-#> Learner: coxph
-#> Data summary:
-#> - Observations: 137
-#> - Predictors: "age, karno, celltypesmallcell, celltypeadeno, celltypelarge"
-#> - Time range: [1, 999]
-#> - Event rate: "93.4%"
+mod_cox <- fit(Surv(time, status) ~ age + karno + celltype, veteran, model = "coxph")
+mod_cox
+#> <survalis_fit> model = coxph  (engine: survival)
+#>   formula: Surv(time, status) ~ age + karno + celltype
+#>   data:    137 obs, 128 events (93%)
 ```
 
 **2. Predict survival probabilities**
 
 ``` r
-pred <- predict_coxph(mod_cox, newdata = veteran[1:5, ], times = c(100, 200))
+pred <- predict(mod_cox, newdata = veteran[1:5, ], times = c(100, 200))
 pred
-#>       t=100     t=200
-#> 1 0.6142681 0.3541697
-#> 2 0.6944383 0.4599242
-#> 3 0.5556797 0.2860796
-#> 4 0.6033305 0.3408724
-#> 5 0.6959633 0.4620783
+#> <survmat> survival  |  5 obs x 2 times  [100, 200]
+#>          t=100     t=200
+#> [1,] 0.6142681 0.3541697
+#> [2,] 0.6944383 0.4599242
+#> [3,] 0.5556797 0.2860796
+#> [4,] 0.6033305 0.3408724
+#> [5,] 0.6959633 0.4620783
 ```
+
+`predict()` also returns other quantities via `type`: `"risk"` (1 -
+S(t)), `"chf"`, `"hazard"`, `"rmst"`, `"quantile"`, `"median"`.
 
 **3. Evaluate model performance**
 
-Direct evalution (single split):
-
 ``` r
-score <- score_survmodel(mod_cox, times = c(100, 200), metrics = c("cindex", "ibs"))
-#> Warning: You are calling a granular survalis function directly. The seven-verb interface (fit/predict/evaluate/tune/compare/interpret/estimate) is now recommended; these helpers become internal in a future release. See ?`survalis-deprecated`.
-#> This warning is displayed once per session.
-score
-#>    metric value
-#>    <char> <num>
-#> 1: cindex 0.734
-#> 2:    ibs 0.160
+ev <- evaluate(mod_cox, times = c(80, 160), resampling = cv(5, seed = 123))
+ev
+#> <survalis_eval> model = coxph
+#> <survalis_resampling> 5-fold CV, strata = status, seed = 123
+#>   grid: 2 times in [80, 160]
+#>   cindex  0.7180  (sd 0.0530, 95% [0.6720, 0.7640], n = 5)
+#>   ibs     0.1820  (sd 0.0420, 95% [0.1460, 0.2190], n = 5)
 ```
 
 ``` r
-cv_res <- cv_survlearner(
-  Surv(time, status) ~ age + karno + celltype,
-  veteran,
-  fit_coxph,
-  predict_coxph,
-  times  = 80,
-  metrics = c("cindex", "ibs"),
-  folds = 5,
-  seed = 123,
-  verbose = FALSE
-  )
-
-cv_res
-#>                          splits     id  fold metric value
-#>                          <list> <char> <int> <char> <num>
-#>  1: <vfold_split[109x28x137x8]>  Fold1     1 cindex 0.699
-#>  2: <vfold_split[109x28x137x8]>  Fold1     1    ibs 0.227
-#>  3: <vfold_split[109x28x137x8]>  Fold2     2 cindex 0.812
-#>  4: <vfold_split[109x28x137x8]>  Fold2     2    ibs 0.141
-#>  5: <vfold_split[110x27x137x8]>  Fold3     3 cindex 0.695
-#>  6: <vfold_split[110x27x137x8]>  Fold3     3    ibs 0.217
-#>  7: <vfold_split[110x27x137x8]>  Fold4     4 cindex 0.698
-#>  8: <vfold_split[110x27x137x8]>  Fold4     4    ibs 0.188
-#>  9: <vfold_split[110x27x137x8]>  Fold5     5 cindex 0.688
-#> 10: <vfold_split[110x27x137x8]>  Fold5     5    ibs 0.138
+summary(ev)
+#>   metric  mean    sd n    se lower upper
+#> 1 cindex 0.718 0.053 5 0.023 0.672 0.764
+#> 2    ibs 0.182 0.042 5 0.019 0.146 0.219
 ```
 
-``` r
-cv_summary(cv_res)
-#>    metric  mean    sd     n    se lower upper
-#>    <char> <num> <num> <int> <num> <num> <num>
-#> 1: cindex 0.718 0.053     5 0.023 0.672 0.764
-#> 2:    ibs 0.182 0.042     5 0.019 0.146 0.219
-```
+**4. Compare multiple learners**
 
-**4. Benchmark multiple learners**
-
-`benchmark()` is the single entry point for comparing learners:
-`tune = FALSE` (default) runs each with fixed hyperparameters;
-`tune = TRUE` tunes each learner internally via nested cross-validation.
+`compare()` evaluates every learner on the *same* resampling folds, so
+results are paired; `tune = TRUE` tunes each tunable learner first.
 
 ``` r
-bench_res <- benchmark(
+cmp <- compare(
   Surv(time, status) ~ age + karno + celltype,
   data = veteran,
-  learners = c("coxph", "rpart", "ranger"),
+  models = c("coxph", "rpart", "ranger"),
   times = c(80, 160),
-  metrics = c("cindex", "ibs"),
-  folds = 3,
-  seed = 1
+  resampling = cv(3, seed = 1)
   )
 
-summarise_benchmark(bench_res)
-#>    learner metric  mean    sd     n    se lower upper
-#>     <char> <char> <num> <num> <int> <num> <num> <num>
-#> 1:   coxph cindex 0.731 0.033     3 0.019 0.694 0.768
-#> 2:   coxph    ibs 0.179 0.010     3 0.006 0.168 0.190
-#> 3:   rpart cindex 0.707 0.030     3 0.017 0.674 0.741
-#> 4:   rpart    ibs 0.216 0.011     3 0.006 0.204 0.228
-#> 5:  ranger cindex 0.686 0.048     3 0.028 0.632 0.740
-#> 6:  ranger    ibs 0.198 0.006     3 0.003 0.191 0.204
-plot_benchmark(bench_res)
+cmp
+#> <survalis_compare> 3 models
+#> <survalis_resampling> 3-fold CV, strata = status, seed = 1
+#> 
+#>   cindex (higher is better):
+#>    * coxph            0.7307  (se 0.0188)
+#>      rpart            0.7073  (se 0.0171)
+#>      ranger           0.6890  (se 0.0239)
+#> 
+#>   ibs (lower is better):
+#>    * coxph            0.1790  (se 0.0055)
+#>      ranger           0.1990  (se 0.0042)
+#>      rpart            0.2160  (se 0.0062)
+plot(cmp)
 ```
 
-<img src="man/figures/README-unnamed-chunk-13-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-12-1.png" alt="" width="100%" />
 
 **5. Kaplan-Meier curves**
 
@@ -440,142 +409,128 @@ plot_survcurve(Surv(time, status) ~ trt, data = veteran)
 #> (`geom_ribbon()`).
 ```
 
-<img src="man/figures/README-unnamed-chunk-14-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-13-1.png" alt="" width="100%" />
 
 **6. Visualize interpretation**
 
+`interpret()` is the single entry point to every explanation method; its
+`plot()` dispatches to the matching `plot_*()` helper.
+
 ``` r
-shap_meanabs <- compute_shap(
-  model         = mod_cox,
-  newdata       = veteran[100,],
-  baseline_data = veteran,
-  times         = 80,
-  sample.size   = 50,
-  aggregate     = TRUE,
-  method        = "meanabs"
+shap_meanabs <- interpret(
+  mod_cox, "shap",
+  newdata     = veteran[100, ],
+  times       = 80,
+  sample.size = 50,
+  aggregate   = TRUE,
+  shap_method = "meanabs"
   )
 
-shap_meanabs
+as.data.frame(shap_meanabs)
 #>           feature         phi
-#> age           age 0.003908879
-#> celltype celltype 0.005120004
+#> age           age 0.001231928
+#> celltype celltype 0.017380404
 #> diagtime diagtime 0.000000000
-#> karno       karno 0.036640340
+#> karno       karno 0.019501719
 #> prior       prior 0.000000000
 #> trt           trt 0.000000000
 ```
 
 ``` r
-plot_shap(shap_meanabs)
+plot(shap_meanabs)
 ```
 
-<img src="man/figures/README-unnamed-chunk-16-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-15-1.png" alt="" width="100%" />
 
 ### More interpretability methods
 
 `survalis` also provides PDP, ALE, surrogate explanations, tree
 surrogates, permutation importance, interaction analysis, and
-counterfactuals.
+counterfactuals – all through `interpret(fit, method = ..., ...)`.
 
 **Partial dependence and ICE**
 
 ``` r
-pdp_age <- compute_pdp(
-  model = mod_cox,
-  data = veteran,
-  feature = "age",
-  times = c(100, 200, 300),
-  method = "pdp+ice"
-  )
+pdp_age <- interpret(mod_cox, "pdp", feature = "age", times = c(100, 200, 300))
 
-plot_pdp(pdp_age, feature = "age", which = "per_time")
+plot(pdp_age, which = "per_time")
+```
+
+<img src="man/figures/README-unnamed-chunk-16-1.png" alt="" width="100%" />
+
+``` r
+plot(pdp_age, which = "integrated", smooth = TRUE)
+#> `geom_smooth()` using formula = 'y ~ x'
+```
+
+<img src="man/figures/README-unnamed-chunk-16-2.png" alt="" width="100%" />
+
+**Accumulated local effects**
+
+``` r
+ale_karno <- interpret(mod_cox, "ale", feature = "karno", times = c(100, 200, 300))
+
+plot(ale_karno, which = "per_time")
 ```
 
 <img src="man/figures/README-unnamed-chunk-17-1.png" alt="" width="100%" />
 
 ``` r
-plot_pdp(pdp_age, feature = "age", which = "integrated", smooth = TRUE)
+plot(ale_karno, which = "integrated", smooth = TRUE)
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
 <img src="man/figures/README-unnamed-chunk-17-2.png" alt="" width="100%" />
 
-**Accumulated local effects**
-
-``` r
-ale_karno <- compute_ale(
-  model = mod_cox,
-  newdata = veteran,
-  feature = "karno",
-  times = c(100, 200, 300)
-  )
-
-plot_ale(ale_karno, feature = "karno", which = "per_time")
-```
-
-<img src="man/figures/README-unnamed-chunk-18-1.png" alt="" width="100%" />
-
-``` r
-plot_ale(ale_karno, feature = "karno", which = "integrated", smooth = TRUE)
-#> `geom_smooth()` using formula = 'y ~ x'
-```
-
-<img src="man/figures/README-unnamed-chunk-18-2.png" alt="" width="100%" />
-
 **Local surrogate explanation**
 
 ``` r
-local_surrogate <- compute_surrogate(
-  model = mod_cox,
-  newdata = veteran[1, , drop = FALSE],
-  baseline_data = veteran,
-  times = c(100, 200, 300),
+local_surrogate <- interpret(
+  mod_cox, "surrogate",
+  newdata     = veteran[1, , drop = FALSE],
+  times       = c(100, 200, 300),
   target_time = 200,
-  k = 5
+  k           = 5
   )
 
-local_surrogate
+as.data.frame(local_surrogate)
 #>    feature feature_value      effect target_time
 #> 1    karno            60 0.491034890         200
 #> 2 celltype      squamous 0.189632633         200
 #> 3      age            69 0.120729843         200
 #> 4 diagtime             7 0.001800378         200
 #> 5    prior             0 0.000000000         200
-plot_surrogate(local_surrogate, top_n = 10)
+plot(local_surrogate, top_n = 10)
 ```
 
-<img src="man/figures/README-unnamed-chunk-19-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-18-1.png" alt="" width="100%" />
 
 **Tree surrogate**
 
 ``` r
-tree_surrogate <- compute_tree_surrogate(
-  model = mod_cox,
-  data = veteran,
-  times = c(100, 200, 300)
-  )
+tree_surrogate <- interpret(mod_cox, "tree_surrogate", times = c(100, 200, 300))
 
-plot_tree_surrogate(tree_surrogate, type = "importance", top_n = 5)
+plot(tree_surrogate, type = "importance", top_n = 5)
 ```
 
-<img src="man/figures/README-unnamed-chunk-20-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-19-1.png" alt="" width="100%" />
 
 ``` r
-# plot_tree_surrogate(tree_surrogate, type = "tree")
+# plot(tree_surrogate, type = "tree")
 ```
 
 **Permutation variable importance**
 
 ``` r
-varimp_res <- compute_varimp(
-  model = mod_cox,
-  times = c(100, 200, 300),
-  metric = "ibs",
-  n_repetitions = 5,
-  seed = 123
+varimp_res <- interpret(
+  mod_cox, "varimp",
+  times          = c(100, 200, 300),
+  metric         = "ibs",
+  n_repetitions  = 5,
+  seed           = 123
   )
 
-varimp_res
+as.data.frame(varimp_res)
 #>     feature importance importance_05 importance_95 scaled_importance
 #>      <char>      <num>         <num>         <num>             <num>
 #> 1:    karno     0.0672        0.0494        0.0826         100.00000
@@ -584,67 +539,51 @@ varimp_res
 #> 4:      trt     0.0000        0.0000        0.0000           0.00000
 #> 5: diagtime     0.0000        0.0000        0.0000           0.00000
 #> 6:    prior     0.0000        0.0000        0.0000           0.00000
-plot_varimp(varimp_res)
+plot(varimp_res)
 ```
 
-<img src="man/figures/README-unnamed-chunk-21-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-20-1.png" alt="" width="100%" />
 
 **Feature interactions**
 
 ``` r
-interaction_1way <- compute_interactions(
-  model = mod_cox,
-  data = veteran,
-  times = c(100, 200, 300),
-  target_time = 200,
-  type = "1way"
-  )
+interaction_1way <- interpret(mod_cox, "interaction", times = c(100, 200, 300),
+                              target_time = 200, type = "1way")
+interaction_heatmap <- interpret(mod_cox, "interaction", times = c(100, 200, 300),
+                                 target_time = 200, type = "heatmap")
+interaction_time <- interpret(mod_cox, "interaction", times = c(100, 200, 300),
+                              type = "time")
 
-interaction_heatmap <- compute_interactions(
-  model = mod_cox,
-  data = veteran,
-  times = c(100, 200, 300),
-  target_time = 200,
-  type = "heatmap"
-  )
-
-interaction_time <- compute_interactions(
-  model = mod_cox,
-  data = veteran,
-  times = c(100, 200, 300),
-  type = "time"
-  )
-
-plot_interactions(interaction_1way, type = "1way")
+plot(interaction_1way, type = "1way")
 ```
 
-<img src="man/figures/README-unnamed-chunk-22-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-21-1.png" alt="" width="100%" />
 
 ``` r
-plot_interactions(interaction_heatmap, type = "heatmap")
+plot(interaction_heatmap, type = "heatmap")
 ```
 
-<img src="man/figures/README-unnamed-chunk-22-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-21-2.png" alt="" width="100%" />
 
 ``` r
-plot_interactions(interaction_time, type = "time")
+plot(interaction_time, type = "time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-22-3.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-21-3.png" alt="" width="100%" />
 
 **Counterfactual explanations**
 
 ``` r
-counterfactuals <- compute_counterfactual(
-  model = mod_cox,
-  newdata = veteran[1, , drop = FALSE],
-  times = c(100, 200, 300),
-  target_time = 200,
+counterfactuals <- interpret(
+  mod_cox, "counterfactual",
+  newdata            = veteran[1, , drop = FALSE],
+  times              = c(100, 200, 300),
+  target_time        = 200,
   features_to_change = c("age", "karno", "diagtime"),
-  cost_penalty = 0.01
+  cost_penalty       = 0.01
   )
 
-counterfactuals
+as.data.frame(counterfactuals)
 #>    feature original_value suggested_value survival_gain change_cost
 #> 1    karno             60         81.0202        0.2347     21.0202
 #> 2 diagtime              7          7.0808        0.0000      0.0808
@@ -658,14 +597,10 @@ counterfactuals
 **7. Calibration**
 
 ``` r
-compute_calibration(
-   model = mod_cox, data = veteran,
-   time = "time", status = "status",
-   eval_time = 80, n_bins = 10, n_boot = 30
-   ) |> plot_calibration()
+interpret(mod_cox, "calibration", eval_time = 80, n_bins = 10, n_boot = 30) |> plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-24-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-23-1.png" alt="" width="100%" />
 
 ## Citing
 

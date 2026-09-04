@@ -113,11 +113,11 @@ plot_dca(dca)
 
 ## Core philosophy
 
-* Consistent function patterns: `fit_*()`, `predict_*()`, `tune_*()`
-* Learners return standardized `mlsurv_model` objects
-* Predictions return `data.frame` of survival probabilities: `t=100`, `t=200`, ...
-* Evaluation is fully modular: plug any `fit_*`/`predict_*` with `cv_survlearner()` or `score_survmodel()`
-* Designed for interpretability post prediction. 
+* Seven verbs cover the whole workflow: `fit()`, `predict()`, `evaluate()`, `tune()`, `compare()`, `interpret()`, `estimate()`
+* Every learner returns a standardized `survalis_fit` (a `mlsurv_model` subclass)
+* Matrix predictions return a `survmat`: columns `t=100`, `t=200`, ..., with the grid recorded in `attr(x, "times")`
+* Evaluation is fully modular: any learner id works with `evaluate()`/`compare()` under any `cv()`/`holdout()`/`group_cv()`/`bootstrap()` resampling
+* Designed for interpretability post prediction, through a single `interpret()` entry point
 
 
 
@@ -160,69 +160,50 @@ list_metrics()
 
 **1. Fit a model**
 ```{r}
-mod_cox <- fit_coxph(Surv(time, status) ~ age + karno + celltype, data = veteran)
-summary(mod_cox)
+mod_cox <- fit(Surv(time, status) ~ age + karno + celltype, veteran, model = "coxph")
+mod_cox
 ```
 
 
 **2. Predict survival probabilities**
 
 ```{r}
-pred <- predict_coxph(mod_cox, newdata = veteran[1:5, ], times = c(100, 200))
+pred <- predict(mod_cox, newdata = veteran[1:5, ], times = c(100, 200))
 pred
 ```
+
+`predict()` also returns other quantities via `type`: `"risk"` (1 - S(t)),
+`"chf"`, `"hazard"`, `"rmst"`, `"quantile"`, `"median"`.
 
 
 **3. Evaluate model performance**
 
-Direct evalution (single split): 
 ```{r}
-score <- score_survmodel(mod_cox, times = c(100, 200), metrics = c("cindex", "ibs"))
-score
-```
-
-
-```{r}
-cv_res <- cv_survlearner(
-  Surv(time, status) ~ age + karno + celltype,
-  veteran,
-  fit_coxph,
-  predict_coxph,
-  times  = 80,
-  metrics = c("cindex", "ibs"),
-  folds = 5,
-  seed = 123,
-  verbose = FALSE
-  )
-
-cv_res
+ev <- evaluate(mod_cox, times = c(80, 160), resampling = cv(5, seed = 123))
+ev
 ```
 
 ```{r}
-cv_summary(cv_res)
+summary(ev)
 ```
 
 
+**4. Compare multiple learners**
 
-**4. Benchmark multiple learners**
-
-`benchmark()` is the single entry point for comparing learners: `tune = FALSE`
-(default) runs each with fixed hyperparameters; `tune = TRUE` tunes each
-learner internally via nested cross-validation.
+`compare()` evaluates every learner on the *same* resampling folds, so results
+are paired; `tune = TRUE` tunes each tunable learner first.
 
 ```{r}
-bench_res <- benchmark(
+cmp <- compare(
   Surv(time, status) ~ age + karno + celltype,
   data = veteran,
-  learners = c("coxph", "rpart", "ranger"),
+  models = c("coxph", "rpart", "ranger"),
   times = c(80, 160),
-  metrics = c("cindex", "ibs"),
-  folds = 3,
-  seed = 1
+  resampling = cv(3, seed = 1)
   )
 
-summarise_benchmark(bench_res)
-plot_benchmark(bench_res)
+cmp
+plot(cmp)
 ```
 
 
@@ -241,156 +222,124 @@ plot_survcurve(Surv(time, status) ~ trt, data = veteran)
 
 
 **6. Visualize interpretation**
+
+`interpret()` is the single entry point to every explanation method; its
+`plot()` dispatches to the matching `plot_*()` helper.
+
 ```{r}
-shap_meanabs <- compute_shap(
-  model         = mod_cox,
-  newdata       = veteran[100,],
-  baseline_data = veteran,
-  times         = 80,
-  sample.size   = 50,
-  aggregate     = TRUE,
-  method        = "meanabs"
+shap_meanabs <- interpret(
+  mod_cox, "shap",
+  newdata     = veteran[100, ],
+  times       = 80,
+  sample.size = 50,
+  aggregate   = TRUE,
+  shap_method = "meanabs"
   )
 
-shap_meanabs
+as.data.frame(shap_meanabs)
 ```
 
 ```{r}
-plot_shap(shap_meanabs)
+plot(shap_meanabs)
 ```
 
 ### More interpretability methods
 
 `survalis` also provides PDP, ALE, surrogate explanations, tree surrogates,
-permutation importance, interaction analysis, and counterfactuals.
+permutation importance, interaction analysis, and counterfactuals -- all
+through `interpret(fit, method = ..., ...)`.
 
 **Partial dependence and ICE**
 
 ```{r}
-pdp_age <- compute_pdp(
-  model = mod_cox,
-  data = veteran,
-  feature = "age",
-  times = c(100, 200, 300),
-  method = "pdp+ice"
-  )
+pdp_age <- interpret(mod_cox, "pdp", feature = "age", times = c(100, 200, 300))
 
-plot_pdp(pdp_age, feature = "age", which = "per_time")
-plot_pdp(pdp_age, feature = "age", which = "integrated", smooth = TRUE)
+plot(pdp_age, which = "per_time")
+plot(pdp_age, which = "integrated", smooth = TRUE)
 ```
 
 **Accumulated local effects**
 
 ```{r}
-ale_karno <- compute_ale(
-  model = mod_cox,
-  newdata = veteran,
-  feature = "karno",
-  times = c(100, 200, 300)
-  )
+ale_karno <- interpret(mod_cox, "ale", feature = "karno", times = c(100, 200, 300))
 
-plot_ale(ale_karno, feature = "karno", which = "per_time")
-plot_ale(ale_karno, feature = "karno", which = "integrated", smooth = TRUE)
+plot(ale_karno, which = "per_time")
+plot(ale_karno, which = "integrated", smooth = TRUE)
 ```
 
 **Local surrogate explanation**
 
 ```{r}
-local_surrogate <- compute_surrogate(
-  model = mod_cox,
-  newdata = veteran[1, , drop = FALSE],
-  baseline_data = veteran,
-  times = c(100, 200, 300),
+local_surrogate <- interpret(
+  mod_cox, "surrogate",
+  newdata     = veteran[1, , drop = FALSE],
+  times       = c(100, 200, 300),
   target_time = 200,
-  k = 5
+  k           = 5
   )
 
-local_surrogate
-plot_surrogate(local_surrogate, top_n = 10)
+as.data.frame(local_surrogate)
+plot(local_surrogate, top_n = 10)
 ```
 
 **Tree surrogate**
 
 ```{r}
-tree_surrogate <- compute_tree_surrogate(
-  model = mod_cox,
-  data = veteran,
-  times = c(100, 200, 300)
-  )
+tree_surrogate <- interpret(mod_cox, "tree_surrogate", times = c(100, 200, 300))
 
-plot_tree_surrogate(tree_surrogate, type = "importance", top_n = 5)
-# plot_tree_surrogate(tree_surrogate, type = "tree")
+plot(tree_surrogate, type = "importance", top_n = 5)
+# plot(tree_surrogate, type = "tree")
 ```
 
 **Permutation variable importance**
 
 ```{r}
-varimp_res <- compute_varimp(
-  model = mod_cox,
-  times = c(100, 200, 300),
-  metric = "ibs",
-  n_repetitions = 5,
-  seed = 123
+varimp_res <- interpret(
+  mod_cox, "varimp",
+  times          = c(100, 200, 300),
+  metric         = "ibs",
+  n_repetitions  = 5,
+  seed           = 123
   )
 
-varimp_res
-plot_varimp(varimp_res)
+as.data.frame(varimp_res)
+plot(varimp_res)
 ```
 
 **Feature interactions**
 
 ```{r}
-interaction_1way <- compute_interactions(
-  model = mod_cox,
-  data = veteran,
-  times = c(100, 200, 300),
-  target_time = 200,
-  type = "1way"
-  )
+interaction_1way <- interpret(mod_cox, "interaction", times = c(100, 200, 300),
+                              target_time = 200, type = "1way")
+interaction_heatmap <- interpret(mod_cox, "interaction", times = c(100, 200, 300),
+                                 target_time = 200, type = "heatmap")
+interaction_time <- interpret(mod_cox, "interaction", times = c(100, 200, 300),
+                              type = "time")
 
-interaction_heatmap <- compute_interactions(
-  model = mod_cox,
-  data = veteran,
-  times = c(100, 200, 300),
-  target_time = 200,
-  type = "heatmap"
-  )
-
-interaction_time <- compute_interactions(
-  model = mod_cox,
-  data = veteran,
-  times = c(100, 200, 300),
-  type = "time"
-  )
-
-plot_interactions(interaction_1way, type = "1way")
-plot_interactions(interaction_heatmap, type = "heatmap")
-plot_interactions(interaction_time, type = "time")
+plot(interaction_1way, type = "1way")
+plot(interaction_heatmap, type = "heatmap")
+plot(interaction_time, type = "time")
 ```
 
 **Counterfactual explanations**
 
 ```{r}
-counterfactuals <- compute_counterfactual(
-  model = mod_cox,
-  newdata = veteran[1, , drop = FALSE],
-  times = c(100, 200, 300),
-  target_time = 200,
+counterfactuals <- interpret(
+  mod_cox, "counterfactual",
+  newdata            = veteran[1, , drop = FALSE],
+  times              = c(100, 200, 300),
+  target_time        = 200,
   features_to_change = c("age", "karno", "diagtime"),
-  cost_penalty = 0.01
+  cost_penalty       = 0.01
   )
 
-counterfactuals
+as.data.frame(counterfactuals)
 ```
 
 **7. Calibration**
 
 ```{r}
-compute_calibration(
-   model = mod_cox, data = veteran,
-   time = "time", status = "status",
-   eval_time = 80, n_bins = 10, n_boot = 30
-   ) |> plot_calibration()
+interpret(mod_cox, "calibration", eval_time = 80, n_bins = 10, n_boot = 30) |> plot()
 ```
 
 
