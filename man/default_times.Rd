@@ -25,7 +25,7 @@ A numeric vector, strictly increasing and positive, of length at most
 }
 \description{
 Builds the time grid used by the verb-level functions (\code{\link[=predict]{predict()}},
-\code{\link[=evaluate]{evaluate()}}, \code{\link[randomForestSRC:tune.rfsrc]{randomForestSRC::tune()}}, \code{\link[=compare]{compare()}}, \code{\link[=interpret]{interpret()}}) when the caller does not
+\code{\link[=evaluate]{evaluate()}}, \code{\link[=tune]{tune()}}, \code{\link[=compare]{compare()}}, \code{\link[=interpret]{interpret()}}) when the caller does not
 pass \code{times} explicitly. The grid spans the observed event times so that
 integrated metrics (IBS, IAE, ISE) and survival-curve summaries are computed
 over the region where the data are informative.

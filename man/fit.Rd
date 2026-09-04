@@ -32,7 +32,7 @@ An object of class \code{c("survalis_fit", "mlsurv_model")} with elements
 \description{
 The entry point of the survalis verb interface. \code{fit()} selects a learner by
 id, passes engine arguments through \code{spec}, and returns a \code{survalis_fit}
-object that the other verbs (\code{\link[=predict]{predict()}}, \code{\link[=evaluate]{evaluate()}}, \code{\link[randomForestSRC:tune.rfsrc]{randomForestSRC::tune()}}, \code{\link[=interpret]{interpret()}},
+object that the other verbs (\code{\link[=predict]{predict()}}, \code{\link[=evaluate]{evaluate()}}, \code{\link[=tune]{tune()}}, \code{\link[=interpret]{interpret()}},
 \code{\link[=estimate]{estimate()}}) consume.
 }
 \details{
@@ -47,6 +47,6 @@ m
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link[=predict.survalis_fit]{predict.survalis_fit()}}, \code{\link[=evaluate]{evaluate()}}, \code{\link[randomForestSRC:tune.rfsrc]{randomForestSRC::tune()}}, \code{\link[=compare]{compare()}},
+\code{\link[=predict.survalis_fit]{predict.survalis_fit()}}, \code{\link[=evaluate]{evaluate()}}, \code{\link[=tune]{tune()}}, \code{\link[=compare]{compare()}},
 \code{\link[=interpret]{interpret()}}, \code{\link[=estimate]{estimate()}}, \code{\link[=list_survlearners]{list_survlearners()}}
 }
