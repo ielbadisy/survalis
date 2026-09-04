@@ -71,6 +71,7 @@
 #' cv_summary(cv_results_svm)
 #' cv_plot(cv_results_svm)
 #'
+#' @keywords internal
 #' @export
 
 fit_survsvm <- function(formula, data,
@@ -148,6 +149,7 @@ fit_survsvm <- function(formula, data,
 #' predict_survsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "exp")
 #' predict_survsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "weibull", shape = 1.5)
 #'
+#' @keywords internal
 #' @export
 
 predict_survsvm <- function(object, newdata, times, dist = "exp", shape = 1) {
@@ -239,6 +241,7 @@ predict_survsvm <- function(object, newdata, times, dist = "exp", shape = 1) {
 #'
 #' res_svm
 #'
+#' @keywords internal
 #' @export
 
 tune_survsvm <- function(formula, data, times,

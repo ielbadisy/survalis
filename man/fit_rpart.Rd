@@ -69,3 +69,4 @@ head(pred_rpart)
 \references{
 Therneau TM, Atkinson EJ. (2019). \emph{An Introduction to Recursive Partitioning Using the RPART Routines}. Mayo Clinic.
 }
+\keyword{internal}

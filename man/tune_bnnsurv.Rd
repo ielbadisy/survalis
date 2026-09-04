@@ -91,3 +91,4 @@ head(predict_bnnsurv(best, newdata = veteran[1:5, ], times = c(50, 100)))
 \seealso{
 \code{\link[=fit_bnnsurv]{fit_bnnsurv()}}, \code{\link[=predict_bnnsurv]{predict_bnnsurv()}}, \code{\link[=cv_survlearner]{cv_survlearner()}}
 }
+\keyword{internal}

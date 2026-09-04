@@ -41,3 +41,4 @@ with nonparametric cumulative coefficient functions.
   head(predict_aalen(mod_aalen, newdata = veteran[1:5, ], times = c(50, 100, 150)))
 }
 }
+\keyword{internal}

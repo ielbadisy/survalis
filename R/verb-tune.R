@@ -39,6 +39,9 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
   }
   if (length(metric) != 1L) stop("`metric` must be a single value.", call. = FALSE)
 
+  op <- options(survalis.quiet_legacy = TRUE)
+  on.exit(options(op), add = TRUE)
+
   parsed <- .parse_surv_formula(formula, data)
   data <- .complete_cases_df(data, all.vars(formula))
   status <- .recode_status_vec(parsed, data)

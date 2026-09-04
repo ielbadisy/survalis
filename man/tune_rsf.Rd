@@ -83,3 +83,4 @@ summary(mod_rsf_best)
 \seealso{
 \code{\link[=fit_rsf]{fit_rsf()}}, \code{\link[=predict_rsf]{predict_rsf()}}
 }
+\keyword{internal}

@@ -37,6 +37,7 @@
 #' pred_rpart <- predict_rpart(mod_rpart, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #' head(pred_rpart)
 #'
+#' @keywords internal
 #' @export
 
 fit_rpart <- function(formula, data,
@@ -101,6 +102,7 @@ fit_rpart <- function(formula, data,
 #' mod_rpart <- fit_rpart(Surv(time, status) ~ age + karno + celltype, data = veteran)
 #' predict_rpart(mod_rpart, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
+#' @keywords internal
 #' @export
 
 predict_rpart <- function(object, newdata, times, ...) {
@@ -180,6 +182,7 @@ predict_rpart <- function(object, newdata, times, ...) {
 #'   refit_best = TRUE
 #' )
 #'
+#' @keywords internal
 #' @export
 
 tune_rpart <- function(formula, data, times,

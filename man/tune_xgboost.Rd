@@ -87,3 +87,4 @@ omitted from metric summarization.
 \seealso{
 \code{\link{fit_xgboost}}, \code{\link{predict_xgboost}}
 }
+\keyword{internal}

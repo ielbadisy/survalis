@@ -37,3 +37,4 @@ predict_selectcox(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 \seealso{
 \code{\link[=fit_selectcox]{fit_selectcox()}}, \code{\link[=tune_selectcox]{tune_selectcox()}}
 }
+\keyword{internal}

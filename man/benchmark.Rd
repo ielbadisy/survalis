@@ -102,3 +102,4 @@ head(res)
 \seealso{
 \code{\link[=benchmark_default_survlearners]{benchmark_default_survlearners()}}, \code{\link[=benchmark_tuned_survlearners]{benchmark_tuned_survlearners()}}
 }
+\keyword{internal}

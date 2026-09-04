@@ -99,3 +99,4 @@ Binder H, et al. (2009). Survival Support Vector Machines (and related work).
 \seealso{
 \code{\link[=predict_survsvm]{predict_survsvm()}}, \code{\link[=tune_survsvm]{tune_survsvm()}}
 }
+\keyword{internal}

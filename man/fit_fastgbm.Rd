@@ -62,3 +62,4 @@ summary(mod)
 \code{\link{predict_fastgbm}}, \code{\link{tune_fastgbm}},
 \code{\link[fastgbm]{fastgbm}}
 }
+\keyword{internal}

@@ -58,6 +58,7 @@
 #' }
 #'
 #' @seealso [benchmark_default_survlearners()], [benchmark_tuned_survlearners()]
+#' @keywords internal
 #' @export
 benchmark <- function(formula, data, learners, times,
                       metrics = c("cindex", "ibs"),
@@ -73,6 +74,7 @@ benchmark <- function(formula, data, learners, times,
                       verbose = FALSE,
                       suppress_errors = TRUE,
                       ...) {
+  .legacy_notice()
   if (isTRUE(tune)) {
     benchmark_tuned_survlearners(
       formula = formula, data = data, learners = learners, times = times,
@@ -140,6 +142,7 @@ benchmark <- function(formula, data, learners, times,
 #' }
 #'
 #' @seealso [cv_survlearner()], [plot_benchmark()], [summarise_benchmark()]
+#' @keywords internal
 #' @export
 
 benchmark_default_survlearners <- function(formula, data, learners, times,
@@ -149,6 +152,7 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
                                    verbose = FALSE,
                                    suppress_errors = TRUE,
                                    ...) {
+  .legacy_notice()
   stopifnot(is.character(learners), length(learners) > 0)
 
   results_list <- lapply(learners, function(learner) {
@@ -394,6 +398,7 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
 #'
 #' @seealso \code{\link{benchmark_default_survlearners}},
 #'   \code{\link{cv_survlearner}}
+#' @keywords internal
 #' @export
 benchmark_tuned_survlearners <- function(formula, data, learners, times,
                                          metrics = c("cindex", "ibs"),
@@ -406,6 +411,7 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
                                          verbose = FALSE,
                                          suppress_errors = TRUE,
                                          ...) {
+  .legacy_notice()
   stopifnot(is.character(learners), length(learners) > 0)
   stopifnot(is.list(learner_args))
 
@@ -646,9 +652,11 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
 #'
 #' @seealso [benchmark_default_survlearners()], [plot_benchmark()],
 #'   [summarize_benchmark_results()]
+#' @keywords internal
 #' @export
 
 summarise_benchmark <- function(benchmark_results, digits = 3) {
+  .legacy_notice()
   DT <- data.table::as.data.table(benchmark_results)
   out <- DT[, list(
     mean = mean(value, na.rm = TRUE),
@@ -729,9 +737,11 @@ plot_benchmark <- function(benchmark_results, title) {
 #' summarize_benchmark_results(res, digits = 2)
 #'
 #' @seealso [summarise_benchmark()], [benchmark_default_survlearners()]
+#' @keywords internal
 #' @export
 
 summarize_benchmark_results <- function(results, digits = 3) {
+  .legacy_notice()
 
   stopifnot(is.data.frame(results), all(c("learner", "metric", "value") %in% colnames(results)))
 
@@ -778,9 +788,11 @@ summarize_benchmark_results <- function(results, digits = 3) {
 #' best_survlearner(res, metric = "ibs")
 #'
 #' @seealso [benchmark_default_survlearners()], [summarise_benchmark()]
+#' @keywords internal
 #' @export
 
 best_survlearner <- function(benchmark_results, metric, maximize = NULL) {
+  .legacy_notice()
   if (!metric %in% benchmark_results$metric) {
     stop("Metric not found in results: ", metric)
   }

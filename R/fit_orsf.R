@@ -34,6 +34,7 @@
 #' mod <- fit_orsf(Surv(time, status) ~ age + karno, data = veteran)
 #' summary(mod)
 #'
+#' @keywords internal
 #' @export
 
 fit_orsf <- function(formula, data, ...) {
@@ -79,6 +80,7 @@ fit_orsf <- function(formula, data, ...) {
 #' pred <- predict_orsf(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #' head(pred)
 #'
+#' @keywords internal
 #' @export
 
 predict_orsf <- function(object, newdata, times, ...) {
@@ -184,6 +186,7 @@ predict_orsf <- function(object, newdata, times, ...) {
 #'
 #'   summary(mod_orsf_best)
 #' }
+#' @keywords internal
 #' @export
 
 tune_orsf <- function(formula, data, times,

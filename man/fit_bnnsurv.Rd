@@ -81,3 +81,4 @@ head(predict_bnnsurv(mod, newdata = veteran[1:5, ], times = c(50, 100)))
 \seealso{
 \code{\link[=predict_bnnsurv]{predict_bnnsurv()}}, \code{\link[=tune_bnnsurv]{tune_bnnsurv()}}
 }
+\keyword{internal}

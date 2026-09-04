@@ -31,6 +31,7 @@
 #' )
 #' summary(mod)
 #'
+#' @keywords internal
 #' @export
 
 fit_ranger <- function(formula, data, ...) {
@@ -83,6 +84,7 @@ fit_ranger <- function(formula, data, ...) {
 #' )
 #' predict_ranger(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
+#' @keywords internal
 #' @export
 
 predict_ranger <- function(object, newdata, times) {
@@ -163,6 +165,7 @@ predict_ranger <- function(object, newdata, times) {
 #' )
 #' summary(mod_ranger_best)
 #'
+#' @keywords internal
 #' @export
 
 tune_ranger <- function(formula, data, times,

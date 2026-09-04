@@ -52,3 +52,4 @@ predict_glmnet(
 \seealso{
 \code{\link{fit_glmnet}}
 }
+\keyword{internal}

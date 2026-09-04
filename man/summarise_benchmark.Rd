@@ -36,3 +36,4 @@ summarise_benchmark(res)
 \code{\link[=benchmark_default_survlearners]{benchmark_default_survlearners()}}, \code{\link[=plot_benchmark]{plot_benchmark()}},
 \code{\link[=summarize_benchmark_results]{summarize_benchmark_results()}}
 }
+\keyword{internal}

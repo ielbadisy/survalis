@@ -38,3 +38,4 @@ predict_ranger(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 \seealso{
 \code{\link{fit_ranger}}, \code{\link{tune_ranger}}
 }
+\keyword{internal}

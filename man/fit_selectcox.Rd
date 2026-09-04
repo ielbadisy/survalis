@@ -55,3 +55,4 @@ Gerds TA, et al. \pkg{pec}: Prediction Error Curves for Survival Models.
 \seealso{
 \code{\link[=predict_selectcox]{predict_selectcox()}}, \code{\link[=tune_selectcox]{tune_selectcox()}}, \code{pec::selectCox()}
 }
+\keyword{internal}

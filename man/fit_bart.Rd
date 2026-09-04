@@ -55,3 +55,4 @@ mod_bart <- fit_bart(
 \seealso{
 \code{\link{predict_bart}}, \code{\link[BART]{surv.bart}}
 }
+\keyword{internal}

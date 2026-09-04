@@ -64,3 +64,4 @@ summary(mod)
 \code{\link{predict_densemlp}}, \code{\link{tune_densemlp}},
 \code{\link[densemlp]{densemlp}}
 }
+\keyword{internal}

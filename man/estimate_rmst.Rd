@@ -111,3 +111,4 @@ Methodology}, 13, 152.
 \seealso{
 \code{\link[=survmat_to_rmst]{survmat_to_rmst()}}, \code{\link[=plot_rmst]{plot_rmst()}}
 }
+\keyword{internal}

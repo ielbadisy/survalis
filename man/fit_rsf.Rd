@@ -55,3 +55,4 @@ print(round(pred_probs, 3))
 Ishwaran H, Kogalur UB, Blackstone EH, Lauer MS (2008).
 Random survival forests. \emph{Annals of Applied Statistics}, 2(3):841-860.
 }
+\keyword{internal}

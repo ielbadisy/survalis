@@ -41,3 +41,4 @@ pred
 \seealso{
 \code{\link[=fit_bnnsurv]{fit_bnnsurv()}}, \code{\link[=tune_bnnsurv]{tune_bnnsurv()}}
 }
+\keyword{internal}

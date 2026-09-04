@@ -1,3 +1,56 @@
+# survalis 2.0.0
+
+## Seven-verb interface
+
+* New top-level verbs covering the whole workflow, consistent with the
+  `funcml` package:
+  * `fit(formula, data, model, spec, seed)` -- learner-agnostic fitting;
+    returns a `survalis_fit` (a subclass of `mlsurv_model`, so every existing
+    helper keeps working on it).
+  * `predict(fit, newdata, times, type)` -- `type` one of `"survival"`,
+    `"risk"`, `"chf"`, `"hazard"` (all returning a validated `survmat`),
+    `"rmst"`, `"quantile"`, `"median"` (numeric).
+  * `evaluate(fit_or_formula, times, resampling, metrics)` -- resampled
+    performance; a `survalis_fit` reuses its stored recipe.
+  * `tune(formula, data, model, grid, resampling, metric)` -- grid search,
+    returns the refit best model as a `survalis_fit`.
+  * `compare(formula, data, models, specs, resampling, metrics, tune)` --
+    paired multi-model leaderboard on shared folds.
+  * `interpret(fit, method, newdata, data, times, ...)` -- single entry point
+    to the `compute_*` explanation methods, with a `plot()` that dispatches to
+    the paired helper.
+  * `estimate(formula, data, model, estimand, treatment, tau)` -- standardised
+    binary-treatment contrast by G-computation, with a subject bootstrap
+    (refit per replicate by default) and an identification-assumptions note.
+
+## Supporting infrastructure
+
+* `survmat` prediction contract: an `n x length(times)` numeric matrix
+  carrying its grid in the `"times"` attribute (`"t=<time>"` column names kept
+  for display and the legacy metric helpers) and the predicted quantity in
+  `"quantity"`. Missing predictions and non-increasing grids are rejected.
+* `default_times()`: a recorded, data-dependent evaluation grid used whenever
+  `times` is omitted, so runs stay reproducible.
+* Resampling constructors `cv()` (with `repeats`), `holdout()`, `group_cv()`,
+  `bootstrap()`; reuse one spec across models for paired comparisons.
+
+## New learners
+
+* `fastgbm` (CRAN): histogram gradient boosting, piecewise-exponential
+  objective by default so survival curves are available at arbitrary times.
+* `densemlp` (CRAN): native-C++ MLP (no `torch`), IPCW-Brier discrete-time
+  loss by default, predictions interpolated onto the requested times.
+* Both registered in `list_survlearners()`; 22 learners total.
+
+## Deprecations
+
+* The granular functions (`fit_*()`, `predict_*()`, `tune_*()`,
+  `cv_survlearner()`, `score_survmodel()`, `benchmark*()`,
+  `summarise_benchmark()`, `estimate_rmst()`, ...) remain exported and
+  supported for the whole 2.x series. They are now marked internal in the
+  manual and emit a one-time per-session note. See `?\`survalis-deprecated\``.
+  They are scheduled to become unexported in survalis 3.0.
+
 # survalis 1.2.0
 
 * Added `compute_survcluster()` and `plot_survcluster()`: unsupervised

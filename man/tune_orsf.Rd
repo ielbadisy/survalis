@@ -105,3 +105,4 @@ The \code{min_events} column of \code{param_grid} is passed to the engine as
 \seealso{
 \code{\link{fit_orsf}}, \code{\link{predict_orsf}}, \pkg{aorsf}
 }
+\keyword{internal}

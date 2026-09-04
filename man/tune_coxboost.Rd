@@ -77,3 +77,4 @@ with \code{failed = TRUE} and omitted from metric summarization.
 \seealso{
 \code{\link{fit_coxboost}}, \code{\link{predict_coxboost}}
 }
+\keyword{internal}

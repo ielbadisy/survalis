@@ -44,3 +44,4 @@ summary(mod)
 \seealso{
 \code{\link{predict_ranger}}, \code{\link{tune_ranger}}, \code{\link[ranger]{ranger}}
 }
+\keyword{internal}

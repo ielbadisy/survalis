@@ -36,6 +36,7 @@
 #'                     n_bins = 8, epochs = 20, hidden_units = c(16, 8))
 #' summary(mod)
 #'
+#' @keywords internal
 #' @export
 fit_densemlp <- function(formula, data, loss = c("brier", "cox"),
                          n_bins = 10, hidden_units = c(32, 16),
@@ -83,6 +84,7 @@ fit_densemlp <- function(formula, data, loss = c("brier", "cox"),
 #'                     n_bins = 8, epochs = 20)
 #' predict_densemlp(mod, veteran[1:5, ], times = c(100, 200, 300))
 #'
+#' @keywords internal
 #' @export
 predict_densemlp <- function(object, newdata, times) {
   if (!is.null(object$learner) && object$learner != "densemlp") {

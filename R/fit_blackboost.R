@@ -41,6 +41,7 @@
 #'   )
 #'   head(predict_blackboost(mod, newdata = veteran[1:5, ], times = c(100, 200)))
 #' }
+#' @keywords internal
 #' @export
 
 fit_blackboost <- function(formula, data, weights = NULL, mstop = 100, nu = 0.1,
@@ -119,6 +120,7 @@ fit_blackboost <- function(formula, data, weights = NULL, mstop = 100, nu = 0.1,
 #' @examples
 #' mod <- fit_blackboost(Surv(time, status) ~ age + karno + celltype, data = veteran)
 #' predict_blackboost(mod, newdata = veteran[1:5, ], times = c(5, 10, 40))
+#' @keywords internal
 #' @export
 
 predict_blackboost <- function(object, newdata, times, ...) {
@@ -223,6 +225,7 @@ predict_blackboost <- function(object, newdata, times, ...) {
 #' )
 #' summary(mod_blackboost_best)
 #' }
+#' @keywords internal
 #' @export
 
 tune_blackboost <- function(formula, data, times,

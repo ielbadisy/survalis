@@ -84,3 +84,4 @@ summary(mod_glmnet_best)
 \seealso{
 \code{\link{fit_glmnet}}, \code{\link{predict_glmnet}}
 }
+\keyword{internal}

@@ -99,3 +99,4 @@ res_svm
 \seealso{
 \code{\link[=fit_survsvm]{fit_survsvm()}}, \code{\link[=predict_survsvm]{predict_survsvm()}}
 }
+\keyword{internal}

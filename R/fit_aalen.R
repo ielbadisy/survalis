@@ -27,6 +27,7 @@
 #'   )
 #'   head(predict_aalen(mod_aalen, newdata = veteran[1:5, ], times = c(50, 100, 150)))
 #' }
+#' @keywords internal
 #' @export
 fit_aalen <- function(formula, data, max.time = NULL, n.sim = 0, resample.iid = 1) {
   stopifnot(requireNamespace("timereg", quietly = TRUE))
@@ -68,6 +69,7 @@ fit_aalen <- function(formula, data, max.time = NULL, n.sim = 0, resample.iid = 
 #'   mod <- fit_aalen(Surv(time, status) ~ trt + karno + age, data = veteran, max.time = 600)
 #'   head(predict_aalen(mod, newdata = veteran[1:5, ], times = 0:10))
 #' }
+#' @keywords internal
 #' @export
 predict_aalen <- function(object, newdata, times) {
   stopifnot(inherits(object, "mlsurv_model"))

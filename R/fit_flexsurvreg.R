@@ -28,6 +28,7 @@
 #' mod_flex <- fit_flexsurvreg(Surv(time, status) ~ age + celltype + karno,
 #'                             data = veteran,
 #'                             dist = "weibull")
+#' @keywords internal
 #' @export
 
 fit_flexsurvreg <- function(formula, data, dist = "weibull", ...) {
@@ -69,6 +70,7 @@ fit_flexsurvreg <- function(formula, data, dist = "weibull", ...) {
 #'                             dist = "weibull")
 #' predict_flexsurvreg(mod_flex, newdata = veteran[1:5, ],
 #'                     times = c(100, 200, 300))
+#' @keywords internal
 #' @export
 
 predict_flexsurvreg <- function(object, newdata, times, ...) {
@@ -143,6 +145,7 @@ predict_flexsurvreg <- function(object, newdata, times, ...) {
 #'                              times = c(100, 200, 300),
 #'                              refit_best = TRUE)
 #' summary(best_mod)
+#' @keywords internal
 #' @export
 
 tune_flexsurvreg <- function(formula, data, times,

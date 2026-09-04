@@ -49,3 +49,4 @@ stored in the object; interpret with caution.
 \seealso{
 \code{\link[=fit_xgboost]{fit_xgboost()}}, \code{\link[=tune_xgboost]{tune_xgboost()}}
 }
+\keyword{internal}

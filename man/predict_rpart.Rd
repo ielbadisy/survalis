@@ -36,3 +36,4 @@ mod_rpart <- fit_rpart(Surv(time, status) ~ age + karno + celltype, data = veter
 predict_rpart(mod_rpart, newdata = veteran[1:5, ], times = c(100, 200, 300))
 
 }
+\keyword{internal}

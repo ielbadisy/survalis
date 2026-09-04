@@ -47,3 +47,4 @@ summary(mod_glmnet$model)
 \seealso{
 \code{\link[glmnet]{cv.glmnet}}, \code{\link{predict_glmnet}}
 }
+\keyword{internal}

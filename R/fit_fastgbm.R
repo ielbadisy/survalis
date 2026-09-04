@@ -34,6 +34,7 @@
 #'                    ntrees = 50, pexp_bins = 8)
 #' summary(mod)
 #'
+#' @keywords internal
 #' @export
 fit_fastgbm <- function(formula, data, objective = c("pexp", "cox", "aft"),
                         ntrees = 200, learning_rate = 0.1, max_depth = 5,
@@ -78,6 +79,7 @@ fit_fastgbm <- function(formula, data, objective = c("pexp", "cox", "aft"),
 #' mod <- fit_fastgbm(Surv(time, status) ~ age + karno, veteran, ntrees = 50)
 #' predict_fastgbm(mod, veteran[1:5, ], times = c(100, 200, 300))
 #'
+#' @keywords internal
 #' @export
 predict_fastgbm <- function(object, newdata, times) {
   if (!is.null(object$learner) && object$learner != "fastgbm") {

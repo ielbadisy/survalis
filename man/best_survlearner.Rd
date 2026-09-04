@@ -39,3 +39,4 @@ best_survlearner(res, metric = "ibs")
 \seealso{
 \code{\link[=benchmark_default_survlearners]{benchmark_default_survlearners()}}, \code{\link[=summarise_benchmark]{summarise_benchmark()}}
 }
+\keyword{internal}

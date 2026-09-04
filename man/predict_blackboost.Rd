@@ -36,3 +36,4 @@ interpolation.
 mod <- fit_blackboost(Surv(time, status) ~ age + karno + celltype, data = veteran)
 predict_blackboost(mod, newdata = veteran[1:5, ], times = c(5, 10, 40))
 }
+\keyword{internal}

@@ -34,6 +34,7 @@
 #'
 #' summary(mod_glmnet$model)
 #'
+#' @keywords internal
 #' @export
 
 fit_glmnet <- function(formula, data, alpha = 1, ...) {
@@ -96,6 +97,7 @@ fit_glmnet <- function(formula, data, alpha = 1, ...) {
 #'   times = c(100, 200, 300)
 #' )
 #'
+#' @keywords internal
 #' @export
 
 predict_glmnet <- function(object, newdata, times, ...) {
@@ -173,6 +175,7 @@ predict_glmnet <- function(object, newdata, times, ...) {
 #' summary(mod_glmnet_best)
 #' }
 #'
+#' @keywords internal
 #' @export
 
 tune_glmnet <- function(formula, data, times,
