@@ -2,17 +2,17 @@
 % Please edit documentation in R/survalis-deprecated.R
 \name{survalis-deprecated}
 \alias{survalis-deprecated}
-\title{Superseded functions in survalis 2.x}
+\title{Superseded functions in survalis}
 \description{
-survalis 2.0 introduced the seven-verb interface -- \code{\link[=fit]{fit()}}, \code{\link[=predict]{predict()}},
+survalis 1.3.0 introduced the seven-verb interface -- \code{\link[=fit]{fit()}}, \code{\link[=predict]{predict()}},
 \code{\link[=evaluate]{evaluate()}}, \code{\link[=tune]{tune()}}, \code{\link[=compare]{compare()}}, \code{\link[=interpret]{interpret()}}, \code{\link[=estimate]{estimate()}} -- plus the
 resampling constructors (\code{\link[=cv]{cv()}}, \code{\link[=holdout]{holdout()}}, \code{\link[=group_cv]{group_cv()}}, \code{\link[=bootstrap]{bootstrap()}}).
 }
 \details{
 The granular functions listed below are the machinery those verbs are built
-on. They remain \strong{exported and fully supported for the whole 2.x series}, are
-marked internal in the manual, and emit a one-time note per session. They are
-scheduled to become internal (unexported) in survalis 3.0.
+on. They remain \strong{exported and fully supported}, are marked internal in the
+manual, and emit a one-time note per session. They are scheduled to become
+internal (unexported) in a future release.
 }
 \section{Mapping}{
 

@@ -20,7 +20,7 @@ common survival-probability matrix (`survmat`) interface.
 `survalis` is available on CRAN:
 <https://CRAN.R-project.org/package=survalis>.
 
-## New in version 2.0.0: the seven-verb interface
+## New in version 1.3.0: the seven-verb interface
 
 ``` r
 library(survalis)
@@ -41,9 +41,8 @@ estimate(f, veteran, model = "ranger", treatment = "trt", tau = 365)
 `fit()` / `predict()` / `evaluate()` / `tune()` / `compare()` /
 `interpret()` / `estimate()` cover the whole workflow. The granular
 `fit_*()` / `predict_*()` / `compute_*()` / `benchmark*()` functions
-from 1.x remain available for the 2.x series; see
-`vignette("from-1.0", package = "survalis")` and
-`?`survalis-deprecated\`\`.
+remain fully available; see `vignette("from-1.0", package = "survalis")`
+and `?`survalis-deprecated\`\`.
 
 ## Installation
 
@@ -352,7 +351,7 @@ Direct evalution (single split):
 
 ``` r
 score <- score_survmodel(mod_cox, times = c(100, 200), metrics = c("cindex", "ibs"))
-#> Warning: You are calling a granular survalis function directly. The seven-verb interface (fit/predict/evaluate/tune/compare/interpret/estimate) is now recommended; these helpers become internal in survalis 3.0. See ?`survalis-deprecated`.
+#> Warning: You are calling a granular survalis function directly. The seven-verb interface (fit/predict/evaluate/tune/compare/interpret/estimate) is now recommended; these helpers become internal in a future release. See ?`survalis-deprecated`.
 #> This warning is displayed once per session.
 score
 #>    metric value

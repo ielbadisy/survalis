@@ -30,7 +30,7 @@ matrix (`survmat`) interface.
 
 `survalis` is available on CRAN: <https://CRAN.R-project.org/package=survalis>.
 
-## New in version 2.0.0: the seven-verb interface
+## New in version 1.3.0: the seven-verb interface
 
 ```{r, eval = FALSE}
 library(survalis)
@@ -50,9 +50,8 @@ estimate(f, veteran, model = "ranger", treatment = "trt", tau = 365)
 
 `fit()` / `predict()` / `evaluate()` / `tune()` / `compare()` / `interpret()` /
 `estimate()` cover the whole workflow. The granular `fit_*()` / `predict_*()` /
-`compute_*()` / `benchmark*()` functions from 1.x remain available for the 2.x
-series; see `vignette("from-1.0", package = "survalis")` and
-`?`survalis-deprecated``.
+`compute_*()` / `benchmark*()` functions remain fully available; see
+`vignette("from-1.0", package = "survalis")` and `?`survalis-deprecated``.
 
 
 

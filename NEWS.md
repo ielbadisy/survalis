@@ -1,4 +1,4 @@
-# survalis 2.0.0
+# survalis 1.3.0
 
 ## Seven-verb interface
 
@@ -46,10 +46,10 @@
 
 * The granular functions (`fit_*()`, `predict_*()`, `tune_*()`,
   `cv_survlearner()`, `score_survmodel()`, `benchmark*()`,
-  `summarise_benchmark()`, `estimate_rmst()`, ...) remain exported and
-  supported for the whole 2.x series. They are now marked internal in the
-  manual and emit a one-time per-session note. See `?\`survalis-deprecated\``.
-  They are scheduled to become unexported in survalis 3.0.
+  `summarise_benchmark()`, `estimate_rmst()`, ...) remain exported and fully
+  supported. They are now marked internal in the manual and emit a one-time
+  per-session note. See `?\`survalis-deprecated\``. They are scheduled to
+  become unexported in a future release.
 
 # survalis 1.2.0
 

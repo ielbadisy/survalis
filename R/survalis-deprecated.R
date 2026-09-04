@@ -1,13 +1,13 @@
-#' Superseded functions in survalis 2.x
+#' Superseded functions in survalis
 #'
-#' survalis 2.0 introduced the seven-verb interface -- [fit()], [predict()],
+#' survalis 1.3.0 introduced the seven-verb interface -- [fit()], [predict()],
 #' [evaluate()], [tune()], [compare()], [interpret()], [estimate()] -- plus the
 #' resampling constructors ([cv()], [holdout()], [group_cv()], [bootstrap()]).
 #'
 #' The granular functions listed below are the machinery those verbs are built
-#' on. They remain **exported and fully supported for the whole 2.x series**, are
-#' marked internal in the manual, and emit a one-time note per session. They are
-#' scheduled to become internal (unexported) in survalis 3.0.
+#' on. They remain **exported and fully supported**, are marked internal in the
+#' manual, and emit a one-time note per session. They are scheduled to become
+#' internal (unexported) in a future release.
 #'
 #' @section Mapping:
 #' \tabular{ll}{
@@ -39,7 +39,7 @@ NULL
     paste0(
       "You are calling a granular survalis function directly. The seven-verb ",
       "interface (fit/predict/evaluate/tune/compare/interpret/estimate) is now ",
-      "recommended; these helpers become internal in survalis 3.0. ",
+      "recommended; these helpers become internal in a future release. ",
       "See ?`survalis-deprecated`."
     ),
     .frequency = "once", .frequency_id = "survalis-legacy-api",

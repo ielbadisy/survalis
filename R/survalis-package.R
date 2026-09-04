@@ -110,6 +110,6 @@ utils::globalVariables(c(
   "tau","estimate","lo","hi","scaled_value",
   # new: compute_survcluster/plot_survcluster
   "survival","subject","cluster",
-  # new in 2.0.0: verb result plot methods
+  # new in 1.3.0: verb result plot methods
   "model","arm"
 ))
