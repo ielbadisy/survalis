@@ -32,8 +32,8 @@ Given `formula = Surv(time, status) ~ x1 + x2` (the right-hand side lists the
 
    | `estimand`        | quantity |
    |-------------------|----------|
-   | `"RMST_diff"`     | $\int_0^\tau \bar S_1 - \int_0^\tau \bar S_0$ |
-   | `"RMST_ratio"`    | $\int_0^\tau \bar S_1 \big/ \int_0^\tau \bar S_0$ |
+   | `"rmst_diff"`     | $\int_0^\tau \bar S_1 - \int_0^\tau \bar S_0$ |
+   | `"rmst_ratio"`    | $\int_0^\tau \bar S_1 \big/ \int_0^\tau \bar S_0$ |
    | `"survival_diff"` | $\bar S_1(\tau) - \bar S_0(\tau)$ |
    | `"survival_ratio"`| $\bar S_1(\tau) \big/ \bar S_0(\tau)$ |
 
@@ -44,7 +44,7 @@ library(survalis)
 
 est <- estimate(
   Surv(time, status) ~ age + karno + celltype, data = veteran,
-  model = "coxph", estimand = "RMST_diff",
+  model = "coxph", estimand = "rmst_diff",
   treatment = "trt", tau = 300,
   R = 100, seed = 1
 )

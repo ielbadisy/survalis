@@ -24,7 +24,7 @@
 #'   treatment-by-confounder interactions).
 #' @param data A data frame.
 #' @param model A learner id (`list_survlearners()$learner`).
-#' @param estimand One of `"RMST_diff"` (default), `"RMST_ratio"`,
+#' @param estimand One of `"rmst_diff"` (default), `"rmst_ratio"`,
 #'   `"survival_diff"`, `"survival_ratio"`.
 #' @param treatment Name of a binary column in `data`. The larger value is the
 #'   "treated" (A = 1) level.
@@ -46,11 +46,11 @@
 #'
 #' @examplesIf requireNamespace("survival", quietly = TRUE)
 #' est <- estimate(Surv(time, status) ~ age + karno + celltype, veteran,
-#'                 model = "coxph", estimand = "RMST_diff",
+#'                 model = "coxph", estimand = "rmst_diff",
 #'                 treatment = "trt", tau = 300, R = 50, seed = 1)
 #' est
 #' @export
-estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio",
+estimate <- function(formula, data, model, estimand = c("rmst_diff", "rmst_ratio",
                                                         "survival_diff", "survival_ratio"),
                      treatment, tau, times = NULL, spec = list(),
                      R = 200, conf = 0.95, refit = TRUE, seed = NULL, ...) {
@@ -103,8 +103,8 @@ estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio
     r0 <- survmat_to_rmst(matrix(S0bar, nrow = 1), times = times, tau = tau)
     st <- function(v) stats::approx(times, v, xout = tau, rule = 2)$y
     switch(estimand,
-      RMST_diff     = r1 - r0,
-      RMST_ratio    = r1 / r0,
+      rmst_diff     = r1 - r0,
+      rmst_ratio    = r1 / r0,
       survival_diff = st(S1bar) - st(S0bar),
       survival_ratio = st(S1bar) / st(S0bar)
     )
@@ -148,7 +148,7 @@ estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio
 
 #' @export
 print.survalis_estimate <- function(x, ...) {
-  lab <- c(RMST_diff = "RMST difference", RMST_ratio = "RMST ratio",
+  lab <- c(rmst_diff = "RMST difference", rmst_ratio = "RMST ratio",
            survival_diff = "survival difference", survival_ratio = "survival ratio")[x$estimand]
   cat(sprintf("<survalis_estimate> %s at tau = %s  (model: %s)\n", lab, format(x$tau), x$model))
   cat(sprintf("  treatment: %s  (%s vs %s)\n", x$treatment, x$levels[2], x$levels[1]))
