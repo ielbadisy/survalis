@@ -185,7 +185,9 @@ auc_survmat <- function(object, predicted, t_star = NULL) {
 #' @return A \code{data.frame} (class \code{"timeroc_survmat"}) with columns
 #'   \code{time} and \code{auc}, one row per entry of \code{times}.
 #'
-#' @seealso [auc_survmat()]
+#' @seealso [auc_survmat()] for the scalar AUC at one horizon,
+#'   [roc_survmat()] for the full sensitivity/specificity ROC curve at one
+#'   horizon.
 #'
 #' @references
 #' Uno H, Cai T, Tian L, Wei LJ (2007). Evaluating prediction rules for

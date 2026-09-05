@@ -13,7 +13,7 @@ test_that("roc_survmat's trapezoidal AUC closely tracks auc_survmat", {
   expect_equal(r$auc, a, tolerance = 0.02)
 })
 
-test_that("plot.roc_survmat / plot_roc return ggplots", {
+test_that("plot.roc_survmat returns a ggplot", {
   testthat::skip_on_cran()
 
   y <- survival::Surv(time = veteran$time, event = veteran$status)
@@ -21,7 +21,6 @@ test_that("plot.roc_survmat / plot_roc return ggplots", {
   r <- roc_survmat(y, predicted = sp, t_star = 100)
 
   expect_s3_class(plot(r), "ggplot")
-  expect_s3_class(plot_roc(r), "ggplot")
 })
 
 test_that("dca_survmat: treat-none is 0, and model/treat-all are finite over thresholds", {
@@ -40,7 +39,7 @@ test_that("dca_survmat: treat-none is 0, and model/treat-all are finite over thr
   expect_error(dca_survmat(y, predicted = sp, t_star = 100, thresholds = c(0, 0.5)), "strictly between")
 })
 
-test_that("plot.dca_survmat / plot_dca return ggplots", {
+test_that("plot.dca_survmat returns a ggplot", {
   testthat::skip_on_cran()
 
   y <- survival::Surv(time = veteran$time, event = veteran$status)
@@ -48,5 +47,4 @@ test_that("plot.dca_survmat / plot_dca return ggplots", {
   d <- dca_survmat(y, predicted = sp, t_star = 100)
 
   expect_s3_class(plot(d), "ggplot")
-  expect_s3_class(plot_dca(d), "ggplot")
 })

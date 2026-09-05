@@ -3,14 +3,11 @@
 \name{roc_survmat}
 \alias{roc_survmat}
 \alias{plot.roc_survmat}
-\alias{plot_roc}
 \title{Time-Dependent ROC Curve from a Survival-Probability Matrix}
 \usage{
 roc_survmat(object, predicted, t_star)
 
 \method{plot}{roc_survmat}(x, title, ...)
-
-plot_roc(x, ...)
 }
 \arguments{
 \item{object}{A \code{\link[survival]{Surv}} object of length \eqn{n}.}
@@ -25,7 +22,7 @@ probabilities with columns named \code{"t=<time>"}.}
 \item{title}{Plot title. If missing, an automatically generated title is
 used (includes the AUC). Pass \code{NULL} to omit the title entirely.}
 
-\item{...}{Additional arguments passed to \code{\link{plot.roc_survmat}}.}
+\item{...}{Additional arguments (unused).}
 }
 \value{
 An object of class \code{"roc_survmat"}: a list with \code{curve}
@@ -71,5 +68,7 @@ Heagerty PJ, Zheng Y (2005). Survival model predictive accuracy and ROC
 curves. \doi{10.1111/j.0006-341X.2005.030814.x}
 }
 \seealso{
-\code{\link[=auc_survmat]{auc_survmat()}}, \code{\link[=plot.roc_survmat]{plot.roc_survmat()}}
+\code{\link[=auc_survmat]{auc_survmat()}} for the scalar AUC at one horizon,
+\code{\link[=timeroc_survmat]{timeroc_survmat()}} for the AUC(t) trajectory across horizons,
+\code{\link[=plot.roc_survmat]{plot.roc_survmat()}}.
 }

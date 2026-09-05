@@ -150,11 +150,3 @@ plot.dca_survmat <- function(x, title, ...) {
   if (!is.null(title)) p <- p + ggplot2::labs(title = title)
   p
 }
-
-#' @param x A \code{dca_survmat} object.
-#' @param ... Additional arguments passed to \code{\link{plot.dca_survmat}}.
-#' @rdname dca_survmat
-#' @export
-plot_dca <- function(x, ...) {
-  plot.dca_survmat(x, ...)
-}
