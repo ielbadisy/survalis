@@ -22,7 +22,7 @@
 #'   `summarise_benchmark()`, `summarize_benchmark_results()`,
 #'     `best_survlearner()` \tab `summary()` / `print()` on a `survalis_compare` \cr
 #'   `compute_*()` / `plot_*()` \tab `interpret(fit, method = ...)` then `plot()` \cr
-#'   `estimate_rmst()` \tab `estimate(..., estimand = "RMST_diff")` \cr
+#'   `estimate_rmst()` \tab `estimate(..., estimand = "rmst_diff")` \cr
 #' }
 #'
 #' @name survalis-deprecated

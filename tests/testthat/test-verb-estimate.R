@@ -7,10 +7,10 @@ skip_verb <- function() {
 
 test_that("estimate() returns a survalis_estimate with a bootstrap CI", {
   skip_verb()
-  e <- estimate(f, veteran, "coxph", estimand = "RMST_diff", treatment = "trt",
+  e <- estimate(f, veteran, "coxph", estimand = "rmst_diff", treatment = "trt",
                 tau = 300, R = 30, refit = FALSE, seed = 1)
   expect_s3_class(e, "survalis_estimate")
-  expect_equal(e$estimand, "RMST_diff")
+  expect_equal(e$estimand, "rmst_diff")
   expect_identical(e$levels, sort(unique(veteran$trt)))
   expect_true(e$conf.low <= e$estimate && e$estimate <= e$conf.high)
   expect_equal(nrow(e$curves), length(e$curves$time))
@@ -19,7 +19,7 @@ test_that("estimate() returns a survalis_estimate with a bootstrap CI", {
 
 test_that("estimate() supports the four estimands", {
   skip_verb()
-  for (q in c("RMST_diff", "RMST_ratio", "survival_diff", "survival_ratio")) {
+  for (q in c("rmst_diff", "rmst_ratio", "survival_diff", "survival_ratio")) {
     e <- estimate(f, veteran, "coxph", estimand = q, treatment = "trt",
                   tau = 200, R = 15, refit = FALSE, seed = 1)
     expect_true(is.finite(e$estimate), info = q)
