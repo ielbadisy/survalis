@@ -344,8 +344,8 @@ interpret(mod_cox, "calibration", eval_time = 80, n_bins = 10, n_boot = 30) |> p
 
 
 
-## Citing
+## Citation
 
-```r
+```{r citation}
 citation("survalis")
 ```

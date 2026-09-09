@@ -605,8 +605,23 @@ interpret(mod_cox, "calibration", eval_time = 80, n_bins = 10, n_boot = 30) |> p
 
 <img src="man/figures/README-unnamed-chunk-23-1.png" alt="" width="100%" />
 
-## Citing
+## Citation
 
 ``` r
 citation("survalis")
+#> To cite survalis in publications, use:
+#> 
+#>   El Badisy I (2026). _survalis: Interpretable Survival Machine
+#>   Learning Framework_. R package version 1.3.0,
+#>   <https://CRAN.R-project.org/package=survalis>.
+#> 
+#> A BibTeX entry for LaTeX users is
+#> 
+#>   @Manual{,
+#>     title = {survalis: Interpretable Survival Machine Learning Framework},
+#>     author = {Imad {El Badisy}},
+#>     year = {2026},
+#>     note = {R package version 1.3.0},
+#>     url = {https://CRAN.R-project.org/package=survalis},
+#>   }
 ```

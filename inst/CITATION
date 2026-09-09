@@ -1,0 +1,10 @@
+citHeader("To cite survalis in publications, use:")
+
+bibentry(
+  bibtype = "Manual",
+  title   = "survalis: Interpretable Survival Machine Learning Framework",
+  author  = person("Imad", "El Badisy"),
+  year    = "2026",
+  note    = sprintf("R package version %s", meta$Version),
+  url     = "https://CRAN.R-project.org/package=survalis"
+)
