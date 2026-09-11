@@ -28,7 +28,7 @@ internal (unexported) in a future release.
 \code{summarise_benchmark()}, \code{summarize_benchmark_results()},
 \code{best_survlearner()} \tab \code{summary()} / \code{print()} on a \code{survalis_compare} \cr
 \verb{compute_*()} / \verb{plot_*()} \tab \code{interpret(fit, method = ...)} then \code{plot()} \cr
-\code{estimate_rmst()} \tab \code{estimate(..., estimand = "RMST_diff")} \cr
+\code{estimate_rmst()} \tab \code{estimate(..., estimand = "rmst_diff")} \cr
 }
 }
 

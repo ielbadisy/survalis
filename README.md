@@ -54,48 +54,40 @@ install.packages("survalis")
 remotes::install_github("ielbadisy/survalis")
 ```
 
-## New in version 1.1.0
+## Downstream tools
 
-Version 1.1.0 adds a set of downstream tools that work with the same
-fitted models and `survmat` predictions used throughout the package:
+Alongside the seven verbs, `survalis` ships a few task-specific helpers
+that operate on the same fitted models and `survmat` predictions:
 
-- `screen_fdr()` performs univariate Cox screening with
-  Benjamini-Hochberg FDR control and an optional minimum-screen
-  guarantee.
-- `estimate_rmst()` and `plot_rmst()` estimate standardized marginal
-  RMST or a two-group RMST contrast with percentile-bootstrap intervals.
-- `compute_shap_matrix()` and `plot_shap_beeswarm()` summarize
-  time-integrated SHAP contributions across observations.
-- `roc_survmat()` and `dca_survmat()` provide IPCW time-dependent ROC
-  and decision-curve analyses, with `plot_roc()` and `plot_dca()`
-  helpers.
+- `screen_fdr()` – univariate Cox screening with Benjamini-Hochberg FDR
+  control and an optional minimum-screen guarantee.
+- `roc_survmat()` / `dca_survmat()` – IPCW time-dependent ROC curve and
+  decision-curve analysis at a fixed horizon; `timeroc_survmat()` for
+  the AUC(t) trajectory. Each result has a `plot()` method.
+- Time-integrated SHAP across observations via
+  `interpret(fit, "shap_matrix")`, then `plot()`.
 
 ``` r
-# FDR screening
+# Univariate Cox screening with BH-FDR control
 selected <- screen_fdr(
-  Surv(time, status) ~ age + karno + diagtime + prior,
-  data = veteran,
-  alpha = 0.1,
-  minscreen = 2
+  Surv(time, status) ~ age + karno + diagtime + prior, veteran,
+  alpha = 0.1, minscreen = 2
 )
 
-# Standardized RMST contrast between treatment groups
-rmst <- estimate_rmst(
-  mod_cox,
-  data = veteran,
-  tau = 200,
-  times = seq(10, 300, by = 10),
-  trt_col = "trt",
-  R = 200,
-  seed = 1
+# Standardized RMST contrast between treatment arms (G-computation)
+estimate(
+  Surv(time, status) ~ age + karno + celltype, veteran,
+  model = "coxph", estimand = "rmst_diff", treatment = "trt", tau = 200
 )
 
-# Time-dependent ROC and decision curves from survmat predictions
-pred_100 <- predict_coxph(mod_cox, veteran, times = 100)
-roc <- roc_survmat(Surv(veteran$time, veteran$status), pred_100, t_star = 100)
-dca <- dca_survmat(Surv(veteran$time, veteran$status), pred_100, t_star = 100)
-plot_roc(roc)
-plot_dca(dca)
+# Time-dependent ROC and decision curve from a survmat
+mod_cox <- fit(Surv(time, status) ~ age + karno + celltype, veteran, model = "coxph")
+sp  <- predict(mod_cox, veteran, times = 100)
+y   <- with(veteran, Surv(time, status))
+roc <- roc_survmat(y, sp, t_star = 100)
+dca <- dca_survmat(y, sp, t_star = 100)
+plot(roc)
+plot(dca)
 ```
 
 ## Core philosophy

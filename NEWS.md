@@ -50,6 +50,9 @@
   supported. They are now marked internal in the manual and emit a one-time
   per-session note. See `?\`survalis-deprecated\``. They are scheduled to
   become unexported in a future release.
+* Removed the `plot_roc()` / `plot_dca()` aliases (added in 1.1.0, never on
+  CRAN); use `plot()` on the `roc_survmat` / `dca_survmat` object, consistent
+  with every other `plot()` method in the package.
 
 # survalis 1.2.0
 
@@ -79,8 +82,7 @@
 * Added `roc_survmat()` (full time-dependent ROC curve, IPCW-weighted like
   `auc_survmat()`) and `dca_survmat()` (decision curve analysis / net benefit
   for right-censored outcomes, using the same `Ĝ(t)` IPCW estimator as
-  `brier()` and `auc_survmat()`), each with `plot()`/`plot_roc()`/`plot_dca()`
-  methods.
+  `brier()` and `auc_survmat()`), each with a `plot()` method.
 
 # survalis 1.0.0
 

@@ -8,7 +8,7 @@ estimate(
   formula,
   data,
   model,
-  estimand = c("RMST_diff", "RMST_ratio", "survival_diff", "survival_ratio"),
+  estimand = c("rmst_diff", "rmst_ratio", "survival_diff", "survival_ratio"),
   treatment,
   tau,
   times = NULL,
@@ -29,7 +29,7 @@ treatment-by-confounder interactions).}
 
 \item{model}{A learner id (\code{list_survlearners()$learner}).}
 
-\item{estimand}{One of \code{"RMST_diff"} (default), \code{"RMST_ratio"},
+\item{estimand}{One of \code{"rmst_diff"} (default), \code{"rmst_ratio"},
 \code{"survival_diff"}, \code{"survival_ratio"}.}
 
 \item{treatment}{Name of a binary column in \code{data}. The larger value is the
@@ -85,7 +85,7 @@ not doubly robust.
 \examples{
 \dontshow{if (requireNamespace("survival", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 est <- estimate(Surv(time, status) ~ age + karno + celltype, veteran,
-                model = "coxph", estimand = "RMST_diff",
+                model = "coxph", estimand = "rmst_diff",
                 treatment = "trt", tau = 300, R = 50, seed = 1)
 est
 \dontshow{\}) # examplesIf}

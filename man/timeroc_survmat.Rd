@@ -43,5 +43,7 @@ Heagerty PJ, Zheng Y (2005). Survival model predictive accuracy and ROC
 curves. \doi{10.1111/j.0006-341X.2005.030814.x}
 }
 \seealso{
-\code{\link[=auc_survmat]{auc_survmat()}}
+\code{\link[=auc_survmat]{auc_survmat()}} for the scalar AUC at one horizon,
+\code{\link[=roc_survmat]{roc_survmat()}} for the full sensitivity/specificity ROC curve at one
+horizon.
 }

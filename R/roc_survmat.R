@@ -31,7 +31,9 @@
 #'   (a data.frame with \code{threshold}, \code{sensitivity},
 #'   \code{specificity}), \code{auc}, and \code{t_star}.
 #'
-#' @seealso [auc_survmat()], [plot.roc_survmat()]
+#' @seealso [auc_survmat()] for the scalar AUC at one horizon,
+#'   [timeroc_survmat()] for the AUC(t) trajectory across horizons,
+#'   [plot.roc_survmat()].
 #'
 #' @references
 #' Uno H, Cai T, Tian L, Wei LJ (2007). Evaluating prediction rules for
@@ -120,12 +122,4 @@ plot.roc_survmat <- function(x, title, ...) {
     theme_survalis()
   if (!is.null(title)) p <- p + ggplot2::labs(title = title)
   p
-}
-
-#' @param x A \code{roc_survmat} object.
-#' @param ... Additional arguments passed to \code{\link{plot.roc_survmat}}.
-#' @rdname roc_survmat
-#' @export
-plot_roc <- function(x, ...) {
-  plot.roc_survmat(x, ...)
 }
