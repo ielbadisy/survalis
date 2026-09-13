@@ -31,7 +31,7 @@ list_survlearners <- function(has_tune = FALSE) {
   ids <- c(
     "coxph", "aalen", "glmnet", "selectcox", "aftgee", "flexsurvreg", "stpm2", "bnnsurv",
     "rpart", "bart", "xgboost", "coxboost", "fastgbm", "ranger", "rsf", "cforest", "blackboost",
-    "survsvm", "survdnn", "densemlp", "orsf", "rpsurv", "survmetalearner"
+    "survsvm", "survdnn", "densemlp", "orsf", "rpsurv", "nbsurv", "survmetalearner"
   )
 
   fun_exists <- function(x) isTRUE(exists(x, mode = "function", inherits = TRUE))

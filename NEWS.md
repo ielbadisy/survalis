@@ -1,3 +1,9 @@
+# survalis 1.5.0
+
+* New learner: `nbsurv` (conditional naive Bayes survival model, via the
+  `nbsurv` package). `fit_nbsurv()`/`predict_nbsurv()` added (no tuner).
+  Registered in `list_survlearners()`; 24 learners total.
+
 # survalis 1.4.0
 
 * New learner: `rpsurv` (Royston-Parmar flexible parametric survival, via the
