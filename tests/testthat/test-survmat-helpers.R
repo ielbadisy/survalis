@@ -63,3 +63,24 @@ test_that("plot_survmat() returns ggplot objects for individual and grouped curv
     "length equal to nrow"
   )
 })
+
+test_that("survmat_to_rmst() interpolates correctly for off-grid tau (regression test for prior under-integration bug)", {
+  times <- 0:5
+  S <- matrix(c(1, 0.9, 0.8, 0.7, 0.6, 0.5), nrow = 1)
+  colnames(S) <- paste0("t=", times)
+
+  # On-grid tau: exact trapezoidal sum over whole intervals [0,1],[1,2].
+  expect_equal(survmat_to_rmst(S, times, tau = 2), 1.8, tolerance = 1e-8)
+
+  # Off-grid tau: must interpolate the fractional interval [3,3.5], not
+  # silently truncate to the tau = 3 value.
+  rmst_tau3   <- survmat_to_rmst(S, times, tau = 3)
+  rmst_tau3.5 <- survmat_to_rmst(S, times, tau = 3.5)
+  expect_equal(rmst_tau3, 2.55, tolerance = 1e-8)
+  expect_equal(rmst_tau3.5, 2.875, tolerance = 1e-8)
+  expect_gt(rmst_tau3.5, rmst_tau3)
+
+  # tau beyond the last grid point holds at the full definite integral
+  # (no extrapolation past the observed curve).
+  expect_equal(survmat_to_rmst(S, times, tau = 10), 3.75, tolerance = 1e-8)
+})

@@ -1,3 +1,18 @@
+# survalis 1.6.0
+
+* Bug fix: `survmat_to_rmst()` (and everything built on it: `predict(type =
+  "rmst")`, `estimate()`) previously under-integrated RMST for an off-grid
+  `tau` -- it restricted the time grid to `times <= tau` and summed whole
+  trapezoidal intervals only, silently dropping the fractional last interval
+  instead of interpolating into it. For example, on a grid of `0:5`, `tau =
+  3.5` returned the same value as `tau = 3` (wrong). RMST computation is now
+  delegated to `tvrmst::rmst_dynamic()`, with per-subject linear
+  interpolation to `tau` on top of its cumulative trapezoidal curve. Values
+  for `tau` that already land exactly on a grid point are unchanged; values
+  for off-grid `tau` are now correct. `tau` beyond the last grid point still
+  holds at the full definite integral (no extrapolation past the observed
+  curve). Added `tvrmst` to `Imports`.
+
 # survalis 1.5.0
 
 * New learner: `nbsurv` (conditional naive Bayes survival model, via the

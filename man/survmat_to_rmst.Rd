@@ -19,11 +19,15 @@ Numeric vector of RMST values (length = \code{nrow(S)}).
 }
 \description{
 Computes \eqn{\mathrm{RMST}(\tau) = \int_0^\tau S(t)\, dt} for each observation,
-approximated via the trapezoidal rule on the provided time grid.
+via the trapezoidal rule on the provided time grid (delegated to
+\code{tvrmst::rmst_dynamic()}), followed by linear interpolation to \code{tau}
+when \code{tau} falls between grid points.
 }
 \details{
 If the grid does not include \code{0}, the function prepends \eqn{(0, S(0)=1)}
-to correctly integrate from time 0.
+to correctly integrate from time 0. When \code{tau} exceeds the last grid
+point, the value is held at the definite integral over the full grid (no
+extrapolation past the observed curve).
 }
 \examples{
 times <- c(1, 2, 3)

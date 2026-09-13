@@ -247,10 +247,14 @@ survmat_to_haz <- function(S, times, eps = 1e-12, t0 = 0) {
 #' Compute restricted mean survival time (RMST) from a survival-probability matrix (survmat)
 #'
 #' Computes \eqn{\mathrm{RMST}(\tau) = \int_0^\tau S(t)\, dt} for each observation,
-#' approximated via the trapezoidal rule on the provided time grid.
+#' via the trapezoidal rule on the provided time grid (delegated to
+#' \code{tvrmst::rmst_dynamic()}), followed by linear interpolation to \code{tau}
+#' when \code{tau} falls between grid points.
 #'
 #' If the grid does not include \code{0}, the function prepends \eqn{(0, S(0)=1)}
-#' to correctly integrate from time 0.
+#' to correctly integrate from time 0. When \code{tau} exceeds the last grid
+#' point, the value is held at the definite integral over the full grid (no
+#' extrapolation past the observed curve).
 #'
 #' @param S A `surv_mat`: numeric matrix/data.frame of survival probabilities.
 #' @param times Numeric vector of time points corresponding to columns of \code{S}.
@@ -273,7 +277,7 @@ survmat_to_rmst <- function(S, times, tau = max(times)) {
 
   if (!is.finite(tau) || tau <= 0) stop("`tau` must be a positive finite number.")
 
-  # Augment with (0,1) if needed
+  # Augment with (0,1) if needed, so integration always starts at time 0
   if (times[1] > 0) {
     times2 <- c(0, times)
     S2 <- cbind(rep(1, nrow(S)), S)
@@ -282,16 +286,22 @@ survmat_to_rmst <- function(S, times, tau = max(times)) {
     S2 <- S
   }
 
-  keep <- times2 <= tau
-  if (sum(keep) < 2) stop("Need at least 2 time points <= tau to compute RMST.")
-  t <- times2[keep]
-  Sg <- S2[, keep, drop = FALSE]
+  # Clamp to [0,1] to guard against floating-point drift before handing to
+  # tvrmst::as_survmat(), which enforces the bound strictly.
+  S2 <- pmin(pmax(S2, 0), 1)
 
-  dt <- diff(t)
-  left  <- Sg[, -ncol(Sg), drop = FALSE]
-  right <- Sg[, -1, drop = FALSE]
+  x <- tvrmst::as_survmat(S2, times2)
+  ind <- tvrmst::rmst_dynamic(x)$individual
 
-  rmst <- rowSums(((left + right) / 2) * matrix(dt, nrow = nrow(Sg), ncol = length(dt), byrow = TRUE))
+  # Per-subject linear interpolation of the cumulative RMST curve at tau
+  # (rule = 2 holds the value flat beyond the last grid point, i.e. no
+  # extrapolation past the observed curve, matching the prior behavior for
+  # tau > max(times)).
+  rmst <- vapply(
+    seq_len(nrow(ind)),
+    function(i) stats::approx(x = times2, y = ind[i, ], xout = tau, rule = 2, ties = "ordered")$y,
+    numeric(1)
+  )
   as.numeric(rmst)
 }
 
