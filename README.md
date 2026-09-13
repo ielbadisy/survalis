@@ -13,7 +13,7 @@ MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.or
 <!-- badges: end -->
 
 `survalis` provides a unified framework for survival machine learning in
-R. It supports 22 learners, evaluation metrics, cross-validation,
+R. It supports 23 learners, evaluation metrics, cross-validation,
 benchmarking, and model-agnostic interpretability methods through a
 common survival-probability matrix (`survmat`) interface.
 

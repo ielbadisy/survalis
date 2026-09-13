@@ -1,3 +1,11 @@
+# survalis 1.4.0
+
+* New learner: `rpsurv` (Royston-Parmar flexible parametric survival, via the
+  `rpsurv` package). `fit_rpsurv()`/`predict_rpsurv()` added (no tuner),
+  restricted cubic splines with optional time-varying covariate effects
+  (`tve`) and a choice of `scale` (hazard/odds/normal). Registered in
+  `list_survlearners()`; 23 learners total.
+
 # survalis 1.3.0
 
 ## Seven-verb interface

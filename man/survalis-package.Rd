@@ -8,7 +8,7 @@
 \description{
 survalis provides a unified interface for fitting, predicting, evaluating,
 tuning, comparing, interpreting and standardising survival machine-learning
-models across 22 learners.
+models across 23 learners.
 }
 \section{The seven verbs}{
 
