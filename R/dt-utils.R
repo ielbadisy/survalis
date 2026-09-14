@@ -3,39 +3,33 @@
   results <- lapply(seq_len(nrow(grid)), function(i) {
     do.call(f, as.list(grid[i, , drop = FALSE]))
   })
-  data.table::rbindlist(results, fill = TRUE)
+  basetable::rbindfill(results, fill = TRUE)
 }
 
 .map_rbind_dt <- function(x, f) {
   results <- lapply(x, f)
-  data.table::rbindlist(results, fill = TRUE)
+  basetable::rbindfill(results, fill = TRUE)
 }
 
 .complete_cases_df <- function(data, vars) {
-  DT <- data.table::as.data.table(data)
-  as.data.frame(DT[stats::complete.cases(DT[, vars, with = FALSE])])
+  data[stats::complete.cases(data[, vars, drop = FALSE]), , drop = FALSE]
 }
 
 .wide_metric_row <- function(params, cv_summary_dt) {
   metric_vals <- as.list(stats::setNames(cv_summary_dt$mean, cv_summary_dt$metric))
-  do.call(data.table::data.table, c(params, metric_vals))
+  # list-valued params (e.g. survdnn's `hidden`) must stay a single list-column
+  # entry rather than being spread across columns by base data.frame()'s
+  # default list-argument handling.
+  params <- lapply(params, function(x) if (is.list(x)) I(x) else x)
+  do.call(data.frame, c(params, metric_vals, stringsAsFactors = FALSE))
 }
 
 .arrange_by_metric_dt <- function(dt, metric, maximize) {
-  dt <- data.table::as.data.table(dt)
-  data.table::setorderv(dt, metric, order = if (maximize) -1L else 1L)
-  dt[]
+  basetable::orderrows(dt, by = metric, decreasing = maximize)
 }
 
-# data.table's `[i, j]` does NOT select columns when `j` is a variable
-# holding column names (only a literal character vector triggers that);
-# a plain data.frame/tibble's `[i, j, drop = FALSE]` does. This selects
-# columns correctly for either, so callers can stay agnostic to whether
-# an upstream tune_*() has been migrated to data.table yet.
+# A plain data.frame/tibble/basetable's `[i, j, drop = FALSE]` always
+# selects columns when `j` is a variable holding column names.
 .select_cols <- function(x, cols) {
-  if (data.table::is.data.table(x)) {
-    x[, cols, with = FALSE]
-  } else {
-    x[, cols, drop = FALSE]
-  }
+  x[, cols, drop = FALSE]
 }

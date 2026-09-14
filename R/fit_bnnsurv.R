@@ -252,7 +252,7 @@ tune_bnnsurv <- function(formula, data, times,
     .wide_metric_row(c(params, list(failed = FALSE)), summary)
   })
 
-  results <- results[!results$failed]
+  results <- results[!results$failed, , drop = FALSE]
 
   if (nrow(results) == 0) {
     warning("All tuning combinations failed.")

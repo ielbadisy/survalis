@@ -1,3 +1,15 @@
+# survalis 1.6.1
+
+* Migrated the shared `R/dt-utils.R` internal helpers (`.pmap_rbind_dt`,
+  `.map_rbind_dt`, `.complete_cases_df`, `.wide_metric_row`,
+  `.arrange_by_metric_dt`, `.select_cols`) from `data.table` to `basetable`
+  as the row-binding/ordering engine. These helpers are the shared choke
+  point behind every tuner's parameter-grid results table. Also fixed a
+  latent single-bracket row-filter in `tune_bnnsurv()` (`results[!results$failed]`)
+  that only worked under `data.table`'s `DT[i]` row-selection semantics;
+  now explicit (`results[!results$failed, ]`). `data.table` remains in use
+  elsewhere in the package pending further migration.
+
 # survalis 1.6.0
 
 * Bug fix: `survmat_to_rmst()` (and everything built on it: `predict(type =
