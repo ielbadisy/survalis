@@ -3,12 +3,30 @@
   results <- lapply(seq_len(nrow(grid)), function(i) {
     do.call(f, as.list(grid[i, , drop = FALSE]))
   })
-  basetable::rbindfill(results, fill = TRUE)
+  .rbind_fill_dt(results)
 }
 
 .map_rbind_dt <- function(x, f) {
   results <- lapply(x, f)
-  basetable::rbindfill(results, fill = TRUE)
+  .rbind_fill_dt(results)
+}
+
+# Row-binds `results` (data.frames, possibly with differing columns --
+# e.g. a failed tuning row that omits metric columns -- and possibly
+# carrying a list-column, e.g. survdnn's `hidden`) via base rbind() after
+# padding to a common column set. Not basetable::rbindfill(): rbindfill()
+# coerces list-columns to NA instead of preserving them.
+.rbind_fill_dt <- function(results) {
+  results <- Filter(Negate(is.null), results)
+  if (!length(results)) return(data.frame())
+  results <- lapply(results, as.data.frame)
+  all_cols <- unique(unlist(lapply(results, names)))
+  results <- lapply(results, function(df) {
+    missing <- setdiff(all_cols, names(df))
+    for (col in missing) df[[col]] <- NA
+    df[all_cols]
+  })
+  do.call(rbind, results)
 }
 
 .complete_cases_df <- function(data, vars) {

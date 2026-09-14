@@ -1,3 +1,17 @@
+# survalis 1.6.2
+
+* Fixed a latent correctness bug in the shared `.pmap_rbind_dt()`/
+  `.map_rbind_dt()` helpers (introduced in 1.6.1's basetable migration):
+  `basetable::rbindfill()` silently coerces list-columns (e.g. a per-config
+  vector of hidden-layer sizes) to `NA` instead of preserving them, unlike
+  `data.table::rbindlist()`. No current learner grid combined through these
+  helpers carries a list-valued hyperparameter, so this was not an active
+  regression, but it was a landmine for any future one. Both helpers now
+  route through a new internal `.rbind_fill_dt()` (base R `rbind()` after
+  padding to a common column set), which preserves list-columns and still
+  handles rows with differing columns (e.g. a failed tuning row that omits
+  metric columns).
+
 # survalis 1.6.1
 
 * Migrated the shared `R/dt-utils.R` internal helpers (`.pmap_rbind_dt`,
