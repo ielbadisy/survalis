@@ -20,7 +20,7 @@ score_survmodel(
 \code{"iae"}, \code{"ise"}, \code{"ece"}.}
 }
 \value{
-A data.table with columns \code{metric} and \code{value}.
+A data.frame with columns \code{metric} and \code{value}.
 }
 \description{
 Computes one or more performance metrics for a fitted \code{mlsurv_model},

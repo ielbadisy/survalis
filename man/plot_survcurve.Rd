@@ -57,7 +57,7 @@ stacked above the risk table).
 Produces a styled Kaplan-Meier survival curve with an optional confidence
 band, log-rank p-value annotation, and an aligned number-at-risk table
 beneath the curve, in the spirit of \code{survminer::ggsurvplot()} but
-implemented natively with \pkg{ggplot2}/\pkg{data.table} (no dependency on
+implemented natively with \pkg{ggplot2} (no dependency on
 \pkg{survminer}).
 }
 \examples{

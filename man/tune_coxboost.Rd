@@ -38,7 +38,7 @@ The first entry is treated as the primary selection metric for ordering.}
 for fold evaluation (default \code{1}).}
 }
 \value{
-A \code{data.table} with one row per grid configuration, containing
+A \code{data.frame} with one row per grid configuration, containing
 the grid values, a \code{failed} column, and one column per metric.
 }
 \description{

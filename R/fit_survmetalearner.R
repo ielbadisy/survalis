@@ -215,9 +215,9 @@ plot_survmetalearner_weights <- function(model, title) {
   W <- as.data.frame(model$weights)
   W$learner <- rownames(model$weights)
 
-  W_long <- data.table::melt(
-    data.table::as.data.table(W),
-    id.vars = "learner", variable.name = "time", value.name = "weight"
+  W_long <- basetable::tolong(
+    W, cols = setdiff(names(W), "learner"),
+    names = "time", values = "weight", idcols = "learner"
   )
   W_long$time <- as.numeric(sub("t=", "", W_long$time))
 
@@ -363,7 +363,7 @@ cv_survmetalearner <- function(formula, data, times,
 
     # score metrics
     scored <- .score_metrics(surv_test, preds_test, times, metrics)
-    data.table::data.table(fold = i, metric = scored$metric, value = scored$value)
+    data.frame(fold = i, metric = scored$metric, value = scored$value, stringsAsFactors = FALSE)
   })
 
   # Fit final survmetalearner on full data
@@ -387,10 +387,16 @@ cv_survmetalearner <- function(formula, data, times,
     data = data
   )
 
+  mean_tbl <- basetable::aggregate(results, by = "metric", value = "value", fun = "mean")
+  names(mean_tbl)[names(mean_tbl) == "value"] <- "mean"
+  sd_tbl <- basetable::aggregate(results, by = "metric", value = "value", fun = "sd")
+  names(sd_tbl)[names(sd_tbl) == "value"] <- "sd"
+  summary_tbl <- merge(mean_tbl, sd_tbl, by = "metric")
+
   structure(list(
     model = meta_model,
     cv_results = results,
-    summary = results[, list(mean = mean(value), sd = sd(value)), by = metric],
+    summary = summary_tbl,
     folds = folds,
     metrics = metrics
   ), class = "cv_survmetalearner_result")

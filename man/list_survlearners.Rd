@@ -11,7 +11,7 @@ list_survlearners(has_tune = FALSE)
 that have a corresponding \verb{tune_*} function. If \code{FALSE}, return all.}
 }
 \value{
-A data.table with columns:
+A data.frame with columns:
 \itemize{
 \item \code{learner} – learner id (e.g., "ranger")
 \item \code{fit}, \code{predict}, \code{tune} – function names (tune may be \code{NA})

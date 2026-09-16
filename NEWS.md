@@ -1,3 +1,27 @@
+# survalis 1.6.3
+
+* Finished the `data.table` -> `basetable` migration (1.6.1 landed the
+  shared `dt-utils.R` choke point; this closes out the rest). All remaining
+  `data.table::data.table()`/`as.data.table()`/`rbindlist()`/`melt()`/
+  `dcast()`/`setorderv()`/`setcolorder()`/`copy()` calls and bare
+  `[, list(...), by = ...]`/`:=`/`.SD`/`.N` grouped expressions across
+  `list_functions.R`, `plot-survcurve.R`, `compute_shap.R`,
+  `compute_shap_mean.R`, `compute_varimp.R`, `compute_pdp.R`,
+  `compute_calibration.R`, `fit_survmetalearner.R`, `fit_survdnn.R`,
+  `fit_bnnsurv.R`, `fit_coxboost.R`, `fit_xgboost.R`, `fit_glmnet.R`,
+  `fit_survsvm.R`, `evaluation.R` (`cv_summary()`), `survmat-helpers.R`
+  (`plot_survmat()`), and `benchmark_default_survlearners.R`
+  (`summarise_benchmark()`/`summarize_benchmark_results()`/
+  `best_survlearner()`) are replaced with base R and
+  `basetable::aggregate()`/`count()`/`tolong()`/`towide()`/`orderrows()`/
+  `applyby()`. `data.table` dropped from `Imports` entirely. `cv_summary()`
+  and `score_survmodel()` etc. now return plain `data.frame`s instead of
+  `data.table`s (no downstream code relied on data.table-specific
+  semantics). `data.table::CJ()` grid construction is replaced with base
+  `expand.grid()`. All existing tests pass; one test asserting a
+  `"data.table"` return class was updated to `"data.frame"` to match the
+  new contract.
+
 # survalis 1.6.2
 
 * Fixed a latent correctness bug in the shared `.pmap_rbind_dt()`/

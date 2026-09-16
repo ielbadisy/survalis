@@ -30,7 +30,7 @@ compute_varimp(
 \item{importance_type}{One of \code{"delta"} (default) or \code{"mean"}; see Details.}
 }
 \value{
-A data.table with columns:
+A data.frame with columns:
 \itemize{
 \item \code{feature}: feature name,
 \item \code{importance}: importance value (change in metric),

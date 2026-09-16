@@ -12,7 +12,7 @@
 #' @param subset Optional row indices or logical vector to subset \code{model$data}.
 #' @param importance_type One of \code{"delta"} (default) or \code{"mean"}; see Details.
 #'
-#' @return A data.table with columns:
+#' @return A data.frame with columns:
 #' \itemize{
 #'   \item \code{feature}: feature name,
 #'   \item \code{importance}: importance value (change in metric),
@@ -115,18 +115,19 @@ compute_varimp <- function(model, times,
     )
 
     list(
-      summary = data.table::data.table(
+      summary = data.frame(
         feature = v,
         importance = imp,
         importance_05 = stats::quantile(values, 0.05),
-        importance_95 = stats::quantile(values, 0.95)
+        importance_95 = stats::quantile(values, 0.95),
+        stringsAsFactors = FALSE
       ),
-      raw = data.table::data.table(feature = v, repetition = seq_len(n_repetitions), value = values)
+      raw = data.frame(feature = v, repetition = seq_len(n_repetitions), value = values, stringsAsFactors = FALSE)
     )
   })
 
-  result <- data.table::rbindlist(lapply(per_feature, `[[`, "summary"))
-  raw_scores <- data.table::rbindlist(lapply(per_feature, `[[`, "raw"))
+  result <- .rbind_fill_dt(lapply(per_feature, `[[`, "summary"))
+  raw_scores <- .rbind_fill_dt(lapply(per_feature, `[[`, "raw"))
 
   result$scaled_importance <- switch(importance_type,
                                      "mean"  = 100 * (result$importance - original_loss) / original_loss,
@@ -188,7 +189,7 @@ plot_varimp <- function(varimp_df, use_scaled = TRUE, title) {
   raw <- attr(varimp_df, "raw_scores")
 
   if (!is.null(raw)) {
-    plot_df <- data.table::copy(raw)
+    plot_df <- raw
     plot_df$feature <- factor(plot_df$feature, levels = feature_levels)
     value_col <- if (use_scaled) "scaled_value" else "value"
 

@@ -135,12 +135,14 @@ all_results[[as.character(current_time)]] <- result_df
 final_result <- do.call(rbind, all_results)
 
 if (aggregate) {
-phi_wide <- data.table::dcast(
-  data.table::as.data.table(final_result)[, list(feature, time, phi)],
-  feature ~ time, value.var = "phi"
+phi_long <- final_result[c("feature", "time", "phi")]
+phi_wide <- basetable::towide(
+  phi_long, names = "time", values = "phi", idcols = "feature", fun = identity
 )
+time_cols <- as.character(sort(unique(phi_long$time)))
+phi_wide <- phi_wide[, c("feature", time_cols)]
 
-phi_matrix <- as.matrix(phi_wide[, -1, with = FALSE])
+phi_matrix <- as.matrix(phi_wide[, -1, drop = FALSE])
 rownames(phi_matrix) <- phi_wide$feature
 
 agg_phi <- switch(

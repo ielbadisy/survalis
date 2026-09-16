@@ -8,7 +8,7 @@ tune_glmnet(
   formula,
   data,
   times,
-  param_grid = c(alpha = seq(0, 1, by = 0.25)),
+  param_grid = list(alpha = seq(0, 1, by = 0.25)),
   metrics = c("cindex", "ibs"),
   folds = 5,
   seed = 123,

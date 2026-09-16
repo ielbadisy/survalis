@@ -2,24 +2,27 @@
   s <- summary(fit)
   strata_vec <- if (!is.null(s$strata)) as.character(s$strata) else "All"
 
-  dt <- data.table::data.table(
+  dt <- data.frame(
     time = s$time,
     surv = s$surv,
     lower = s$lower,
     upper = s$upper,
     n.risk = s$n.risk,
     n.event = s$n.event,
-    strata = strata_vec
+    strata = strata_vec,
+    stringsAsFactors = FALSE
   )
 
-  starts <- dt[, list(
-    time = 0, surv = 1, lower = 1, upper = 1,
-    n.risk = max(n.risk), n.event = 0
-  ), by = strata]
+  starts <- basetable::aggregate(dt, by = "strata", value = "n.risk", fun = max)
+  starts$time <- 0
+  starts$surv <- 1
+  starts$lower <- 1
+  starts$upper <- 1
+  starts$n.event <- 0
 
-  out <- data.table::rbindlist(list(starts, dt), use.names = TRUE, fill = TRUE)
-  data.table::setorderv(out, c("strata", "time"))
-  out[]
+  out <- .rbind_fill_dt(list(starts, dt))
+  out <- basetable::orderrows(out, by = c("strata", "time"))
+  out
 }
 
 .survcurve_pvalue <- function(formula, data) {
@@ -34,7 +37,7 @@
 #' Produces a styled Kaplan-Meier survival curve with an optional confidence
 #' band, log-rank p-value annotation, and an aligned number-at-risk table
 #' beneath the curve, in the spirit of \code{survminer::ggsurvplot()} but
-#' implemented natively with \pkg{ggplot2}/\pkg{data.table} (no dependency on
+#' implemented natively with \pkg{ggplot2} (no dependency on
 #' \pkg{survminer}).
 #'
 #' @param formula A survival formula, e.g. \code{Surv(time, status) ~ 1} or
@@ -144,10 +147,11 @@ plot_survcurve <- function(formula, data,
 
   risk_dt <- summary(fit, times = breaks, extend = TRUE)
   risk_strata <- if (!is.null(risk_dt$strata)) as.character(risk_dt$strata) else "All"
-  risk_tbl <- data.table::data.table(
+  risk_tbl <- data.frame(
     time = risk_dt$time,
     strata = risk_strata,
-    n.risk = risk_dt$n.risk
+    n.risk = risk_dt$n.risk,
+    stringsAsFactors = FALSE
   )
 
   rt <- ggplot2::ggplot(risk_tbl, ggplot2::aes(x = time, y = strata, label = n.risk, color = strata)) +

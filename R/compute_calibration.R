@@ -94,24 +94,32 @@ compute_calibration <- function(model, data, time, status,
   df <- data.frame(pred_surv = pred_surv, time = time, status = status, bin = bins)
 
   # calibration table
-  calibration_table <- data.table::as.data.table(df)[, {
-    surv_fit <- survfit(Surv(time, status) ~ 1, data = .SD)
+  .calibration_bin_row <- function(d) {
+    surv_fit <- survfit(Surv(time, status) ~ 1, data = d)
     surv_summary <- summary(surv_fit, times = eval_time, extend = TRUE)
-    list(
-      mean_pred_surv = mean(pred_surv, na.rm = TRUE),
+    data.frame(
+      bin = d$bin[1],
+      mean_pred_surv = mean(d$pred_surv, na.rm = TRUE),
       observed_surv = if (length(surv_summary$surv) == 0) NA else surv_summary$surv
     )
-  }, keyby = bin]
+  }
+  calibration_table <- do.call(rbind, lapply(split(df, df$bin), .calibration_bin_row))
+  calibration_table <- calibration_table[order(calibration_table$bin), , drop = FALSE]
+  row.names(calibration_table) <- NULL
 
   # bootstrap CIs
   boot_results <- replicate(n_boot, {
     idx <- sample(seq_len(nrow(df)), replace = TRUE)
-    df_boot <- data.table::as.data.table(df[idx, ])
-    out <- df_boot[, {
-      surv_fit <- survfit(Surv(time, status) ~ 1, data = .SD)
+    df_boot <- df[idx, ]
+    out <- do.call(rbind, lapply(split(df_boot, df_boot$bin), function(d) {
+      surv_fit <- survfit(Surv(time, status) ~ 1, data = d)
       surv_summary <- summary(surv_fit, times = eval_time, extend = TRUE)
-      list(observed_surv = if (length(surv_summary$surv) == 0) NA else surv_summary$surv)
-    }, keyby = bin]
+      data.frame(
+        bin = d$bin[1],
+        observed_surv = if (length(surv_summary$surv) == 0) NA else surv_summary$surv
+      )
+    }))
+    out <- out[order(out$bin), , drop = FALSE]
     out$observed_surv
   }, simplify = "matrix")
 

@@ -150,7 +150,7 @@ predict_coxboost <- function(object, newdata, times = NULL) {
 #' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
 #'   for fold evaluation (default \code{1}).
 #'
-#' @return A \code{data.table} with one row per grid configuration, containing
+#' @return A \code{data.frame} with one row per grid configuration, containing
 #'   the grid values, a \code{failed} column, and one column per metric.
 #'
 #' @details
@@ -237,7 +237,7 @@ tune_coxboost <- function(formula, data, times,
       }, error = function(e) NULL)
 
       if (is.null(cv_results)) {
-        return(do.call(data.table::data.table, c(params, list(failed = TRUE))))
+        return(do.call(data.frame, c(params, list(failed = TRUE), stringsAsFactors = FALSE)))
       }
 
       smry <- cv_summary(cv_results)[, c("metric", "mean")]

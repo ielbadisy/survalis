@@ -197,10 +197,9 @@ plot_pdp <- function(pdp_ice_output, feature,
                      which = c("per_time", "integrated"),
                      alpha_ice = 0.2, smooth = FALSE, title) {
   requireNamespace("ggplot2")
-  requireNamespace("data.table")
 
   which <- match.arg(which)
-  results <- as.data.table(pdp_ice_output$results)
+  results <- as.data.frame(pdp_ice_output$results)
   feature_data <- results[[feature]]
   is_categorical <- is.factor(feature_data) || is.character(feature_data)
 
@@ -210,11 +209,13 @@ plot_pdp <- function(pdp_ice_output, feature,
 
     if (!"integrated_surv" %in% names(pdp_ice_output$pdp_integrated)) stop("Invalid integrated PDP.")
 
-    ice_data <- results[type == "ice"]
-    ice_integrated <- ice_data[, .(
-      integrated_surv = sum((head(surv_prob, -1) + tail(surv_prob, -1)) / 2 * diff(head(time, -1))),
-      time_n = .N
-    ), by = c(".id", feature)]
+    ice_data <- results[results$type == "ice", , drop = FALSE]
+    ice_integrated <- basetable::applyby(ice_data, by = c(".id", feature), bind = TRUE, fun = function(d) {
+      out <- d[1, c(".id", feature), drop = FALSE]
+      out$integrated_surv <- sum((head(d$surv_prob, -1) + tail(d$surv_prob, -1)) / 2 * diff(head(d$time, -1)))
+      out$time_n <- nrow(d)
+      out
+    })
 
     pdp_integrated <- pdp_ice_output$pdp_integrated
 
@@ -245,14 +246,15 @@ plot_pdp <- function(pdp_ice_output, feature,
   }
 
   # per-time PDP/ICE plot
-  plot_data <- results[type %in% switch(method,
-                                        "pdp" = "pdp",
-                                        "ice" = "ice",
-                                        "pdp+ice" = c("pdp", "ice"),
-                                        stop("Invalid method"))]
+  target_types <- switch(method,
+                        "pdp" = "pdp",
+                        "ice" = "ice",
+                        "pdp+ice" = c("pdp", "ice"),
+                        stop("Invalid method"))
+  plot_data <- results[results$type %in% target_types, , drop = FALSE]
 
   if (!is.null(ids) && "ice" %in% plot_data$type) {
-    plot_data <- plot_data[type != "ice" | .id %in% ids]
+    plot_data <- plot_data[plot_data$type != "ice" | plot_data$.id %in% ids, , drop = FALSE]
   }
 
   if (is_categorical) {
@@ -270,11 +272,11 @@ plot_pdp <- function(pdp_ice_output, feature,
     if (!is.null(title)) p <- p + labs(title = title)
 
     if ("ice" %in% plot_data$type) {
-      p <- p + geom_boxplot(data = plot_data[type == "ice"], alpha = alpha_ice, position = "dodge")
+      p <- p + geom_boxplot(data = plot_data[plot_data$type == "ice", , drop = FALSE], alpha = alpha_ice, position = "dodge")
     }
 
     if ("pdp" %in% plot_data$type) {
-      p <- p + stat_summary(data = plot_data[type == "pdp"],
+      p <- p + stat_summary(data = plot_data[plot_data$type == "pdp", , drop = FALSE],
                                      fun = mean, geom = "point",
                                      shape = 21, fill = "black", size = 3,
                                      position = position_dodge(width = 0.75))
@@ -304,11 +306,11 @@ plot_pdp <- function(pdp_ice_output, feature,
     if (!is.null(title)) p <- p + labs(title = title)
 
     if ("ice" %in% plot_data$type) {
-      p <- p + geom_line(data = plot_data[type == "ice"], alpha = alpha_ice)
+      p <- p + geom_line(data = plot_data[plot_data$type == "ice", , drop = FALSE], alpha = alpha_ice)
     }
 
     if ("pdp" %in% plot_data$type) {
-      p <- p + geom_line(data = plot_data[type == "pdp"], linewidth = 1.2)
+      p <- p + geom_line(data = plot_data[plot_data$type == "pdp", , drop = FALSE], linewidth = 1.2)
     }
   }
 

@@ -13,7 +13,7 @@ cv_summary(cv_results, digits = 3)
 \code{se}, \code{lower}, \code{upper} (default \code{3}).}
 }
 \value{
-A data.table with columns: \code{metric}, \code{mean}, \code{sd}, \code{n},
+A data.frame with columns: \code{metric}, \code{mean}, \code{sd}, \code{n},
 \code{se}, \code{lower}, \code{upper}.
 }
 \description{

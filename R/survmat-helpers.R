@@ -420,11 +420,11 @@ plot_survmat <- function(S,
     plot_df$group <- factor(group[plot_df$.id])
   }
 
-  plot_long <- data.table::melt(
-    data.table::as.data.table(plot_df),
-    measure.vars = grep("^t=", names(plot_df), value = TRUE),
-    variable.name = "time",
-    value.name = "surv_prob"
+  plot_long <- basetable::tolong(
+    plot_df,
+    cols = grep("^t=", names(plot_df), value = TRUE),
+    names = "time",
+    values = "surv_prob"
   )
   plot_long$time <- as.numeric(sub("^t=", "", plot_long$time))
 
@@ -445,9 +445,8 @@ plot_survmat <- function(S,
       return(p)
     }
 
-    summary_df <- plot_long[, list(
-      surv_prob = if (summary_fun == "mean") mean(surv_prob) else stats::median(surv_prob)
-    ), by = time]
+    summary_fun_name <- if (summary_fun == "mean") "mean" else "median"
+    summary_df <- basetable::aggregate(plot_long, by = "time", value = "surv_prob", fun = summary_fun_name)
 
     if (missing(title)) title <- paste("Predicted survival curve (", summary_fun, " summary)", sep = "")
     p <- ggplot2::ggplot(summary_df, ggplot2::aes(x = time, y = surv_prob)) +
@@ -461,9 +460,8 @@ plot_survmat <- function(S,
     return(p)
   }
 
-  summary_df <- plot_long[, list(
-    surv_prob = if (summary_fun == "mean") mean(surv_prob) else stats::median(surv_prob)
-  ), by = list(group, time)]
+  summary_fun_name <- if (summary_fun == "mean") "mean" else "median"
+  summary_df <- basetable::aggregate(plot_long, by = c("group", "time"), value = "surv_prob", fun = summary_fun_name)
 
   if (missing(title)) title <- paste("Predicted survival curves by group (", summary_fun, " summary)", sep = "")
   p <- ggplot2::ggplot(summary_df, ggplot2::aes(x = time, y = surv_prob, color = group)) +

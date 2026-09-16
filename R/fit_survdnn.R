@@ -299,7 +299,7 @@ tune_survdnn <- function(formula, data, times,
     expand.grid,
     c(lapply(levels_list, seq_along), list(KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
   )
-  param_df <- data.table::as.data.table(idx_grid)
+  param_df <- idx_grid
   for (nm in names(param_grid)) {
     param_df[[nm]] <- levels_list[[nm]][param_df[[nm]]]
   }
@@ -338,7 +338,7 @@ tune_survdnn <- function(formula, data, times,
 
     .wide_metric_row(row_params, summary)
   })
-  results <- data.table::rbindlist(row_results, fill = TRUE)
+  results <- .rbind_fill_dt(row_results)
 
   results <- .arrange_by_metric_dt(results, metrics[1], higher_is_better)
 

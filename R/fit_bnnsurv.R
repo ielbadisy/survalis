@@ -245,7 +245,7 @@ tune_bnnsurv <- function(formula, data, times,
     }, error = function(e) NULL)
 
     if (is.null(cv_result)) {
-      return(do.call(data.table::data.table, c(params, list(failed = TRUE))))
+      return(do.call(data.frame, c(params, list(failed = TRUE), stringsAsFactors = FALSE)))
     }
 
     summary <- cv_summary(cv_result)
@@ -256,7 +256,7 @@ tune_bnnsurv <- function(formula, data, times,
 
   if (nrow(results) == 0) {
     warning("All tuning combinations failed.")
-    return(data.table::data.table())
+    return(data.frame())
   }
 
   maximize <- metrics[1] %in% c("cindex", "auc", "accuracy")

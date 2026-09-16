@@ -562,7 +562,7 @@ round(ece, 6)
     ))
   }, numeric(1))
 
-  data.table::data.table(metric = metrics, value = round(values, digits))
+  data.frame(metric = metrics, value = round(values, digits), stringsAsFactors = FALSE)
 }
 
 
@@ -604,9 +604,9 @@ round(ece, 6)
 #'
 #' Fold iteration is performed via \code{functionals::fmapn()}, which preserves
 #' per-fold identifiers (\code{id}, \code{fold}) and returns a list ready for
-#' \code{data.table::rbindlist()}.
+#' base R's `rbind()`.
 #'
-#' @return A \code{data.table} with columns: \code{splits} (rsample split object),
+#' @return A \code{data.frame} with columns: \code{splits} (rsample split object),
 #'   \code{id}, \code{fold}, \code{metric}, and \code{value}.
 #'
 #' @examples
@@ -653,9 +653,7 @@ recode_status <- parsed_formula$recode_status
 
 all_vars <- all.vars(formula)
 n_before <- nrow(data)
-DT <- data.table::as.data.table(data)
-DT <- DT[stats::complete.cases(DT[, all_vars, with = FALSE])]
-data <- as.data.frame(DT)
+data <- .complete_cases_df(data, all_vars)
 n_after <- nrow(data)
 
 if (verbose && n_after < n_before) {
@@ -694,14 +692,15 @@ status_vector <- test[[status_col]]
 surv_obj <- survival::Surv(time = test[[time_col]], event = status_vector)
 
 scored <- .score_metrics(surv_obj, pred, times, metrics)
-data.table::data.table(
-  splits = replicate(nrow(scored), split, simplify = FALSE),
+data.frame(
+  splits = I(replicate(nrow(scored), split, simplify = FALSE)),
   id = id,
   fold = fold,
   metric = scored$metric,
-  value = scored$value
+  value = scored$value,
+  stringsAsFactors = FALSE
 )}, ncores = ncores, pb = pb)
-  data.table::rbindlist(results)
+  .rbind_fill_dt(results)
 }
 
 
@@ -715,7 +714,7 @@ data.table::data.table(
 #' @param digits Integer number of decimal places for \code{mean}, \code{sd},
 #'   \code{se}, \code{lower}, \code{upper} (default \code{3}).
 #'
-#' @return A data.table with columns: \code{metric}, \code{mean}, \code{sd}, \code{n},
+#' @return A data.frame with columns: \code{metric}, \code{mean}, \code{sd}, \code{n},
 #'   \code{se}, \code{lower}, \code{upper}.
 #'
 #' @examples
@@ -729,18 +728,22 @@ data.table::data.table(
 
 cv_summary <- function(cv_results, digits = 3) {
   .legacy_notice()
-  DT <- data.table::as.data.table(cv_results)
-  out <- DT[, list(
-    mean = mean(value, na.rm = TRUE),
-    sd   = stats::sd(value, na.rm = TRUE),
-    n    = .N
-  ), by = metric]
-  out[, se := sd / sqrt(n)]
-  out[, lower := mean - 1.96 * se]
-  out[, upper := mean + 1.96 * se]
-  out[, c("mean", "sd", "se", "lower", "upper") :=
-    lapply(.SD, round, digits = digits), .SDcols = c("mean", "sd", "se", "lower", "upper")]
-  out[]
+  df <- as.data.frame(cv_results)
+  mean_tbl <- basetable::aggregate(df, by = "metric", value = "value", fun = "mean", na.rm = TRUE)
+  names(mean_tbl)[names(mean_tbl) == "value"] <- "mean"
+  sd_tbl <- basetable::aggregate(df, by = "metric", value = "value", fun = "sd", na.rm = TRUE)
+  names(sd_tbl)[names(sd_tbl) == "value"] <- "sd"
+  n_tbl <- basetable::count(df, by = "metric", sort = FALSE)
+
+  out <- merge(mean_tbl, sd_tbl, by = "metric")
+  out <- merge(out, n_tbl, by = "metric")
+  out$se <- out$sd / sqrt(out$n)
+  out$lower <- out$mean - 1.96 * out$se
+  out$upper <- out$mean + 1.96 * out$se
+  for (col in c("mean", "sd", "se", "lower", "upper")) {
+    out[[col]] <- round(out[[col]], digits)
+  }
+  out
 }
 
 
@@ -796,7 +799,7 @@ cv_plot <- function(cv_results, title) {
 #' builds a \code{Surv} object from \code{model$formula}, and computes the metrics.
 #' If \code{"brier"} is requested with multiple \code{times}, an error is thrown.
 #'
-#' @return A data.table with columns \code{metric} and \code{value}.
+#' @return A data.frame with columns \code{metric} and \code{value}.
 #'
 #' @examples
 #' fitted_model <- fit_coxph(Surv(time, status) ~ age + karno + trt, data = veteran)

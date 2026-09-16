@@ -201,7 +201,7 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
   })
 
   # combine results
-  results_combined <- data.table::rbindlist(results_list, fill = TRUE)
+  results_combined <- .rbind_fill_dt(results_list)
   if (nrow(results_combined) == 0) {
     stop("All learners failed or returned empty results.")
   }
@@ -535,12 +535,16 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
           times = times,
           metrics = metrics
         )
-        scores[, `:=`(learner = learner, id = fold_id, outer_fold = i)]
-        data.table::setcolorder(scores, c("learner", "id", "outer_fold"))
+        scores$learner <- learner
+        scores$id <- fold_id
+        scores$outer_fold <- i
+        scores <- scores[c("learner", "id", "outer_fold", setdiff(names(scores), c("learner", "id", "outer_fold")))]
 
-        params <- data.table::as.data.table(best_param_df)
-        params[, `:=`(learner = learner, id = fold_id, outer_fold = i)]
-        data.table::setcolorder(params, c("learner", "id", "outer_fold"))
+        params <- best_param_df
+        params$learner <- learner
+        params$id <- fold_id
+        params$outer_fold <- i
+        params <- params[c("learner", "id", "outer_fold", setdiff(names(params), c("learner", "id", "outer_fold")))]
 
         list(scores = scores, params = params)
       }, error = function(e) {
@@ -558,8 +562,8 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
       }
     }
 
-    outer_results[[learner]] <- data.table::rbindlist(learner_results, fill = TRUE)
-    selected_params[[learner]] <- data.table::rbindlist(learner_params, fill = TRUE)
+    outer_results[[learner]] <- .rbind_fill_dt(learner_results)
+    selected_params[[learner]] <- .rbind_fill_dt(learner_params)
 
     if (isTRUE(refit_final)) {
       final_model <- tryCatch({
@@ -598,8 +602,8 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
     }
   }
 
-  outer_results <- data.table::rbindlist(outer_results, fill = TRUE)
-  selected_params <- data.table::rbindlist(selected_params, fill = TRUE)
+  outer_results <- .rbind_fill_dt(outer_results)
+  selected_params <- .rbind_fill_dt(selected_params)
 
   if (nrow(outer_results) == 0L) {
     stop("All learners failed or returned empty nested CV results.")
@@ -639,7 +643,7 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
 #' @param digits Integer number of decimal places for \code{mean}, \code{sd},
 #'   \code{se}, \code{lower}, \code{upper} (default \code{3}).
 #'
-#' @return A data.table with columns \code{learner}, \code{metric}, \code{mean},
+#' @return A data.frame with columns \code{learner}, \code{metric}, \code{mean},
 #' \code{sd}, \code{n}, \code{se}, \code{lower}, \code{upper}.
 #'
 #' @examples
@@ -657,18 +661,23 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
 
 summarise_benchmark <- function(benchmark_results, digits = 3) {
   .legacy_notice()
-  DT <- data.table::as.data.table(benchmark_results)
-  out <- DT[, list(
-    mean = mean(value, na.rm = TRUE),
-    sd   = stats::sd(value, na.rm = TRUE),
-    n    = .N
-  ), by = list(learner, metric)]
-  out[, se := sd / sqrt(n)]
-  out[, lower := mean - 1.96 * se]
-  out[, upper := mean + 1.96 * se]
-  out[, c("mean", "sd", "se", "lower", "upper") :=
-    lapply(.SD, round, digits = digits), .SDcols = c("mean", "sd", "se", "lower", "upper")]
-  out[]
+  df <- as.data.frame(benchmark_results)
+  by_cols <- c("learner", "metric")
+  mean_tbl <- basetable::aggregate(df, by = by_cols, value = "value", fun = "mean", na.rm = TRUE)
+  names(mean_tbl)[names(mean_tbl) == "value"] <- "mean"
+  sd_tbl <- basetable::aggregate(df, by = by_cols, value = "value", fun = "sd", na.rm = TRUE)
+  names(sd_tbl)[names(sd_tbl) == "value"] <- "sd"
+  n_tbl <- basetable::count(df, by = by_cols, sort = FALSE)
+
+  out <- merge(mean_tbl, sd_tbl, by = by_cols)
+  out <- merge(out, n_tbl, by = by_cols)
+  out$se <- out$sd / sqrt(out$n)
+  out$lower <- out$mean - 1.96 * out$se
+  out$upper <- out$mean + 1.96 * out$se
+  for (col in c("mean", "sd", "se", "lower", "upper")) {
+    out[[col]] <- round(out[[col]], digits)
+  }
+  out
 }
 
 
@@ -745,16 +754,21 @@ summarize_benchmark_results <- function(results, digits = 3) {
 
   stopifnot(is.data.frame(results), all(c("learner", "metric", "value") %in% colnames(results)))
 
-  DT <- data.table::as.data.table(results)
-  summarised <- DT[, list(
-    mean = mean(value, na.rm = TRUE),
-    sd   = stats::sd(value, na.rm = TRUE)
-  ), by = list(learner, metric)]
-  summarised[, summary := sprintf("%.*f  %.*f", digits, mean, digits, sd)]
+  df <- as.data.frame(results)
+  by_cols <- c("learner", "metric")
+  mean_tbl <- basetable::aggregate(df, by = by_cols, value = "value", fun = "mean", na.rm = TRUE)
+  names(mean_tbl)[names(mean_tbl) == "value"] <- "mean"
+  sd_tbl <- basetable::aggregate(df, by = by_cols, value = "value", fun = "sd", na.rm = TRUE)
+  names(sd_tbl)[names(sd_tbl) == "value"] <- "sd"
+  summarised <- merge(mean_tbl, sd_tbl, by = by_cols)
+  summarised$summary <- sprintf("%.*f  %.*f", digits, summarised$mean, digits, summarised$sd)
 
-  out <- data.table::dcast(summarised, learner ~ metric, value.var = "summary")
-  data.table::setorderv(out, "learner")
-  out[]
+  out <- basetable::towide(
+    summarised[c("learner", "metric", "summary")],
+    names = "metric", values = "summary", idcols = "learner", fun = identity
+  )
+  out <- basetable::orderrows(out, by = "learner")
+  out
 }
 
 
@@ -803,10 +817,11 @@ best_survlearner <- function(benchmark_results, metric, maximize = NULL) {
   }
 
   target_metric <- metric
-  DT <- data.table::as.data.table(benchmark_results)
-  summary <- DT[metric == target_metric, list(value = mean(value, na.rm = TRUE)), by = list(learner, metric)]
+  df <- as.data.frame(benchmark_results)
+  df <- df[df$metric == target_metric, , drop = FALSE]
+  summary <- basetable::aggregate(df, by = c("learner", "metric"), value = "value", fun = "mean", na.rm = TRUE)
 
-  best <- if (maximize) summary[value == max(value)] else summary[value == min(value)]
+  best <- if (maximize) summary[summary$value == max(summary$value), , drop = FALSE] else summary[summary$value == min(summary$value), , drop = FALSE]
 
-  return(best[])
+  return(best)
   }

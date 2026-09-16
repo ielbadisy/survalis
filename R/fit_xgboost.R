@@ -300,7 +300,7 @@ tune_xgboost <- function(formula, data, times,
       }, error = function(e) NULL)
 
       if (is.null(cv_results)) {
-        return(do.call(data.table::data.table, c(params, list(failed = TRUE))))
+        return(do.call(data.frame, c(params, list(failed = TRUE), stringsAsFactors = FALSE)))
       }
 
       smry <- cv_summary(cv_results)[, c("metric", "mean")]

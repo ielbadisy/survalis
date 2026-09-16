@@ -79,7 +79,6 @@ survival::Surv
 #' @importFrom ggplot2 geom_jitter geom_smooth geom_errorbar geom_abline coord_fixed coord_flip coord_cartesian geom_col
 #' @importFrom stats pnorm
 #' @importFrom pracma trapz
-#' @importFrom data.table as.data.table setDT rbindlist
 #' @importFrom gower gower_dist
 #' @importFrom glmnet glmnet
 #' @importFrom ggplot2 ggplot aes geom_line geom_point geom_col
@@ -102,7 +101,7 @@ utils::globalVariables(c(
   "surv_prob","mean_pred_surv","lower_ci","upper_ci","calib_result",
   "bin","direction","count","time","id","outer_fold",
   # data.table-esque
-  ".N",".id",".SD",":=","lower","upper","n.risk","strata","surv",
+  ".id","lower","upper","n.risk","strata","surv",
   # others seen in notes
   "splits","ale","integrated_ale","type","change_label","hjust",
   # new in 1.1.0: dca_survmat/roc_survmat/plot_rmst/plot_shap_beeswarm

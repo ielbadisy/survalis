@@ -251,7 +251,7 @@ tune_survsvm <- function(formula, data, times,
                              refit_best = FALSE,
                              dist = "exp", shape = 1) {
   stopifnot(is.list(param_grid))
-  param_df <- do.call(data.table::CJ, param_grid)
+  param_df <- do.call(expand.grid, c(param_grid, list(stringsAsFactors = FALSE)))
 
   # Fixed safe defaults
   fixed_type <- "regression"

@@ -7,7 +7,7 @@
 list_metrics()
 }
 \value{
-A data.table with one row per metric.
+A data.frame with one row per metric.
 }
 \description{
 Returns a data frame describing the evaluation metrics supported by

@@ -179,7 +179,7 @@ predict_glmnet <- function(object, newdata, times, ...) {
 #' @export
 
 tune_glmnet <- function(formula, data, times,
-                        param_grid = c(alpha = seq(0, 1, by = 0.25)),
+                        param_grid = list(alpha = seq(0, 1, by = 0.25)),
                         metrics = c("cindex", "ibs"),
                         folds = 5,
                         seed = 123,
@@ -187,7 +187,7 @@ tune_glmnet <- function(formula, data, times,
                         refit_best = FALSE,
                         ...) {
 
-  grid_df <- do.call(data.table::CJ, as.list(param_grid))
+  grid_df <- do.call(expand.grid, c(as.list(param_grid), list(stringsAsFactors = FALSE)))
 
   results <- .pmap_rbind_dt(grid_df, function(alpha) {
     cv_results <- cv_survlearner(

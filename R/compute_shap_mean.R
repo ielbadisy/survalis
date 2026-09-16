@@ -17,8 +17,8 @@ compute_shap_mean <- function(model, newdata, baseline_data, times,
   })
   
   # combine and average phi across rows
-  shap_df <- data.table::rbindlist(shap_list, idcol = "id", fill = TRUE)
-  shap_mean <- shap_df[, list(phi = mean(phi, na.rm = TRUE)), by = feature]
+  shap_df <- .rbind_fill_dt(shap_list)
+  shap_mean <- basetable::aggregate(shap_df, by = "feature", value = "phi", fun = mean, na.rm = TRUE)
   
   attr(shap_mean, "shap_method") <- method
   return(shap_mean)
