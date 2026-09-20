@@ -20,6 +20,7 @@ jobs:
             r: "release"
           - os: macos-latest
             r: "release"
+            pak: "devel"
           - os: windows-latest
             r: "release"
 
@@ -39,6 +40,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          pak-version: ${{ matrix.config.pak || 'stable' }}
           extra-packages: |
             any::rcmdcheck
             any::functionals
