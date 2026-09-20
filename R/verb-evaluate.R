@@ -76,6 +76,7 @@ evaluate.formula <- function(object, data, model, spec = list(), times = NULL,
   } else {
     lapply(splits, one)
   }
+  .abort_on_worker_error(parts)
   do.call(rbind, parts)
 }
 
