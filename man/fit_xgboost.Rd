@@ -11,7 +11,9 @@ fit_xgboost(
   objective = "survival:aft",
   aft_loss_distribution = "extreme",
   aft_loss_distribution_scale = 1,
-  nrounds = 100
+  nrounds = 100,
+  max_depth = 6,
+  eta = 0.3
 )
 }
 \arguments{
@@ -29,6 +31,10 @@ fit_xgboost(
 \item{aft_loss_distribution_scale}{Positive numeric scale for the AFT loss (default \code{1}).}
 
 \item{nrounds}{Integer number of boosting iterations (default \code{100}).}
+
+\item{max_depth}{Maximum tree depth (default \code{6}).}
+
+\item{eta}{Learning rate (default \code{0.3}).}
 }
 \value{
 An object of class \code{mlsurv_model}:
