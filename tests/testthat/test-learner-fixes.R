@@ -148,3 +148,21 @@ test_that("glmnet accepts a dataset with a single predictor", {
   expect_false(anyNA(p))
   expect_gt(max(apply(p, 2, stats::sd)), 0.01)
 })
+
+test_that("ranger ignores predictors that are constant in the training data", {
+  skip_on_cran()
+  skip_if_not_installed("ranger")
+  d <- survival::veteran
+  d$flag <- factor("a")                       # a factor with a single level
+  d$const <- 1                                # a constant numeric
+  f <- survival::Surv(time, status) ~ karno + age + flag + const
+  mod <- fit_ranger(f, d, num.trees = 50)
+  expect_false("flag" %in% mod$model$forest$independent.variable.names)
+  tm <- default_times(d$time, d$status, n = 3L, range = c(0.25, 0.75))
+  p <- as.matrix(predict_ranger(mod, d[1:20, ], tm))
+  expect_equal(dim(p), c(20L, 3L))
+  expect_false(anyNA(p))
+  # a formula with only constant predictors keeps one, so it still fits
+  mod1 <- fit_ranger(survival::Surv(time, status) ~ flag, d, num.trees = 20)
+  expect_s3_class(mod1, "mlsurv_model")
+})
