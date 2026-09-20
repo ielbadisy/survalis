@@ -40,7 +40,7 @@
 fit_glmnet <- function(formula, data, alpha = 1, ...) {
   stopifnot(requireNamespace("glmnet", quietly = TRUE))
 
-  x <- model.matrix(formula, data = data)[, -1, drop = FALSE]
+  x <- .glmnet_pad(model.matrix(formula, data = data)[, -1, drop = FALSE])
   y <- survival::Surv(data[[all.vars(formula)[1]]], data[[all.vars(formula)[2]]])
 
   model <- glmnet::cv.glmnet(x, y, family = "cox", alpha = alpha, ...)
@@ -109,8 +109,8 @@ predict_glmnet <- function(object, newdata, times, ...) {
 
   stopifnot(requireNamespace("glmnet", quietly = TRUE))
 
-  x_new   <- model.matrix(object$formula, newdata)[, -1, drop = FALSE]
-  x_train <- model.matrix(object$formula, object$data)[, -1, drop = FALSE]
+  x_new   <- .glmnet_pad(model.matrix(object$formula, newdata)[, -1, drop = FALSE])
+  x_train <- .glmnet_pad(model.matrix(object$formula, object$data)[, -1, drop = FALSE])
   y_train <- survival::Surv(object$data[[object$time]], object$data[[object$status]])
 
   # predict linear predictors
@@ -226,4 +226,10 @@ tune_glmnet <- function(formula, data, times,
     )
     return(best_model)
   }
+}
+
+# glmnet needs at least two columns ("x should be a matrix with 2 or more columns"); a single
+# predictor is padded with a constant zero column, which glmnet ignores.
+.glmnet_pad <- function(x) {
+  if (ncol(x) < 2L) cbind(x, .pad = 0) else x
 }
