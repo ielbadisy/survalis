@@ -18,6 +18,8 @@
 #'   \code{"logistic"}, or \code{"normal"}.
 #' @param aft_loss_distribution_scale Positive numeric scale for the AFT loss (default \code{1}).
 #' @param nrounds Integer number of boosting iterations (default \code{100}).
+#' @param max_depth Maximum tree depth (default \code{6}).
+#' @param eta Learning rate (default \code{0.3}).
 #'
 #' @return An object of class \code{mlsurv_model}:
 #' \describe{
@@ -52,7 +54,9 @@ fit_xgboost <- function(formula, data,
                         objective = "survival:aft",
                         aft_loss_distribution = "extreme",
                         aft_loss_distribution_scale = 1,
-                        nrounds = 100) {
+                        nrounds = 100,
+                        max_depth = 6,
+                        eta = 0.3) {
   stopifnot(requireNamespace("xgboost", quietly = TRUE))
 
   mf <- model.frame(formula, data)
@@ -80,6 +84,8 @@ fit_xgboost <- function(formula, data,
     objective = objective,
     aft_loss_distribution = aft_loss_distribution,
     aft_loss_distribution_scale = aft_loss_distribution_scale,
+    max_depth = max_depth,
+    eta = eta,
     eval_metric = "cox-nloglik"
   )
 
