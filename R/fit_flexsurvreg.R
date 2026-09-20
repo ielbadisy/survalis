@@ -91,16 +91,21 @@ predict_flexsurvreg <- function(object, newdata, times, ...) {
     times = times
   )
 
-  # Unpack .pred (a list-column of tibbles)
-  .pred <- pred$.pred
   n <- nrow(newdata)
   k <- length(times)
   survmat <- matrix(NA_real_, nrow = n, ncol = k)
   colnames(survmat) <- paste0("t=", times)
 
-  for (i in seq_len(n)) {
-    survmat[i, ] <- .pred[[i]]$.pred_survival
+  if (!is.null(pred$.pred)) {
+    # Several times: a list-column with one tibble of predictions per subject.
+    .pred <- pred$.pred
+    for (i in seq_len(n)) {
+      survmat[i, ] <- .pred[[i]]$.pred_survival
     }
+  } else {
+    # A single time: flexsurv returns a flat table with one row per subject.
+    survmat[, 1L] <- pred$.pred_survival
+  }
 
   .finalize_survmat(survmat, times = times)
 }
