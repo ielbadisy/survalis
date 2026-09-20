@@ -700,6 +700,7 @@ data.frame(
   value = scored$value,
   stringsAsFactors = FALSE
 )}, ncores = ncores, pb = pb)
+  .abort_on_worker_error(results)
   .rbind_fill_dt(results)
 }
 
