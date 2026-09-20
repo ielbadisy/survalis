@@ -2,6 +2,9 @@
 
 Bug fixes found while benchmarking every learner on 31 survival datasets.
 
+* `fit_glmnet()` and `predict_glmnet()` accept a single predictor. glmnet stops
+  with "x should be a matrix with 2 or more columns", so the predictor matrix is
+  padded with a constant zero column.
 * `fit_aalen()` standardizes numeric covariates and `predict_aalen()` applies
   the same scaling. `timereg::aalen()` silently returned an all-zero fit when
   covariates were on very different scales, so the predicted survival was 1 for
