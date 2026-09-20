@@ -5,32 +5,52 @@
 \title{Fit a Stacked Survival Meta‑Learner (Time‑Varying NNLS)}
 \usage{
 fit_survmetalearner(
-  base_preds,
-  time,
-  status,
-  times,
-  base_models,
-  formula,
-  data
+  base_preds = NULL,
+  time = NULL,
+  status = NULL,
+  times = NULL,
+  base_models = NULL,
+  formula = NULL,
+  data = NULL,
+  learners = c("coxph", "glmnet", "rsf"),
+  folds = 5,
+  seed = 123L
 )
 }
 \arguments{
 \item{base_preds}{A named list of matrices/data frames, one per base learner,
-each of dimension \code{n x length(times)}, with columns named \code{"t=<time>"}.}
+each of dimension \code{n x length(times)}, with columns named \code{"t=<time>"}.
+When \code{NULL} (the default), the base learners in \code{learners} are fitted
+from \code{formula} and \code{data}, and \code{base_preds} are their
+out-of-fold predictions.}
 
-\item{time}{Numeric vector of observed event/censoring times (length \code{n}).}
+\item{time}{Numeric vector of observed event/censoring times (length \code{n}).
+Taken from \code{data} when \code{base_preds} is \code{NULL}.}
 
-\item{status}{Numeric/binary vector of event indicators (1=event, 0=censor) (length \code{n}).}
+\item{status}{Numeric/binary vector of event indicators (1=event, 0=censor) (length \code{n}).
+Taken from \code{data} when \code{base_preds} is \code{NULL}.}
 
-\item{times}{Numeric vector of evaluation times at which to learn weights.}
+\item{times}{Numeric vector of evaluation times at which to learn weights. When
+\code{NULL} and \code{base_preds} is \code{NULL}, a grid of 20 times from
+\code{\link{default_times}()} is used.}
 
 \item{base_models}{A named list of fitted base learner objects; names must
-match \code{names(base_preds)} and the learner names used by \code{predict_*()}.}
+match \code{names(base_preds)} and the learner names used by \code{predict_*()}.
+Fitted automatically when \code{base_preds} is \code{NULL}.}
 
 \item{formula}{A \code{Surv()} formula that was used for the base models
 (stored for metadata and downstream scoring).}
 
 \item{data}{The training data frame used for the base models (stored for metadata).}
+
+\item{learners}{Base learners fitted when \code{base_preds} is \code{NULL}
+(default \code{c("coxph", "glmnet", "rsf")}). A learner that fails in
+cross-fitting is dropped with a warning.}
+
+\item{folds}{Number of cross-fitting folds used to build the out-of-fold
+predictions (default \code{5}).}
+
+\item{seed}{Seed for the cross-fitting folds.}
 }
 \value{
 An object of class \code{c("mlsurv_model","survmetalearner")} with elements:
