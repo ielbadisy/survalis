@@ -486,3 +486,24 @@ plot_survmat <- function(S,
 
   p
 }
+
+
+# Orient the result of apply()/sapply() over subjects (or learners) as rows x times.
+# With more than one time the result is times x subjects and needs a transpose; with a
+# single time it drops to a plain vector, which must become one column, not one row.
+.rows_by_times <- function(x) {
+  if (is.null(dim(x))) matrix(x, ncol = 1L) else t(x)
+}
+
+# functionals::fmapn() returns a "try-error" object for a worker that failed instead of
+# raising the error. Left alone, these are dropped downstream and the real message is lost.
+.abort_on_worker_error <- function(parts) {
+  bad <- vapply(parts, function(x) inherits(x, "try-error") || inherits(x, "error"), logical(1))
+  if (any(bad)) {
+    x <- parts[[which(bad)[1L]]]
+    cond <- attr(x, "condition")
+    msg <- if (!is.null(cond)) conditionMessage(cond) else as.character(x)
+    stop(msg, call. = FALSE)
+  }
+  invisible(parts)
+}
