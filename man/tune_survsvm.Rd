@@ -9,7 +9,7 @@ tune_survsvm(
   data,
   times,
   metrics = "cindex",
-  param_grid,
+  param_grid = list(gamma.mu = c(0.01, 0.1, 1), kernel = c("lin_kernel", "add_kernel")),
   folds = 5,
   seed = 42,
   ncores = 1,
