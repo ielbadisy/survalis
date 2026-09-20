@@ -2,6 +2,10 @@
 
 Bug fixes found while benchmarking every learner on 31 survival datasets.
 
+* `fit_ranger()` drops predictors that are constant in the data it is fitted on.
+  With `respect.unordered.factors = "order"`, ranger stopped with "invalid type
+  (NULL) for variable 'smry$strata'" on a factor with a single level, which
+  happens in tuning folds of data with many rare binary predictors (`metabric`).
 * `fit_glmnet()` and `predict_glmnet()` accept a single predictor. glmnet stops
   with "x should be a matrix with 2 or more columns", so the predictor matrix is
   padded with a constant zero column.
