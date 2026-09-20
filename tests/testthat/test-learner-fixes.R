@@ -135,3 +135,16 @@ test_that("compare() reports the real error when a metric fails on parallel work
   expect_match(msg(2), "single time point")
   expect_false(grepl("object 'value' not found", msg(2), fixed = TRUE))
 })
+
+test_that("glmnet accepts a dataset with a single predictor", {
+  skip_on_cran()
+  skip_if_not_installed("glmnet")
+  d <- survival::veteran
+  f1 <- survival::Surv(time, status) ~ karno
+  mod <- fit_glmnet(f1, d)
+  tm <- default_times(d$time, d$status, n = 3L, range = c(0.25, 0.75))
+  p <- as.matrix(predict_glmnet(mod, d[1:30, ], tm))
+  expect_equal(dim(p), c(30L, 3L))
+  expect_false(anyNA(p))
+  expect_gt(max(apply(p, 2, stats::sd)), 0.01)
+})
