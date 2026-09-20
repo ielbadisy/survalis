@@ -37,6 +37,10 @@
 fit_ranger <- function(formula, data, ...) {
   stopifnot(requireNamespace("ranger", quietly = TRUE))
 
+  # respect.unordered.factors = "order" needs at least two levels in every factor: ranger orders the
+  # levels by survival and stops ("invalid type (NULL) for variable 'smry$strata'") on a constant one.
+  formula <- .drop_constant_predictors(formula, data)
+
   model <- ranger::ranger(
     formula = formula,
     data = data,
@@ -221,4 +225,17 @@ tune_ranger <- function(formula, data, times,
   }
 
   return(res)
+}
+
+# Remove predictors that take a single value in `data` from the right-hand side of `formula`. Terms
+# that are not plain columns (transformations, interactions) are kept as they are.
+.drop_constant_predictors <- function(formula, data) {
+  labels <- attr(stats::terms(formula, data = data), "term.labels")
+  is_col <- labels %in% names(data)
+  constant <- is_col
+  constant[is_col] <- vapply(data[labels[is_col]], function(v) length(unique(v[!is.na(v)])) < 2L, logical(1))
+  if (!any(constant)) return(formula)
+  keep <- labels[!constant]
+  if (!length(keep)) keep <- labels[1L]
+  stats::reformulate(keep, response = formula[[2L]], env = environment(formula))
 }
