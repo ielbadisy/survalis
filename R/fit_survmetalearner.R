@@ -10,14 +10,28 @@
 #'
 #' @param base_preds A named list of matrices/data frames, one per base learner,
 #'   each of dimension \code{n x length(times)}, with columns named \code{"t=<time>"}.
+#'   When \code{NULL} (the default), the base learners in \code{learners} are fitted
+#'   from \code{formula} and \code{data}, and \code{base_preds} are their
+#'   out-of-fold predictions.
 #' @param time Numeric vector of observed event/censoring times (length \code{n}).
+#'   Taken from \code{data} when \code{base_preds} is \code{NULL}.
 #' @param status Numeric/binary vector of event indicators (1=event, 0=censor) (length \code{n}).
-#' @param times Numeric vector of evaluation times at which to learn weights.
+#'   Taken from \code{data} when \code{base_preds} is \code{NULL}.
+#' @param times Numeric vector of evaluation times at which to learn weights. When
+#'   \code{NULL} and \code{base_preds} is \code{NULL}, a grid of 20 times from
+#'   \code{\link{default_times}()} is used.
 #' @param base_models A named list of fitted base learner objects; names must
 #'   match \code{names(base_preds)} and the learner names used by \code{predict_*()}.
+#'   Fitted automatically when \code{base_preds} is \code{NULL}.
 #' @param formula A \code{Surv()} formula that was used for the base models
 #'   (stored for metadata and downstream scoring).
 #' @param data The training data frame used for the base models (stored for metadata).
+#' @param learners Base learners fitted when \code{base_preds} is \code{NULL}
+#'   (default \code{c("coxph", "glmnet", "rsf")}). A learner that fails in
+#'   cross-fitting is dropped with a warning.
+#' @param folds Number of cross-fitting folds used to build the out-of-fold
+#'   predictions (default \code{5}).
+#' @param seed Seed for the cross-fitting folds.
 #'
 #' @details
 #' For each \code{t} in \code{times}, this function fits
@@ -62,9 +76,50 @@
 #' @keywords internal
 #' @export
 
-fit_survmetalearner <- function(base_preds, time, status, times,
-                            base_models, formula, data) {
-  stopifnot(is.list(base_preds), is.list(base_models), is.data.frame(data))
+fit_survmetalearner <- function(base_preds = NULL, time = NULL, status = NULL, times = NULL,
+                                base_models = NULL, formula = NULL, data = NULL,
+                                learners = c("coxph", "glmnet", "rsf"),
+                                folds = 5, seed = 123L) {
+  stopifnot(is.data.frame(data))
+
+  if (is.null(base_preds)) {
+    # Formula-and-data interface (as used by benchmark() and compare()): fit the base
+    # learners, and build the out-of-fold predictions that the stacking weights are
+    # estimated from, so that the weights do not reward over-fitted base learners.
+    stopifnot(!is.null(formula))
+    parsed <- .parse_surv_formula(formula, data)
+    time <- data[[parsed$time_col]]
+    status <- .recode_status_vec(parsed, data)
+    if (is.null(times)) times <- default_times(time, status, n = 20L)
+    fit_one <- function(l, d) get(paste0("fit_", l), envir = asNamespace("survalis"))(formula = formula, data = d)
+    pred_one <- function(l, m, d) {
+      as.matrix(.finalize_survmat(get(paste0("predict_", l), envir = asNamespace("survalis"))(m, newdata = d, times = times), times = times))
+    }
+    n <- nrow(data)
+    set.seed(seed)
+    fold_id <- integer(n)
+    for (s_val in unique(status)) {
+      idx <- which(status == s_val)
+      fold_id[idx] <- sample(rep_len(seq_len(folds), length(idx)))
+    }
+    base_preds <- list()
+    for (l in learners) {
+      oof <- matrix(NA_real_, nrow = n, ncol = length(times))
+      ok <- TRUE
+      for (k in seq_len(folds)) {
+        tr <- data[fold_id != k, , drop = FALSE]
+        te <- data[fold_id == k, , drop = FALSE]
+        p <- tryCatch(pred_one(l, fit_one(l, tr), te), error = function(e) NULL)
+        if (is.null(p)) { ok <- FALSE; break }
+        oof[fold_id == k, ] <- p
+      }
+      if (ok) base_preds[[l]] <- oof
+      else warning("survmetalearner: base learner '", l, "' failed in cross-fitting and was dropped.", call. = FALSE)
+    }
+    if (!length(base_preds)) stop("survmetalearner: every base learner failed.", call. = FALSE)
+    base_models <- lapply(setNames(names(base_preds), names(base_preds)), function(l) fit_one(l, data))
+  }
+  stopifnot(is.list(base_preds), is.list(base_models))
 
   base_preds <- lapply(base_preds, function(x) {
     if (!is.matrix(x)) as.matrix(x) else x
@@ -88,6 +143,7 @@ fit_survmetalearner <- function(base_preds, time, status, times,
     weights = weight_matrix,
     base_models = base_models,
     base_preds = base_preds,
+    times = times,
     formula = formula,
     data = data,
     time = time,
@@ -105,8 +161,8 @@ fit_survmetalearner <- function(base_preds, time, status, times,
 #'
 #' @param model A \code{"survmetalearner"} object returned by \code{fit_survmetalearner()}.
 #' @param newdata A data frame of new observations for prediction.
-#' @param times Numeric vector of evaluation times (must be a subset of the times
-#'   used to train the meta‑learner).
+#' @param times Numeric vector of evaluation times. When they differ from the times the
+#'   meta-learner was trained at, the weights are linearly interpolated in time.
 #'
 #' @details
 #' For each base learner listed in \code{model$learners}, the corresponding
@@ -148,10 +204,18 @@ predict_survmetalearner <- function(model, newdata, times) {
   learners <- model$learners
   base_models <- model$base_models
   requested_tnames <- paste0("t=", times)
-  W <- model$weights[, requested_tnames, drop = FALSE]
+  if (all(requested_tnames %in% colnames(model$weights))) {
+    W <- model$weights[, requested_tnames, drop = FALSE]
+  } else {
+    # The evaluation times differ from the times the weights were fitted at: interpolate.
+    fit_times <- as.numeric(sub("^t=", "", colnames(model$weights)))
+    W <- .rows_by_times(apply(model$weights, 1L, function(w)
+      stats::approx(x = fit_times, y = w, xout = times, rule = 2)$y))
+    dimnames(W) <- list(rownames(model$weights), requested_tnames)
+  }
 
   base_preds_test <- lapply(learners, function(learner) {
-    pred_fun <- get(paste0("predict_", learner), mode = "function")
+    pred_fun <- get(paste0("predict_", learner), envir = asNamespace("survalis"), mode = "function")
     pred <- pred_fun(base_models[[learner]], newdata = newdata, times = times)
     pred <- as.matrix(pred)
     colnames(pred) <- requested_tnames
@@ -161,14 +225,9 @@ predict_survmetalearner <- function(model, newdata, times) {
 
   n <- nrow(base_preds_test[[1]])
   T <- length(times)
-  pred_array <- array(NA_real_, dim = c(n, length(learners), T))
-  for (k in seq_along(learners)) {
-    pred_array[, k, ] <- base_preds_test[[k]]
-  }
-
   survmat <- matrix(NA_real_, nrow = n, ncol = T)
   for (j in seq_len(T)) {
-    survmat[, j] <- pred_array[, , j] %*% W[, j]
+    survmat[, j] <- Reduce(`+`, lapply(seq_along(learners), function(k) base_preds_test[[k]][, j] * W[k, j]))
   }
 
   .finalize_survmat(survmat, times = times)
