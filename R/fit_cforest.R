@@ -122,7 +122,7 @@ predict_cforest <- function(object, newdata, times, ...) {
   ))
 
   # interpolate at requested times
-  survmat <- t(sapply(survlist, function(sfit) {
+  survmat <- .rows_by_times(sapply(survlist, function(sfit) {
     s_time <- sfit$time
     s_surv <- sfit$surv
 
