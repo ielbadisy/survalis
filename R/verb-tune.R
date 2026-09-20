@@ -63,6 +63,11 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
     results <- as.data.frame(attr(best_model, "tuning_results"))
   } else {
     results <- as.data.frame(do.call(tuner, args))
+    if ("failed" %in% names(results) && all(as.logical(results$failed))) {
+      stop("All ", nrow(results), " tuning configurations of ", sQuote(model),
+           " failed during cross-validation. Fit one configuration with the learner's ",
+           "fit_*() function to see the underlying error.", call. = FALSE)
+    }
     if ("failed" %in% names(results)) {
       keep <- !as.logical(results$failed)
       if (any(keep)) results <- results[keep, , drop = FALSE]
