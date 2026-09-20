@@ -18,9 +18,11 @@ jobs:
         config:
           - os: ubuntu-latest
             r: "release"
+          # macOS is pinned to R 4.5: CRAN's macOS binaries for R 4.6 are Zstandard-compressed .tgz files,
+          # which the pak on the runner cannot extract ("Cannot extract .../knitr_1.52.tgz, unknown archive type").
+          # Return to "release" once pak handles them.
           - os: macos-latest
-            r: "release"
-            pak: "devel"
+            r: "4.5"
           - os: windows-latest
             r: "release"
 
@@ -40,7 +42,6 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          pak-version: ${{ matrix.config.pak || 'stable' }}
           extra-packages: |
             any::rcmdcheck
             any::functionals
