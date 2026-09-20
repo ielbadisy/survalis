@@ -1,3 +1,34 @@
+# survalis 1.6.4
+
+Bug fixes found while benchmarking every learner on 31 survival datasets.
+
+* `fit_aalen()` standardizes numeric covariates and `predict_aalen()` applies
+  the same scaling. `timereg::aalen()` silently returned an all-zero fit when
+  covariates were on very different scales, so the predicted survival was 1 for
+  every subject.
+* `predict_flexsurvreg()`, `predict_bnnsurv()`, and `predict_cforest()` accept a
+  single evaluation time. A one-time result is now a one-column matrix (it was a
+  one-row matrix, or a flat table for `flexsurvreg`), so the single-time metrics
+  `brier` and `ece` can be computed for these learners.
+* `fit_survmetalearner()` can be called with `formula` and `data` only, as
+  `benchmark()` and `compare()` do. It then fits the base learners
+  (`learners`, default `coxph`, `glmnet`, `rsf`), builds out-of-fold
+  predictions, and learns the weights from them. `predict_survmetalearner()`
+  interpolates the weights when the requested times differ from the fitted
+  grid.
+* `fit_xgboost()` accepts `max_depth` and `eta`. `tune_xgboost()` passed them,
+  so every configuration failed silently and `tune()` then stopped with an
+  unrelated "Unknown columns: ibs".
+* `tune()` stops with a clear message when every configuration fails during
+  cross-validation.
+* `tune_survsvm()` has a default `param_grid`, and `tune_survdnn()` accepts its
+  own default: an argument check rejected the default because `missing()` is
+  always true for it.
+* Errors raised inside parallel workers (`ncores > 1`) in `compare()`,
+  `evaluate()`, and `cv_survlearner()` are now reported. `functionals::fmapn()`
+  returns them as `try-error` objects, which were dropped, so a failure surfaced
+  as `object 'value' not found`.
+
 # survalis 1.6.3
 
 * Finished the `data.table` -> `basetable` migration (1.6.1 landed the
