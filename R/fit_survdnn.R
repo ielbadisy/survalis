@@ -288,7 +288,7 @@ tune_survdnn <- function(formula, data, times,
                          refit_best = FALSE,
                          ...) {
 
-  stopifnot(!missing(formula), !missing(data), !missing(times), !missing(param_grid))
+  stopifnot(!missing(formula), !missing(data), !missing(times))
   stopifnot(is.list(param_grid))
 
   # Cross-join param_grid (data.table::CJ doesn't support list-valued entries
