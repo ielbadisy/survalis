@@ -11,8 +11,8 @@ predict_survmetalearner(model, newdata, times)
 
 \item{newdata}{A data frame of new observations for prediction.}
 
-\item{times}{Numeric vector of evaluation times (must be a subset of the times
-used to train the meta‑learner).}
+\item{times}{Numeric vector of evaluation times. When they differ from the times the
+meta-learner was trained at, the weights are linearly interpolated in time.}
 }
 \value{
 A data frame with one row per observation and one column per requested
