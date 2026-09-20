@@ -140,7 +140,7 @@ predict_bnnsurv <- function(object, newdata, times = NULL) {
   stopifnot(is.numeric(times), length(times) > 0L, all(is.finite(times)))
 
   # interpolate from model grid (tg) to requested times
-  survmat <- t(apply(Smat, 1L, function(row)
+  survmat <- .rows_by_times(apply(Smat, 1L, function(row)
     stats::approx(x = tg, y = row, xout = times, method = "linear", rule = 2)$y
   ))
   .finalize_survmat(survmat, times = times)
