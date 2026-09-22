@@ -3,14 +3,11 @@
 \name{dca_survmat}
 \alias{dca_survmat}
 \alias{plot.dca_survmat}
-\alias{plot_dca}
 \title{Decision Curve Analysis for Right-Censored Survival Outcomes}
 \usage{
 dca_survmat(object, predicted, t_star, thresholds = seq(0.01, 0.99, by = 0.01))
 
 \method{plot}{dca_survmat}(x, title, ...)
-
-plot_dca(x, ...)
 }
 \arguments{
 \item{object}{A \code{\link[survival]{Surv}} object of length \eqn{n}.}
@@ -28,7 +25,7 @@ probabilities with columns named \code{"t=<time>"}.}
 \item{title}{Plot title. If missing, an automatically generated title is
 used. Pass \code{NULL} to omit the title entirely.}
 
-\item{...}{Additional arguments passed to \code{\link{plot.dca_survmat}}.}
+\item{...}{Additional arguments (unused).}
 }
 \value{
 An object of class \code{"dca_survmat"}: a list with \code{curve}
