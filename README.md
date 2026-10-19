@@ -118,137 +118,128 @@ plot_dca(dca)
 
 ``` r
 library(survalis)
-#> Registered S3 method overwritten by 'survalis':
-#>   method       from    
-#>   plot.formula graphics
 # See all available learners
 list_survlearners()
-#>             learner                 fit                 predict
-#>              <char>              <char>                  <char>
-#>  1:           coxph           fit_coxph           predict_coxph
-#>  2:           aalen           fit_aalen           predict_aalen
-#>  3:          glmnet          fit_glmnet          predict_glmnet
-#>  4:       selectcox       fit_selectcox       predict_selectcox
-#>  5:          aftgee          fit_aftgee          predict_aftgee
-#>  6:     flexsurvreg     fit_flexsurvreg     predict_flexsurvreg
-#>  7:           stpm2           fit_stpm2           predict_stpm2
-#>  8:         bnnsurv         fit_bnnsurv         predict_bnnsurv
-#>  9:           rpart           fit_rpart           predict_rpart
-#> 10:            bart            fit_bart            predict_bart
-#> 11:         xgboost         fit_xgboost         predict_xgboost
-#> 12:        coxboost        fit_coxboost        predict_coxboost
-#> 13:         fastgbm         fit_fastgbm         predict_fastgbm
-#> 14:          ranger          fit_ranger          predict_ranger
-#> 15:             rsf             fit_rsf             predict_rsf
-#> 16:         cforest         fit_cforest         predict_cforest
-#> 17:      blackboost      fit_blackboost      predict_blackboost
-#> 18:         survsvm         fit_survsvm         predict_survsvm
-#> 19:         survdnn         fit_survdnn         predict_survdnn
-#> 20:        densemlp        fit_densemlp        predict_densemlp
-#> 21:            orsf            fit_orsf            predict_orsf
-#> 22: survmetalearner fit_survmetalearner predict_survmetalearner
-#>             learner                 fit                 predict
-#>              <char>              <char>                  <char>
-#>                 tune has_fit has_predict has_tune available
-#>               <char>  <lgcl>      <lgcl>   <lgcl>    <lgcl>
-#>  1:             <NA>    TRUE        TRUE    FALSE      TRUE
-#>  2:             <NA>    TRUE        TRUE    FALSE      TRUE
-#>  3:      tune_glmnet    TRUE        TRUE     TRUE      TRUE
-#>  4:   tune_selectcox    TRUE        TRUE     TRUE      TRUE
-#>  5:             <NA>    TRUE        TRUE    FALSE      TRUE
-#>  6: tune_flexsurvreg    TRUE        TRUE     TRUE      TRUE
-#>  7:             <NA>    TRUE        TRUE    FALSE      TRUE
-#>  8:     tune_bnnsurv    TRUE        TRUE     TRUE      TRUE
-#>  9:       tune_rpart    TRUE        TRUE     TRUE      TRUE
-#> 10:        tune_bart    TRUE        TRUE     TRUE      TRUE
-#> 11:     tune_xgboost    TRUE        TRUE     TRUE      TRUE
-#> 12:    tune_coxboost    TRUE        TRUE     TRUE      TRUE
-#> 13:             <NA>    TRUE        TRUE    FALSE      TRUE
-#> 14:      tune_ranger    TRUE        TRUE     TRUE      TRUE
-#> 15:         tune_rsf    TRUE        TRUE     TRUE      TRUE
-#> 16:     tune_cforest    TRUE        TRUE     TRUE      TRUE
-#> 17:  tune_blackboost    TRUE        TRUE     TRUE      TRUE
-#> 18:     tune_survsvm    TRUE        TRUE     TRUE      TRUE
-#> 19:     tune_survdnn    TRUE        TRUE     TRUE      TRUE
-#> 20:             <NA>    TRUE        TRUE    FALSE      TRUE
-#> 21:        tune_orsf    TRUE        TRUE     TRUE      TRUE
-#> 22:             <NA>    TRUE        TRUE    FALSE      TRUE
-#>                 tune has_fit has_predict has_tune available
-#>               <char>  <lgcl>      <lgcl>   <lgcl>    <lgcl>
+#>            learner                 fit                 predict             tune
+#> 1            coxph           fit_coxph           predict_coxph             <NA>
+#> 2            aalen           fit_aalen           predict_aalen             <NA>
+#> 3           glmnet          fit_glmnet          predict_glmnet      tune_glmnet
+#> 4        selectcox       fit_selectcox       predict_selectcox   tune_selectcox
+#> 5           aftgee          fit_aftgee          predict_aftgee             <NA>
+#> 6      flexsurvreg     fit_flexsurvreg     predict_flexsurvreg tune_flexsurvreg
+#> 7            stpm2           fit_stpm2           predict_stpm2             <NA>
+#> 8          bnnsurv         fit_bnnsurv         predict_bnnsurv     tune_bnnsurv
+#> 9            rpart           fit_rpart           predict_rpart       tune_rpart
+#> 10            bart            fit_bart            predict_bart        tune_bart
+#> 11         xgboost         fit_xgboost         predict_xgboost     tune_xgboost
+#> 12        coxboost        fit_coxboost        predict_coxboost    tune_coxboost
+#> 13         fastgbm         fit_fastgbm         predict_fastgbm             <NA>
+#> 14          ranger          fit_ranger          predict_ranger      tune_ranger
+#> 15             rsf             fit_rsf             predict_rsf         tune_rsf
+#> 16         cforest         fit_cforest         predict_cforest     tune_cforest
+#> 17      blackboost      fit_blackboost      predict_blackboost  tune_blackboost
+#> 18         survsvm         fit_survsvm         predict_survsvm     tune_survsvm
+#> 19         survdnn         fit_survdnn         predict_survdnn     tune_survdnn
+#> 20        densemlp        fit_densemlp        predict_densemlp             <NA>
+#> 21            orsf            fit_orsf            predict_orsf        tune_orsf
+#> 22          rpsurv          fit_rpsurv          predict_rpsurv             <NA>
+#> 23          nbsurv          fit_nbsurv          predict_nbsurv             <NA>
+#> 24 survmetalearner fit_survmetalearner predict_survmetalearner             <NA>
+#>    has_fit has_predict has_tune available
+#> 1     TRUE        TRUE    FALSE      TRUE
+#> 2     TRUE        TRUE    FALSE      TRUE
+#> 3     TRUE        TRUE     TRUE      TRUE
+#> 4     TRUE        TRUE     TRUE      TRUE
+#> 5     TRUE        TRUE    FALSE      TRUE
+#> 6     TRUE        TRUE     TRUE      TRUE
+#> 7     TRUE        TRUE    FALSE      TRUE
+#> 8     TRUE        TRUE     TRUE      TRUE
+#> 9     TRUE        TRUE     TRUE      TRUE
+#> 10    TRUE        TRUE     TRUE      TRUE
+#> 11    TRUE        TRUE     TRUE      TRUE
+#> 12    TRUE        TRUE     TRUE      TRUE
+#> 13    TRUE        TRUE    FALSE      TRUE
+#> 14    TRUE        TRUE     TRUE      TRUE
+#> 15    TRUE        TRUE     TRUE      TRUE
+#> 16    TRUE        TRUE     TRUE      TRUE
+#> 17    TRUE        TRUE     TRUE      TRUE
+#> 18    TRUE        TRUE     TRUE      TRUE
+#> 19    TRUE        TRUE     TRUE      TRUE
+#> 20    TRUE        TRUE    FALSE      TRUE
+#> 21    TRUE        TRUE     TRUE      TRUE
+#> 22    TRUE        TRUE    FALSE      TRUE
+#> 23    TRUE        TRUE    FALSE      TRUE
+#> 24    TRUE        TRUE    FALSE      TRUE
 
 # See only tunable learners (those with a tune_* function)
 list_survlearners(has_tune = TRUE)
-#>         learner             fit             predict             tune has_fit
-#>          <char>          <char>              <char>           <char>  <lgcl>
-#>  1:      glmnet      fit_glmnet      predict_glmnet      tune_glmnet    TRUE
-#>  2:   selectcox   fit_selectcox   predict_selectcox   tune_selectcox    TRUE
-#>  3: flexsurvreg fit_flexsurvreg predict_flexsurvreg tune_flexsurvreg    TRUE
-#>  4:     bnnsurv     fit_bnnsurv     predict_bnnsurv     tune_bnnsurv    TRUE
-#>  5:       rpart       fit_rpart       predict_rpart       tune_rpart    TRUE
-#>  6:        bart        fit_bart        predict_bart        tune_bart    TRUE
-#>  7:     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE
-#>  8:    coxboost    fit_coxboost    predict_coxboost    tune_coxboost    TRUE
-#>  9:      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
-#> 10:         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
-#> 11:     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
-#> 12:  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
-#> 13:     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
-#> 14:     survdnn     fit_survdnn     predict_survdnn     tune_survdnn    TRUE
-#> 15:        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
-#>     has_predict has_tune available
-#>          <lgcl>   <lgcl>    <lgcl>
-#>  1:        TRUE     TRUE      TRUE
-#>  2:        TRUE     TRUE      TRUE
-#>  3:        TRUE     TRUE      TRUE
-#>  4:        TRUE     TRUE      TRUE
-#>  5:        TRUE     TRUE      TRUE
-#>  6:        TRUE     TRUE      TRUE
-#>  7:        TRUE     TRUE      TRUE
-#>  8:        TRUE     TRUE      TRUE
-#>  9:        TRUE     TRUE      TRUE
-#> 10:        TRUE     TRUE      TRUE
-#> 11:        TRUE     TRUE      TRUE
-#> 12:        TRUE     TRUE      TRUE
-#> 13:        TRUE     TRUE      TRUE
-#> 14:        TRUE     TRUE      TRUE
-#> 15:        TRUE     TRUE      TRUE
+#>        learner             fit             predict             tune has_fit
+#> 3       glmnet      fit_glmnet      predict_glmnet      tune_glmnet    TRUE
+#> 4    selectcox   fit_selectcox   predict_selectcox   tune_selectcox    TRUE
+#> 6  flexsurvreg fit_flexsurvreg predict_flexsurvreg tune_flexsurvreg    TRUE
+#> 8      bnnsurv     fit_bnnsurv     predict_bnnsurv     tune_bnnsurv    TRUE
+#> 9        rpart       fit_rpart       predict_rpart       tune_rpart    TRUE
+#> 10        bart        fit_bart        predict_bart        tune_bart    TRUE
+#> 11     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE
+#> 12    coxboost    fit_coxboost    predict_coxboost    tune_coxboost    TRUE
+#> 14      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
+#> 15         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
+#> 16     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
+#> 17  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
+#> 18     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
+#> 19     survdnn     fit_survdnn     predict_survdnn     tune_survdnn    TRUE
+#> 21        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
+#>    has_predict has_tune available
+#> 3         TRUE     TRUE      TRUE
+#> 4         TRUE     TRUE      TRUE
+#> 6         TRUE     TRUE      TRUE
+#> 8         TRUE     TRUE      TRUE
+#> 9         TRUE     TRUE      TRUE
+#> 10        TRUE     TRUE      TRUE
+#> 11        TRUE     TRUE      TRUE
+#> 12        TRUE     TRUE      TRUE
+#> 14        TRUE     TRUE      TRUE
+#> 15        TRUE     TRUE      TRUE
+#> 16        TRUE     TRUE      TRUE
+#> 17        TRUE     TRUE      TRUE
+#> 18        TRUE     TRUE      TRUE
+#> 19        TRUE     TRUE      TRUE
+#> 21        TRUE     TRUE      TRUE
 
 # Shortcut for tunable learners
 list_tunable_survlearners()
-#>         learner             fit             predict             tune has_fit
-#>          <char>          <char>              <char>           <char>  <lgcl>
-#>  1:      glmnet      fit_glmnet      predict_glmnet      tune_glmnet    TRUE
-#>  2:   selectcox   fit_selectcox   predict_selectcox   tune_selectcox    TRUE
-#>  3: flexsurvreg fit_flexsurvreg predict_flexsurvreg tune_flexsurvreg    TRUE
-#>  4:     bnnsurv     fit_bnnsurv     predict_bnnsurv     tune_bnnsurv    TRUE
-#>  5:       rpart       fit_rpart       predict_rpart       tune_rpart    TRUE
-#>  6:        bart        fit_bart        predict_bart        tune_bart    TRUE
-#>  7:     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE
-#>  8:    coxboost    fit_coxboost    predict_coxboost    tune_coxboost    TRUE
-#>  9:      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
-#> 10:         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
-#> 11:     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
-#> 12:  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
-#> 13:     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
-#> 14:     survdnn     fit_survdnn     predict_survdnn     tune_survdnn    TRUE
-#> 15:        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
-#>     has_predict has_tune available
-#>          <lgcl>   <lgcl>    <lgcl>
-#>  1:        TRUE     TRUE      TRUE
-#>  2:        TRUE     TRUE      TRUE
-#>  3:        TRUE     TRUE      TRUE
-#>  4:        TRUE     TRUE      TRUE
-#>  5:        TRUE     TRUE      TRUE
-#>  6:        TRUE     TRUE      TRUE
-#>  7:        TRUE     TRUE      TRUE
-#>  8:        TRUE     TRUE      TRUE
-#>  9:        TRUE     TRUE      TRUE
-#> 10:        TRUE     TRUE      TRUE
-#> 11:        TRUE     TRUE      TRUE
-#> 12:        TRUE     TRUE      TRUE
-#> 13:        TRUE     TRUE      TRUE
-#> 14:        TRUE     TRUE      TRUE
-#> 15:        TRUE     TRUE      TRUE
+#>        learner             fit             predict             tune has_fit
+#> 3       glmnet      fit_glmnet      predict_glmnet      tune_glmnet    TRUE
+#> 4    selectcox   fit_selectcox   predict_selectcox   tune_selectcox    TRUE
+#> 6  flexsurvreg fit_flexsurvreg predict_flexsurvreg tune_flexsurvreg    TRUE
+#> 8      bnnsurv     fit_bnnsurv     predict_bnnsurv     tune_bnnsurv    TRUE
+#> 9        rpart       fit_rpart       predict_rpart       tune_rpart    TRUE
+#> 10        bart        fit_bart        predict_bart        tune_bart    TRUE
+#> 11     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE
+#> 12    coxboost    fit_coxboost    predict_coxboost    tune_coxboost    TRUE
+#> 14      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
+#> 15         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
+#> 16     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
+#> 17  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
+#> 18     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
+#> 19     survdnn     fit_survdnn     predict_survdnn     tune_survdnn    TRUE
+#> 21        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
+#>    has_predict has_tune available
+#> 3         TRUE     TRUE      TRUE
+#> 4         TRUE     TRUE      TRUE
+#> 6         TRUE     TRUE      TRUE
+#> 8         TRUE     TRUE      TRUE
+#> 9         TRUE     TRUE      TRUE
+#> 10        TRUE     TRUE      TRUE
+#> 11        TRUE     TRUE      TRUE
+#> 12        TRUE     TRUE      TRUE
+#> 14        TRUE     TRUE      TRUE
+#> 15        TRUE     TRUE      TRUE
+#> 16        TRUE     TRUE      TRUE
+#> 17        TRUE     TRUE      TRUE
+#> 18        TRUE     TRUE      TRUE
+#> 19        TRUE     TRUE      TRUE
+#> 21        TRUE     TRUE      TRUE
 ```
 
 ### List interpretability tools
@@ -256,33 +247,53 @@ list_tunable_survlearners()
 ``` r
 # List available interpretability methods
 list_interpretability_methods()
-#>                    compute                plot has_compute has_plot
-#>                     <char>              <char>      <lgcl>   <lgcl>
-#>  1:           compute_shap           plot_shap        TRUE     TRUE
-#>  2:            compute_pdp            plot_pdp        TRUE     TRUE
-#>  3:            compute_ale            plot_ale        TRUE     TRUE
-#>  4:      compute_surrogate      plot_surrogate        TRUE     TRUE
-#>  5: compute_tree_surrogate plot_tree_surrogate        TRUE     TRUE
-#>  6:         compute_varimp         plot_varimp        TRUE     TRUE
-#>  7:   compute_interactions   plot_interactions        TRUE     TRUE
-#>  8: compute_counterfactual plot_counterfactual        TRUE     TRUE
-#>  9:    compute_shap_matrix  plot_shap_beeswarm        TRUE     TRUE
-#> 10:    compute_survcluster    plot_survcluster        TRUE     TRUE
+#>                                       compute                plot has_compute
+#> compute_shap                     compute_shap           plot_shap        TRUE
+#> compute_pdp                       compute_pdp            plot_pdp        TRUE
+#> compute_ale                       compute_ale            plot_ale        TRUE
+#> compute_surrogate           compute_surrogate      plot_surrogate        TRUE
+#> compute_tree_surrogate compute_tree_surrogate plot_tree_surrogate        TRUE
+#> compute_varimp                 compute_varimp         plot_varimp        TRUE
+#> compute_interactions     compute_interactions   plot_interactions        TRUE
+#> compute_counterfactual compute_counterfactual plot_counterfactual        TRUE
+#> compute_shap_matrix       compute_shap_matrix  plot_shap_beeswarm        TRUE
+#> compute_survcluster       compute_survcluster    plot_survcluster        TRUE
+#>                        has_plot
+#> compute_shap               TRUE
+#> compute_pdp                TRUE
+#> compute_ale                TRUE
+#> compute_surrogate          TRUE
+#> compute_tree_surrogate     TRUE
+#> compute_varimp             TRUE
+#> compute_interactions       TRUE
+#> compute_counterfactual     TRUE
+#> compute_shap_matrix        TRUE
+#> compute_survcluster        TRUE
 
 # Show which compute_* methods have a plot_* counterpart
 subset(list_interpretability_methods(), !is.na(plot))
-#>                    compute                plot has_compute has_plot
-#>                     <char>              <char>      <lgcl>   <lgcl>
-#>  1:           compute_shap           plot_shap        TRUE     TRUE
-#>  2:            compute_pdp            plot_pdp        TRUE     TRUE
-#>  3:            compute_ale            plot_ale        TRUE     TRUE
-#>  4:      compute_surrogate      plot_surrogate        TRUE     TRUE
-#>  5: compute_tree_surrogate plot_tree_surrogate        TRUE     TRUE
-#>  6:         compute_varimp         plot_varimp        TRUE     TRUE
-#>  7:   compute_interactions   plot_interactions        TRUE     TRUE
-#>  8: compute_counterfactual plot_counterfactual        TRUE     TRUE
-#>  9:    compute_shap_matrix  plot_shap_beeswarm        TRUE     TRUE
-#> 10:    compute_survcluster    plot_survcluster        TRUE     TRUE
+#>                                       compute                plot has_compute
+#> compute_shap                     compute_shap           plot_shap        TRUE
+#> compute_pdp                       compute_pdp            plot_pdp        TRUE
+#> compute_ale                       compute_ale            plot_ale        TRUE
+#> compute_surrogate           compute_surrogate      plot_surrogate        TRUE
+#> compute_tree_surrogate compute_tree_surrogate plot_tree_surrogate        TRUE
+#> compute_varimp                 compute_varimp         plot_varimp        TRUE
+#> compute_interactions     compute_interactions   plot_interactions        TRUE
+#> compute_counterfactual compute_counterfactual plot_counterfactual        TRUE
+#> compute_shap_matrix       compute_shap_matrix  plot_shap_beeswarm        TRUE
+#> compute_survcluster       compute_survcluster    plot_survcluster        TRUE
+#>                        has_plot
+#> compute_shap               TRUE
+#> compute_pdp                TRUE
+#> compute_ale                TRUE
+#> compute_surrogate          TRUE
+#> compute_tree_surrogate     TRUE
+#> compute_varimp             TRUE
+#> compute_interactions       TRUE
+#> compute_counterfactual     TRUE
+#> compute_shap_matrix        TRUE
+#> compute_survcluster        TRUE
 ```
 
 ### List evaluation metrics
@@ -290,33 +301,30 @@ subset(list_interpretability_methods(), !is.na(plot))
 ``` r
 # List available metrics used in cross-validation and scoring
 list_metrics()
-#>    metric direction
-#>    <char>    <char>
-#> 1: cindex  maximize
-#> 2:    auc  maximize
-#> 3:  brier  minimize
-#> 4:    ibs  minimize
-#> 5:    iae  minimize
-#> 6:    ise  minimize
-#> 7:    ece  minimize
-#>                                                                     summary
-#>                                                                      <char>
-#> 1:                Harrell-style concordance index for survival predictions.
-#> 2:     Cumulative/dynamic time-dependent AUC at a selected evaluation time.
-#> 3: Brier Score at specified evaluation time(s) (IPCW-weighted when needed).
-#> 4:     Integrated Brier Score over an evaluation time grid (IPCW-weighted).
-#> 5:                Integrated absolute error against the Kaplan-Meier curve.
-#> 6:                 Integrated squared error against the Kaplan-Meier curve.
-#> 7:                  Expected calibration error at a single evaluation time.
-#>                         range
-#>                        <char>
-#> 1:  [0, 1] (higher is better)
-#> 2:  [0, 1] (higher is better)
-#> 3:   [0, 1] (lower is better)
-#> 4:   [0, 1] (lower is better)
-#> 5: [0, Inf) (lower is better)
-#> 6: [0, Inf) (lower is better)
-#> 7:   [0, 1] (lower is better)
+#>   metric direction
+#> 1 cindex  maximize
+#> 2    auc  maximize
+#> 3  brier  minimize
+#> 4    ibs  minimize
+#> 5    iae  minimize
+#> 6    ise  minimize
+#> 7    ece  minimize
+#>                                                                    summary
+#> 1                Harrell-style concordance index for survival predictions.
+#> 2     Cumulative/dynamic time-dependent AUC at a selected evaluation time.
+#> 3 Brier Score at specified evaluation time(s) (IPCW-weighted when needed).
+#> 4     Integrated Brier Score over an evaluation time grid (IPCW-weighted).
+#> 5                Integrated absolute error against the Kaplan-Meier curve.
+#> 6                 Integrated squared error against the Kaplan-Meier curve.
+#> 7                  Expected calibration error at a single evaluation time.
+#>                        range
+#> 1  [0, 1] (higher is better)
+#> 2  [0, 1] (higher is better)
+#> 3   [0, 1] (lower is better)
+#> 4   [0, 1] (lower is better)
+#> 5 [0, Inf) (lower is better)
+#> 6 [0, Inf) (lower is better)
+#> 7   [0, 1] (lower is better)
 ```
 
 ## Basic Workflow
@@ -407,7 +415,7 @@ table, in the spirit of `survminer::ggsurvplot()` but implemented
 natively (no dependency on survminer).
 
 ``` r
-plot(Surv(time, status) ~ trt, data = veteran)
+plot_survcurve(Surv(time, status) ~ trt, data = veteran)
 #> Warning: Removed 2 rows containing missing values or values outside the scale range
 #> (`geom_ribbon()`).
 ```
@@ -431,12 +439,12 @@ shap_meanabs <- interpret(
 
 as.data.frame(shap_meanabs)
 #>           feature         phi
-#> age           age 0.001231928
-#> celltype celltype 0.017380404
-#> diagtime diagtime 0.000000000
-#> karno       karno 0.019501719
-#> prior       prior 0.000000000
 #> trt           trt 0.000000000
+#> celltype celltype 0.017380404
+#> karno       karno 0.019501719
+#> diagtime diagtime 0.000000000
+#> age           age 0.001231928
+#> prior       prior 0.000000000
 ```
 
 ``` r
@@ -534,14 +542,14 @@ varimp_res <- interpret(
   )
 
 as.data.frame(varimp_res)
-#>     feature importance importance_05 importance_95 scaled_importance
-#>      <char>      <num>         <num>         <num>             <num>
-#> 1:    karno     0.0672        0.0494        0.0826         100.00000
-#> 2: celltype     0.0468        0.0394        0.0574          69.64286
-#> 3:      age    -0.0022       -0.0030       -0.0012           3.27381
-#> 4:      trt     0.0000        0.0000        0.0000           0.00000
-#> 5: diagtime     0.0000        0.0000        0.0000           0.00000
-#> 6:    prior     0.0000        0.0000        0.0000           0.00000
+#> # basetable: 6 x 5
+#>    feature importance importance_05 importance_95 scaled_importance
+#> 1    karno     0.0672        0.0494        0.0826         100.00000
+#> 2 celltype     0.0468        0.0394        0.0574          69.64286
+#> 3      age    -0.0022       -0.0030       -0.0012           3.27381
+#> 4      trt     0.0000        0.0000        0.0000           0.00000
+#> 5 diagtime     0.0000        0.0000        0.0000           0.00000
+#> 6    prior     0.0000        0.0000        0.0000           0.00000
 plot(varimp_res)
 ```
 
@@ -612,7 +620,7 @@ citation("survalis")
 #> To cite survalis in publications, use:
 #> 
 #>   El Badisy I (2026). _survalis: Interpretable Survival Machine
-#>   Learning Framework_. R package version 1.3.0,
+#>   Learning Framework_. R package version 1.7.0,
 #>   <https://CRAN.R-project.org/package=survalis>.
 #> 
 #> A BibTeX entry for LaTeX users is
@@ -621,7 +629,7 @@ citation("survalis")
 #>     title = {survalis: Interpretable Survival Machine Learning Framework},
 #>     author = {Imad {El Badisy}},
 #>     year = {2026},
-#>     note = {R package version 1.3.0},
+#>     note = {R package version 1.7.0},
 #>     url = {https://CRAN.R-project.org/package=survalis},
 #>   }
 ```

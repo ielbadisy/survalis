@@ -1,3 +1,10 @@
+# survalis 1.7.0
+
+* survalis no longer defines a `plot.formula()` method. It replaced
+  `graphics::plot.formula()` for every package as soon as survalis was loaded
+  ("Registered S3 method overwritten"). Use `plot_survcurve()` for a
+  Kaplan-Meier curve.
+
 # survalis 1.6.4
 
 Bug fixes found while benchmarking every learner on 31 survival datasets.
