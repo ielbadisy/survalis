@@ -30,7 +30,7 @@ m   <- fit(f, veteran, model = "ranger", spec = list(num.trees = 500))
 predict(m, veteran[1:5, ], times = c(90, 180, 365))          # survmat
 evaluate(m, times = c(90, 180, 365), resampling = cv(5))     # resampled metrics
 
-cmp <- compare(f, veteran, models = c("coxph", "ranger", "survdnn"),
+cmp <- compare(f, veteran, models = c("coxph", "ranger", "densemlp"),
                times = c(90, 180, 365))
 plot(cmp)
 
@@ -139,12 +139,11 @@ list_survlearners()
 #> 16         cforest         fit_cforest         predict_cforest     tune_cforest
 #> 17      blackboost      fit_blackboost      predict_blackboost  tune_blackboost
 #> 18         survsvm         fit_survsvm         predict_survsvm     tune_survsvm
-#> 19         survdnn         fit_survdnn         predict_survdnn     tune_survdnn
-#> 20        densemlp        fit_densemlp        predict_densemlp             <NA>
-#> 21            orsf            fit_orsf            predict_orsf        tune_orsf
-#> 22          rpsurv          fit_rpsurv          predict_rpsurv             <NA>
-#> 23          nbsurv          fit_nbsurv          predict_nbsurv             <NA>
-#> 24 survmetalearner fit_survmetalearner predict_survmetalearner             <NA>
+#> 19        densemlp        fit_densemlp        predict_densemlp             <NA>
+#> 20            orsf            fit_orsf            predict_orsf        tune_orsf
+#> 21          rpsurv          fit_rpsurv          predict_rpsurv             <NA>
+#> 22          nbsurv          fit_nbsurv          predict_nbsurv             <NA>
+#> 23 survmetalearner fit_survmetalearner predict_survmetalearner             <NA>
 #>    has_fit has_predict has_tune available
 #> 1     TRUE        TRUE    FALSE      TRUE
 #> 2     TRUE        TRUE    FALSE      TRUE
@@ -164,12 +163,11 @@ list_survlearners()
 #> 16    TRUE        TRUE     TRUE      TRUE
 #> 17    TRUE        TRUE     TRUE      TRUE
 #> 18    TRUE        TRUE     TRUE      TRUE
-#> 19    TRUE        TRUE     TRUE      TRUE
-#> 20    TRUE        TRUE    FALSE      TRUE
-#> 21    TRUE        TRUE     TRUE      TRUE
+#> 19    TRUE        TRUE    FALSE      TRUE
+#> 20    TRUE        TRUE     TRUE      TRUE
+#> 21    TRUE        TRUE    FALSE      TRUE
 #> 22    TRUE        TRUE    FALSE      TRUE
 #> 23    TRUE        TRUE    FALSE      TRUE
-#> 24    TRUE        TRUE    FALSE      TRUE
 
 # See only tunable learners (those with a tune_* function)
 list_survlearners(has_tune = TRUE)
@@ -187,8 +185,7 @@ list_survlearners(has_tune = TRUE)
 #> 16     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
 #> 17  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
 #> 18     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
-#> 19     survdnn     fit_survdnn     predict_survdnn     tune_survdnn    TRUE
-#> 21        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
+#> 20        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
 #>    has_predict has_tune available
 #> 3         TRUE     TRUE      TRUE
 #> 4         TRUE     TRUE      TRUE
@@ -203,8 +200,7 @@ list_survlearners(has_tune = TRUE)
 #> 16        TRUE     TRUE      TRUE
 #> 17        TRUE     TRUE      TRUE
 #> 18        TRUE     TRUE      TRUE
-#> 19        TRUE     TRUE      TRUE
-#> 21        TRUE     TRUE      TRUE
+#> 20        TRUE     TRUE      TRUE
 
 # Shortcut for tunable learners
 list_tunable_survlearners()
@@ -222,8 +218,7 @@ list_tunable_survlearners()
 #> 16     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
 #> 17  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
 #> 18     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
-#> 19     survdnn     fit_survdnn     predict_survdnn     tune_survdnn    TRUE
-#> 21        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
+#> 20        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
 #>    has_predict has_tune available
 #> 3         TRUE     TRUE      TRUE
 #> 4         TRUE     TRUE      TRUE
@@ -238,8 +233,7 @@ list_tunable_survlearners()
 #> 16        TRUE     TRUE      TRUE
 #> 17        TRUE     TRUE      TRUE
 #> 18        TRUE     TRUE      TRUE
-#> 19        TRUE     TRUE      TRUE
-#> 21        TRUE     TRUE      TRUE
+#> 20        TRUE     TRUE      TRUE
 ```
 
 ### List interpretability tools

@@ -1,5 +1,12 @@
 # survalis 1.7.0
 
+* The `survdnn` learner is removed, and with it the 'survdnn' and 'torch'
+  dependencies. 'torch' needs a separate LibTorch download that often failed
+  to install. Use the `densemlp` learner (`fit(..., model = "densemlp")`),
+  which fits deep survival models with a native C++ backend.
+  `fit_survdnn()`, `predict_survdnn()`, and `tune_survdnn()` are defunct and
+  stop with a pointer to `densemlp` (see `?survalis-defunct`).
+
 * survalis no longer defines a `plot.formula()` method. It replaced
   `graphics::plot.formula()` for every package as soon as survalis was loaded
   ("Registered S3 method overwritten"). Use `plot_survcurve()` for a

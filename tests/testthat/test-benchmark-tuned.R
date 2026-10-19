@@ -2,7 +2,7 @@ test_that("benchmark and tuning wrappers expose explicit core controls", {
   tune_funs <- c(
     "tune_bart", "tune_blackboost", "tune_bnnsurv", "tune_cforest",
     "tune_flexsurvreg", "tune_glmnet", "tune_orsf", "tune_ranger",
-    "tune_rpart", "tune_rsf", "tune_selectcox", "tune_survdnn",
+    "tune_rpart", "tune_rsf", "tune_selectcox",
     "tune_survsvm", "tune_xgboost"
   )
 
@@ -103,52 +103,5 @@ test_that("benchmark_tuned_survlearners() returns nested CV results and final re
   expect_s3_class(res$final_models$glmnet, "mlsurv_model")
   expect_true(!is.null(attr(res$final_models$ranger, "tuning_results")))
   expect_true(!is.null(attr(res$final_models$glmnet, "tuning_results")))
-  expect_identical(res$settings$inner_ncores, 1)
-})
-
-test_that("benchmark_tuned_survlearners() supports list-valued tuning parameters", {
-  skip_on_cran()
-  skip_if_not_installed("survdnn")
-  skip_if_not_installed("torch")
-  skip_if_not_installed("survival")
-  skip_if_not(torch::torch_is_installed(), "Torch backend is not installed")
-
-  Surv <- survival::Surv
-  df <- survival::veteran
-
-  res <- benchmark_tuned_survlearners(
-    formula = Surv(time, status) ~ age + karno + celltype,
-    data = df,
-    learners = "survdnn",
-    times = 90,
-    metrics = c("cindex", "ibs"),
-    outer_folds = 2,
-    inner_folds = 2,
-    inner_ncores = 1,
-    seed = 2026,
-    learner_args = list(
-      survdnn = list(
-        tune = list(
-          param_grid = list(
-            hidden = list(c(8L), c(16L, 8L)),
-            lr = c(1e-3),
-            activation = c("relu"),
-            epochs = c(2L),
-            loss = c("cox"),
-            optimizer = c("adam"),
-            dropout = c(0.1),
-            batch_norm = c(TRUE)
-          )
-        ),
-        fit = list(verbose = FALSE)
-      )
-    )
-  )
-
-  expect_s3_class(res, "nested_surv_benchmark")
-  expect_true(is.list(res$selected_params$hidden))
-  expect_equal(length(res$selected_params$hidden), 2)
-  expect_setequal(unique(res$outer_results$learner), "survdnn")
-  expect_setequal(unique(res$outer_results$metric), c("cindex", "ibs"))
   expect_identical(res$settings$inner_ncores, 1)
 })

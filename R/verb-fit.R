@@ -12,7 +12,7 @@
 #'   side, e.g. `Surv(time, status) ~ age + karno`.
 #' @param data A data frame containing the formula variables.
 #' @param model A learner id from `list_survlearners()$learner` (for example
-#'   `"coxph"`, `"ranger"`, `"survdnn"`).
+#'   `"coxph"`, `"ranger"`, `"densemlp"`).
 #' @param spec A named list of engine arguments forwarded to the underlying
 #'   `fit_<model>()` (for example `list(num.trees = 500)` for `"ranger"`).
 #' @param seed Optional integer seed set immediately before fitting, for learners
@@ -42,6 +42,10 @@ fit <- function(formula, data, model, spec = list(), seed = NULL, ...) {
          "For non-survival outcomes use funcml::fit().", call. = FALSE)
   }
 
+  if (identical(model, "survdnn")) {
+    stop("The 'survdnn' learner was removed in survalis 1.7.0 (it needed torch). ",
+         "Use model = \"densemlp\" instead.", call. = FALSE)
+  }
   known <- list_survlearners()$learner
   if (length(model) != 1L || !is.character(model) || !model %in% known) {
     stop("Unknown model ", sQuote(model %||% "NULL"),

@@ -13,7 +13,7 @@
 
 # Row-binds `results` (data.frames, possibly with differing columns --
 # e.g. a failed tuning row that omits metric columns -- and possibly
-# carrying a list-column, e.g. survdnn's `hidden`) via base rbind() after
+# carrying a list-column, e.g. a `hidden` layer-size grid) via base rbind() after
 # padding to a common column set. Not basetable::rbindfill(): rbindfill()
 # coerces list-columns to NA instead of preserving them.
 .rbind_fill_dt <- function(results) {
@@ -35,7 +35,7 @@
 
 .wide_metric_row <- function(params, cv_summary_dt) {
   metric_vals <- as.list(stats::setNames(cv_summary_dt$mean, cv_summary_dt$metric))
-  # list-valued params (e.g. survdnn's `hidden`) must stay a single list-column
+  # list-valued params (e.g. a `hidden` layer-size grid) must stay a single list-column
   # entry rather than being spread across columns by base data.frame()'s
   # default list-argument handling.
   params <- lapply(params, function(x) if (is.list(x)) I(x) else x)

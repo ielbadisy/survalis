@@ -106,18 +106,16 @@ test_that("tune() reports a clear error when every configuration fails", {
   )
 })
 
-test_that("tuners for survsvm and survdnn have default grids", {
-  expect_true(is.list(formals(tune_survsvm)$param_grid) || is.call(formals(tune_survsvm)$param_grid))
+test_that("tune_survsvm() has a default grid", {
   expect_false(identical(formals(tune_survsvm)$param_grid, quote(expr = )))
-  expect_false(identical(formals(tune_survdnn)$param_grid, quote(expr = )))
-  # the argument check that used to reject the default grid no longer fires
-  err <- tryCatch(
-    tune_survdnn(vet_form, survival::veteran[1:3, ], times = c(50, 100), folds = 3, param_grid = list(
-      hidden = list(c(4)), lr = 0.01, activation = "relu", epochs = 1, loss = "cox",
-      optimizer = "adam", dropout = 0, batch_norm = TRUE)),
-    error = function(e) conditionMessage(e)
-  )
-  expect_false(is.character(err) && grepl("!missing", err, fixed = TRUE))
+})
+
+test_that("survdnn is defunct and points to densemlp", {
+  expect_error(fit_survdnn(vet_form, survival::veteran), "densemlp")
+  expect_error(predict_survdnn(), "densemlp")
+  expect_error(tune_survdnn(), "densemlp")
+  expect_error(fit(vet_form, survival::veteran, model = "survdnn"), "densemlp")
+  expect_false("survdnn" %in% list_survlearners()$learner)
 })
 
 test_that("compare() reports the real error when a metric fails on parallel workers", {

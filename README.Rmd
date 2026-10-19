@@ -40,7 +40,7 @@ m   <- fit(f, veteran, model = "ranger", spec = list(num.trees = 500))
 predict(m, veteran[1:5, ], times = c(90, 180, 365))          # survmat
 evaluate(m, times = c(90, 180, 365), resampling = cv(5))     # resampled metrics
 
-cmp <- compare(f, veteran, models = c("coxph", "ranger", "survdnn"),
+cmp <- compare(f, veteran, models = c("coxph", "ranger", "densemlp"),
                times = c(90, 180, 365))
 plot(cmp)
 

@@ -13,7 +13,7 @@ side, e.g. \code{Surv(time, status) ~ age + karno}.}
 \item{data}{A data frame containing the formula variables.}
 
 \item{model}{A learner id from \code{list_survlearners()$learner} (for example
-\code{"coxph"}, \code{"ranger"}, \code{"survdnn"}).}
+\code{"coxph"}, \code{"ranger"}, \code{"densemlp"}).}
 
 \item{spec}{A named list of engine arguments forwarded to the underlying
 \verb{fit_<model>()} (for example \code{list(num.trees = 500)} for \code{"ranger"}).}
