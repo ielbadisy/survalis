@@ -2,104 +2,127 @@
 % Please edit documentation in R/fit_survsvm.R
 \name{fit_survsvm}
 \alias{fit_survsvm}
-\title{Fit a Survival SVM Model (mlsurv_model-compatible)}
+\title{Fit a Survival Support Vector Machine}
 \usage{
 fit_survsvm(
   formula,
   data,
   type = "regression",
   gamma.mu = 0.1,
-  opt.meth = "quadprog",
-  kernel = "add_kernel",
-  diff.meth = NULL
+  opt.meth = NULL,
+  kernel = c("add_kernel", "lin_kernel", "rbf_kernel", "poly_kernel"),
+  diff.meth = NULL,
+  kernel.pars = NULL,
+  resid.folds = 5
 )
 }
 \arguments{
-\item{formula}{A survival formula of the form \code{Surv(time, status) ~ predictors}.
-The left-hand side must be a \code{Surv()} object from the \code{survival} package.}
+\item{formula}{A survival formula of the form \code{Surv(time, status) ~ predictors}.}
 
 \item{data}{A \code{data.frame} containing all variables referenced in \code{formula}.}
 
-\item{type}{SVM loss type used by \code{survivalsvm} (e.g., \code{"regression"}).}
+\item{type}{Only \code{"regression"} is supported: the ranking types of
+\pkg{survivalsvm} give a risk score, not a survival time, and therefore no
+survival curve.}
 
-\item{gamma.mu}{Regularization parameter for the margin/hinge component.}
+\item{gamma.mu}{Error weight \eqn{\gamma > 0}; larger values follow the
+data more closely. Default \code{0.1}.}
 
-\item{opt.meth}{Optimization method, \code{"quadprog"} (default) or
-\code{"ipop"}. If \code{"quadprog"} fails (a LAPACK error in the eigen
-decomposition of the kernel matrix, or an infeasible problem, both of
-which depend on the BLAS/LAPACK in use), the model is refitted with
-\code{"ipop"} and a warning is issued. If both fail, the error reports
-both causes.}
+\item{opt.meth, diff.meth}{Ignored. Kept so that older calls keep working;
+the native solver needs no optimizer choice.}
 
-\item{kernel}{Kernel type (e.g., \code{"lin_kernel"}, \code{"add_kernel"}).}
+\item{kernel}{Kernel: \code{"add_kernel"} (default), \code{"lin_kernel"},
+\code{"rbf_kernel"} or \code{"poly_kernel"}.}
 
-\item{diff.meth}{Optional differentiation method passed to the engine.}
+\item{kernel.pars}{Optional kernel parameters, see the Kernels section.}
+
+\item{resid.folds}{Number of folds for the cross-fitted residuals (default
+\code{5}); \code{1} uses in-sample residuals. Folds interleave the ordered
+survival times, so fitting does not touch the random number generator.}
 }
 \value{
-An object of class \code{mlsurv_model}, a named list with elements:
-\describe{
-\item{model}{The underlying fitted \pkg{survivalsvm} model.}
-\item{learner}{Character scalar identifying the learner (\code{"survsvm"}).}
-\item{engine}{Character scalar naming the engine (\code{"survivalsvm"}).}
-\item{formula}{The original survival formula.}
-\item{data}{The training dataset (or a minimal subset needed for prediction).}
-\item{time}{Name of the survival time variable.}
-\item{status}{Name of the event indicator (1 = event, 0 = censored).}
-}
+An object of class \code{mlsurv_model}, a named list with elements
+\code{model} (the fitted engine), \code{learner} (\code{"survsvm"}),
+\code{formula}, \code{data}, \code{time} and \code{status}; the engine
+name \code{"survalis"} is stored in \code{attr(, "engine")}.
 }
 \description{
-Fits a survival support vector machine using \pkg{survivalsvm}. The default
-setup uses the regression-type loss with quadratic programming optimization
-and an additive or linear kernel, but all \pkg{survivalsvm} options are exposed.
-Returns an \code{mlsurv_model} object that integrates with the \code{survalis}
-evaluation and cross-validation pipeline.
+Fits a kernel survival support vector regression on the log-time scale and
+returns an \code{mlsurv_model}. The engine is implemented natively in
+\pkg{survalis}.
 }
-\details{
-\strong{Design contract.} All \verb{fit_*()} functions in \code{survalis}:
-(i) return a named list with \code{model}, \code{learner}, \code{engine}, \code{formula},
-\code{data}, \code{time}, and \code{status}; (ii) preserve \code{terms(formula)} or equivalent
-for consistent prediction design; and (iii) keep engine arguments required
-downstream by \verb{predict_*()}.
-}
-\section{Engine}{
+\section{Method}{
 
-Uses \strong{survivalsvm::survivalsvm}. Some optimization methods (e.g.,
-\code{"quadprog"}) require additional system dependencies and the \pkg{quadprog}
-package to be installed.
+The model is an accelerated failure time model
+\eqn{\log T = f(x) + \varepsilon} with
+\eqn{f(x) = \sum_i \beta_i k(x, x_i) + b} in the reproducing kernel Hilbert
+space of the kernel \eqn{k}. With \eqn{y_i = \log T_i}, \eqn{f} minimizes
+\deqn{\frac12 \|f\|_k^2 + \frac{\gamma}{2} \sum_{i:\,\delta_i = 1} (y_i - f(x_i))^2
+  + \frac{\gamma}{2} \sum_{i:\,\delta_i = 0} \max(0,\, y_i - f(x_i))^2 ,}
+the survival support vector regression of Shivaswamy et al. (2007) and Van
+Belle et al. (2011) with squared losses: an event time is fitted from both
+sides, a censored time is only penalized when the prediction falls below
+it. The problem is strictly convex and piecewise quadratic, and is solved
+exactly by an active-set Newton method (Chapelle, 2007). Given the active
+set \eqn{A} (events, and censored points predicted too early), the optimum
+solves the least-squares SVM system
+\deqn{\begin{pmatrix} 0 & 1^\top \\ 1 & K_{AA} + I/\gamma \end{pmatrix}
+  \begin{pmatrix} b \\ \beta_A \end{pmatrix} =
+  \begin{pmatrix} 0 \\ y_A \end{pmatrix}, \qquad \beta_{A^c} = 0,}
+by one Cholesky factorization; \eqn{A} is updated, with a line search,
+until it no longer changes. No quadratic programming solver is involved.
+Censored points outside \eqn{A} have \eqn{\beta_i = 0} and are not stored.
+
+Survival curves follow from the AFT form:
+\eqn{S(t \mid x) = S_\varepsilon(\log t - f(x))}, where \eqn{S_\varepsilon}
+is the Kaplan-Meier estimate of the cross-fitted residuals
+\eqn{y_i - f_{-k(i)}(x_i)}: each residual comes from a model fitted without
+the observation's fold, so the curves are not made overconfident by the
+in-sample fit. See \code{\link{predict_survsvm}} for alternatives.
+}
+
+\section{Kernels}{
+
+\describe{
+\item{\code{"add_kernel"}}{Clinical (additive) kernel of Daemen et al.
+(2012): the average over predictors of
+\eqn{\max(0, 1 - |x_j - z_j| / r_j)} for numeric and ordered predictors
+(\eqn{r_j} the training range) and \eqn{1\{x_j = z_j\}} for unordered
+factors. Scale free, positive semi-definite, and a factor counts as one
+predictor. Constant predictors add a constant.}
+\item{\code{"lin_kernel"}}{\eqn{x^\top z / p} on standardized columns
+(factors in treatment coding).}
+\item{\code{"rbf_kernel"}}{\eqn{\exp(-\|x - z\|^2 / (2 \sigma^2))} on
+standardized columns; \code{kernel.pars} is \eqn{\sigma^2}, default
+the number of columns \eqn{p}.}
+\item{\code{"poly_kernel"}}{\eqn{(x^\top z / p + c)^d} on standardized
+columns; \code{kernel.pars} is \eqn{(c, d)}, default \eqn{(1, 2)}.}
+}
 }
 
 \examples{
-\dontshow{if (requireNamespace("survivalsvm", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 mod_svm <- fit_survsvm(Surv(time, status) ~ age + celltype + karno,
-                           data = veteran,
-                           type = "regression",
-                           gamma.mu = 0.1,
-                           kernel = "lin_kernel")
+                       data = veteran, kernel = "add_kernel")
+predict_survsvm(mod_svm, newdata = veteran[1:5, ], times = c(100, 300, 500))
 
-times <- c(100, 300, 500)
-predict_survsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "exp")
-predict_survsvm(mod_svm, newdata = veteran[1:5, ], times = times, dist = "weibull", shape = 1.5)
-
-cv_results_svm <- cv_survlearner(
-  formula = Surv(time, status) ~ age + celltype + karno,
-  data = veteran,
-  fit_fun = fit_survsvm,
-  pred_fun = predict_survsvm,
-  times = c(100, 300, 500),
-  metrics = c("cindex", "ibs"),
-  folds = 5,
-  seed = 42,
-  gamma.mu = 0.1,
-  kernel = "lin_kernel")
-
-print(cv_results_svm)
-cv_summary(cv_results_svm)
-cv_plot(cv_results_svm)
-\dontshow{\}) # examplesIf}
 }
 \references{
-Binder H, et al. (2009). Survival Support Vector Machines (and related work).
-\pkg{survivalsvm} package documentation.
+Shivaswamy PK, Chu W, Jansche M (2007). A support vector approach to
+censored targets. \emph{Seventh IEEE International Conference on Data
+Mining}, 655-660. \doi{10.1109/ICDM.2007.93}
+
+Van Belle V, Pelckmans K, Van Huffel S, Suykens JAK (2011). Support vector
+methods for survival analysis: a comparison between ranking and regression
+approaches. \emph{Artificial Intelligence in Medicine}, 53(2), 107-118.
+\doi{10.1016/j.artmed.2011.06.006}
+
+Daemen A, Timmerman D, Van den Bosch T, et al. (2012). Improved modeling of
+clinical data with kernel methods. \emph{Artificial Intelligence in
+Medicine}, 54(2), 103-114. \doi{10.1016/j.artmed.2011.11.001}
+
+Chapelle O (2007). Training a support vector machine in the primal.
+\emph{Neural Computation}, 19(5), 1155-1178.
+\doi{10.1162/neco.2007.19.5.1155}
 }
 \seealso{
 \code{\link[=predict_survsvm]{predict_survsvm()}}, \code{\link[=tune_survsvm]{tune_survsvm()}}

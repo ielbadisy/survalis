@@ -45,7 +45,6 @@ Imports:
     pec,
     party,
     ranger,
-    survivalsvm,
     unsurv,
     randomForestSRC,
     xgboost,

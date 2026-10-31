@@ -14,7 +14,7 @@ tune_survsvm(
   seed = 42,
   ncores = 1,
   refit_best = FALSE,
-  dist = "exp",
+  dist = "km",
   shape = 1
 )
 }
@@ -30,8 +30,8 @@ survival time used at training). Must be non-negative and finite.}
 \item{metrics}{Character vector of metrics to evaluate/optimize
 (e.g., \code{"cindex"}, \code{"ibs"}). The first entry is the primary selection metric.}
 
-\item{param_grid}{A named list of candidate hyperparameters; typical entries
-include \code{gamma.mu} and \code{kernel}. Use \code{list(gamma.mu = c(...), kernel = c(...))}.}
+\item{param_grid}{A named list of candidate hyperparameters with entries
+\code{gamma.mu} and \code{kernel}.}
 
 \item{folds}{Number of cross-validation folds.}
 
@@ -43,9 +43,7 @@ for fold evaluation (default \code{1}).}
 \item{refit_best}{Logical; if \code{TRUE}, refits the best configuration on the
 full data and returns it as the result (with tuning attributes).}
 
-\item{dist}{Parametric mapping for predictions during CV: \code{"exp"} or \code{"weibull"}.}
-
-\item{shape}{Weibull shape parameter if \code{dist = "weibull"}.}
+\item{dist, shape}{Passed to \code{\link[=predict_survsvm]{predict_survsvm()}} during cross-validation.}
 }
 \value{
 If \code{refit_best = FALSE}, a \code{data.frame} (class \code{"tune_surv"}) of grid
@@ -59,13 +57,11 @@ the best configuration based on the chosen metric. Optionally refits the
 best model on the full dataset.
 }
 \details{
-\strong{Evaluation.} Internally calls \code{cv_survlearner()} with
-\code{fit_survsvm()}/\code{predict_survsvm()} to keep code paths consistent with
-production usage. The prediction step applies the specified \code{dist}/\code{shape}
-mapping to convert predicted times into survival probabilities at \code{times}.
+Internally calls \code{cv_survlearner()} with \code{fit_survsvm()}/\code{predict_survsvm()}
+to keep code paths consistent with production usage. A grid point that
+fails is skipped with a warning.
 }
 \examples{
-\dontshow{if (requireNamespace("survivalsvm", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 \donttest{
 grid <- list(
   gamma.mu = c(0.01, 0.1),
@@ -78,25 +74,11 @@ res_svm <- tune_survsvm(
   times = c(100, 300, 500),
   metrics = c("cindex", "ibs"),
   param_grid = grid,
-  folds = 3,
-  refit_best = TRUE
+  folds = 3
 )
-
-summary(res_svm)
-
-res_svm <- tune_survsvm(
-  formula = Surv(time, status) ~ age + celltype + karno,
-  data = veteran,
-  times = c(100, 300, 500),
-  metrics = c("cindex", "ibs"),
-  param_grid = grid,
-  folds = 3,
-  refit_best = FALSE
-)
-
 res_svm
 }
-\dontshow{\}) # examplesIf}
+
 }
 \seealso{
 \code{\link[=fit_survsvm]{fit_survsvm()}}, \code{\link[=predict_survsvm]{predict_survsvm()}}

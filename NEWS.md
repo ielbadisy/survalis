@@ -1,11 +1,24 @@
 # survalis 1.7.0
 
-* `fit_survsvm()` no longer stops when the "quadprog" solver fails. That path
-  runs an eigen decomposition of the kernel matrix (`Matrix::nearPD()`), which
-  can stop with "error code 1 from Lapack routine 'dsyevr'" or report an
-  infeasible problem, depending on the BLAS/LAPACK library R uses. The model
-  is now refitted with `opt.meth = "ipop"` and a warning is issued; if that
-  fails too, the error reports both causes.
+* The `survsvm` learner now has its own engine and no longer depends on
+  'survivalsvm'. Its "quadprog" path called `Matrix::nearPD()`, which could
+  stop with "error code 1 from Lapack routine 'dsyevr'" depending on the
+  BLAS/LAPACK library. The new engine fits a kernel survival support vector
+  regression on log time (squared loss for events, one-sided squared loss for
+  censored times) and solves it exactly by active-set Newton steps with one
+  Cholesky factorization each, so no quadratic programming solver is needed;
+  it is 10 to 50 times faster. Survival curves now come from the
+  Kaplan-Meier estimate of cross-fitted residuals,
+  `S(t | x) = S_e(log t - f(x))`, which is calibrated, instead of
+  `exp(-t / f(x))`, which assumed an exponential shape and could give
+  negative times. `dist = "lognormal"` is new; `"exp"` and `"weibull"` remain
+  available. The clinical kernel (`"add_kernel"`) treats a factor as one
+  predictor and accepts constant columns, and `"poly_kernel"` is fixed.
+  Only `type = "regression"` is supported (the ranking types give no
+  survival curve); `opt.meth` and `diff.meth` are ignored. The default
+  `gamma.mu` is now 0.1 and the `tune_survsvm()` grid is
+  `c(0.01, 0.1, 1)`, matched to the new loss scale. The fitted object's
+  `engine` is now `"survalis"`.
 
 * The `bnnsurv` learner (bagged k-nearest-neighbour Kaplan-Meier) now has its
   own engine and no longer depends on 'bnnSurvival', which is unmaintained.
