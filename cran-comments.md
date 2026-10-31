@@ -21,10 +21,10 @@ This version needs 'fastgbm' 0.7.0, submitted to CRAN just before it.
 
 ## R CMD check results
 
-0 errors | 0 warnings | 1 note
+0 errors | 0 warnings | 0 notes
 
-* The note is the "Imports includes 35 non-default packages" INFO: survalis
-  wraps learners from many packages behind one interface.
+* `R CMD check` reports the INFO "Imports includes 35 non-default packages":
+  survalis wraps learners from many packages behind one interface.
 
 ## Test environments
 
