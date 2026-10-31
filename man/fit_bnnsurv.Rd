@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_bnnsurv.R
 \name{fit_bnnsurv}
 \alias{fit_bnnsurv}
-\title{Fit a kNN–Ensemble Survival Model (bnnSurvival)}
+\title{Fit a Bagged Nearest-Neighbour Survival Model}
 \usage{
 fit_bnnsurv(
   formula,
@@ -10,7 +10,7 @@ fit_bnnsurv(
   k = 5,
   num_base_learners = 10,
   num_features_per_base_learner = NULL,
-  metric = "mahalanobis",
+  metric = c("mahalanobis", "euclidean"),
   weighting_function = function(x) x * 0 + 1,
   replace = TRUE,
   sample_fraction = NULL
@@ -21,62 +21,89 @@ fit_bnnsurv(
 
 \item{data}{A data frame containing all variables referenced in \code{formula}.}
 
-\item{k}{Integer, number of neighbours for each base learner. Default \code{20}.}
+\item{k}{Integer, number of neighbours for each base learner. Default \code{5}.}
 
 \item{num_base_learners}{Integer, number of base learners in the ensemble.
 Default \code{10}.}
 
-\item{num_features_per_base_learner}{Integer or \code{NULL}. If not \code{NULL},
-each base learner samples this many features. Passed to the engine.}
+\item{num_features_per_base_learner}{Integer or \code{NULL} (all
+predictors). Number of predictors drawn at random for each base learner.}
 
-\item{metric}{Character distance metric for neighbour search (for example,
-\code{"mahalanobis"}). Passed to the engine.}
+\item{metric}{Distance, \code{"mahalanobis"} (default) or
+\code{"euclidean"} (on standardized columns).}
 
-\item{weighting_function}{Function used to weight neighbours. Defaults to a
-constant weighting \code{function(x) x * 0 + 1}. Passed to the engine.}
+\item{weighting_function}{Function mapping a vector of non-negative
+distances to non-negative neighbour weights. Default: constant weights.}
 
-\item{replace}{Logical; sample with replacement when drawing observations for
-a base learner. Passed to the engine.}
+\item{replace}{Logical; sample rows with replacement for each base learner.
+Default \code{TRUE}.}
 
-\item{sample_fraction}{Optional numeric in \code{(0, 1]}; fraction of rows used
-by each base learner. Passed to the engine.}
+\item{sample_fraction}{Optional numeric in \code{(0, 1]}; fraction of rows
+drawn for each base learner. Defaults to \code{1} when
+\code{replace = TRUE} and \code{0.6321} otherwise.}
 }
 \value{
 An object of class \code{"mlsurv_model"} with elements:
 \describe{
-\item{model}{The underlying \pkg{bnnSurvival} fit.}
+\item{model}{The fitted ensemble: design information, time grid and the
+base learners (row indices, columns and whitening maps).}
 \item{learner}{Scalar \code{"bnnsurv"}.}
-\item{engine}{Scalar \code{"bnnSurvival"}.}
+\item{engine}{Scalar \code{"survalis"}.}
 \item{formula, data}{Inputs preserved for downstream use.}
 \item{time, status}{Character names of the survival outcome fields.}
 }
 }
 \description{
-Fits an ensemble of k–nearest neighbour survival learners via
-\pkg{bnnSurvival}. The fitted object is standardized to the
-\code{mlsurv_model} contract used in \pkg{survalis}.
+Fits a bagged ensemble of k-nearest-neighbour Kaplan-Meier learners
+(Lowsky et al., 2013, bagged as in Wright's \pkg{bnnSurvival}). The engine
+is implemented natively in \pkg{survalis}.
 }
-\details{
-The native engine returns full survival curves on an internal time grid.
-See \code{\link{predict_bnnsurv}} for how these are post–processed and
-(optionally) interpolated to user–requested times.
-}
-\section{Engine}{
+\section{Method}{
 
-Uses \strong{bnnSurvival::bnnSurvival}. This wrapper calls the engine via
-\code{requireNamespace("bnnSurvival", quietly = TRUE)} and stores the native
-model in \code{$model}.
+Each base learner \eqn{b = 1, \dots, B} draws a bootstrap (or subsample) of
+the training rows and, optionally, a random subset of the predictors. For a
+new observation \eqn{x}, the learner finds the \eqn{k} training rows closest
+to \eqn{x} and returns their weighted Kaplan-Meier curve
+\deqn{\hat S_b(t \mid x) = \prod_{t_j \le t}
+  \left(1 - \frac{\sum_i w_i \delta_i 1\{T_i = t_j\}}
+                 {\sum_i w_i 1\{T_i \ge t_j\}}\right),}
+with weights \eqn{w_i = w(d(x, x_i))}. The ensemble prediction is the
+average \eqn{\hat S(t \mid x) = B^{-1} \sum_b \hat S_b(t \mid x)}, a
+non-increasing step function in \eqn{t}. Training rows tied with the
+\eqn{k}-th nearest distance share the remaining neighbour slots equally, so
+predictions do not depend on the row order of the data.
+
+The Mahalanobis distance uses the covariance \eqn{\Sigma_b} of the base
+learner's own sample: \eqn{d(x, y)^2 = (x - y)^\top \Sigma_b^{+} (x - y)},
+where \eqn{\Sigma_b^{+}} is the Moore-Penrose pseudo-inverse. Constant and
+collinear columns (for example a dummy that never varies in a bootstrap
+sample) therefore contribute nothing instead of breaking the inversion.
+\code{metric = "euclidean"} uses the Euclidean distance on standardized
+columns.
+
+Differences from \pkg{bnnSurvival}: factors are one-hot encoded (not coded
+as integer labels) and new data reuse the training levels; feature subsets
+are drawn from all predictors (a factor counts as one predictor); constant
+columns are detected from the variances; prediction runs in the current
+process (no forking); and predictions at arbitrary times are read off the
+step function rather than linearly interpolated. With numeric predictors,
+all predictors per learner, constant weights and no tied distances, the
+two engines give the same curves for the same seed.
 }
 
 \examples{
-\dontshow{if (requireNamespace("bnnSurvival", quietly = TRUE)) withAutoprint(\{ # examplesIf}
-
 mod <- fit_bnnsurv(
   Surv(time, status) ~ age + karno + diagtime + prior,
   data = veteran
 )
 head(predict_bnnsurv(mod, newdata = veteran[1:5, ], times = c(50, 100)))
-\dontshow{\}) # examplesIf}
+
+}
+\references{
+Lowsky DJ, Ding Y, Lee DKK, McCulloch CE, Ross LF, Thistlethwaite JR,
+Zenios SA (2013). A K-nearest neighbors survival probability prediction
+method. \emph{Statistics in Medicine}, 32(12), 2062-2069.
+\doi{10.1002/sim.5673}
 }
 \seealso{
 \code{\link[=predict_bnnsurv]{predict_bnnsurv()}}, \code{\link[=tune_bnnsurv]{tune_bnnsurv()}}

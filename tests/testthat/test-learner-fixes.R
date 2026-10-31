@@ -33,7 +33,7 @@ test_that("predictions accept a single evaluation time", {
   te <- d[91:130, ]
   t1 <- stats::median(d$time)
   for (id in c("flexsurvreg", "bnnsurv", "cforest")) {
-    pkg <- c(flexsurvreg = "flexsurv", bnnsurv = "bnnSurvival", cforest = "party")[[id]]
+    pkg <- c(flexsurvreg = "flexsurv", bnnsurv = "survival", cforest = "party")[[id]]
     skip_if_not_installed(pkg)
     fit_fun <- get(paste0("fit_", id))
     pred_fun <- get(paste0("predict_", id))

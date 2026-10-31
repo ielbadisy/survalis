@@ -7,6 +7,23 @@
   is now refitted with `opt.meth = "ipop"` and a warning is issued; if that
   fails too, the error reports both causes.
 
+* The `bnnsurv` learner (bagged k-nearest-neighbour Kaplan-Meier) now has its
+  own engine and no longer depends on 'bnnSurvival', which is unmaintained.
+  'bnnSurvival' predicted through `parallel::mclapply()`, and forking a session
+  whose multithreaded BLAS (e.g. MKL) is already running could hang
+  `predict_bnnsurv()`. The new engine runs in the current process and also:
+  one-hot encodes factors (they were integer codes inside the Mahalanobis
+  distance) and matches new data to the training levels; uses the
+  pseudo-inverse covariance, so constant or collinear columns in a bootstrap
+  sample are handled; draws feature subsets from all predictors (a factor
+  counts as one); splits weight equally between neighbours tied at the k-th
+  distance, so results no longer depend on row order; and reads predictions
+  at arbitrary times off the step function instead of interpolating
+  linearly. With numeric predictors and default settings it gives the same
+  curves as 'bnnSurvival' for the same seed, about ten times faster.
+  `metric = "euclidean"` (standardized columns) is new. The fitted object's
+  `engine` is now `"survalis"`.
+
 * survalis now declares `R (>= 4.4.0)` and `fastgbm (>= 0.7.0)`. It claimed
   R 4.1, but 'fastgbm' up to 0.6.1 needed R 4.5.0 and 'rms' (imported through
   'pec') needs R 4.4.0, so installation failed on older R.

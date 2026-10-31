@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_bnnsurv.R
 \name{predict_bnnsurv}
 \alias{predict_bnnsurv}
-\title{Predict Survival with a bnnSurvival Model}
+\title{Predict Survival with a Bagged Nearest-Neighbour Model}
 \usage{
 predict_bnnsurv(object, newdata, times = NULL)
 }
@@ -12,31 +12,29 @@ predict_bnnsurv(object, newdata, times = NULL)
 \item{newdata}{A data frame of new observations for prediction.}
 
 \item{times}{Optional numeric vector of evaluation time points. If \code{NULL}
-(default), the function returns survival on the engine's native grid.}
+(default), survival is returned at every distinct training time.}
 }
 \value{
 A base \code{data.frame} with one row per observation and columns
-named \code{"t=<time>"} containing survival probabilities in \code{[0, 1]}.
-Probabilities are clipped to \code{[0, 1]} and made non–increasing over time.
+named \code{"t=<time>"} containing survival probabilities in \code{[0, 1]},
+non-increasing over time.
 }
 \description{
 Generates survival probabilities from an \code{mlsurv_model} fitted by
-\code{\link{fit_bnnsurv}}. If \code{times} is supplied, survival curves are
-linearly interpolated from the engine's internal time grid to those times.
+\code{\link{fit_bnnsurv}}.
 }
 \details{
-Internally, predictions are obtained via \code{bnnSurvival::predict()}.
-The returned survival matrix is post–processed to enforce monotonicity
-(cumulative minimum over time). When \code{times} is provided, values are
-obtained by \code{stats::approx()} (linear interpolation, rule = 2).
+The ensemble curve is a step function that jumps only at training event
+times, so the value at time \eqn{t} is the curve at the last training time
+not after \eqn{t} (and \code{1} before the first one). Factor levels in
+\code{newdata} are matched to the training levels; unseen levels and
+missing predictor values are errors.
 }
 \examples{
-\dontshow{if (requireNamespace("bnnSurvival", quietly = TRUE)) withAutoprint(\{ # examplesIf}
-
 mod <- fit_bnnsurv(Surv(time, status) ~ age + karno + diagtime + prior, data = veteran)
 pred <- predict_bnnsurv(mod, newdata = veteran[1:3, ], times = c(50, 100, 200))
 pred
-\dontshow{\}) # examplesIf}
+
 }
 \seealso{
 \code{\link[=fit_bnnsurv]{fit_bnnsurv()}}, \code{\link[=tune_bnnsurv]{tune_bnnsurv()}}

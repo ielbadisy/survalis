@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_bnnsurv.R
 \name{tune_bnnsurv}
 \alias{tune_bnnsurv}
-\title{Tune bnnSurvival Hyperparameters (Cross-Validation)}
+\title{Tune Bagged Nearest-Neighbour Survival Hyperparameters (Cross-Validation)}
 \usage{
 tune_bnnsurv(
   formula,
@@ -59,7 +59,6 @@ Evaluation is performed by \code{cv_survlearner()} using
 paths. Results are ordered by the first entry in \code{metrics}.
 }
 \examples{
-\dontshow{if (requireNamespace("bnnSurvival", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 \donttest{
 grid <- expand.grid(
   k = c(2, 3),
@@ -86,7 +85,7 @@ best <- tune_bnnsurv(
 )
 head(predict_bnnsurv(best, newdata = veteran[1:5, ], times = c(50, 100)))
 }
-\dontshow{\}) # examplesIf}
+
 }
 \seealso{
 \code{\link[=fit_bnnsurv]{fit_bnnsurv()}}, \code{\link[=predict_bnnsurv]{predict_bnnsurv()}}, \code{\link[=cv_survlearner]{cv_survlearner()}}
