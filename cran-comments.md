@@ -10,8 +10,10 @@ Main changes (see NEWS.md for the full list):
   the `bnnsurv` learner now has its own engine. 'bnnSurvival' predicted
   through `parallel::mclapply()`, which could hang when forked from a
   session running a multithreaded BLAS.
-* `fit_survsvm()` refits with `opt.meth = "ipop"` when the "quadprog" solver
-  fails, which depends on the BLAS/LAPACK library.
+* Removed dependency 'survivalsvm': the `survsvm` learner now has its own
+  engine with no quadratic programming solver. The 'survivalsvm' path called
+  `Matrix::nearPD()`, which failed with a LAPACK error on some BLAS/LAPACK
+  libraries.
 * survalis no longer registers a `plot.formula()` method that overrode
   `graphics::plot.formula()`.
 * `Depends: R (>= 4.4.0)` and `fastgbm (>= 0.7.0)`: the earlier R (>= 4.1)
