@@ -247,6 +247,7 @@ predict_survsvm <- function(object, newdata, times, dist = "exp", shape = 1) {
 #' @seealso [fit_survsvm()], [predict_survsvm()]
 #'
 #' @examplesIf requireNamespace("survivalsvm", quietly = TRUE)
+#' \donttest{
 #' grid <- list(
 #'   gamma.mu = c(0.01, 0.1),
 #'   kernel = c("lin_kernel", "add_kernel")
@@ -275,6 +276,7 @@ predict_survsvm <- function(object, newdata, times, dist = "exp", shape = 1) {
 #' )
 #'
 #' res_svm
+#' }
 #'
 #' @keywords internal
 #' @export

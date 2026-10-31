@@ -66,6 +66,7 @@ mapping to convert predicted times into survival probabilities at \code{times}.
 }
 \examples{
 \dontshow{if (requireNamespace("survivalsvm", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+\donttest{
 grid <- list(
   gamma.mu = c(0.01, 0.1),
   kernel = c("lin_kernel", "add_kernel")
@@ -94,6 +95,7 @@ res_svm <- tune_survsvm(
 )
 
 res_svm
+}
 \dontshow{\}) # examplesIf}
 }
 \seealso{
