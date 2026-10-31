@@ -125,3 +125,46 @@ test_that("tune_survsvm() returns a compact grid; refit_best yields a fitted mod
   expect_identical(attr(best_mod, "engine"), "survivalsvm")
   expect_true(!is.null(attr(best_mod, "tuning_results")))
 })
+
+test_that("fit_survsvm() falls back to ipop when quadprog fails", {
+  skip_if_not_installed("survivalsvm")
+  skip_if_not_installed("survival")
+  library(survival)
+
+  real_fit <- survivalsvm::survivalsvm
+  local_mocked_bindings(
+    survivalsvm = function(..., opt.meth) {
+      if (identical(opt.meth, "quadprog")) {
+        stop("error code 1 from Lapack routine 'dsyevr'")
+      }
+      real_fit(..., opt.meth = opt.meth)
+    },
+    .package = "survivalsvm"
+  )
+
+  # ipop fits this data (complete cases of lung, additive kernel)
+  dat <- lung[stats::complete.cases(lung[, c("time", "status", "age", "sex", "ph.ecog")]), ]
+  expect_warning(
+    mod <- fit_survsvm(Surv(time, status) ~ age + sex + ph.ecog, data = dat),
+    "refitted with opt.meth = \"ipop\""
+  )
+  expect_s3_class(mod, "mlsurv_model")
+  p <- predict_survsvm(mod, newdata = dat[1:5, ], times = c(50, 100))
+  expect_equal(dim(p), c(5L, 2L))
+  expect_true(all(p >= 0 & p <= 1))
+})
+
+test_that("fit_survsvm() reports both causes when quadprog and ipop fail", {
+  skip_if_not_installed("survivalsvm")
+  skip_if_not_installed("survival")
+  library(survival)
+
+  local_mocked_bindings(
+    survivalsvm = function(..., opt.meth) stop("solver ", opt.meth, " broke"),
+    .package = "survivalsvm"
+  )
+  expect_error(
+    fit_survsvm(Surv(time, status) ~ age + karno, data = veteran),
+    "quadprog broke.*ipop broke"
+  )
+})

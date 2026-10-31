@@ -24,7 +24,12 @@ The left-hand side must be a \code{Surv()} object from the \code{survival} packa
 
 \item{gamma.mu}{Regularization parameter for the margin/hinge component.}
 
-\item{opt.meth}{Optimization method (e.g., \code{"quadprog"}).}
+\item{opt.meth}{Optimization method, \code{"quadprog"} (default) or
+\code{"ipop"}. If \code{"quadprog"} fails (a LAPACK error in the eigen
+decomposition of the kernel matrix, or an infeasible problem, both of
+which depend on the BLAS/LAPACK in use), the model is refitted with
+\code{"ipop"} and a warning is issued. If both fail, the error reports
+both causes.}
 
 \item{kernel}{Kernel type (e.g., \code{"lin_kernel"}, \code{"add_kernel"}).}
 

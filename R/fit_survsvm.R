@@ -16,7 +16,12 @@
 #' @param data A `data.frame` containing all variables referenced in `formula`.
 #' @param type SVM loss type used by \code{survivalsvm} (e.g., \code{"regression"}).
 #' @param gamma.mu Regularization parameter for the margin/hinge component.
-#' @param opt.meth Optimization method (e.g., \code{"quadprog"}).
+#' @param opt.meth Optimization method, \code{"quadprog"} (default) or
+#'   \code{"ipop"}. If \code{"quadprog"} fails (a LAPACK error in the eigen
+#'   decomposition of the kernel matrix, or an infeasible problem, both of
+#'   which depend on the BLAS/LAPACK in use), the model is refitted with
+#'   \code{"ipop"} and a warning is issued. If both fail, the error reports
+#'   both causes.
 #' @param kernel Kernel type (e.g., \code{"lin_kernel"}, \code{"add_kernel"}).
 #' @param diff.meth Optional differentiation method passed to the engine.
 #'
@@ -85,14 +90,44 @@ fit_survsvm <- function(formula, data,
 
   stopifnot(requireNamespace("survivalsvm", quietly = TRUE)) ## need also to install quadprog
 
-  model <- survivalsvm::survivalsvm(
-    formula = formula,
-    data = data,
-    type = type,
-    gamma.mu = gamma.mu,
-    opt.meth = opt.meth,
-    kernel = kernel,
-    diff.meth = diff.meth
+  fit_once <- function(meth) {
+    survivalsvm::survivalsvm(
+      formula = formula,
+      data = data,
+      type = type,
+      gamma.mu = gamma.mu,
+      opt.meth = meth,
+      kernel = kernel,
+      diff.meth = diff.meth
+    )
+  }
+
+  # The quadprog path runs Matrix::nearPD() (an eigen decomposition) on the
+  # kernel matrix. Depending on the BLAS/LAPACK in use, this can stop with a
+  # LAPACK error (e.g. "dsyevr") or an infeasible problem. The ipop solver
+  # skips that step, so retry with it; if it fails too, report both causes.
+  model <- tryCatch(
+    fit_once(opt.meth),
+    error = function(e) {
+      if (!identical(tolower(opt.meth), "quadprog")) stop(e)
+      model_ipop <- tryCatch(fit_once("ipop"), error = function(e2) e2)
+      if (inherits(model_ipop, "error")) {
+        stop(
+          "survsvm could not be fitted. opt.meth = \"quadprog\" failed: ",
+          conditionMessage(e), ". opt.meth = \"ipop\" failed: ",
+          conditionMessage(model_ipop), ". The quadprog failure depends on ",
+          "the BLAS/LAPACK library R uses; standardizing numeric predictors ",
+          "can help ipop.",
+          call. = FALSE
+        )
+      }
+      warning(
+        "survivalsvm with opt.meth = \"quadprog\" failed (",
+        conditionMessage(e), "); refitted with opt.meth = \"ipop\".",
+        call. = FALSE
+      )
+      model_ipop
+    }
   )
 
   structure(list(

@@ -1,5 +1,12 @@
 # survalis 1.7.0
 
+* `fit_survsvm()` no longer stops when the "quadprog" solver fails. That path
+  runs an eigen decomposition of the kernel matrix (`Matrix::nearPD()`), which
+  can stop with "error code 1 from Lapack routine 'dsyevr'" or report an
+  infeasible problem, depending on the BLAS/LAPACK library R uses. The model
+  is now refitted with `opt.meth = "ipop"` and a warning is issued; if that
+  fails too, the error reports both causes.
+
 * The `survdnn` learner is removed, and with it the 'survdnn' and 'torch'
   dependencies. 'torch' needs a separate LibTorch download that often failed
   to install. Use the `densemlp` learner (`fit(..., model = "densemlp")`),
