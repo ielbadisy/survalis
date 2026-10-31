@@ -7,6 +7,10 @@
   is now refitted with `opt.meth = "ipop"` and a warning is issued; if that
   fails too, the error reports both causes.
 
+* survalis now declares `R (>= 4.4.0)` and `fastgbm (>= 0.7.0)`. It claimed
+  R 4.1, but 'fastgbm' up to 0.6.1 needed R 4.5.0 and 'rms' (imported through
+  'pec') needs R 4.4.0, so installation failed on older R.
+
 * The `survdnn` learner is removed, and with it the 'survdnn' and 'torch'
   dependencies. 'torch' needs a separate LibTorch download that often failed
   to install. Use the `densemlp` learner (`fit(..., model = "densemlp")`),
