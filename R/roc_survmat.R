@@ -3,19 +3,19 @@
 #' Computes the full cumulative/dynamic time-dependent ROC curve (sensitivity
 #' vs. specificity across risk-score thresholds) at a fixed horizon
 #' \code{t_star}, using the same inverse-probability-of-censoring weighted
-#' (IPCW) case/control definition as \code{\link{auc_survmat}} (Uno et al.
+#' (IPCW) case/control definition as \code{auc_survmat} (Uno et al.
 #' 2007; Heagerty and Zheng 2005). Its trapezoidal AUC closely tracks
-#' \code{\link{auc_survmat}}'s pairwise-concordance AUC (small numerical
+#' \code{auc_survmat}'s pairwise-concordance AUC (small numerical
 #' differences arise from tie handling between the step-function ROC curve
 #' and the exact pairwise comparison).
 #'
-#' @param object A \code{\link[survival]{Surv}} object of length \eqn{n}.
+#' @param object A \code{Surv} object of length \eqn{n}.
 #' @param predicted An \code{n x k} matrix or data frame of survival
 #'   probabilities with columns named \code{"t=<time>"}.
 #' @param t_star Numeric time at which to evaluate the ROC curve.
 #'
 #' @details
-#' As in \code{\link{auc_survmat}}, cases are subjects with an observed event
+#' As in \code{auc_survmat}, cases are subjects with an observed event
 #' strictly before \code{t_star} (IPCW-weighted by \eqn{1/\hat G(\tilde T_i)}),
 #' and controls are subjects known to survive beyond \code{t_star}. The risk
 #' score is \eqn{1 - \hat S(t^\star \mid x)}. Sensitivity and specificity are
@@ -31,7 +31,7 @@
 #'   (a data.frame with \code{threshold}, \code{sensitivity},
 #'   \code{specificity}), \code{auc}, and \code{t_star}.
 #'
-#' @seealso [auc_survmat()], [plot.roc_survmat()]
+#' @seealso `auc_survmat()`, `plot.roc_survmat()`
 #'
 #' @references
 #' Uno H, Cai T, Tian L, Wei LJ (2007). Evaluating prediction rules for
@@ -47,7 +47,7 @@
 #' r <- roc_survmat(y, predicted = sp, t_star = 100)
 #' r$auc
 #' head(r$curve)
-#' @export
+#' @noRd
 roc_survmat <- function(object, predicted, t_star) {
   if (!inherits(object, "Surv")) stop("object must be a survival object (from Surv())")
 
@@ -109,6 +109,7 @@ roc_survmat <- function(object, predicted, t_star) {
 #' @param ... Additional arguments (unused).
 #' @rdname roc_survmat
 #' @export
+#' @noRd
 plot.roc_survmat <- function(x, title, ...) {
   if (missing(title)) {
     title <- sprintf("Time-dependent ROC at t = %s (AUC = %.3f)", x$t_star, x$auc)
@@ -123,9 +124,9 @@ plot.roc_survmat <- function(x, title, ...) {
 }
 
 #' @param x A \code{roc_survmat} object.
-#' @param ... Additional arguments passed to \code{\link{plot.roc_survmat}}.
+#' @param ... Additional arguments passed to \code{plot.roc_survmat}.
 #' @rdname roc_survmat
-#' @export
+#' @noRd
 plot_roc <- function(x, ...) {
   plot.roc_survmat(x, ...)
 }
