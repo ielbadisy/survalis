@@ -82,14 +82,19 @@ list_interpretability_methods <- function() {
 #' - `summary`: brief description.
 #' - `range`: typical value range.
 #'
+#' `"range:<lower>-<upper>"` is a template: write the thresholds into the id,
+#' for example `"range:0.05-0.20"`.
+#'
 #' @return A data.frame with one row per metric.
 #' @examples
 #' list_metrics()
 #' @export
 list_metrics <- function() {
   data.frame(
-    metric    = c("cindex", "auc", "brier", "ibs", "iae", "ise", "ece"),
-    direction = c("maximize", "maximize", "minimize", "minimize", "minimize", "minimize", "minimize"),
+    metric    = c("cindex", "auc", "brier", "ibs", "iae", "ise", "ece",
+                  "survacc", "range:<lower>-<upper>"),
+    direction = c("maximize", "maximize", "minimize", "minimize", "minimize", "minimize", "minimize",
+                  "maximize", "minimize"),
     summary   = c(
       "Harrell-style concordance index for survival predictions.",
       "Cumulative/dynamic time-dependent AUC at a selected evaluation time.",
@@ -97,7 +102,9 @@ list_metrics <- function() {
       "Integrated Brier Score over an evaluation time grid (IPCW-weighted).",
       "Integrated absolute error against the Kaplan-Meier curve.",
       "Integrated squared error against the Kaplan-Meier curve.",
-      "Expected calibration error at a single evaluation time."
+      "Expected calibration error at a single evaluation time.",
+      "SurvAcc: spherical decision-weighted score at a single time (IPCW), see dwscore().",
+      "Decision-weighted loss over a risk-threshold range, e.g. \"range:0.05-0.20\", at a single time, see dwscore()."
     ),
     range     = c(
       "[0, 1] (higher is better)",
@@ -106,6 +113,8 @@ list_metrics <- function() {
       "[0, 1] (lower is better)",
       "[0, Inf) (lower is better)",
       "[0, Inf) (lower is better)",
+      "[0, 1] (lower is better)",
+      "[0, 1] (higher is better)",
       "[0, 1] (lower is better)"
     ),
     stringsAsFactors = FALSE
