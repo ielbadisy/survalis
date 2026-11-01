@@ -1,7 +1,7 @@
 #' Predict from a fitted survival learner
 #'
 #' Produces predictions from a [fit()] object. Every matrix-valued `type`
-#' returns a [survmat] (an `n x length(times)` numeric matrix carrying its grid
+#' returns a `survmat` (an `n x length(times)` numeric matrix carrying its grid
 #' in the `"times"` attribute); the scalar-valued types (`"rmst"`, `"quantile"`,
 #' `"median"`) return a numeric vector (or an `n x length(probs)` matrix for a
 #' vector `probs`).
@@ -9,7 +9,7 @@
 #' @param object A `survalis_fit` from [fit()].
 #' @param newdata A data frame of predictors. Defaults to the training data.
 #'   Rows with missing values in model variables are rejected.
-#' @param times Numeric evaluation grid. When `NULL`, [default_times()] is used
+#' @param times Numeric evaluation grid. When `NULL`, up to 50 event-time quantiles between the 5th and 95th percentiles are used
 #'   and recorded on the result.
 #' @param type One of:
 #'   \describe{
@@ -25,7 +25,7 @@
 #' @param ... Type-specific arguments: `tau` for `"rmst"`, `probs` for
 #'   `"quantile"`.
 #'
-#' @return A [survmat] for `"survival"`, `"risk"`, `"chf"`, `"hazard"`; a numeric
+#' @return A `survmat` for `"survival"`, `"risk"`, `"chf"`, `"hazard"`; a numeric
 #'   vector for `"rmst"`, `"median"` and scalar-`probs` `"quantile"`; an
 #'   `n x length(probs)` matrix for vector `probs`.
 #'
@@ -60,7 +60,7 @@ predict.survalis_fit <- function(object, newdata = NULL, times = NULL,
     }
   }
 
-  pred_fun <- get(paste0("predict_", object$learner), envir = asNamespace("survalis"))
+  pred_fun <- .predict_fun(object)
   raw <- pred_fun(object, newdata = newdata, times = times)
   S <- as_survmat(as.matrix(raw), times = times, quantity = "survival")
   Sdf <- as.data.frame(S)
