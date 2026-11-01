@@ -27,6 +27,9 @@ test_that("dwscore returns one loss per time", {
   expect_s3_class(out, "data.frame")
   expect_equal(out$time, c(60, 120))
   expect_true(all(out$loss >= 0))
+  # the "brier" metric and dwscore(weight = "brier") are one estimator
+  b <- vapply(1:2, function(k) unname(brier(y, S[, k], c(60, 120)[k])), 0)
+  expect_equal(b, round(out$loss, 6))
 })
 
 test_that("decision-weighted loss equals weighted area under the IPCW net benefit curve", {
