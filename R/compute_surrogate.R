@@ -20,7 +20,7 @@
 #' @param k Desired number of non-zero coefficients for the penalized surrogate
 #'   (used only when \code{penalized = TRUE}); acts as a target sparsity.
 #' @param dist.fun Distance function for locality weighting. Default \code{"gower"}
-#'   (via \pkg{gower}); otherwise any method accepted by \code{\link[stats]{dist}}
+#'   (via \pkg{gower}); otherwise any method accepted by \code{dist}
 #'   (requires \code{kernel.width}).
 #' @param gower.power Power applied to \eqn{(1 - \text{gower\_dist})} when
 #'   \code{dist.fun = "gower"} to control locality sharpness (default \code{5}).
@@ -67,7 +67,7 @@
 #' head(local_expl)
 #' }
 #'
-#' @export
+#' @noRd
 
 compute_surrogate <- function(model, newdata, baseline_data,
                               times, target_time,
@@ -80,10 +80,10 @@ compute_surrogate <- function(model, newdata, baseline_data,
   stopifnot(nrow(newdata) == 1)
 
   # check predict function
-  if (is.null(model$learner) || !exists(paste0("predict_", model$learner))) {
-    stop("Could not infer prediction function. Ensure model was created using fit_*() and includes a valid 'learner'.")
+  if (is.null(model$learner) && !is.function(model$predict_fun)) {
+    stop("`model` must come from fit().", call. = FALSE)
   }
-  predict_function <- get(paste0("predict_", model$learner))
+  predict_function <- .predict_fun(model)
 
   requireNamespace("glmnet")
   requireNamespace("gower")
@@ -185,7 +185,7 @@ compute_surrogate <- function(model, newdata, baseline_data,
 
 #' Plot Local Surrogate Explanation
 #'
-#' Visualizes the signed local effects from \code{\link{compute_surrogate}} as a
+#' Visualizes the signed local effects from \code{compute_surrogate} as a
 #' horizontal bar chart, optionally limiting to the top \code{n} contributors.
 #'
 #' @param surrogate_df A data frame returned by \code{compute_surrogate()}.
@@ -209,7 +209,7 @@ compute_surrogate <- function(model, newdata, baseline_data,
 #'   k = 3
 #' )
 #' plot_surrogate(local_expl, top_n = 3)
-#' @export
+#' @noRd
 
 plot_surrogate <- function(surrogate_df, top_n = NULL, title) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Please install 'ggplot2'.")
