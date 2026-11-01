@@ -9,7 +9,7 @@
 \arguments{
 \item{times}{\code{NULL} or a numeric vector.}
 
-\item{time, status}{Passed to \code{\link[=default_times]{default_times()}} when \code{times} is \code{NULL}.}
+\item{time, status}{Passed to \code{default_times()} when \code{times} is \code{NULL}.}
 
 \item{n}{Grid size for the default.}
 }
