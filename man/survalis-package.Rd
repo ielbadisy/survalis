@@ -28,14 +28,15 @@ G-computation.}
 Resampling is described by \code{\link[=cv]{cv()}}, \code{\link[=holdout]{holdout()}}, \code{\link[=group_cv]{group_cv()}} and
 \code{\link[=bootstrap]{bootstrap()}}. Discover components with \code{\link[=list_survlearners]{list_survlearners()}},
 \code{\link[=list_metrics]{list_metrics()}} and \code{\link[=list_interpretability_methods]{list_interpretability_methods()}}.
-
-The granular \verb{fit_*()} / \verb{predict_*()} / \verb{tune_*()} / \verb{compute_*()} /
-\verb{benchmark*()} functions are the low-level layer under the verbs; see \verb{?}survalis-lowlevel``.
+Custom learners plug into every verb as \code{model = list(fit = , predict = )};
+see \code{\link[=fit]{fit()}}.
 }
 
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://elbadisyimad.com/survalis/}
+  \item \url{https://github.com/ielbadisy/survalis}
   \item \url{https://CRAN.R-project.org/package=survalis}
   \item Report bugs at \url{https://github.com/ielbadisy/survalis/issues}
 }
