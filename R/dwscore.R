@@ -138,28 +138,38 @@ dwscore <- function(object, y, times = NULL,
   )
 }
 
-## IPCW decision-weighted loss at horizon t with Kaplan-Meier censoring weights.
+## IPCW weights at horizon t from the Kaplan-Meier censoring estimate:
+## w0 = I(U > t) / G(t) (event free at t), w1 = I(U <= t, Delta = 1) / G(U-)
+## (event by t). NULL if G(t) is NA or zero. Shared by the scores and the
+## decision curve, so that loss = int w(c) (1 - c) (pibar - NB(c)) dc holds
+## exactly in every sample.
+#' @keywords internal
+#' @noRd
+.ipcw_weights <- function(y, t) {
+  U <- y[, 1]; Delta <- y[, 2]
+  km <- survival::survfit(survival::Surv(U, 1 - Delta) ~ 1)
+  Gt <- summary(km, times = t, extend = TRUE)$surv
+  if (!length(Gt) || !is.finite(Gt) || Gt <= 0) return(NULL)
+  ev <- U <= t & Delta == 1
+  idx <- findInterval(U[ev], km$time, left.open = TRUE)
+  G_ev <- rep(1, length(idx)); G_ev[idx > 0L] <- km$surv[idx[idx > 0L]]
+  w1 <- numeric(length(U)); w1[ev] <- 1 / G_ev
+  list(w0 = as.numeric(U > t) / Gt, w1 = w1)
+}
+
+## IPCW decision-weighted loss at horizon t.
 #' @keywords internal
 #' @noRd
 .dw_ipcw <- function(y, risk, t, wt) {
-  U <- y[, 1]; Delta <- y[, 2]
-  km <- survival::survfit(survival::Surv(U, 1 - Delta) ~ 1)
-  G_left <- function(q) {
-    idx <- findInterval(q, km$time, left.open = TRUE)
-    out <- rep(1, length(q)); ok <- idx > 0L
-    out[ok] <- km$surv[idx[ok]]
-    out
-  }
-  Gt <- summary(km, times = t, extend = TRUE)$surv
-  if (!length(Gt) || !is.finite(Gt) || Gt <= 0) {
+  w <- .ipcw_weights(y, t)
+  if (is.null(w)) {
     warning("dwscore: G(t) is NA or zero at t = ", t, "; returning NA.", call. = FALSE)
     return(NA_real_)
   }
-  surv <- U > t
-  ev <- U <= t & Delta == 1
-  s <- numeric(length(U))
-  s[surv] <- wt$l0(risk[surv]) / Gt
-  if (any(ev)) s[ev] <- wt$l1(risk[ev]) / G_left(U[ev])
+  s <- numeric(length(risk))
+  surv <- w$w0 > 0; ev <- w$w1 > 0
+  s[surv] <- w$w0[surv] * wt$l0(risk[surv])
+  s[ev] <- w$w1[ev] * wt$l1(risk[ev])
   mean(s)
 }
 
