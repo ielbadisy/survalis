@@ -1,5 +1,20 @@
 # survalis 1.7.0
 
+* The granular functions (`fit_*()`, `predict_*()`, `tune_*()`,
+  `cv_survlearner()`, `score_survmodel()`, `benchmark*()`, `compute_*()`,
+  `estimate_rmst()`, ...) are no longer scheduled for removal. They stay
+  exported as the low-level layer under the verbs and no longer print the
+  one-time "granular survalis function" note. `?survalis-deprecated` is now
+  `?survalis-lowlevel`.
+
+* `fit()` no longer accepts engine arguments through `...`; pass them in
+  `spec = list(...)`. Extra arguments now give an error instead of a warning.
+
+* The `stpm2` learner is removed: `fit_stpm2()` and `predict_stpm2()` are
+  gone and 'rstpm2' is no longer a dependency. Use `fit_rpsurv()` /
+  `fit(model = "rpsurv")`, which fits the same Royston-Parmar model on the
+  hazard, odds, or probit scale and adds nonlinear effects (`nle`).
+
 * The `survsvm` learner now has its own engine and no longer depends on
   'survivalsvm'. Its "quadprog" path called `Matrix::nearPD()`, which could
   stop with "error code 1 from Lapack routine 'dsyevr'" depending on the
@@ -45,8 +60,7 @@
   dependencies. 'torch' needs a separate LibTorch download that often failed
   to install. Use the `densemlp` learner (`fit(..., model = "densemlp")`),
   which fits deep survival models with a native C++ backend.
-  `fit_survdnn()`, `predict_survdnn()`, and `tune_survdnn()` are defunct and
-  stop with a pointer to `densemlp` (see `?survalis-defunct`).
+  `fit_survdnn()`, `predict_survdnn()`, and `tune_survdnn()` are removed.
 
 * survalis no longer defines a `plot.formula()` method. It replaced
   `graphics::plot.formula()` for every package as soon as survalis was loaded
