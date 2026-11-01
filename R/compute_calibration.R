@@ -51,8 +51,8 @@
 #' )
 #' head(calib$calibration_table)
 #'
-#' @seealso [plot_calibration()]
-#' @export
+#' @seealso `plot_calibration()`
+#' @noRd
 
 compute_calibration <- function(model, data, time, status,
                                 eval_time, n_bins = 10, n_boot = 100,
@@ -65,10 +65,10 @@ compute_calibration <- function(model, data, time, status,
   }
 
   # infer prediction function
-  if (is.null(model$learner) || !exists(paste0("predict_", model$learner))) {
-    stop("Could not infer prediction function. Ensure model was created using fit_*() and includes a valid 'learner'.")
+  if (is.null(model$learner) && !is.function(model$predict_fun)) {
+    stop("`model` must come from fit().", call. = FALSE)
   }
-  predict_function <- get(paste0("predict_", model$learner))
+  predict_function <- .predict_fun(model)
 
   # if time/status are passed as strings, extract from data
   if (is.character(time) && length(time) == 1) time <- data[[time]]
@@ -141,7 +141,7 @@ compute_calibration <- function(model, data, time, status,
 #' Produces a calibration plot comparing mean predicted survival (x-axis) to
 #' observed survival with bootstrap CIs (y-axis) at a single evaluation time.
 #'
-#' @param calib_output Output list returned by [compute_calibration()].
+#' @param calib_output Output list returned by `compute_calibration()`.
 #' @param smooth Logical; if `TRUE`, overlays a LOESS smooth of
 #'   `observed_surv ~ mean_pred_surv`.
 #' @param title Plot title. If missing, an automatically generated title is
@@ -169,8 +169,8 @@ compute_calibration <- function(model, data, time, status,
 #' )
 #' plot_calibration(calib)
 #'
-#' @seealso [compute_calibration()]
-#' @export
+#' @seealso `compute_calibration()`
+#' @noRd
 
 plot_calibration <- function(calib_output, smooth = TRUE, title) {
   ct <- calib_output$calibration_table
