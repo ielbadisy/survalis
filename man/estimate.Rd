@@ -27,7 +27,8 @@ treatment-by-confounder interactions).}
 
 \item{data}{A data frame.}
 
-\item{model}{A learner id (\code{list_survlearners()$learner}).}
+\item{model}{A learner id (\code{list_survlearners()$learner}) or a custom
+learner (see \code{\link[=fit]{fit()}}).}
 
 \item{estimand}{One of \code{"RMST_diff"} (default), \code{"RMST_ratio"},
 \code{"survival_diff"}, \code{"survival_ratio"}.}
@@ -38,9 +39,9 @@ treatment-by-confounder interactions).}
 \item{tau}{Horizon: the RMST restriction time for the RMST estimands, or the
 evaluation time for the survival estimands.}
 
-\item{times}{Prediction grid; \code{NULL} uses \code{\link[=default_times]{default_times()}}. Must reach \code{tau}.}
+\item{times}{Prediction grid; \code{NULL} picks up to 50 event-time quantiles (5th to 95th percentile). Must reach \code{tau}.}
 
-\item{spec}{Engine arguments for \verb{fit_<model>()} (named list).}
+\item{spec}{Engine arguments for the learner (named list).}
 
 \item{R}{Bootstrap replicates (default \code{200}).}
 
