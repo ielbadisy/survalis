@@ -38,7 +38,7 @@
 #' head(pred_rpart)
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_rpart <- function(formula, data,
                       minsplit = 20,
@@ -83,7 +83,7 @@ fit_rpart <- function(formula, data,
 #' `rpart` survival tree model, assuming an exponential survival distribution
 #' within each terminal node.
 #'
-#' @param object An `"mlsurv_model"` object created by [fit_rpart()].
+#' @param object An `"mlsurv_model"` object created by `fit_rpart()`.
 #' @param newdata A `data.frame` containing the predictor variables for prediction.
 #' @param times Numeric vector of time points at which to compute survival probabilities.
 #' @param ... Additional arguments passed to internal prediction functions.
@@ -103,7 +103,7 @@ fit_rpart <- function(formula, data,
 #' predict_rpart(mod_rpart, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_rpart <- function(object, newdata, times, ...) {
 
@@ -140,10 +140,10 @@ predict_rpart <- function(object, newdata, times, ...) {
 #' @param metrics Character vector of evaluation metrics to compute (e.g., `"cindex"`, `"ibs"`).
 #' @param folds Number of cross-validation folds. Default is `5`.
 #' @param seed Random seed for reproducibility.
-#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if `TRUE`, the best hyperparameter combination is refitted on the full dataset.
-#' @param ... Additional arguments passed to [fit_rpart()].
+#' @param ... Additional arguments passed to `fit_rpart()`.
 #'
 #' @return If `refit_best = FALSE`, returns a tibble summarizing mean CV performance for each parameter combination.
 #' If `refit_best = TRUE`, returns an `"mlsurv_model"` object for the best parameters, with a `"tuning_results"` attribute.
@@ -183,7 +183,7 @@ predict_rpart <- function(object, newdata, times, ...) {
 #' )
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 tune_rpart <- function(formula, data, times,
                        param_grid = expand.grid(
