@@ -1,7 +1,7 @@
 #' Fit an Additive Hazards (Aalen) Model
 #'
 #' Fits an additive hazards regression model using \pkg{timereg}'s
-#' \code{\link[timereg]{aalen}} and returns an \code{mlsurv_model} compatible
+#' \code{aalen} and returns an \code{mlsurv_model} compatible
 #' with the \pkg{survalis} workflow.
 #'
 #' @param formula A survival formula \code{Surv(time, status) ~ predictors}.
@@ -28,7 +28,7 @@
 #'   head(predict_aalen(mod_aalen, newdata = veteran[1:5, ], times = c(50, 100, 150)))
 #' }
 #' @keywords internal
-#' @export
+#' @noRd
 fit_aalen <- function(formula, data, max.time = NULL, n.sim = 0, resample.iid = 1) {
   stopifnot(requireNamespace("timereg", quietly = TRUE))
 
@@ -80,9 +80,9 @@ fit_aalen <- function(formula, data, max.time = NULL, n.sim = 0, resample.iid = 
 #' Predict Survival from an Aalen Additive Hazards Model
 #'
 #' Computes survival probabilities at specified time points from a model fitted
-#' with \code{\link{fit_aalen}}.
+#' with \code{fit_aalen}.
 #'
-#' @param object An \code{"mlsurv_model"} returned by \code{\link{fit_aalen}}.
+#' @param object An \code{"mlsurv_model"} returned by \code{fit_aalen}.
 #' @param newdata A data frame of new observations.
 #' @param times Numeric vector of time points at which to evaluate survival probabilities.
 #'
@@ -94,7 +94,7 @@ fit_aalen <- function(formula, data, max.time = NULL, n.sim = 0, resample.iid = 
 #'   head(predict_aalen(mod, newdata = veteran[1:5, ], times = 0:10))
 #' }
 #' @keywords internal
-#' @export
+#' @noRd
 predict_aalen <- function(object, newdata, times) {
   stopifnot(inherits(object, "mlsurv_model"))
   stopifnot(identical(object$learner, "aalen"))
