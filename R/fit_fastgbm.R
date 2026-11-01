@@ -26,8 +26,8 @@
 #'   \code{learner} (\code{"fastgbm"}), \code{formula}, \code{data}, \code{time},
 #'   \code{status}, and \code{objective}.
 #'
-#' @seealso \code{\link{predict_fastgbm}}, \code{\link[fastgbm]{fastgbm}},
-#'   \code{\link{fit}} for the verb interface
+#' @seealso \code{predict_fastgbm}, \code{fastgbm},
+#'   \code{fit} for the verb interface
 #'
 #' @examplesIf requireNamespace("fastgbm", quietly = TRUE)
 #' mod <- fit_fastgbm(Surv(time, status) ~ age + karno + celltype, veteran,
@@ -35,7 +35,7 @@
 #' summary(mod)
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 fit_fastgbm <- function(formula, data, objective = c("pexp", "cox", "aft"),
                         ntrees = 200, learning_rate = 0.1, max_depth = 5,
                         pexp_bins = 10, ...) {
@@ -63,9 +63,9 @@ fit_fastgbm <- function(formula, data, objective = c("pexp", "cox", "aft"),
 #' Predict Survival Probabilities from a fastgbm Model
 #'
 #' Generates predicted survival probabilities at the requested \code{times} for a
-#' model fitted with \code{\link{fit_fastgbm}} (piecewise-exponential objective).
+#' model fitted with \code{fit_fastgbm} (piecewise-exponential objective).
 #'
-#' @param object An \code{"mlsurv_model"} from \code{\link{fit_fastgbm}}.
+#' @param object An \code{"mlsurv_model"} from \code{fit_fastgbm}.
 #' @param newdata A \code{data.frame} of predictors.
 #' @param times Numeric vector of evaluation time points.
 #'
@@ -73,14 +73,14 @@ fit_fastgbm <- function(formula, data, objective = c("pexp", "cox", "aft"),
 #'   observation in \code{newdata} and one column per time point (columns named
 #'   \code{"t=<time>"}).
 #'
-#' @seealso \code{\link{fit_fastgbm}}
+#' @seealso \code{fit_fastgbm}
 #'
 #' @examplesIf requireNamespace("fastgbm", quietly = TRUE)
 #' mod <- fit_fastgbm(Surv(time, status) ~ age + karno, veteran, ntrees = 50)
 #' predict_fastgbm(mod, veteran[1:5, ], times = c(100, 200, 300))
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 predict_fastgbm <- function(object, newdata, times) {
   if (!is.null(object$learner) && object$learner != "fastgbm") {
     warning("Object passed to predict_fastgbm() may not come from fit_fastgbm().")
