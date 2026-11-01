@@ -81,3 +81,24 @@ test_that("survacc and range ids work in evaluate, compare and tune", {
              resampling = cv(3, seed = 1), metric = "range:0.05-0.20")
   expect_s3_class(tu, "survalis_tune")
 })
+
+test_that("range loss equals the weighted net benefit area of the dca curve", {
+  set.seed(3)
+  n <- 300
+  x <- rnorm(n)
+  ti <- rexp(n, exp(0.7 * x) / 50)
+  ci <- rexp(n, 1 / 80)
+  y <- Surv(pmin(ti, ci), as.integer(ti <= ci))
+  S <- matrix(exp(-60 * exp(0.7 * x) / 50), ncol = 1, dimnames = list(NULL, "t=60"))
+  cl <- 0.05; cu <- 0.20
+  th <- seq(cl, cu, length.out = 4001)
+  d <- dca_survmat(y, S, t_star = 60, thresholds = th)$curve
+  ## loss = int (1 - c) w(c) (pibar - NB(c)) dc, pibar = IPCW event fraction
+  w <- .ipcw_weights(y, 60)
+  g <- (1 - th) / (cu - cl) * (mean(w$w1) - d$model)
+  area <- sum((g[-1] + g[-length(g)]) / 2 * diff(th))
+  loss <- dwscore(S, y, weight = "range", thresholds = c(cl, cu))$loss
+  expect_equal(area, loss, tolerance = 1e-6)
+  expect_equal(d$treat_all,
+               mean(w$w1) - mean(w$w0) * th / (1 - th))
+})
