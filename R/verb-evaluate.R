@@ -28,8 +28,9 @@
 #'   names of the form `"t=<time>"`.
 #' @param resampling A resampling spec from [cv()], [holdout()], [group_cv()] or
 #'   [bootstrap()] (default `cv()`).
-#' @param metrics Character vector from `list_metrics()$metric`. `"brier"` and
-#'   `"ece"` require a single `times` value.
+#' @param metrics Character vector from `list_metrics()$metric`. `"brier"`,
+#'   `"ece"`, `"survacc"` and range scores such as `"range:0.05-0.20"` require
+#'   a single `times` value (see [dwscore()]).
 #' @param ncores Cores for the split loop (default `1`).
 #' @param ... Unused.
 #'
@@ -95,26 +96,8 @@ evaluate.formula <- function(object, data, model, spec = list(), times = NULL,
 evaluate.matrix <- function(object, y, times = NULL,
                             metrics = c("cindex", "ibs"), ...) {
   if (!inherits(y, "Surv")) stop("`y` must be a Surv() object.", call. = FALSE)
-  P <- unclass(as.matrix(object))
-  if (!is.numeric(P)) stop("`object` must be a numeric matrix.", call. = FALSE)
-  if (nrow(P) != NROW(y)) {
-    stop("`object` has ", nrow(P), " rows but `y` has ", NROW(y), " entries.",
-         call. = FALSE)
-  }
-  if (is.null(times)) times <- attr(object, "times")
-  if (is.null(times) && !is.null(colnames(P))) {
-    times <- suppressWarnings(as.numeric(sub("^t=", "", colnames(P))))
-    if (anyNA(times)) times <- NULL
-  }
-  if (is.null(times)) {
-    stop("Give `times`, or name the columns \"t=<time>\".", call. = FALSE)
-  }
-  times <- as.numeric(times)
-  if (length(times) != ncol(P)) {
-    stop("`times` has length ", length(times), " but `object` has ", ncol(P),
-         " columns.", call. = FALSE)
-  }
-  attributes(P) <- list(dim = dim(P))
+  inp <- .survmat_input(object, NROW(y), times)
+  P <- inp$S; times <- inp$times
   colnames(P) <- paste0("t=", times)
   sc <- .score_metrics(y, as.data.frame(P), times, metrics)
   per <- data.frame(id = "supplied", metric = sc$metric, value = sc$value,
@@ -196,12 +179,13 @@ print.survalis_eval <- function(x, ...) {
   cat(sprintf("  grid: %d times in [%s, %s]\n",
               length(x$times), format(min(x$times)), format(max(x$times))))
   s <- x$summary
+  lab <- formatC(s$metric, width = -max(7L, nchar(s$metric)))
   for (i in seq_len(nrow(s))) {
     if (is.null(x$resampling)) {
-      cat(sprintf("  %-7s %.4f\n", s$metric[i], s$mean[i]))
+      cat(sprintf("  %s %.4f\n", lab[i], s$mean[i]))
     } else {
-      cat(sprintf("  %-7s %.4f  (sd %.4f, 95%% [%.4f, %.4f], n = %d)\n",
-                  s$metric[i], s$mean[i], s$sd[i], s$lower[i], s$upper[i], s$n[i]))
+      cat(sprintf("  %s %.4f  (sd %.4f, 95%% [%.4f, %.4f], n = %d)\n",
+                  lab[i], s$mean[i], s$sd[i], s$lower[i], s$upper[i], s$n[i]))
     }
   }
   invisible(x)
