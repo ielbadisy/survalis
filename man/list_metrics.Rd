@@ -21,6 +21,9 @@ Columns:
 \item \code{summary}: brief description.
 \item \code{range}: typical value range.
 }
+
+\code{"range:<lower>-<upper>"} is a template: write the thresholds into the id,
+for example \code{"range:0.05-0.20"}.
 }
 \examples{
 list_metrics()
