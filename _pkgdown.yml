@@ -41,6 +41,11 @@ reference:
   - group_cv
   - bootstrap
 
+- title: Scores
+  desc: Decision-weighted scores over stated risk thresholds.
+  contents:
+  - dwscore
+
 - title: Lookups
   desc: Valid ids for `model`, `metrics` and `method`.
   contents:
