@@ -96,6 +96,7 @@ survmat_times <- function(x) {
 }
 
 #' @export
+#' @noRd
 print.survmat <- function(x, n = 6L, ...) {
   q <- attr(x, "quantity")
   if (is.null(q)) q <- "survival"
@@ -112,6 +113,7 @@ print.survmat <- function(x, n = 6L, ...) {
 }
 
 #' @export
+#' @noRd
 as.data.frame.survmat <- function(x, ...) {
   body <- unclass(x)
   attr(body, "times") <- NULL
@@ -120,6 +122,7 @@ as.data.frame.survmat <- function(x, ...) {
 }
 
 #' @export
+#' @noRd
 as.matrix.survmat <- function(x, ...) {
   body <- unclass(x)
   attr(body, "times") <- NULL
