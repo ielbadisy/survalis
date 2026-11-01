@@ -250,13 +250,13 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
 
 
 .nested_surv_higher_is_better <- function(metric) {
-  !metric %in% c("ibs", "brier", "iae", "ise", "ece")
+  .metric_maximize(metric)
 }
 
 
 .nested_surv_param_cols <- function(tuning_results) {
-  metric_cols <- c("cindex", "auc", "brier", "ibs", "iae", "ise", "ece")
-  setdiff(names(tuning_results), c(metric_cols, "failed"))
+  nm <- names(tuning_results)
+  setdiff(nm, c(nm[.is_metric(nm)], "failed"))
 }
 
 
@@ -807,7 +807,7 @@ best_survlearner <- function(benchmark_results, metric, maximize = NULL) {
 
   if (is.null(maximize)) {
     # default: maximize cindex, minimize others
-    maximize <- !(metric %in% c("ibs", "brier", "iae", "ise", "ece"))
+    maximize <- .metric_maximize(metric)
   }
 
   target_metric <- metric
