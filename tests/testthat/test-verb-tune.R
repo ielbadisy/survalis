@@ -20,9 +20,9 @@ test_that("tune() returns a survalis_tune with a usable refit fit", {
   expect_equal(dim(p), c(4L, 2L))
 })
 
-test_that("tune() rejects non-tunable models and non-cv resampling", {
+test_that("tune() needs a grid without a built-in tuner, and cv() for built-in grids", {
   skip_verb()
-  expect_error(tune(f, veteran, "coxph", times = 90), "not tunable")
+  expect_error(tune(f, veteran, "coxph", times = 90), "no built-in grid")
   expect_error(
     tune(f, veteran, "ranger", times = 90, resampling = bootstrap(5)),
     "cv\\(\\) only"
