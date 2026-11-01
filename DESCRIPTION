@@ -58,7 +58,6 @@ Imports:
     flexsurv,
     glmnet,
     mboost,
-    rstpm2,
     timereg,
     partykit,
     gower,
