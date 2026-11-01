@@ -5,9 +5,9 @@
 #' "treat all" and "treat none" reference strategies (Vickers and Elkin 2006),
 #' adapted to right-censored outcomes via the same inverse-probability-of-
 #' censoring weighting (IPCW) estimator of \eqn{\hat G(t)} used by
-#' \code{\link{brier}} and \code{\link{auc_survmat}}.
+#' \code{brier} and \code{auc_survmat}.
 #'
-#' @param object A \code{\link[survival]{Surv}} object of length \eqn{n}.
+#' @param object A \code{Surv} object of length \eqn{n}.
 #' @param predicted An \code{n x k} matrix or data frame of survival
 #'   probabilities with columns named \code{"t=<time>"}.
 #' @param t_star Numeric horizon at which risk is evaluated.
@@ -40,7 +40,7 @@
 #'   (a data.frame with \code{threshold}, \code{model}, \code{treat_all},
 #'   \code{treat_none}) and \code{t_star}.
 #'
-#' @seealso [plot.dca_survmat()], [brier()], [auc_survmat()]
+#' @seealso `plot.dca_survmat()`, `brier()`, `auc_survmat()`
 #'
 #' @references
 #' Vickers AJ, Elkin EB (2006). "Decision Curve Analysis: A Novel Method for
@@ -60,7 +60,7 @@
 #'             dimnames = list(NULL, "t=100"))
 #' d <- dca_survmat(y, predicted = sp, t_star = 100)
 #' head(d$curve)
-#' @export
+#' @noRd
 dca_survmat <- function(object, predicted, t_star, thresholds = seq(0.01, 0.99, by = 0.01)) {
   if (!inherits(object, "Surv")) stop("object must be a survival object (from Surv())")
   if (any(thresholds <= 0) || any(thresholds >= 1)) {
@@ -123,6 +123,7 @@ dca_survmat <- function(object, predicted, t_star, thresholds = seq(0.01, 0.99, 
 #' @param ... Additional arguments (unused).
 #' @rdname dca_survmat
 #' @export
+#' @noRd
 plot.dca_survmat <- function(x, title, ...) {
   curve <- x$curve
   long <- data.frame(
@@ -152,9 +153,9 @@ plot.dca_survmat <- function(x, title, ...) {
 }
 
 #' @param x A \code{dca_survmat} object.
-#' @param ... Additional arguments passed to \code{\link{plot.dca_survmat}}.
+#' @param ... Additional arguments passed to \code{plot.dca_survmat}.
 #' @rdname dca_survmat
-#' @export
+#' @noRd
 plot_dca <- function(x, ...) {
   plot.dca_survmat(x, ...)
 }
