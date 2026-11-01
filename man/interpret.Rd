@@ -12,33 +12,34 @@ interpret(fit, method, newdata = NULL, data = NULL, times = NULL, ...)
 
 \item{method}{One of \code{"pdp"}, \code{"ice"}, \code{"ale"}, \code{"shap"}, \code{"shap_matrix"},
 \code{"varimp"} / \code{"permute"}, \code{"interaction"}, \code{"counterfactual"},
-\code{"surrogate"}, \code{"tree_surrogate"}, \code{"calibration"}, \code{"survcluster"}.}
+\code{"surrogate"}, \code{"tree_surrogate"}, \code{"calibration"}, \code{"roc"}, \code{"dca"},
+\code{"survcluster"}.}
 
 \item{newdata}{Instances to explain (SHAP, ALE, counterfactual, surrogate,
-survcluster). Defaults to \code{data}.}
+survcluster) or to assess (\code{roc}, \code{dca}; these need the outcome columns).
+Defaults to \code{data}, so \code{roc} and \code{dca} are apparent unless you pass
+held-out data.}
 
 \item{data}{Background data for the method. Defaults to the training data.}
 
-\item{times}{Evaluation grid; \code{NULL} uses \code{\link[=default_times]{default_times()}}. Methods that need
-a single time (\code{calibration}) take \code{eval_time} in \code{...} or the sole \code{times}
-value.}
+\item{times}{Evaluation grid; \code{NULL} picks one from the data quantiles.
+Methods that need a single time (\code{calibration}, \code{roc}, \code{dca}) take
+\code{eval_time} in \code{...} or the sole \code{times} value.}
 
 \item{...}{Method-specific arguments, e.g. \code{feature} (pdp / ice / ale),
-\code{target_time} (counterfactual), \code{eval_time} (calibration), \code{K}
-(survcluster). For \code{"shap"}, \code{compute_shap()}'s own aggregation \code{method}
-argument (\code{"meanabs"} / \code{"integral"}) is passed as \code{shap_method}, since
-\code{method} here already names the \code{interpret()} dispatch argument.}
+\code{target_time} (counterfactual, surrogate), \code{eval_time} (calibration, roc,
+dca), \code{thresholds} (dca), \code{K} (survcluster). For \code{"shap"}, the aggregation
+over time (\code{"meanabs"} or \code{"integral"}) is passed as \code{shap_method}.}
 }
 \value{
-A \code{survalis_interpret} object wrapping the underlying \verb{compute_*}
-result, with \code{method}, \code{times}, and a \code{plot()} method that dispatches to the
-paired \verb{plot_*} helper. \code{as.data.frame()} returns the raw result frame.
+A \code{survalis_interpret} object holding the method's \code{result}, with
+\code{method}, \code{times}, and a \code{plot()} method. \code{as.data.frame()} returns the
+result frame.
 }
 \description{
-A single entry point to the package's model-agnostic explanation methods. The
-available \code{method} ids are derived from \code{list_interpretability_methods()}
-(plus \code{"ice"}, a variant of \code{"pdp"}, and \code{"permute"}, an alias of
-\code{"varimp"}).
+A single entry point to the package's model-agnostic explanation and
+diagnostic methods. \code{list_interpretability_methods()} lists the \code{method} ids
+with a one-line description of each.
 }
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE)) withAutoprint(\{ # examplesIf}
@@ -46,10 +47,10 @@ m <- fit(Surv(time, status) ~ age + karno + celltype, veteran, "ranger",
          spec = list(num.trees = 100))
 interpret(m, "pdp", feature = "karno", times = c(90, 180))
 interpret(m, "varimp", times = c(90, 180))
+plot(interpret(m, "roc", eval_time = 180))
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-For the scalar calibration summary use
-\code{evaluate(metrics = "ece")} / \code{\link[=ece_survmat]{ece_survmat()}}; \code{method = "calibration"} here
-is the calibration \emph{curve}.
+For scalar summaries use \code{\link[=evaluate]{evaluate()}}: \code{metrics = "ece"} summarises
+calibration and \code{metrics = "auc"} summarises the ROC curve.
 }
