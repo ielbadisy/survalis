@@ -5,138 +5,76 @@
   !is.null(get0(fn, envir = asNamespace("survalis"), inherits = FALSE))
 }
 
-#' List survival learners available in survalis
+#' List the survival learners
 #'
-#' Returns a table of known survival learners, showing the expected
-#' `fit_*`, `predict_*`, and (if present) `tune_*` functions, plus
-#' booleans indicating which functions are available.
+#' The ids accepted by the `model` argument of [fit()], [evaluate()],
+#' [compare()], [tune()] and [estimate()].
 #'
 #' @param has_tune Logical (default `FALSE`). If `TRUE`, return only learners
-#'   that have a corresponding `tune_*` function. If `FALSE`, return all.
+#'   with a built-in tuning grid, so that [tune()] works without a `grid`.
 #'
-#' @return A data.frame with columns:
-#'   \itemize{
-#'     \item \code{learner} – learner id (e.g., "ranger")
-#'     \item \code{fit}, \code{predict}, \code{tune} – function names (tune may be \code{NA})
-#'     \item \code{has_fit}, \code{has_predict}, \code{has_tune} – logical flags
-#'     \item \code{available} – \code{has_fit & has_predict}
-#'   }
+#' @return A data frame with columns `learner` (the id) and `tunable` (whether
+#'   a built-in tuning grid exists).
 #'
 #' @examples
-#' list_survlearners()                   # all learners (default)
-#' list_survlearners(has_tune = TRUE)    # only tunable learners
+#' list_survlearners()
+#' list_survlearners(has_tune = TRUE)
 #' @export
 list_survlearners <- function(has_tune = FALSE) {
-  # curated order
   ids <- c(
     "coxph", "aalen", "glmnet", "selectcox", "aftgee", "flexsurvreg", "bnnsurv",
     "rpart", "bart", "xgboost", "coxboost", "fastgbm", "ranger", "rsf", "cforest", "blackboost",
     "survsvm", "densemlp", "orsf", "rpsurv", "nbsurv", "survmetalearner"
   )
-
-  fun_exists <- function(x) isTRUE(exists(x, mode = "function", inherits = TRUE))
-
-  tbl <- data.frame(
-    learner = ids,
-    fit     = paste0("fit_", ids),
-    predict = paste0("predict_", ids),
-    tune    = paste0("tune_", ids),
-    stringsAsFactors = FALSE
-  )
-
-  tbl$has_fit     <- vapply(tbl$fit,     fun_exists, logical(1))
-  tbl$has_predict <- vapply(tbl$predict, fun_exists, logical(1))
-  tbl$has_tune    <- vapply(tbl$tune,    fun_exists, logical(1))
-  tbl$tune[!tbl$has_tune] <- NA_character_
-  tbl$available <- tbl$has_fit & tbl$has_predict
-
-  if (isTRUE(has_tune)) {
-    tbl <- tbl[tbl$has_tune, , drop = FALSE]
-  }
-
+  tunable <- vapply(paste0("tune_", ids), .exists_in_pkg, logical(1))
+  tbl <- data.frame(learner = ids, tunable = unname(tunable),
+                    stringsAsFactors = FALSE)
+  if (isTRUE(has_tune)) tbl <- tbl[tbl$tunable, , drop = FALSE]
+  rownames(tbl) <- NULL
   tbl
 }
 
 
-#' List interpretability methods available in survalis
+#' List the interpretability methods
 #'
-#' Returns a table mapping each \code{compute_*} function to its paired
-#' \code{plot_*} helper (if any). Methods without a plot helper show \code{NA}.
+#' The ids accepted by the `method` argument of [interpret()].
 #'
-#' @return A data.frame with columns \code{compute}, \code{plot},
-#'   \code{has_compute}, and \code{has_plot}.
+#' @return A data frame with columns `method` and `summary`.
 #' @examples
 #' list_interpretability_methods()
-#' subset(list_interpretability_methods(), is.na(plot))  # methods without plot
 #' @export
 list_interpretability_methods <- function() {
-  compute_candidates <- c(
-    "compute_shap",
-    "compute_pdp",
-    "compute_ale",
-    "compute_surrogate",
-    "compute_tree_surrogate",
-    "compute_varimp",
-    "compute_interactions",
-    "compute_counterfactual",
-    "compute_shap_matrix",
-    "compute_survcluster"
-  )
-
-  plot_candidates <- c(
-    "plot_shap",
-    "plot_pdp",
-    "plot_ale",
-    "plot_surrogate",
-    "plot_tree_surrogate",
-    "plot_varimp",
-    "plot_interactions",
-    "plot_counterfactual",
-    "plot_shap_beeswarm",
-    "plot_survcluster"
-  )
-
-  stopifnot(length(compute_candidates) == length(plot_candidates))
-
-  fun_exists <- function(x) {
-    if (is.na(x)) return(FALSE)
-    isTRUE(exists(x, mode = "function", inherits = TRUE))
-  }
-
   data.frame(
-    compute     = compute_candidates,
-    plot        = plot_candidates,
-    has_compute = vapply(compute_candidates, fun_exists, logical(1)),
-    has_plot    = vapply(plot_candidates,    fun_exists, logical(1)),
+    method = c("pdp", "ice", "ale", "shap", "shap_matrix", "varimp", "permute",
+               "interaction", "counterfactual", "surrogate", "tree_surrogate",
+               "calibration", "roc", "dca", "survcluster"),
+    summary = c(
+      "Partial dependence of predicted survival on one feature, over time.",
+      "Individual conditional expectation curves for one feature.",
+      "Accumulated local effects for one feature.",
+      "Shapley values for one instance, aggregated over time.",
+      "Shapley values for many instances (beeswarm plot).",
+      "Permutation variable importance on the survival scale.",
+      "Alias of varimp.",
+      "Friedman H-statistic interaction strength per feature.",
+      "Smallest feature changes that move predicted survival at a target time.",
+      "Local linear surrogate for one instance at a target time.",
+      "Global decision-tree surrogate of the predictions.",
+      "Calibration curve at one time.",
+      "Time-dependent ROC curve at one time.",
+      "Decision curve (net benefit over risk thresholds) at one time.",
+      "Clusters of subjects with similar predicted survival curves."
+    ),
     stringsAsFactors = FALSE
   )
 }
 
 
 
-#' List tunable survival learners
+#' List the evaluation metrics
 #'
-#' Filters learners to only those that provide a `tune_*` function in addition
-#' to `fit_*` and `predict_*`.
-#'
-#' @return A base `data.frame` like `list_survlearners()` but containing only
-#' rows where `tune` is not `NA`.
-#'
-#' @examples
-#' list_tunable_survlearners()
-#' @export
-list_tunable_survlearners <- function() {
-  all <- list_survlearners()
-  if (is.null(all) || nrow(all) == 0L) return(all)
-  all[!is.na(all$tune), , drop = FALSE]
-}
-
-
-
-#' List Available Evaluation Metrics
-#'
-#' Returns a data frame describing the evaluation metrics supported by
-#' `survalis` (as used by helpers like `cv_survlearner()` and `score_survmodel()`).
+#' The ids accepted by the `metrics` argument of [evaluate()] and [compare()]
+#' and the `metric` argument of [tune()].
 #'
 #' Columns:
 #' - `metric`: short metric name used throughout the package.
