@@ -93,6 +93,7 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
 
 #' @keywords internal
 .metric_maximize <- function(metric) {
+  if (grepl("^range:", metric)) return(FALSE)
   m <- list_metrics()
   isTRUE(m$direction[match(metric, m$metric)] == "maximize")
 }
