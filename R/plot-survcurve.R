@@ -42,7 +42,7 @@
 #'
 #' @param formula A survival formula, e.g. \code{Surv(time, status) ~ 1} or
 #'   \code{Surv(time, status) ~ group}. The right-hand side determines
-#'   stratification (as in \code{\link[survival]{survfit}}).
+#'   stratification (as in \code{survfit}).
 #' @param data A data frame containing the variables in \code{formula}.
 #' @param conf.int Logical; draw a confidence ribbon around each curve
 #'   (default \code{TRUE}).
@@ -72,8 +72,8 @@
 #' plot_survcurve(Surv(time, status) ~ trt, data = veteran)
 #' }
 #'
-#' @seealso [theme_survalis()], [scale_color_survalis()]
-#' @export
+#' @seealso `theme_survalis()`, `scale_color_survalis()`
+#' @noRd
 plot_survcurve <- function(formula, data,
                            conf.int = TRUE,
                            risk.table = TRUE,
