@@ -18,7 +18,7 @@
 \item{newdata}{A data frame of predictors. Defaults to the training data.
 Rows with missing values in model variables are rejected.}
 
-\item{times}{Numeric evaluation grid. When \code{NULL}, \code{\link[=default_times]{default_times()}} is used
+\item{times}{Numeric evaluation grid. When \code{NULL}, up to 50 event-time quantiles between the 5th and 95th percentiles are used
 and recorded on the result.}
 
 \item{type}{One of:
@@ -37,13 +37,13 @@ default \code{max(times)}.}
 \code{"quantile"}.}
 }
 \value{
-A \link{survmat} for \code{"survival"}, \code{"risk"}, \code{"chf"}, \code{"hazard"}; a numeric
+A \code{survmat} for \code{"survival"}, \code{"risk"}, \code{"chf"}, \code{"hazard"}; a numeric
 vector for \code{"rmst"}, \code{"median"} and scalar-\code{probs} \code{"quantile"}; an
 \verb{n x length(probs)} matrix for vector \code{probs}.
 }
 \description{
 Produces predictions from a \code{\link[=fit]{fit()}} object. Every matrix-valued \code{type}
-returns a \link{survmat} (an \verb{n x length(times)} numeric matrix carrying its grid
+returns a \code{survmat} (an \verb{n x length(times)} numeric matrix carrying its grid
 in the \code{"times"} attribute); the scalar-valued types (\code{"rmst"}, \code{"quantile"},
 \code{"median"}) return a numeric vector (or an \verb{n x length(probs)} matrix for a
 vector \code{probs}).
