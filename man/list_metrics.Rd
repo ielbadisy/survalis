@@ -2,7 +2,7 @@
 % Please edit documentation in R/list_functions.R
 \name{list_metrics}
 \alias{list_metrics}
-\title{List Available Evaluation Metrics}
+\title{List the evaluation metrics}
 \usage{
 list_metrics()
 }
@@ -10,8 +10,8 @@ list_metrics()
 A data.frame with one row per metric.
 }
 \description{
-Returns a data frame describing the evaluation metrics supported by
-\code{survalis} (as used by helpers like \code{cv_survlearner()} and \code{score_survmodel()}).
+The ids accepted by the \code{metrics} argument of \code{\link[=evaluate]{evaluate()}} and \code{\link[=compare]{compare()}}
+and the \code{metric} argument of \code{\link[=tune]{tune()}}.
 }
 \details{
 Columns:
