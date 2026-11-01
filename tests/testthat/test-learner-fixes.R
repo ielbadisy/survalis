@@ -110,12 +110,12 @@ test_that("tune_survsvm() has a default grid", {
   expect_false(identical(formals(tune_survsvm)$param_grid, quote(expr = )))
 })
 
-test_that("survdnn is defunct and points to densemlp", {
-  expect_error(fit_survdnn(vet_form, survival::veteran), "densemlp")
-  expect_error(predict_survdnn(), "densemlp")
-  expect_error(tune_survdnn(), "densemlp")
-  expect_error(fit(vet_form, survival::veteran, model = "survdnn"), "densemlp")
-  expect_false("survdnn" %in% list_survlearners()$learner)
+test_that("removed learners (survdnn, stpm2) are gone", {
+  for (id in c("survdnn", "stpm2")) {
+    expect_false(id %in% list_survlearners()$learner)
+    expect_false(exists(paste0("fit_", id), envir = asNamespace("survalis")))
+    expect_error(fit(vet_form, survival::veteran, model = id), "Unknown model")
+  }
 })
 
 test_that("compare() reports the real error when a metric fails on parallel workers", {
