@@ -639,7 +639,6 @@ cv_survlearner <- function(formula, data,
   ncores = 1,
   pb = interactive(),
   ...) {
-  .legacy_notice()
 
 if ("." %in% all.vars(update(formula, . ~ 0))) {
 warning("Please avoid using '.' in the formula. Specify all predictors explicitly.")
@@ -728,7 +727,6 @@ data.frame(
 #' @export
 
 cv_summary <- function(cv_results, digits = 3) {
-  .legacy_notice()
   df <- as.data.frame(cv_results)
   mean_tbl <- basetable::aggregate(df, by = "metric", value = "value", fun = "mean", na.rm = TRUE)
   names(mean_tbl)[names(mean_tbl) == "value"] <- "mean"
@@ -770,7 +768,6 @@ cv_summary <- function(cv_results, digits = 3) {
 #' @export
 
 cv_plot <- function(cv_results, title) {
-  .legacy_notice()
   if (missing(title)) title <- "Cross-Validation Performance"
   p <- ggplot(cv_results, aes(x = metric, y = value)) +
     geom_boxplot(fill = .survalis_palette[1], outlier.shape = NA, alpha = 0.3) +
@@ -813,7 +810,6 @@ cv_plot <- function(cv_results, title) {
 #' @export
 
 score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", "iae", "ise")) {
-  .legacy_notice()
   stopifnot(inherits(model, "mlsurv_model"))
   stopifnot(!missing(times))
 
