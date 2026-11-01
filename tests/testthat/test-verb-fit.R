@@ -24,9 +24,9 @@ test_that("fit() returns a survalis_fit that keeps the mlsurv_model contract", {
   expect_output(print(m), "survalis_fit.*coxph")
 })
 
-test_that("fit() merges ... into spec once, with a warning", {
+test_that("fit() rejects engine arguments outside spec", {
   skip_verb()
-  expect_warning(fit(f, veteran, "ranger", num.trees = 50), "pass engine arguments")
+  expect_error(fit(f, veteran, "ranger", num.trees = 50), "spec = list")
 })
 
 test_that("fit(seed=) makes stochastic learners reproducible", {
