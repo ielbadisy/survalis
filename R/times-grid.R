@@ -1,7 +1,7 @@
 #' Default evaluation-time grid
 #'
-#' Builds the time grid used by the verb-level functions ([predict()],
-#' [evaluate()], [tune()], [compare()], [interpret()]) when the caller does not
+#' Builds the time grid used by the verb-level functions (`predict()`,
+#' `evaluate()`, `tune()`, `compare()`, `interpret()`) when the caller does not
 #' pass `times` explicitly. The grid spans the observed event times so that
 #' integrated metrics (IBS, IAE, ISE) and survival-curve summaries are computed
 #' over the region where the data are informative.
@@ -25,7 +25,7 @@
 #' @examples
 #' default_times(veteran$time, veteran$status)
 #' default_times(veteran$time, veteran$status, n = 10)
-#' @export
+#' @noRd
 default_times <- function(time, status = NULL, n = 50L, range = c(0.05, 0.95)) {
   time <- as.numeric(time)
   if (!is.null(status)) {
@@ -52,7 +52,7 @@ default_times <- function(time, status = NULL, n = 50L, range = c(0.05, 0.95)) {
 #' Resolve a caller-supplied `times` argument against the default grid
 #'
 #' @param times `NULL` or a numeric vector.
-#' @param time,status Passed to [default_times()] when `times` is `NULL`.
+#' @param time,status Passed to `default_times()` when `times` is `NULL`.
 #' @param n Grid size for the default.
 #' @return A validated numeric vector (strictly increasing, positive).
 #' @keywords internal
