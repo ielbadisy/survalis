@@ -27,6 +27,12 @@
   before `t` are weighted by `1 / G(T-)`. Values can change in the fourth
   decimal.
 
+* The decision curve (`interpret(method = "dca")`) now uses the same
+  censoring weights, treats a patient when predicted risk is above the
+  threshold (not equal to it), and computes "treat all" from the same weights
+  instead of the Kaplan-Meier risk. Each `"range:<lower>-<upper>"` loss then
+  equals the weighted area between the treat-all and model curves exactly.
+
 * Custom learners: `model` in every verb also accepts
   `list(fit = function(formula, data, ...), predict = function(object, newdata, times))`,
   where `predict` returns an `nrow(newdata) x length(times)` matrix of
