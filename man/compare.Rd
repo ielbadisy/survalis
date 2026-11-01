@@ -22,12 +22,13 @@ compare(
 
 \item{data}{A data frame.}
 
-\item{models}{Character vector of learner ids.}
+\item{models}{Character vector of learner ids, or a list mixing ids and
+custom learners (see \code{\link[=fit]{fit()}}). List names, when given, label the learners.}
 
-\item{specs}{Named list of engine-argument lists, keyed by model id
+\item{specs}{Named list of engine-argument lists, keyed by learner label
 (\code{specs[["ranger"]] <- list(num.trees = 500)}).}
 
-\item{times}{Evaluation grid; \code{NULL} uses \code{\link[=default_times]{default_times()}}.}
+\item{times}{Evaluation grid; \code{NULL} picks up to 50 event-time quantiles (5th to 95th percentile).}
 
 \item{resampling}{A \link{resampling} spec (default \code{cv()}); the split set is drawn
 once and reused for every model.}
