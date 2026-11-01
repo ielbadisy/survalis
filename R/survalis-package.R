@@ -23,9 +23,8 @@
 #' Resampling is described by [cv()], [holdout()], [group_cv()] and
 #' [bootstrap()]. Discover components with [list_survlearners()],
 #' [list_metrics()] and [list_interpretability_methods()].
-#'
-#' The granular `fit_*()` / `predict_*()` / `tune_*()` / `compute_*()` /
-#' `benchmark*()` functions are the low-level layer under the verbs; see `?`survalis-lowlevel``.
+#' Custom learners plug into every verb as `model = list(fit = , predict = )`;
+#' see [fit()].
 #'
 #' @keywords internal
 "_PACKAGE"
