@@ -41,8 +41,9 @@ estimate(f, veteran, model = "ranger", treatment = "trt", tau = 365)
 `fit()` / `predict()` / `evaluate()` / `tune()` / `compare()` /
 `interpret()` / `estimate()` cover the whole workflow. The granular
 `fit_*()` / `predict_*()` / `compute_*()` / `benchmark*()` functions
-remain fully available; see `vignette("from-1.0", package = "survalis")`
-and `?`survalis-deprecated\`\`.
+remain available as the low-level layer; see
+`vignette("from-1.0", package = "survalis")` and
+`?`survalis-lowlevel\`\`.
 
 ## Installation
 
@@ -127,23 +128,22 @@ list_survlearners()
 #> 4        selectcox       fit_selectcox       predict_selectcox   tune_selectcox
 #> 5           aftgee          fit_aftgee          predict_aftgee             <NA>
 #> 6      flexsurvreg     fit_flexsurvreg     predict_flexsurvreg tune_flexsurvreg
-#> 7            stpm2           fit_stpm2           predict_stpm2             <NA>
-#> 8          bnnsurv         fit_bnnsurv         predict_bnnsurv     tune_bnnsurv
-#> 9            rpart           fit_rpart           predict_rpart       tune_rpart
-#> 10            bart            fit_bart            predict_bart        tune_bart
-#> 11         xgboost         fit_xgboost         predict_xgboost     tune_xgboost
-#> 12        coxboost        fit_coxboost        predict_coxboost    tune_coxboost
-#> 13         fastgbm         fit_fastgbm         predict_fastgbm             <NA>
-#> 14          ranger          fit_ranger          predict_ranger      tune_ranger
-#> 15             rsf             fit_rsf             predict_rsf         tune_rsf
-#> 16         cforest         fit_cforest         predict_cforest     tune_cforest
-#> 17      blackboost      fit_blackboost      predict_blackboost  tune_blackboost
-#> 18         survsvm         fit_survsvm         predict_survsvm     tune_survsvm
-#> 19        densemlp        fit_densemlp        predict_densemlp             <NA>
-#> 20            orsf            fit_orsf            predict_orsf        tune_orsf
-#> 21          rpsurv          fit_rpsurv          predict_rpsurv             <NA>
-#> 22          nbsurv          fit_nbsurv          predict_nbsurv             <NA>
-#> 23 survmetalearner fit_survmetalearner predict_survmetalearner             <NA>
+#> 7          bnnsurv         fit_bnnsurv         predict_bnnsurv     tune_bnnsurv
+#> 8            rpart           fit_rpart           predict_rpart       tune_rpart
+#> 9             bart            fit_bart            predict_bart        tune_bart
+#> 10         xgboost         fit_xgboost         predict_xgboost     tune_xgboost
+#> 11        coxboost        fit_coxboost        predict_coxboost    tune_coxboost
+#> 12         fastgbm         fit_fastgbm         predict_fastgbm             <NA>
+#> 13          ranger          fit_ranger          predict_ranger      tune_ranger
+#> 14             rsf             fit_rsf             predict_rsf         tune_rsf
+#> 15         cforest         fit_cforest         predict_cforest     tune_cforest
+#> 16      blackboost      fit_blackboost      predict_blackboost  tune_blackboost
+#> 17         survsvm         fit_survsvm         predict_survsvm     tune_survsvm
+#> 18        densemlp        fit_densemlp        predict_densemlp             <NA>
+#> 19            orsf            fit_orsf            predict_orsf        tune_orsf
+#> 20          rpsurv          fit_rpsurv          predict_rpsurv             <NA>
+#> 21          nbsurv          fit_nbsurv          predict_nbsurv             <NA>
+#> 22 survmetalearner fit_survmetalearner predict_survmetalearner             <NA>
 #>    has_fit has_predict has_tune available
 #> 1     TRUE        TRUE    FALSE      TRUE
 #> 2     TRUE        TRUE    FALSE      TRUE
@@ -151,23 +151,22 @@ list_survlearners()
 #> 4     TRUE        TRUE     TRUE      TRUE
 #> 5     TRUE        TRUE    FALSE      TRUE
 #> 6     TRUE        TRUE     TRUE      TRUE
-#> 7     TRUE        TRUE    FALSE      TRUE
+#> 7     TRUE        TRUE     TRUE      TRUE
 #> 8     TRUE        TRUE     TRUE      TRUE
 #> 9     TRUE        TRUE     TRUE      TRUE
 #> 10    TRUE        TRUE     TRUE      TRUE
 #> 11    TRUE        TRUE     TRUE      TRUE
-#> 12    TRUE        TRUE     TRUE      TRUE
-#> 13    TRUE        TRUE    FALSE      TRUE
+#> 12    TRUE        TRUE    FALSE      TRUE
+#> 13    TRUE        TRUE     TRUE      TRUE
 #> 14    TRUE        TRUE     TRUE      TRUE
 #> 15    TRUE        TRUE     TRUE      TRUE
 #> 16    TRUE        TRUE     TRUE      TRUE
 #> 17    TRUE        TRUE     TRUE      TRUE
-#> 18    TRUE        TRUE     TRUE      TRUE
-#> 19    TRUE        TRUE    FALSE      TRUE
-#> 20    TRUE        TRUE     TRUE      TRUE
+#> 18    TRUE        TRUE    FALSE      TRUE
+#> 19    TRUE        TRUE     TRUE      TRUE
+#> 20    TRUE        TRUE    FALSE      TRUE
 #> 21    TRUE        TRUE    FALSE      TRUE
 #> 22    TRUE        TRUE    FALSE      TRUE
-#> 23    TRUE        TRUE    FALSE      TRUE
 
 # See only tunable learners (those with a tune_* function)
 list_survlearners(has_tune = TRUE)
@@ -175,32 +174,32 @@ list_survlearners(has_tune = TRUE)
 #> 3       glmnet      fit_glmnet      predict_glmnet      tune_glmnet    TRUE
 #> 4    selectcox   fit_selectcox   predict_selectcox   tune_selectcox    TRUE
 #> 6  flexsurvreg fit_flexsurvreg predict_flexsurvreg tune_flexsurvreg    TRUE
-#> 8      bnnsurv     fit_bnnsurv     predict_bnnsurv     tune_bnnsurv    TRUE
-#> 9        rpart       fit_rpart       predict_rpart       tune_rpart    TRUE
-#> 10        bart        fit_bart        predict_bart        tune_bart    TRUE
-#> 11     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE
-#> 12    coxboost    fit_coxboost    predict_coxboost    tune_coxboost    TRUE
-#> 14      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
-#> 15         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
-#> 16     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
-#> 17  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
-#> 18     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
-#> 20        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
+#> 7      bnnsurv     fit_bnnsurv     predict_bnnsurv     tune_bnnsurv    TRUE
+#> 8        rpart       fit_rpart       predict_rpart       tune_rpart    TRUE
+#> 9         bart        fit_bart        predict_bart        tune_bart    TRUE
+#> 10     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE
+#> 11    coxboost    fit_coxboost    predict_coxboost    tune_coxboost    TRUE
+#> 13      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
+#> 14         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
+#> 15     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
+#> 16  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
+#> 17     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
+#> 19        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
 #>    has_predict has_tune available
 #> 3         TRUE     TRUE      TRUE
 #> 4         TRUE     TRUE      TRUE
 #> 6         TRUE     TRUE      TRUE
+#> 7         TRUE     TRUE      TRUE
 #> 8         TRUE     TRUE      TRUE
 #> 9         TRUE     TRUE      TRUE
 #> 10        TRUE     TRUE      TRUE
 #> 11        TRUE     TRUE      TRUE
-#> 12        TRUE     TRUE      TRUE
+#> 13        TRUE     TRUE      TRUE
 #> 14        TRUE     TRUE      TRUE
 #> 15        TRUE     TRUE      TRUE
 #> 16        TRUE     TRUE      TRUE
 #> 17        TRUE     TRUE      TRUE
-#> 18        TRUE     TRUE      TRUE
-#> 20        TRUE     TRUE      TRUE
+#> 19        TRUE     TRUE      TRUE
 
 # Shortcut for tunable learners
 list_tunable_survlearners()
@@ -208,32 +207,32 @@ list_tunable_survlearners()
 #> 3       glmnet      fit_glmnet      predict_glmnet      tune_glmnet    TRUE
 #> 4    selectcox   fit_selectcox   predict_selectcox   tune_selectcox    TRUE
 #> 6  flexsurvreg fit_flexsurvreg predict_flexsurvreg tune_flexsurvreg    TRUE
-#> 8      bnnsurv     fit_bnnsurv     predict_bnnsurv     tune_bnnsurv    TRUE
-#> 9        rpart       fit_rpart       predict_rpart       tune_rpart    TRUE
-#> 10        bart        fit_bart        predict_bart        tune_bart    TRUE
-#> 11     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE
-#> 12    coxboost    fit_coxboost    predict_coxboost    tune_coxboost    TRUE
-#> 14      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
-#> 15         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
-#> 16     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
-#> 17  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
-#> 18     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
-#> 20        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
+#> 7      bnnsurv     fit_bnnsurv     predict_bnnsurv     tune_bnnsurv    TRUE
+#> 8        rpart       fit_rpart       predict_rpart       tune_rpart    TRUE
+#> 9         bart        fit_bart        predict_bart        tune_bart    TRUE
+#> 10     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE
+#> 11    coxboost    fit_coxboost    predict_coxboost    tune_coxboost    TRUE
+#> 13      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
+#> 14         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
+#> 15     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
+#> 16  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
+#> 17     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
+#> 19        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
 #>    has_predict has_tune available
 #> 3         TRUE     TRUE      TRUE
 #> 4         TRUE     TRUE      TRUE
 #> 6         TRUE     TRUE      TRUE
+#> 7         TRUE     TRUE      TRUE
 #> 8         TRUE     TRUE      TRUE
 #> 9         TRUE     TRUE      TRUE
 #> 10        TRUE     TRUE      TRUE
 #> 11        TRUE     TRUE      TRUE
-#> 12        TRUE     TRUE      TRUE
+#> 13        TRUE     TRUE      TRUE
 #> 14        TRUE     TRUE      TRUE
 #> 15        TRUE     TRUE      TRUE
 #> 16        TRUE     TRUE      TRUE
 #> 17        TRUE     TRUE      TRUE
-#> 18        TRUE     TRUE      TRUE
-#> 20        TRUE     TRUE      TRUE
+#> 19        TRUE     TRUE      TRUE
 ```
 
 ### List interpretability tools
