@@ -68,7 +68,7 @@
 #' method. \emph{Statistics in Medicine}, 32(12), 2062-2069.
 #' \doi{10.1002/sim.5673}
 #'
-#' @seealso [predict_bnnsurv()], [tune_bnnsurv()]
+#' @seealso `predict_bnnsurv()`, `tune_bnnsurv()`
 #'
 #' @examples
 #' mod <- fit_bnnsurv(
@@ -78,7 +78,7 @@
 #' head(predict_bnnsurv(mod, newdata = veteran[1:5, ], times = c(50, 100)))
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_bnnsurv <- function(formula, data,
                         k = 5,
@@ -166,7 +166,7 @@ fit_bnnsurv <- function(formula, data,
 #' Predict Survival with a Bagged Nearest-Neighbour Model
 #'
 #' Generates survival probabilities from an \code{mlsurv_model} fitted by
-#' \code{\link{fit_bnnsurv}}.
+#' \code{fit_bnnsurv}.
 #'
 #' @param object A fitted \code{mlsurv_model} returned by \code{fit_bnnsurv()}.
 #' @param newdata A data frame of new observations for prediction.
@@ -184,7 +184,7 @@ fit_bnnsurv <- function(formula, data,
 #' \code{newdata} are matched to the training levels; unseen levels and
 #' missing predictor values are errors.
 #'
-#' @seealso [fit_bnnsurv()], [tune_bnnsurv()]
+#' @seealso `fit_bnnsurv()`, `tune_bnnsurv()`
 #'
 #' @examples
 #' mod <- fit_bnnsurv(Surv(time, status) ~ age + karno + diagtime + prior, data = veteran)
@@ -192,7 +192,7 @@ fit_bnnsurv <- function(formula, data,
 #' pred
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_bnnsurv <- function(object, newdata, times = NULL) {
   stopifnot(object$learner == "bnnsurv")
@@ -341,7 +341,7 @@ predict_bnnsurv <- function(object, newdata, times = NULL) {
 
 #' Tune Bagged Nearest-Neighbour Survival Hyperparameters (Cross-Validation)
 #'
-#' Cross-validates \code{\link{fit_bnnsurv}} over a user-supplied grid and
+#' Cross-validates \code{fit_bnnsurv} over a user-supplied grid and
 #' aggregates metrics (for example, \code{"cindex"}, \code{"ibs"}). Optionally
 #' refits and returns the best configuration.
 #'
@@ -355,7 +355,7 @@ predict_bnnsurv <- function(object, newdata, times = NULL) {
 #'   The first entry is treated as the primary ranking metric.
 #' @param folds Integer number of cross-validation folds. Default \code{5}.
 #' @param seed Integer random seed for reproducibility.
-#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if \code{TRUE}, refits the best configuration on
 #'   the full data and returns that model. Otherwise returns the results table.
@@ -371,7 +371,7 @@ predict_bnnsurv <- function(object, newdata, times = NULL) {
 #' \code{fit_bnnsurv()} and \code{predict_bnnsurv()} to match production code
 #' paths. Results are ordered by the first entry in \code{metrics}.
 #'
-#' @seealso [fit_bnnsurv()], [predict_bnnsurv()], [cv_survlearner()]
+#' @seealso `fit_bnnsurv()`, `predict_bnnsurv()`, `cv_survlearner()`
 #'
 #' @examples
 #' \donttest{
@@ -402,7 +402,7 @@ predict_bnnsurv <- function(object, newdata, times = NULL) {
 #' }
 #' 
 #' @keywords internal
-#' @export
+#' @noRd
 
 tune_bnnsurv <- function(formula, data, times,
                          param_grid = expand.grid(
