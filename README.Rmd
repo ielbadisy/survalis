@@ -25,10 +25,11 @@ Unified survival machine learning and interpretability in R.
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
-`survalis` provides a unified framework for survival machine learning in R. It
-supports 22 learners, evaluation metrics, cross-validation, benchmarking, and
-model-agnostic interpretability methods through a common survival-probability
-matrix (`survmat`) interface.
+`survalis` provides a unified framework for survival machine learning in R.
+Seven verbs cover the whole workflow for 22 built-in learners and for any
+learner you write yourself: fitting, prediction, resampled and external
+evaluation, tuning, paired comparison, model-agnostic interpretation, and
+causal contrasts.
 
 `survalis` is available on CRAN: <https://CRAN.R-project.org/package=survalis>.
 
@@ -39,7 +40,7 @@ library(survalis)
 f <- Surv(time, status) ~ age + karno + celltype
 
 m   <- fit(f, veteran, model = "ranger", spec = list(num.trees = 500))
-predict(m, veteran[1:5, ], times = c(90, 180, 365))          # survmat
+predict(m, veteran[1:5, ], times = c(90, 180, 365))          # survival matrix
 evaluate(m, times = c(90, 180, 365), resampling = cv(5))     # resampled metrics
 
 cmp <- compare(f, veteran, models = c("coxph", "ranger", "densemlp"),
@@ -50,10 +51,11 @@ plot(interpret(m, "shap", newdata = veteran[1, ], times = 180))
 estimate(f, veteran, model = "ranger", treatment = "trt", tau = 365)
 ```
 
-`fit()` / `predict()` / `evaluate()` / `tune()` / `compare()` / `interpret()` /
-`estimate()` cover the whole workflow. The granular `fit_*()` / `predict_*()` /
-`compute_*()` / `benchmark*()` functions remain available as the low-level
-layer; see `vignette("from-1.0", package = "survalis")` and `?"survalis-lowlevel"`.
+`fit()`, `predict()`, `evaluate()`, `tune()`, `compare()`, `interpret()` and
+`estimate()` are the whole interface. Resampling is described by `cv()`,
+`holdout()`, `group_cv()` and `bootstrap()`, and `list_survlearners()`,
+`list_metrics()` and `list_interpretability_methods()` give the valid ids.
+Upgrading from 1.x? See `vignette("from-1.0", package = "survalis")`.
 
 
 
@@ -69,91 +71,23 @@ remotes::install_github("ielbadisy/survalis")
 
 
 
-## New in version 1.1.0
-
-Version 1.1.0 adds a set of downstream tools that work with the same fitted
-models and `survmat` predictions used throughout the package:
-
-* `screen_fdr()` performs univariate Cox screening with Benjamini-Hochberg FDR
-  control and an optional minimum-screen guarantee.
-* `estimate_rmst()` and `plot_rmst()` estimate standardized marginal RMST or a
-  two-group RMST contrast with percentile-bootstrap intervals.
-* `compute_shap_matrix()` and `plot_shap_beeswarm()` summarize time-integrated
-  SHAP contributions across observations.
-* `roc_survmat()` and `dca_survmat()` provide IPCW time-dependent ROC and
-  decision-curve analyses, with `plot_roc()` and `plot_dca()` helpers.
-
-```{r, eval = FALSE}
-# FDR screening
-selected <- screen_fdr(
-  Surv(time, status) ~ age + karno + diagtime + prior,
-  data = veteran,
-  alpha = 0.1,
-  minscreen = 2
-)
-
-# Standardized RMST contrast between treatment groups
-rmst <- estimate_rmst(
-  mod_cox,
-  data = veteran,
-  tau = 200,
-  times = seq(10, 300, by = 10),
-  trt_col = "trt",
-  R = 200,
-  seed = 1
-)
-
-# Time-dependent ROC and decision curves from survmat predictions
-pred_100 <- predict_coxph(mod_cox, veteran, times = 100)
-roc <- roc_survmat(Surv(veteran$time, veteran$status), pred_100, t_star = 100)
-dca <- dca_survmat(Surv(veteran$time, veteran$status), pred_100, t_star = 100)
-plot_roc(roc)
-plot_dca(dca)
-```
-
-
-
 ## Core philosophy
 
 * Seven verbs cover the whole workflow: `fit()`, `predict()`, `evaluate()`, `tune()`, `compare()`, `interpret()`, `estimate()`
-* Every learner returns a standardized `survalis_fit` (a `mlsurv_model` subclass)
-* Matrix predictions return a `survmat`: columns `t=100`, `t=200`, ..., with the grid recorded in `attr(x, "times")`
-* Evaluation is fully modular: any learner id works with `evaluate()`/`compare()` under any `cv()`/`holdout()`/`group_cv()`/`bootstrap()` resampling
-* Designed for interpretability post prediction, through a single `interpret()` entry point
+* One function per job: learners are chosen by `model`, metrics by `metrics`, explanations by `method`, outputs by `type`
+* Every verb returns an S3 object with `print()`, `summary()`, `plot()` and `as.data.frame()` methods
+* Matrix predictions are survival matrices: one row per subject, columns `t=100`, `t=200`, ..., with the grid recorded in `attr(x, "times")`
+* A custom learner is two functions, `list(fit = , predict = )`, and works with every verb
 
 
 
 ## Exploring the package
 
-### List all available survival learners
-
 ```{r}
 library(survalis)
-# See all available learners
-list_survlearners()
-
-# See only tunable learners (those with a tune_* function)
-list_survlearners(has_tune = TRUE)
-
-# Shortcut for tunable learners
-list_tunable_survlearners()
-```
-
-### List interpretability tools
-
-```{r}
-# List available interpretability methods
-list_interpretability_methods()
-
-# Show which compute_* methods have a plot_* counterpart
-subset(list_interpretability_methods(), !is.na(plot))
-```
-
-### List evaluation metrics
-
-```{r}
-# List available metrics used in cross-validation and scoring
-list_metrics()
+list_survlearners()               # ids for `model`
+list_metrics()                    # ids for `metrics`
+list_interpretability_methods()   # ids for `method` in interpret()
 ```
 
 
@@ -189,6 +123,19 @@ ev
 summary(ev)
 ```
 
+To score a model on data it was not trained on, pass `newdata`; to score
+predictions made elsewhere, pass the survival matrix and the outcome.
+
+```{r}
+train <- veteran[1:100, ]
+test  <- veteran[-(1:100), ]
+m_tr  <- fit(Surv(time, status) ~ age + karno + celltype, train, model = "coxph")
+evaluate(m_tr, newdata = test, times = c(80, 160))
+
+S <- predict(m_tr, test, times = c(80, 160))
+evaluate(S, y = Surv(test$time, test$status))
+```
+
 
 **4. Compare multiple learners**
 
@@ -210,23 +157,33 @@ plot(cmp)
 
 
 
-**5. Kaplan-Meier curves**
+**5. Bring your own learner**
 
-`plot_survcurve()` produces a styled Kaplan-Meier curve with a confidence
-ribbon, log-rank p-value, and an aligned number-at-risk table, in the spirit
-of `survminer::ggsurvplot()` but implemented natively (no dependency on
-survminer).
+A custom learner is a list with a `fit` function and a `predict` function that
+returns one row per subject and one column per time. It then works with every
+verb.
 
 ```{r}
-plot_survcurve(Surv(time, status) ~ trt, data = veteran)
+expo <- list(
+  name = "exponential",
+  fit = function(formula, data, ...) survival::survreg(formula, data, dist = "exponential"),
+  predict = function(object, newdata, times) {
+    rate <- 1 / predict(object, newdata, type = "response")
+    exp(-outer(rate, times))
+  }
+)
+
+compare(Surv(time, status) ~ age + karno + celltype, veteran,
+        models = list("coxph", expo), times = c(80, 160),
+        resampling = cv(3, seed = 1))
 ```
 
 
 
 **6. Visualize interpretation**
 
-`interpret()` is the single entry point to every explanation method; its
-`plot()` dispatches to the matching `plot_*()` helper.
+`interpret()` is the single entry point to every explanation method, and
+`plot()` draws its result.
 
 ```{r}
 shap_meanabs <- interpret(
@@ -248,7 +205,7 @@ plot(shap_meanabs)
 ### More interpretability methods
 
 `survalis` also provides PDP, ALE, surrogate explanations, tree surrogates,
-permutation importance, interaction analysis, and counterfactuals -- all
+permutation importance, interaction analysis, and counterfactuals, all
 through `interpret(fit, method = ..., ...)`.
 
 **Partial dependence and ICE**
@@ -338,10 +295,12 @@ counterfactuals <- interpret(
 as.data.frame(counterfactuals)
 ```
 
-**7. Calibration**
+**7. Calibration, ROC and decision curves**
 
 ```{r}
 interpret(mod_cox, "calibration", eval_time = 80, n_bins = 10, n_boot = 30) |> plot()
+interpret(m_tr, "roc", newdata = test, eval_time = 80) |> plot()
+interpret(m_tr, "dca", newdata = test, eval_time = 80) |> plot()
 ```
 
 

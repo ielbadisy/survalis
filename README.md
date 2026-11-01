@@ -15,9 +15,10 @@ MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.or
 <!-- badges: end -->
 
 `survalis` provides a unified framework for survival machine learning in
-R. It supports 22 learners, evaluation metrics, cross-validation,
-benchmarking, and model-agnostic interpretability methods through a
-common survival-probability matrix (`survmat`) interface.
+R. Seven verbs cover the whole workflow for 22 built-in learners and for
+any learner you write yourself: fitting, prediction, resampled and
+external evaluation, tuning, paired comparison, model-agnostic
+interpretation, and causal contrasts.
 
 `survalis` is available on CRAN:
 <https://CRAN.R-project.org/package=survalis>.
@@ -29,7 +30,7 @@ library(survalis)
 f <- Surv(time, status) ~ age + karno + celltype
 
 m   <- fit(f, veteran, model = "ranger", spec = list(num.trees = 500))
-predict(m, veteran[1:5, ], times = c(90, 180, 365))          # survmat
+predict(m, veteran[1:5, ], times = c(90, 180, 365))          # survival matrix
 evaluate(m, times = c(90, 180, 365), resampling = cv(5))     # resampled metrics
 
 cmp <- compare(f, veteran, models = c("coxph", "ranger", "densemlp"),
@@ -40,11 +41,12 @@ plot(interpret(m, "shap", newdata = veteran[1, ], times = 180))
 estimate(f, veteran, model = "ranger", treatment = "trt", tau = 365)
 ```
 
-`fit()` / `predict()` / `evaluate()` / `tune()` / `compare()` /
-`interpret()` / `estimate()` cover the whole workflow. The granular
-`fit_*()` / `predict_*()` / `compute_*()` / `benchmark*()` functions
-remain available as the low-level layer; see
-`vignette("from-1.0", package = "survalis")` and `?"survalis-lowlevel"`.
+`fit()`, `predict()`, `evaluate()`, `tune()`, `compare()`, `interpret()`
+and `estimate()` are the whole interface. Resampling is described by
+`cv()`, `holdout()`, `group_cv()` and `bootstrap()`, and
+`list_survlearners()`, `list_metrics()` and
+`list_interpretability_methods()` give the valid ids. Upgrading from
+1.x? See `vignette("from-1.0", package = "survalis")`.
 
 ## Installation
 
@@ -56,245 +58,48 @@ install.packages("survalis")
 remotes::install_github("ielbadisy/survalis")
 ```
 
-## New in version 1.1.0
-
-Version 1.1.0 adds a set of downstream tools that work with the same
-fitted models and `survmat` predictions used throughout the package:
-
-- `screen_fdr()` performs univariate Cox screening with
-  Benjamini-Hochberg FDR control and an optional minimum-screen
-  guarantee.
-- `estimate_rmst()` and `plot_rmst()` estimate standardized marginal
-  RMST or a two-group RMST contrast with percentile-bootstrap intervals.
-- `compute_shap_matrix()` and `plot_shap_beeswarm()` summarize
-  time-integrated SHAP contributions across observations.
-- `roc_survmat()` and `dca_survmat()` provide IPCW time-dependent ROC
-  and decision-curve analyses, with `plot_roc()` and `plot_dca()`
-  helpers.
-
-``` r
-# FDR screening
-selected <- screen_fdr(
-  Surv(time, status) ~ age + karno + diagtime + prior,
-  data = veteran,
-  alpha = 0.1,
-  minscreen = 2
-)
-
-# Standardized RMST contrast between treatment groups
-rmst <- estimate_rmst(
-  mod_cox,
-  data = veteran,
-  tau = 200,
-  times = seq(10, 300, by = 10),
-  trt_col = "trt",
-  R = 200,
-  seed = 1
-)
-
-# Time-dependent ROC and decision curves from survmat predictions
-pred_100 <- predict_coxph(mod_cox, veteran, times = 100)
-roc <- roc_survmat(Surv(veteran$time, veteran$status), pred_100, t_star = 100)
-dca <- dca_survmat(Surv(veteran$time, veteran$status), pred_100, t_star = 100)
-plot_roc(roc)
-plot_dca(dca)
-```
-
 ## Core philosophy
 
 - Seven verbs cover the whole workflow: `fit()`, `predict()`,
   `evaluate()`, `tune()`, `compare()`, `interpret()`, `estimate()`
-- Every learner returns a standardized `survalis_fit` (a `mlsurv_model`
-  subclass)
-- Matrix predictions return a `survmat`: columns `t=100`, `t=200`, …,
-  with the grid recorded in `attr(x, "times")`
-- Evaluation is fully modular: any learner id works with
-  `evaluate()`/`compare()` under any
-  `cv()`/`holdout()`/`group_cv()`/`bootstrap()` resampling
-- Designed for interpretability post prediction, through a single
-  `interpret()` entry point
+- One function per job: learners are chosen by `model`, metrics by
+  `metrics`, explanations by `method`, outputs by `type`
+- Every verb returns an S3 object with `print()`, `summary()`, `plot()`
+  and `as.data.frame()` methods
+- Matrix predictions are survival matrices: one row per subject, columns
+  `t=100`, `t=200`, …, with the grid recorded in `attr(x, "times")`
+- A custom learner is two functions, `list(fit = , predict = )`, and
+  works with every verb
 
 ## Exploring the package
 
-### List all available survival learners
-
 ``` r
 library(survalis)
-# See all available learners
-list_survlearners()
-#>            learner                 fit                 predict             tune
-#> 1            coxph           fit_coxph           predict_coxph             <NA>
-#> 2            aalen           fit_aalen           predict_aalen             <NA>
-#> 3           glmnet          fit_glmnet          predict_glmnet      tune_glmnet
-#> 4        selectcox       fit_selectcox       predict_selectcox   tune_selectcox
-#> 5           aftgee          fit_aftgee          predict_aftgee             <NA>
-#> 6      flexsurvreg     fit_flexsurvreg     predict_flexsurvreg tune_flexsurvreg
-#> 7          bnnsurv         fit_bnnsurv         predict_bnnsurv     tune_bnnsurv
-#> 8            rpart           fit_rpart           predict_rpart       tune_rpart
-#> 9             bart            fit_bart            predict_bart        tune_bart
-#> 10         xgboost         fit_xgboost         predict_xgboost     tune_xgboost
-#> 11        coxboost        fit_coxboost        predict_coxboost    tune_coxboost
-#> 12         fastgbm         fit_fastgbm         predict_fastgbm             <NA>
-#> 13          ranger          fit_ranger          predict_ranger      tune_ranger
-#> 14             rsf             fit_rsf             predict_rsf         tune_rsf
-#> 15         cforest         fit_cforest         predict_cforest     tune_cforest
-#> 16      blackboost      fit_blackboost      predict_blackboost  tune_blackboost
-#> 17         survsvm         fit_survsvm         predict_survsvm     tune_survsvm
-#> 18        densemlp        fit_densemlp        predict_densemlp             <NA>
-#> 19            orsf            fit_orsf            predict_orsf        tune_orsf
-#> 20          rpsurv          fit_rpsurv          predict_rpsurv             <NA>
-#> 21          nbsurv          fit_nbsurv          predict_nbsurv             <NA>
-#> 22 survmetalearner fit_survmetalearner predict_survmetalearner             <NA>
-#>    has_fit has_predict has_tune available
-#> 1     TRUE        TRUE    FALSE      TRUE
-#> 2     TRUE        TRUE    FALSE      TRUE
-#> 3     TRUE        TRUE     TRUE      TRUE
-#> 4     TRUE        TRUE     TRUE      TRUE
-#> 5     TRUE        TRUE    FALSE      TRUE
-#> 6     TRUE        TRUE     TRUE      TRUE
-#> 7     TRUE        TRUE     TRUE      TRUE
-#> 8     TRUE        TRUE     TRUE      TRUE
-#> 9     TRUE        TRUE     TRUE      TRUE
-#> 10    TRUE        TRUE     TRUE      TRUE
-#> 11    TRUE        TRUE     TRUE      TRUE
-#> 12    TRUE        TRUE    FALSE      TRUE
-#> 13    TRUE        TRUE     TRUE      TRUE
-#> 14    TRUE        TRUE     TRUE      TRUE
-#> 15    TRUE        TRUE     TRUE      TRUE
-#> 16    TRUE        TRUE     TRUE      TRUE
-#> 17    TRUE        TRUE     TRUE      TRUE
-#> 18    TRUE        TRUE    FALSE      TRUE
-#> 19    TRUE        TRUE     TRUE      TRUE
-#> 20    TRUE        TRUE    FALSE      TRUE
-#> 21    TRUE        TRUE    FALSE      TRUE
-#> 22    TRUE        TRUE    FALSE      TRUE
-
-# See only tunable learners (those with a tune_* function)
-list_survlearners(has_tune = TRUE)
-#>        learner             fit             predict             tune has_fit
-#> 3       glmnet      fit_glmnet      predict_glmnet      tune_glmnet    TRUE
-#> 4    selectcox   fit_selectcox   predict_selectcox   tune_selectcox    TRUE
-#> 6  flexsurvreg fit_flexsurvreg predict_flexsurvreg tune_flexsurvreg    TRUE
-#> 7      bnnsurv     fit_bnnsurv     predict_bnnsurv     tune_bnnsurv    TRUE
-#> 8        rpart       fit_rpart       predict_rpart       tune_rpart    TRUE
-#> 9         bart        fit_bart        predict_bart        tune_bart    TRUE
-#> 10     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE
-#> 11    coxboost    fit_coxboost    predict_coxboost    tune_coxboost    TRUE
-#> 13      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
-#> 14         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
-#> 15     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
-#> 16  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
-#> 17     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
-#> 19        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
-#>    has_predict has_tune available
-#> 3         TRUE     TRUE      TRUE
-#> 4         TRUE     TRUE      TRUE
-#> 6         TRUE     TRUE      TRUE
-#> 7         TRUE     TRUE      TRUE
-#> 8         TRUE     TRUE      TRUE
-#> 9         TRUE     TRUE      TRUE
-#> 10        TRUE     TRUE      TRUE
-#> 11        TRUE     TRUE      TRUE
-#> 13        TRUE     TRUE      TRUE
-#> 14        TRUE     TRUE      TRUE
-#> 15        TRUE     TRUE      TRUE
-#> 16        TRUE     TRUE      TRUE
-#> 17        TRUE     TRUE      TRUE
-#> 19        TRUE     TRUE      TRUE
-
-# Shortcut for tunable learners
-list_tunable_survlearners()
-#>        learner             fit             predict             tune has_fit
-#> 3       glmnet      fit_glmnet      predict_glmnet      tune_glmnet    TRUE
-#> 4    selectcox   fit_selectcox   predict_selectcox   tune_selectcox    TRUE
-#> 6  flexsurvreg fit_flexsurvreg predict_flexsurvreg tune_flexsurvreg    TRUE
-#> 7      bnnsurv     fit_bnnsurv     predict_bnnsurv     tune_bnnsurv    TRUE
-#> 8        rpart       fit_rpart       predict_rpart       tune_rpart    TRUE
-#> 9         bart        fit_bart        predict_bart        tune_bart    TRUE
-#> 10     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE
-#> 11    coxboost    fit_coxboost    predict_coxboost    tune_coxboost    TRUE
-#> 13      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE
-#> 14         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE
-#> 15     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE
-#> 16  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE
-#> 17     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE
-#> 19        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE
-#>    has_predict has_tune available
-#> 3         TRUE     TRUE      TRUE
-#> 4         TRUE     TRUE      TRUE
-#> 6         TRUE     TRUE      TRUE
-#> 7         TRUE     TRUE      TRUE
-#> 8         TRUE     TRUE      TRUE
-#> 9         TRUE     TRUE      TRUE
-#> 10        TRUE     TRUE      TRUE
-#> 11        TRUE     TRUE      TRUE
-#> 13        TRUE     TRUE      TRUE
-#> 14        TRUE     TRUE      TRUE
-#> 15        TRUE     TRUE      TRUE
-#> 16        TRUE     TRUE      TRUE
-#> 17        TRUE     TRUE      TRUE
-#> 19        TRUE     TRUE      TRUE
-```
-
-### List interpretability tools
-
-``` r
-# List available interpretability methods
-list_interpretability_methods()
-#>                                       compute                plot has_compute
-#> compute_shap                     compute_shap           plot_shap        TRUE
-#> compute_pdp                       compute_pdp            plot_pdp        TRUE
-#> compute_ale                       compute_ale            plot_ale        TRUE
-#> compute_surrogate           compute_surrogate      plot_surrogate        TRUE
-#> compute_tree_surrogate compute_tree_surrogate plot_tree_surrogate        TRUE
-#> compute_varimp                 compute_varimp         plot_varimp        TRUE
-#> compute_interactions     compute_interactions   plot_interactions        TRUE
-#> compute_counterfactual compute_counterfactual plot_counterfactual        TRUE
-#> compute_shap_matrix       compute_shap_matrix  plot_shap_beeswarm        TRUE
-#> compute_survcluster       compute_survcluster    plot_survcluster        TRUE
-#>                        has_plot
-#> compute_shap               TRUE
-#> compute_pdp                TRUE
-#> compute_ale                TRUE
-#> compute_surrogate          TRUE
-#> compute_tree_surrogate     TRUE
-#> compute_varimp             TRUE
-#> compute_interactions       TRUE
-#> compute_counterfactual     TRUE
-#> compute_shap_matrix        TRUE
-#> compute_survcluster        TRUE
-
-# Show which compute_* methods have a plot_* counterpart
-subset(list_interpretability_methods(), !is.na(plot))
-#>                                       compute                plot has_compute
-#> compute_shap                     compute_shap           plot_shap        TRUE
-#> compute_pdp                       compute_pdp            plot_pdp        TRUE
-#> compute_ale                       compute_ale            plot_ale        TRUE
-#> compute_surrogate           compute_surrogate      plot_surrogate        TRUE
-#> compute_tree_surrogate compute_tree_surrogate plot_tree_surrogate        TRUE
-#> compute_varimp                 compute_varimp         plot_varimp        TRUE
-#> compute_interactions     compute_interactions   plot_interactions        TRUE
-#> compute_counterfactual compute_counterfactual plot_counterfactual        TRUE
-#> compute_shap_matrix       compute_shap_matrix  plot_shap_beeswarm        TRUE
-#> compute_survcluster       compute_survcluster    plot_survcluster        TRUE
-#>                        has_plot
-#> compute_shap               TRUE
-#> compute_pdp                TRUE
-#> compute_ale                TRUE
-#> compute_surrogate          TRUE
-#> compute_tree_surrogate     TRUE
-#> compute_varimp             TRUE
-#> compute_interactions       TRUE
-#> compute_counterfactual     TRUE
-#> compute_shap_matrix        TRUE
-#> compute_survcluster        TRUE
-```
-
-### List evaluation metrics
-
-``` r
-# List available metrics used in cross-validation and scoring
-list_metrics()
+list_survlearners()               # ids for `model`
+#>            learner tunable
+#> 1            coxph   FALSE
+#> 2            aalen   FALSE
+#> 3           glmnet    TRUE
+#> 4        selectcox    TRUE
+#> 5           aftgee   FALSE
+#> 6      flexsurvreg    TRUE
+#> 7          bnnsurv    TRUE
+#> 8            rpart    TRUE
+#> 9             bart    TRUE
+#> 10         xgboost    TRUE
+#> 11        coxboost    TRUE
+#> 12         fastgbm   FALSE
+#> 13          ranger    TRUE
+#> 14             rsf    TRUE
+#> 15         cforest    TRUE
+#> 16      blackboost    TRUE
+#> 17         survsvm    TRUE
+#> 18        densemlp   FALSE
+#> 19            orsf    TRUE
+#> 20          rpsurv   FALSE
+#> 21          nbsurv   FALSE
+#> 22 survmetalearner   FALSE
+list_metrics()                    # ids for `metrics`
 #>   metric direction
 #> 1 cindex  maximize
 #> 2    auc  maximize
@@ -319,6 +124,39 @@ list_metrics()
 #> 5 [0, Inf) (lower is better)
 #> 6 [0, Inf) (lower is better)
 #> 7   [0, 1] (lower is better)
+list_interpretability_methods()   # ids for `method` in interpret()
+#>            method
+#> 1             pdp
+#> 2             ice
+#> 3             ale
+#> 4            shap
+#> 5     shap_matrix
+#> 6          varimp
+#> 7         permute
+#> 8     interaction
+#> 9  counterfactual
+#> 10      surrogate
+#> 11 tree_surrogate
+#> 12    calibration
+#> 13            roc
+#> 14            dca
+#> 15    survcluster
+#>                                                                    summary
+#> 1      Partial dependence of predicted survival on one feature, over time.
+#> 2               Individual conditional expectation curves for one feature.
+#> 3                               Accumulated local effects for one feature.
+#> 4                   Shapley values for one instance, aggregated over time.
+#> 5                       Shapley values for many instances (beeswarm plot).
+#> 6                   Permutation variable importance on the survival scale.
+#> 7                                                         Alias of varimp.
+#> 8                   Friedman H-statistic interaction strength per feature.
+#> 9  Smallest feature changes that move predicted survival at a target time.
+#> 10               Local linear surrogate for one instance at a target time.
+#> 11                      Global decision-tree surrogate of the predictions.
+#> 12                                          Calibration curve at one time.
+#> 13                                   Time-dependent ROC curve at one time.
+#> 14          Decision curve (net benefit over risk thresholds) at one time.
+#> 15            Clusters of subjects with similar predicted survival curves.
 ```
 
 ## Basic Workflow
@@ -369,6 +207,29 @@ summary(ev)
 #> 2    ibs 0.182 0.042 5 0.019 0.146 0.219
 ```
 
+To score a model on data it was not trained on, pass `newdata`; to score
+predictions made elsewhere, pass the survival matrix and the outcome.
+
+``` r
+train <- veteran[1:100, ]
+test  <- veteran[-(1:100), ]
+m_tr  <- fit(Surv(time, status) ~ age + karno + celltype, train, model = "coxph")
+evaluate(m_tr, newdata = test, times = c(80, 160))
+#> <survalis_eval> model = coxph
+#>   scored once on 37 subjects (no resampling)
+#>   grid: 2 times in [80, 160]
+#>   cindex  0.7470
+#>   ibs     0.1720
+
+S <- predict(m_tr, test, times = c(80, 160))
+evaluate(S, y = Surv(test$time, test$status))
+#> <survalis_eval> model = supplied predictions
+#>   scored once on 37 subjects (no resampling)
+#>   grid: 2 times in [80, 160]
+#>   cindex  0.7470
+#>   ibs     0.1720
+```
+
 **4. Compare multiple learners**
 
 `compare()` evaluates every learner on the *same* resampling folds, so
@@ -399,27 +260,43 @@ cmp
 plot(cmp)
 ```
 
-<img src="man/figures/README-unnamed-chunk-12-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-10-1.png" alt="" width="100%" />
 
-**5. Kaplan-Meier curves**
+**5. Bring your own learner**
 
-`plot_survcurve()` produces a styled Kaplan-Meier curve with a
-confidence ribbon, log-rank p-value, and an aligned number-at-risk
-table, in the spirit of `survminer::ggsurvplot()` but implemented
-natively (no dependency on survminer).
+A custom learner is a list with a `fit` function and a `predict`
+function that returns one row per subject and one column per time. It
+then works with every verb.
 
 ``` r
-plot_survcurve(Surv(time, status) ~ trt, data = veteran)
-#> Warning: Removed 2 rows containing missing values or values outside the scale range
-#> (`geom_ribbon()`).
-```
+expo <- list(
+  name = "exponential",
+  fit = function(formula, data, ...) survival::survreg(formula, data, dist = "exponential"),
+  predict = function(object, newdata, times) {
+    rate <- 1 / predict(object, newdata, type = "response")
+    exp(-outer(rate, times))
+  }
+)
 
-<img src="man/figures/README-unnamed-chunk-13-1.png" alt="" width="100%" />
+compare(Surv(time, status) ~ age + karno + celltype, veteran,
+        models = list("coxph", expo), times = c(80, 160),
+        resampling = cv(3, seed = 1))
+#> <survalis_compare> 2 models
+#> <survalis_resampling> 3-fold CV, strata = status, seed = 1
+#> 
+#>   cindex (higher is better):
+#>    * exponential      0.7330  (se 0.0200)
+#>      coxph            0.7307  (se 0.0188)
+#> 
+#>   ibs (lower is better):
+#>    * exponential      0.1787  (se 0.0033)
+#>      coxph            0.1790  (se 0.0055)
+```
 
 **6. Visualize interpretation**
 
-`interpret()` is the single entry point to every explanation method; its
-`plot()` dispatches to the matching `plot_*()` helper.
+`interpret()` is the single entry point to every explanation method, and
+`plot()` draws its result.
 
 ``` r
 shap_meanabs <- interpret(
@@ -434,10 +311,10 @@ shap_meanabs <- interpret(
 as.data.frame(shap_meanabs)
 #>           feature         phi
 #> trt           trt 0.000000000
-#> celltype celltype 0.017380404
-#> karno       karno 0.019501719
+#> celltype celltype 0.005120004
+#> karno       karno 0.036640340
 #> diagtime diagtime 0.000000000
-#> age           age 0.001231928
+#> age           age 0.003908879
 #> prior       prior 0.000000000
 ```
 
@@ -445,13 +322,13 @@ as.data.frame(shap_meanabs)
 plot(shap_meanabs)
 ```
 
-<img src="man/figures/README-unnamed-chunk-15-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-13-1.png" alt="" width="100%" />
 
 ### More interpretability methods
 
 `survalis` also provides PDP, ALE, surrogate explanations, tree
 surrogates, permutation importance, interaction analysis, and
-counterfactuals – all through `interpret(fit, method = ..., ...)`.
+counterfactuals, all through `interpret(fit, method = ..., ...)`.
 
 **Partial dependence and ICE**
 
@@ -461,14 +338,14 @@ pdp_age <- interpret(mod_cox, "pdp", feature = "age", times = c(100, 200, 300))
 plot(pdp_age, which = "per_time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-16-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-14-1.png" alt="" width="100%" />
 
 ``` r
 plot(pdp_age, which = "integrated", smooth = TRUE)
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-<img src="man/figures/README-unnamed-chunk-16-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-14-2.png" alt="" width="100%" />
 
 **Accumulated local effects**
 
@@ -478,14 +355,14 @@ ale_karno <- interpret(mod_cox, "ale", feature = "karno", times = c(100, 200, 30
 plot(ale_karno, which = "per_time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-17-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-15-1.png" alt="" width="100%" />
 
 ``` r
 plot(ale_karno, which = "integrated", smooth = TRUE)
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-<img src="man/figures/README-unnamed-chunk-17-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-15-2.png" alt="" width="100%" />
 
 **Local surrogate explanation**
 
@@ -508,7 +385,7 @@ as.data.frame(local_surrogate)
 plot(local_surrogate, top_n = 10)
 ```
 
-<img src="man/figures/README-unnamed-chunk-18-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-16-1.png" alt="" width="100%" />
 
 **Tree surrogate**
 
@@ -518,7 +395,7 @@ tree_surrogate <- interpret(mod_cox, "tree_surrogate", times = c(100, 200, 300))
 plot(tree_surrogate, type = "importance", top_n = 5)
 ```
 
-<img src="man/figures/README-unnamed-chunk-19-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-17-1.png" alt="" width="100%" />
 
 ``` r
 # plot(tree_surrogate, type = "tree")
@@ -547,7 +424,7 @@ as.data.frame(varimp_res)
 plot(varimp_res)
 ```
 
-<img src="man/figures/README-unnamed-chunk-20-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-18-1.png" alt="" width="100%" />
 
 **Feature interactions**
 
@@ -562,19 +439,19 @@ interaction_time <- interpret(mod_cox, "interaction", times = c(100, 200, 300),
 plot(interaction_1way, type = "1way")
 ```
 
-<img src="man/figures/README-unnamed-chunk-21-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-19-1.png" alt="" width="100%" />
 
 ``` r
 plot(interaction_heatmap, type = "heatmap")
 ```
 
-<img src="man/figures/README-unnamed-chunk-21-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-19-2.png" alt="" width="100%" />
 
 ``` r
 plot(interaction_time, type = "time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-21-3.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-19-3.png" alt="" width="100%" />
 
 **Counterfactual explanations**
 
@@ -599,13 +476,25 @@ as.data.frame(counterfactuals)
 #> 3        -0.0010
 ```
 
-**7. Calibration**
+**7. Calibration, ROC and decision curves**
 
 ``` r
 interpret(mod_cox, "calibration", eval_time = 80, n_bins = 10, n_boot = 30) |> plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-23-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-21-1.png" alt="" width="100%" />
+
+``` r
+interpret(m_tr, "roc", newdata = test, eval_time = 80) |> plot()
+```
+
+<img src="man/figures/README-unnamed-chunk-21-2.png" alt="" width="100%" />
+
+``` r
+interpret(m_tr, "dca", newdata = test, eval_time = 80) |> plot()
+```
+
+<img src="man/figures/README-unnamed-chunk-21-3.png" alt="" width="100%" />
 
 ## Citation
 
@@ -614,7 +503,7 @@ citation("survalis")
 #> To cite survalis in publications, use:
 #> 
 #>   El Badisy I (2026). _survalis: Interpretable Survival Machine
-#>   Learning Framework_. R package version 1.7.0,
+#>   Learning Framework_. R package version 2.0.0,
 #>   <https://CRAN.R-project.org/package=survalis>.
 #> 
 #> A BibTeX entry for LaTeX users is
@@ -623,7 +512,7 @@ citation("survalis")
 #>     title = {survalis: Interpretable Survival Machine Learning Framework},
 #>     author = {Imad {El Badisy}},
 #>     year = {2026},
-#>     note = {R package version 1.7.0},
+#>     note = {R package version 2.0.0},
 #>     url = {https://CRAN.R-project.org/package=survalis},
 #>   }
 ```
