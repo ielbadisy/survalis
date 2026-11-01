@@ -16,7 +16,7 @@
 #'   time (default \code{100}).
 #' @param features Optional character vector of covariate names to explain. If
 #'   \code{NULL} (default), inferred as \code{setdiff(colnames(newdata),
-#'   c(model$time, model$status))}, consistent with \code{\link{compute_interactions}}.
+#'   c(model$time, model$status))}, consistent with \code{compute_interactions}.
 #' @param aggregate Logical; if \code{TRUE}, aggregate contributions across
 #'   \code{times} into a single value per feature (see \code{method}).
 #' @param method Character; aggregation method if \code{aggregate=TRUE}:
@@ -35,7 +35,7 @@
 #' \code{predict_fun(model, newdata, times = times)}. Factor levels in
 #' \code{newdata} are harmonized to those in \code{model$data}.
 #'
-#' @seealso [plot_shap()], the various \code{predict_*} methods (e.g. [predict_coxph()])
+#' @seealso `plot_shap()`, the various \code{predict_*} methods (e.g. `predict_coxph()`)
 #'
 #' @examples
 #' \donttest{
@@ -63,7 +63,7 @@
 #' head(shap_meanabs)
 #' }
 #'
-#' @export
+#' @noRd
 
 compute_shap <- function(model, newdata, baseline_data,
   times, sample.size = 100,
@@ -73,13 +73,13 @@ compute_shap <- function(model, newdata, baseline_data,
 stopifnot(nrow(newdata) == 1)
 method <- match.arg(method)
 
-if (is.null(model$learner) || !exists(paste0("predict_", model$learner))) {
-stop("Could not infer prediction function. Ensure model has a valid `learner` and was created using `fit_*()`.")
+if (is.null(model$learner) && !is.function(model$predict_fun)) {
+stop("`model` must come from fit().", call. = FALSE)
 }
 
 
 
-predict_function <- get(paste0("predict_", model$learner))
+predict_function <- .predict_fun(model)
 feature_names <- if (is.null(features)) {
   setdiff(colnames(newdata), c(model$time, model$status))
 } else {
@@ -171,9 +171,9 @@ return(final_result)
 #' Plot SHAP-like contributions for survival models
 #'
 #' Plots time-dependent SHAP estimates (lines over time) or aggregated SHAP
-#' (bar chart) returned by [compute_shap()].
+#' (bar chart) returned by `compute_shap()`.
 #'
-#' @param shapley_result A data frame returned by [compute_shap()]. If it has a
+#' @param shapley_result A data frame returned by `compute_shap()`. If it has a
 #'   \code{time} column, a time plot is produced; otherwise an aggregated bar plot.
 #' @param type One of \code{"auto"} (default), \code{"time"}, or \code{"integrated"}.
 #'   With \code{"auto"}, the presence of a \code{time} column determines the plot type.
@@ -195,7 +195,7 @@ return(final_result)
 #' sample.size = 5, aggregate = TRUE, method = "meanabs")
 #' p2 <- plot_shap(shap_ag)      # auto -> bar plot
 #' }
-#' @export
+#' @noRd
 
 plot_shap <- function(shapley_result, type = c("auto"), title) {
 type <- match.arg(type)
