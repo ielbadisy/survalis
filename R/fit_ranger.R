@@ -7,10 +7,10 @@
 #'
 #' @param formula A survival formula of the form \code{Surv(time, status) ~ predictors}.
 #' @param data A \code{data.frame} containing the variables in the model.
-#' @param ... Additional arguments passed to \code{\link[ranger]{ranger}}.
+#' @param ... Additional arguments passed to \code{ranger}.
 #'
 #' @details
-#' This function wraps \code{\link[ranger]{ranger}} for survival analysis and
+#' This function wraps \code{ranger} for survival analysis and
 #' stores the result in a standardized `mlsurv_model` object.
 #'
 #' @return An object of class \code{"mlsurv_model"} containing:
@@ -21,7 +21,7 @@
 #'   \item \code{data} - training data used to fit the model
 #' }
 #'
-#' @seealso \code{\link{predict_ranger}}, \code{\link{tune_ranger}}, \code{\link[ranger]{ranger}}
+#' @seealso \code{predict_ranger}, \code{tune_ranger}, \code{ranger}
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE)
 #' mod <- fit_ranger(
@@ -32,7 +32,7 @@
 #' summary(mod)
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_ranger <- function(formula, data, ...) {
   stopifnot(requireNamespace("ranger", quietly = TRUE))
@@ -65,20 +65,20 @@ fit_ranger <- function(formula, data, ...) {
 #' Predict Survival Probabilities from a ranger Model
 #'
 #' Generates predicted survival probabilities for given time points
-#' from a model fitted with \code{\link{fit_ranger}}.
+#' from a model fitted with \code{fit_ranger}.
 #'
-#' @param object An \code{"mlsurv_model"} object returned by \code{\link{fit_ranger}}.
+#' @param object An \code{"mlsurv_model"} object returned by \code{fit_ranger}.
 #' @param newdata A \code{data.frame} containing the same predictors as the training data.
 #' @param times Numeric vector of time points at which to estimate survival probabilities.
 #'
 #' @details
-#' Predictions are obtained from \code{\link[ranger]{predict.ranger}} and
+#' Predictions are obtained from \code{predict.ranger} and
 #' survival curves are interpolated to match the requested \code{times}.
 #'
 #' @return A \code{data.frame} with one row per observation in \code{newdata}
 #' and one column per time point (columns named \code{"t=<time>"}).
 #'
-#' @seealso \code{\link{fit_ranger}}, \code{\link{tune_ranger}}
+#' @seealso \code{fit_ranger}, \code{tune_ranger}
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE)
 #' mod <- fit_ranger(
@@ -89,7 +89,7 @@ fit_ranger <- function(formula, data, ...) {
 #' predict_ranger(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_ranger <- function(object, newdata, times) {
 
@@ -135,13 +135,13 @@ predict_ranger <- function(object, newdata, times) {
 #' @param metrics Character vector of evaluation metrics (e.g., \code{"cindex"}, \code{"ibs"}).
 #' @param folds Number of cross-validation folds.
 #' @param seed Random seed for reproducibility.
-#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if \code{TRUE}, refits the model using the best parameters.
-#' @param ... Additional arguments passed to \code{\link{fit_ranger}}.
+#' @param ... Additional arguments passed to \code{fit_ranger}.
 #'
 #' @details
-#' Uses \code{\link{cv_survlearner}} to perform cross-validation for each
+#' Uses \code{cv_survlearner} to perform cross-validation for each
 #' parameter combination. If \code{refit_best = TRUE}, the function returns the
 #' best-fitting model; otherwise, it returns a tuning results table.
 #'
@@ -151,7 +151,7 @@ predict_ranger <- function(object, newdata, times) {
 #' \code{"mlsurv_model"} object with the best parameters and an attribute
 #' \code{"tuning_results"}.
 #'
-#' @seealso \code{\link{fit_ranger}}, \code{\link{predict_ranger}}
+#' @seealso \code{fit_ranger}, \code{predict_ranger}
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE)
 #' mod_ranger_best <- tune_ranger(
@@ -170,7 +170,7 @@ predict_ranger <- function(object, newdata, times) {
 #' summary(mod_ranger_best)
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 tune_ranger <- function(formula, data, times,
                         param_grid = expand.grid(
