@@ -14,10 +14,9 @@ run <- requireNamespace("ranger", quietly = TRUE) &&
 ```
 
 survalis 1.3.0 introduced a seven-verb interface. It keeps every prior function
-working -- nothing you have written breaks. The granular helpers are now marked
-internal in the manual and print a one-time note per session; they are
-scheduled to become unexported in a future release. This vignette shows the
-recommended replacements.
+working -- nothing you have written breaks. The granular helpers stay exported
+as the low-level layer under the verbs (see `?survalis-lowlevel`). This
+vignette shows the verb that covers each of them.
 
 ## The mapping
 
