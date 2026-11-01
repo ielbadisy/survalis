@@ -30,7 +30,7 @@
 #' is the Kaplan-Meier estimate of the cross-fitted residuals
 #' \eqn{y_i - f_{-k(i)}(x_i)}: each residual comes from a model fitted without
 #' the observation's fold, so the curves are not made overconfident by the
-#' in-sample fit. See \code{\link{predict_survsvm}} for alternatives.
+#' in-sample fit. See \code{predict_survsvm} for alternatives.
 #'
 #' @section Kernels:
 #' \describe{
@@ -70,7 +70,7 @@
 #'   \code{formula}, \code{data}, \code{time} and \code{status}; the engine
 #'   name \code{"survalis"} is stored in \code{attr(, "engine")}.
 #'
-#' @seealso [predict_survsvm()], [tune_survsvm()]
+#' @seealso `predict_survsvm()`, `tune_survsvm()`
 #'
 #' @references
 #' Shivaswamy PK, Chu W, Jansche M (2007). A support vector approach to
@@ -96,7 +96,7 @@
 #' predict_survsvm(mod_svm, newdata = veteran[1:5, ], times = c(100, 300, 500))
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_survsvm <- function(formula, data,
                         type = "regression",
@@ -183,9 +183,9 @@ fit_survsvm <- function(formula, data,
 #' Predict Survival Probabilities from a Survival SVM
 #'
 #' Turns the fitted log-time predictor \eqn{f(x)} of a model from
-#' [fit_survsvm()] into survival probabilities at the requested times.
+#' `fit_survsvm()` into survival probabilities at the requested times.
 #'
-#' @param object A fitted `mlsurv_model` returned by [fit_survsvm()].
+#' @param object A fitted `mlsurv_model` returned by `fit_survsvm()`.
 #' @param newdata A `data.frame` of new observations with the predictors used
 #'   in the formula.
 #' @param times Numeric vector of evaluation time points (same scale as the
@@ -206,7 +206,7 @@ fit_survsvm <- function(formula, data,
 #' @return A base `data.frame` with one row per observation in `newdata` and
 #'   columns `t=<time>` holding survival probabilities, non-increasing in time.
 #'
-#' @seealso [fit_survsvm()], [tune_survsvm()]
+#' @seealso `fit_survsvm()`, `tune_survsvm()`
 #'
 #' @examples
 #' mod <- fit_survsvm(Surv(time, status) ~ age + celltype + karno, data = veteran)
@@ -215,7 +215,7 @@ fit_survsvm <- function(formula, data,
 #'                 dist = "lognormal")
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_survsvm <- function(object, newdata, times,
                             dist = c("km", "lognormal", "exp", "weibull"),
@@ -264,11 +264,11 @@ predict_survsvm <- function(object, newdata, times,
 #'   `gamma.mu` and `kernel`.
 #' @param folds Number of cross-validation folds.
 #' @param seed Integer random seed for reproducibility.
-#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if `TRUE`, refits the best configuration on the
 #'   full data and returns it as the result (with tuning attributes).
-#' @param dist,shape Passed to [predict_survsvm()] during cross-validation.
+#' @param dist,shape Passed to `predict_survsvm()` during cross-validation.
 #'
 #' @return If `refit_best = FALSE`, a `data.frame` (class `"tune_surv"`) of grid
 #' results with metric columns and tuning parameters. If `refit_best = TRUE`, a
@@ -280,7 +280,7 @@ predict_survsvm <- function(object, newdata, times,
 #' to keep code paths consistent with production usage. A grid point that
 #' fails is skipped with a warning.
 #'
-#' @seealso [fit_survsvm()], [predict_survsvm()]
+#' @seealso `fit_survsvm()`, `predict_survsvm()`
 #'
 #' @examples
 #' \donttest{
@@ -301,7 +301,7 @@ predict_survsvm <- function(object, newdata, times,
 #' }
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 tune_survsvm <- function(formula, data, times,
                          metrics = "cindex",
