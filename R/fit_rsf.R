@@ -10,7 +10,7 @@
 #' @param mtry Integer or `NULL`; number of variables randomly selected at each split.
 #'   If `NULL`, the engine's default is used.
 #' @param nodesize Integer; minimum terminal node size (default: 15).
-#' @param ... Additional arguments forwarded to \code{\link[randomForestSRC]{rfsrc}}.
+#' @param ... Additional arguments forwarded to \code{rfsrc}.
 #'
 #' @return An object of class `mlsurv_model`, a named list with elements:
 #' \describe{
@@ -40,7 +40,7 @@
 #' print(round(pred_probs, 3))
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_rsf <- function(formula, data,
                       ntree = 500,
@@ -72,16 +72,16 @@ fit_rsf <- function(formula, data,
 #' Predict Survival Probabilities from an RSF Model
 #'
 #' Generates survival probability predictions for new data using a model
-#' fitted by [fit_rsf()].
+#' fitted by `fit_rsf()`.
 #'
-#' @param object A fitted `mlsurv_model` returned by [fit_rsf()].
+#' @param object A fitted `mlsurv_model` returned by `fit_rsf()`.
 #' @param newdata A `data.frame` of new observations for prediction. Must include
 #'   the same predictor variables used at training time.
 #' @param times Optional numeric vector of time points at which to return survival
 #'   probabilities. If `NULL`, predictions are returned at the model's internal
 #'   time grid.
 #' @param ... Additional arguments forwarded to
-#'   \code{\link[randomForestSRC]{predict.rfsrc}}.
+#'   \code{predict.rfsrc}.
 #'
 #' @return A base `data.frame` of survival probabilities with one row per
 #' observation in `newdata` and columns named `t={time}` (character), containing
@@ -92,7 +92,7 @@ fit_rsf <- function(formula, data,
 #' requested time, the closest available time from the RSF prediction object's
 #' `time.interest` grid (nearest-neighbor matching).
 #'
-#' @seealso [fit_rsf()], \code{\link[randomForestSRC]{predict.rfsrc}}
+#' @seealso `fit_rsf()`, \code{predict.rfsrc}
 #'
 #' @examplesIf requireNamespace("randomForestSRC", quietly = TRUE)
 #' mod_rsf <- fit_rsf(Surv(time, status) ~ age + celltype + karno,
@@ -103,7 +103,7 @@ fit_rsf <- function(formula, data,
 #' print(round(pred_probs, 3))
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_rsf <- function(object, newdata, times = NULL, ...) {
 
@@ -147,7 +147,7 @@ predict_rsf <- function(object, newdata, times = NULL, ...) {
 #'   (e.g., `"cindex"`, `"ibs"`). The first entry is the primary selection metric.
 #' @param folds Integer; number of cross-validation folds.
 #' @param seed Integer random seed for reproducibility.
-#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if `TRUE`, refits the best configuration on the
 #'   full data and returns it, with tuning results attached.
@@ -155,7 +155,7 @@ predict_rsf <- function(object, newdata, times = NULL, ...) {
 #'
 #' @return If `refit_best = FALSE`, a `data.frame` (class `"tuned_surv"`) of grid
 #' results with metric columns and hyperparameters, ordered by the first metric.
-#' If `refit_best = TRUE`, a fitted `mlsurv_model` from [fit_rsf()] with
+#' If `refit_best = TRUE`, a fitted `mlsurv_model` from `fit_rsf()` with
 #' attribute `"tuning_results"` containing the full grid results.
 #'
 #' @details
@@ -163,7 +163,7 @@ predict_rsf <- function(object, newdata, times = NULL, ...) {
 #' uses the same code paths as production. Typical grids vary `ntree`, `mtry`,
 #' and `nodesize`.
 #'
-#' @seealso [fit_rsf()], [predict_rsf()]
+#' @seealso `fit_rsf()`, `predict_rsf()`
 #'
 #' @examplesIf requireNamespace("randomForestSRC", quietly = TRUE)
 #' \donttest{
@@ -184,7 +184,7 @@ predict_rsf <- function(object, newdata, times = NULL, ...) {
 #' summary(mod_rsf_best)
 #' }
 #' @keywords internal
-#' @export
+#' @noRd
 
 tune_rsf <- function(formula, data, times,
                        param_grid = expand.grid(
