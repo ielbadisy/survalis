@@ -61,7 +61,7 @@
 #'   grid.size = 6
 #' )
 #'
-#' @export
+#' @noRd
 
 compute_interactions <- function(model, data, times,
                                  target_time = NULL,
@@ -76,7 +76,7 @@ compute_interactions <- function(model, data, times,
     features <- setdiff(colnames(data), c(model$time, model$status))
   }
 
-  predict_function <- get(paste0("predict_", model$learner))
+  predict_function <- .predict_fun(model)
   idx_time <- function(t) which.min(abs(times - t))
 
   if (type == "1way") {
@@ -170,7 +170,7 @@ compute_interactions <- function(model, data, times,
 
 #' Plot Interaction Strengths for Survival Models
 #'
-#' Visualizes interaction outputs from \code{\link{compute_interactions}} as
+#' Visualizes interaction outputs from \code{compute_interactions} as
 #' (i) a ranked bar chart for one-way interactions, (ii) a pairwise heatmap,
 #' or (iii) time-varying interaction trajectories.
 #'
@@ -202,7 +202,7 @@ compute_interactions <- function(model, data, times,
 #' )
 #' plot_interactions(ia, type = "1way")
 #'
-#' @export
+#' @noRd
 
 plot_interactions <- function(object, type = c("1way", "heatmap", "time"), title) {
   type <- match.arg(type)
