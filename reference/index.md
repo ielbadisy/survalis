@@ -43,6 +43,13 @@ Split schemes used by
   [`bootstrap()`](https://elbadisyimad.com/survalis/reference/resampling.md)
   : Resampling specifications for evaluate(), tune() and compare()
 
+## Scores
+
+Decision-weighted scores over stated risk thresholds.
+
+- [`dwscore()`](https://elbadisyimad.com/survalis/reference/dwscore.md)
+  : Decision-weighted scores for survival predictions
+
 ## Lookups
 
 Valid ids for `model`, `metrics` and `method`.

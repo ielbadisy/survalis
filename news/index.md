@@ -33,6 +33,18 @@
   maps each one to its verb. `screen_fdr()` is removed; use the
   `"selectcox"` or `"glmnet"` learners for variable selection.
 
+- New decision-weighted scores
+  ([`dwscore()`](https://elbadisyimad.com/survalis/reference/dwscore.md)):
+  the loss of the rule “act if predicted risk exceeds c”, averaged over
+  risk thresholds c with a stated weight (threshold range, SurvAcc,
+  Brier, logarithmic or Beta), with IPCW for censoring. Each score is a
+  weighted area under the net benefit curve. The metric ids `"survacc"`
+  and `"range:<lower>-<upper>"` (for example `"range:0.05-0.20"`) work
+  in
+  [`evaluate()`](https://elbadisyimad.com/survalis/reference/evaluate.md),
+  [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md)
+  and [`tune()`](https://elbadisyimad.com/survalis/reference/tune.md).
+
 - Custom learners: `model` in every verb also accepts
   `list(fit = function(formula, data, ...), predict = function(object, newdata, times))`,
   where `predict` returns an `nrow(newdata) x length(times)` matrix of

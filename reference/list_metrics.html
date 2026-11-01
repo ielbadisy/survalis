@@ -67,27 +67,33 @@ and the <code>metric</code> argument of <code><a href="tune.html">tune()</a></co
 <li><p><code>direction</code>: whether higher or lower values are better.</p></li>
 <li><p><code>summary</code>: brief description.</p></li>
 <li><p><code>range</code>: typical value range.</p></li>
-</ul></div>
+</ul><p><code>"range:&lt;lower&gt;-&lt;upper&gt;"</code> is a template: write the thresholds into the id,
+for example <code>"range:0.05-0.20"</code>.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">list_metrics</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   metric direction</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 cindex  maximize</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2    auc  maximize</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  brier  minimize</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4    ibs  minimize</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5    iae  minimize</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6    ise  minimize</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7    ece  minimize</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                    summary</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                Harrell-style concordance index for survival predictions.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2     Cumulative/dynamic time-dependent AUC at a selected evaluation time.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 Brier Score at specified evaluation time(s) (IPCW-weighted when needed).</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4     Integrated Brier Score over an evaluation time grid (IPCW-weighted).</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                Integrated absolute error against the Kaplan-Meier curve.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                 Integrated squared error against the Kaplan-Meier curve.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                  Expected calibration error at a single evaluation time.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  metric direction</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                cindex  maximize</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                   auc  maximize</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                 brier  minimize</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                   ibs  minimize</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                   iae  minimize</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6                   ise  minimize</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7                   ece  minimize</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8               survacc  maximize</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9 range:&lt;lower&gt;-&lt;upper&gt;  minimize</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                                        summary</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                    Harrell-style concordance index for survival predictions.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                         Cumulative/dynamic time-dependent AUC at a selected evaluation time.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                     Brier Score at specified evaluation time(s) (IPCW-weighted when needed).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                         Integrated Brier Score over an evaluation time grid (IPCW-weighted).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                    Integrated absolute error against the Kaplan-Meier curve.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                                     Integrated squared error against the Kaplan-Meier curve.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7                                                      Expected calibration error at a single evaluation time.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8                           SurvAcc: spherical decision-weighted score at a single time (IPCW), see dwscore().</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9 Decision-weighted loss over a risk-threshold range, e.g. "range:0.05-0.20", at a single time, see dwscore().</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                        range</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1  [0, 1] (higher is better)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2  [0, 1] (higher is better)</span>
@@ -96,6 +102,8 @@ and the <code>metric</code> argument of <code><a href="tune.html">tune()</a></co
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5 [0, Inf) (lower is better)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6 [0, Inf) (lower is better)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 7   [0, 1] (lower is better)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  [0, 1] (higher is better)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9   [0, 1] (lower is better)</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
