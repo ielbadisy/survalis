@@ -49,15 +49,15 @@
 #' )
 #' head(pdp_age$results)
 #'
-#' @export
+#' @noRd
 
 compute_pdp <- function(model, data, feature, times,
                         method = "pdp+ice", grid.size = 20) {
   # Automatically determine prediction function
-  if (is.null(model$learner) || !exists(paste0("predict_", model$learner))) {
-    stop("Could not infer prediction function. Ensure model has a valid `learner` and was created using `fit_*()`.")
+  if (is.null(model$learner) && !is.function(model$predict_fun)) {
+    stop("`model` must come from fit().", call. = FALSE)
   }
-  predict_function <- get(paste0("predict_", model$learner))
+  predict_function <- .predict_fun(model)
 
   if (!feature %in% names(data)) stop("Feature not found in data.")
 
@@ -151,7 +151,7 @@ compute_pdp <- function(model, data, feature, times,
 #' Plot PDP/ICE Curves for Survival Models
 #'
 #' Plots partial dependence (PDP) and/or individual conditional expectation (ICE)
-#' results returned by \code{\link{compute_pdp}} either per evaluation time or as
+#' results returned by \code{compute_pdp} either per evaluation time or as
 #' an integrated PDP over time.
 #'
 #' @param pdp_ice_output The list returned by \code{compute_pdp()}.
@@ -190,7 +190,7 @@ compute_pdp <- function(model, data, feature, times,
 #' plot_pdp(pdp_age, feature = "age", which = "per_time")
 #' plot_pdp(pdp_age, feature = "age", which = "integrated", smooth = TRUE)
 #'
-#' @export
+#' @noRd
 
 plot_pdp <- function(pdp_ice_output, feature,
                      method = "pdp+ice", ids = NULL,
