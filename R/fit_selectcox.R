@@ -29,7 +29,7 @@
 #' This wrapper standardizes the return object to the `mlsurv_model` contract so
 #' downstream prediction and evaluation behave consistently across learners.
 #'
-#' @seealso [predict_selectcox()], [tune_selectcox()], \code{pec::selectCox()}
+#' @seealso `predict_selectcox()`, `tune_selectcox()`, \code{pec::selectCox()}
 #'
 #' @references
 #' Mogensen UB, Ishwaran H, Gerds TA (2012). Evaluating Random Forests for
@@ -40,7 +40,7 @@
 #' mod <- fit_selectcox(Surv(time, status) ~ age + celltype + karno, data = veteran)
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_selectcox <- function(formula, data, rule = "aic") {
   stopifnot(requireNamespace("pec", quietly = TRUE))
@@ -62,7 +62,7 @@ fit_selectcox <- function(formula, data, rule = "aic") {
 #' Generates survival probabilities at specified time points using a fitted
 #' selected‑predictor Cox model (`mlsurv_model`) via \code{pec::predictSurvProb()}.
 #'
-#' @param object A fitted `mlsurv_model` returned by [fit_selectcox()].
+#' @param object A fitted `mlsurv_model` returned by `fit_selectcox()`.
 #' @param newdata A `data.frame` of new observations for prediction. Must include
 #'   the same predictor variables used at training time.
 #' @param times Numeric vector of evaluation time points (same scale as the
@@ -76,14 +76,14 @@ fit_selectcox <- function(formula, data, rule = "aic") {
 #' Internally calls \code{pec::predictSurvProb(object$model, newdata, times)}
 #' and renames columns to the standard `t=...` convention used by `survalis`.
 #'
-#' @seealso [fit_selectcox()], [tune_selectcox()]
+#' @seealso `fit_selectcox()`, `tune_selectcox()`
 #'
 #' @examplesIf requireNamespace("pec", quietly = TRUE)
 #' mod <- fit_selectcox(Surv(time, status) ~ age + celltype + karno, data = veteran)
 #' predict_selectcox(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_selectcox <- function(object, newdata, times) {
 
@@ -119,7 +119,7 @@ predict_selectcox <- function(object, newdata, times) {
 #'   selection metric.
 #' @param folds Number of cross‑validation folds.
 #' @param seed Integer random seed for reproducibility.
-#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if `TRUE`, refits the best rule on the full data
 #'   and returns it as an `mlsurv_model` (with tuning results attached).
@@ -127,7 +127,7 @@ predict_selectcox <- function(object, newdata, times) {
 #'
 #' @return If `refit_best = FALSE`, a `data.frame` (class `"tuned_surv"`) with a
 #' row per rule and metric columns, ordered by the first metric. If
-#' `refit_best = TRUE`, a fitted `mlsurv_model` from [fit_selectcox()] with
+#' `refit_best = TRUE`, a fitted `mlsurv_model` from `fit_selectcox()` with
 #' attribute `"tuning_results"` containing the full results.
 #'
 #' @details
@@ -135,7 +135,7 @@ predict_selectcox <- function(object, newdata, times) {
 #' `fit_selectcox()`/`predict_selectcox()` to ensure tuning uses the same code
 #' paths as production. Rules typically include \code{"aic"} and/or \code{"p"}.
 #'
-#' @seealso [fit_selectcox()], [predict_selectcox()], \code{pec::selectCox()}
+#' @seealso `fit_selectcox()`, `predict_selectcox()`, \code{pec::selectCox()}
 #'
 #' @examplesIf requireNamespace("pec", quietly = TRUE)
 #' res_selectcox <- tune_selectcox(
@@ -164,7 +164,7 @@ predict_selectcox <- function(object, newdata, times) {
 #' summary(mod_selectcox)
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 tune_selectcox <- function(formula, data, times,
                            rules = c("aic", "p"),
