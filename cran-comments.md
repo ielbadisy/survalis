@@ -1,4 +1,4 @@
-## Update from 1.0.0 to 1.7.0
+## Update from 1.0.0 to 2.0.0
 
 Main changes (see NEWS.md for the full list):
 
