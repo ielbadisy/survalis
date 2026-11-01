@@ -16,25 +16,25 @@
 #'
 #' @details
 #' The predicted risk at the horizon is \eqn{\pi_i = 1 - \hat S(t^\star \mid X_i)}.
-#' At threshold \code{pt}, subjects with \eqn{\pi_i \ge pt} are classified
+#' At threshold \code{pt}, subjects with \eqn{\pi_i > pt} are classified
 #' high-risk. Using the IPCW identity for the Kaplan-Meier estimator (Graf et
 #' al. 1999), the true- and false-positive fractions are estimated as
 #' \deqn{
 #'   \widehat{\mathrm{TPF}}(pt) = \frac{1}{n}\sum_{i=1}^n
-#'     I(\pi_i \ge pt)\, \frac{\Delta_i\, I(\tilde T_i \le t^\star)}{\hat G(\tilde T_i)},
+#'     I(\pi_i > pt)\, \frac{\Delta_i\, I(\tilde T_i \le t^\star)}{\hat G(\tilde T_i-)},
 #'   \qquad
 #'   \widehat{\mathrm{FPF}}(pt) = \frac{1}{n}\sum_{i=1}^n
-#'     I(\pi_i \ge pt)\, \frac{I(\tilde T_i > t^\star)}{\hat G(t^\star)},
+#'     I(\pi_i > pt)\, \frac{I(\tilde T_i > t^\star)}{\hat G(t^\star)},
 #' }
 #' and the net benefit is
 #' \deqn{
 #'   \widehat{\mathrm{NB}}(pt) = \widehat{\mathrm{TPF}}(pt) -
 #'     \widehat{\mathrm{FPF}}(pt) \cdot \frac{pt}{1-pt}.
 #' }
-#' "Treat all" (classify everyone high-risk) reduces to the marginal IPCW-KM
-#' identity \eqn{1 - \hat S_{\mathrm{KM}}(t^\star)} for the TPF term and
-#' \eqn{\hat S_{\mathrm{KM}}(t^\star)} for the FPF term. "Treat none" has net
-#' benefit \eqn{0} by definition.
+#' "Treat all" (classify everyone high-risk) uses the same weights with
+#' \eqn{I(\pi_i > pt)} replaced by one. "Treat none" has net benefit \eqn{0}
+#' by definition. These are the weights of [dwscore()], so a decision-weighted
+#' loss equals the weighted area between treat all and the model curve exactly.
 #'
 #' @return An object of class \code{"dca_survmat"}: a list with \code{curve}
 #'   (a data.frame with \code{threshold}, \code{model}, \code{treat_all},
@@ -78,32 +78,12 @@ dca_survmat <- function(object, predicted, t_star, thresholds = seq(0.01, 0.99, 
   surv_prob <- if (is.matrix(predicted)) predicted[, t_name] else predicted[[t_name]]
   risk <- 1 - surv_prob
 
-  km_fit <- survival::survfit(survival::Surv(time, 1 - status) ~ 1)
-  eval_times <- sort(unique(c(t_star, time[status == 1 & time <= t_star])))
-  G_all <- summary(km_fit, times = eval_times, extend = TRUE)$surv
-  names(G_all) <- as.character(eval_times)
+  w <- .ipcw_weights(object, t_star)
+  if (is.null(w)) stop("Net benefit is undefined because G(t_star) is NA or zero.")
 
-  Gt <- G_all[as.character(t_star)]
-  if (is.na(Gt) || Gt <= 0) stop("Net benefit is undefined because G(t_star) is NA or zero.")
-
-  early_event <- which(status == 1 & time <= t_star)
-  Gi <- G_all[as.character(time[early_event])]
-  ipcw_case <- numeric(n)
-  valid <- which(is.finite(Gi) & Gi > 0)
-  ipcw_case[early_event[valid]] <- 1 / Gi[valid]
-
-  at_risk <- as.numeric(time > t_star) / Gt
-
-  net_benefit_model <- vapply(thresholds, function(pt) {
-    highrisk <- risk >= pt
-    tpf <- mean(highrisk * ipcw_case)
-    fpf <- mean(highrisk * at_risk)
-    tpf - fpf * (pt / (1 - pt))
-  }, numeric(1))
-
-  km_marg <- summary(km_fit, times = t_star, extend = TRUE)$surv
-  odds <- thresholds / (1 - thresholds)
-  net_benefit_all <- (1 - km_marg) - km_marg * odds
+  nb <- function(treat, pt) mean(treat * w$w1) - mean(treat * w$w0) * pt / (1 - pt)
+  net_benefit_model <- vapply(thresholds, function(pt) nb(risk > pt, pt), numeric(1))
+  net_benefit_all <- vapply(thresholds, function(pt) nb(rep(TRUE, n), pt), numeric(1))
 
   curve <- data.frame(
     threshold = thresholds,
