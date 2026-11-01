@@ -2,7 +2,7 @@
 #' Fit a Penalized Cox Proportional Hazards Model (glmnet)
 #'
 #' Fits a Cox proportional hazards model with elastic net regularization
-#' using \pkg{glmnet}. The function wraps \code{\link[glmnet]{cv.glmnet}} to
+#' using \pkg{glmnet}. The function wraps \code{cv.glmnet} to
 #' select the optimal penalty parameter \eqn{\lambda} by cross-validation.
 #'
 #' @param formula A survival formula of the form \code{Surv(time, status) ~ predictors}.
@@ -14,7 +14,7 @@
 #'     \item \code{0} for ridge penalty
 #'     \item between 0 and 1 for elastic net
 #'   }
-#' @param ... Additional arguments passed to \code{\link[glmnet]{cv.glmnet}}.
+#' @param ... Additional arguments passed to \code{cv.glmnet}.
 #'
 #' @return An object of class \code{"mlsurv_model"} containing:
 #' \itemize{
@@ -23,7 +23,7 @@
 #'   \item \code{formula}, \code{data}, \code{time}, and \code{status} metadata
 #' }
 #'
-#' @seealso \code{\link[glmnet]{cv.glmnet}}, \code{\link{predict_glmnet}}
+#' @seealso \code{cv.glmnet}, \code{predict_glmnet}
 #'
 #' @examples
 #'
@@ -35,7 +35,7 @@
 #' summary(mod_glmnet$model)
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_glmnet <- function(formula, data, alpha = 1, ...) {
   stopifnot(requireNamespace("glmnet", quietly = TRUE))
@@ -60,9 +60,9 @@ fit_glmnet <- function(formula, data, alpha = 1, ...) {
 #' Predict Survival Probabilities from a Penalized Cox Model (glmnet)
 #'
 #' Predicts survival probabilities at specified time points from a fitted
-#' penalized Cox proportional hazards model produced by \code{\link{fit_glmnet}}.
+#' penalized Cox proportional hazards model produced by \code{fit_glmnet}.
 #'
-#' @param object A fitted \code{"mlsurv_model"} object from \code{\link{fit_glmnet}}.
+#' @param object A fitted \code{"mlsurv_model"} object from \code{fit_glmnet}.
 #' @param newdata A \code{data.frame} of new observations for prediction.
 #' @param times Numeric vector of time points at which to estimate survival
 #'   probabilities. Must be in the same scale as the training time variable.
@@ -82,7 +82,7 @@ fit_glmnet <- function(formula, data, alpha = 1, ...) {
 #'     transforming via \eqn{S(t \mid x) = \exp(-H_0(t) \exp(\eta))}.
 #' }
 #'
-#' @seealso \code{\link{fit_glmnet}}
+#' @seealso \code{fit_glmnet}
 #'
 #' @examples
 #'
@@ -98,7 +98,7 @@ fit_glmnet <- function(formula, data, alpha = 1, ...) {
 #' )
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_glmnet <- function(object, newdata, times, ...) {
 
@@ -129,26 +129,26 @@ predict_glmnet <- function(object, newdata, times, ...) {
 #' @param data A \code{data.frame} containing all variables referenced in \code{formula}.
 #' @param times Numeric vector of time points at which to evaluate performance.
 #' @param param_grid A \code{data.frame} or list specifying candidate \code{alpha} values.
-#'   Typically created with \code{\link[base]{expand.grid}}.
+#'   Typically created with \code{expand.grid}.
 #' @param metrics Character vector of performance metrics to compute. The first
 #'   entry is used as the primary selection metric.
 #' @param folds Integer; number of cross-validation folds. Default is \code{5}.
 #' @param seed Integer random seed for reproducibility. Default is \code{123}.
-#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if \code{TRUE}, fits the best configuration on the
 #'   full dataset and returns the fitted model. If \code{FALSE} (default), returns
 #'   a results table.
-#' @param ... Additional arguments passed to \code{\link{fit_glmnet}}.
+#' @param ... Additional arguments passed to \code{fit_glmnet}.
 #'
 #' @return
 #' If \code{refit_best = FALSE}, returns a \code{data.frame} (class \code{"tuned_surv"})
 #' with hyperparameters and metric values for each grid combination, sorted by
 #' the primary metric.  
 #' If \code{refit_best = TRUE}, returns a fitted \code{"mlsurv_model"} from
-#' \code{\link{fit_glmnet}}.
+#' \code{fit_glmnet}.
 #'
-#' @seealso \code{\link{fit_glmnet}}, \code{\link{predict_glmnet}}
+#' @seealso \code{fit_glmnet}, \code{predict_glmnet}
 #'
 #' @examples
 #' \donttest{
@@ -176,7 +176,7 @@ predict_glmnet <- function(object, newdata, times, ...) {
 #' }
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 tune_glmnet <- function(formula, data, times,
                         param_grid = list(alpha = seq(0, 1, by = 0.25)),
