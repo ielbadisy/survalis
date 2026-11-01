@@ -1,38 +1,81 @@
-#' Resampled performance of a survival learner
+#' Performance of a survival learner
 #'
-#' Refits `model` on each training split of `resampling` and scores its
-#' predictions on the held-out split, returning per-split metric values plus a
-#' summary. A `survalis_fit` may be passed directly, in which case its stored
-#' formula, data and `spec` are reused.
+#' Scores survival predictions in one of three ways:
+#' \describe{
+#'   \item{Resampled}{`evaluate(fit)` or `evaluate(formula, data, model)` refits
+#'     the learner on each training split of `resampling` and scores it on the
+#'     held-out split (internal validation).}
+#'   \item{New data}{`evaluate(fit, newdata = test)` scores a fitted learner on
+#'     data it was not trained on (external or temporal validation).}
+#'   \item{Supplied predictions}{`evaluate(S, y = Surv(time, status))` scores an
+#'     `n x length(times)` matrix of survival probabilities produced elsewhere,
+#'     for example by another package.}
+#' }
 #'
-#' @param object A `survalis_fit` from [fit()], or a survival `formula`.
+#' @param object A `survalis_fit` from [fit()], a survival `formula`, or a
+#'   numeric matrix of survival probabilities (rows = subjects, columns = times).
 #' @param data When `object` is a formula: the data frame.
 #' @param model When `object` is a formula: a learner id
-#'   (`list_survlearners()$learner`).
+#'   (`list_survlearners()$learner`) or a custom learner (see [fit()]).
 #' @param spec When `object` is a formula: engine arguments (named list).
-#' @param times Evaluation grid; `NULL` uses [default_times()] and records it.
-#' @param resampling A [resampling] spec (default `cv()`).
+#' @param newdata When `object` is a `survalis_fit`: optional data frame with the
+#'   outcome columns. If given, the fit is scored on it once and `resampling` is
+#'   ignored.
+#' @param y When `object` is a matrix: a [survival::Surv()] object with one
+#'   entry per row of `object`.
+#' @param times Evaluation grid. `NULL` picks a grid from the data quantiles and
+#'   records it; for a matrix, `NULL` reads the `"times"` attribute or column
+#'   names of the form `"t=<time>"`.
+#' @param resampling A resampling spec from [cv()], [holdout()], [group_cv()] or
+#'   [bootstrap()] (default `cv()`).
 #' @param metrics Character vector from `list_metrics()$metric`. `"brier"` and
 #'   `"ece"` require a single `times` value.
 #' @param ncores Cores for the split loop (default `1`).
 #' @param ... Unused.
 #'
 #' @return A `survalis_eval` object: `per_split` (long data frame), `summary`
-#'   (mean / sd / se / 95% interval per metric), `times`, `resampling`,
-#'   `metrics`, `model`.
+#'   (mean / sd / se / 95% interval per metric), `times`, `resampling` (`NULL`
+#'   when scored once), `metrics`, `model`.
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE)
 #' m <- fit(Surv(time, status) ~ age + karno + celltype, veteran, "ranger",
 #'          spec = list(num.trees = 100))
 #' evaluate(m, times = c(90, 180, 365), resampling = cv(3))
+#'
+#' # train / test split
+#' idx <- seq_len(100)
+#' m_tr <- fit(Surv(time, status) ~ age + karno, veteran[idx, ], "coxph")
+#' evaluate(m_tr, newdata = veteran[-idx, ], times = c(90, 180))
+#'
+#' # predictions from anywhere
+#' S <- predict(m_tr, veteran[-idx, ], times = c(90, 180))
+#' evaluate(S, y = Surv(veteran$time[-idx], veteran$status[-idx]))
 #' @export
 evaluate <- function(object, ...) UseMethod("evaluate")
 
 #' @rdname evaluate
 #' @export
-evaluate.survalis_fit <- function(object, times = NULL, resampling = cv(),
+evaluate.survalis_fit <- function(object, newdata = NULL, times = NULL,
+                                  resampling = cv(),
                                   metrics = c("cindex", "ibs"), ncores = 1, ...) {
-  .evaluate_core(object$formula, object$data, object$model_id, object$spec,
+  model <- .null_default(object$learner_def, object$model_id)
+  if (!is.null(newdata)) {
+    parsed <- attr(object, "surv_parsed")
+    if (is.null(parsed)) parsed <- .parse_surv_formula(object$formula, object$data)
+    need <- c(parsed$time_col, parsed$status_col)
+    if (!all(need %in% names(newdata))) {
+      stop("`newdata` must contain the outcome columns ",
+           paste(sQuote(need), collapse = ", "), ".", call. = FALSE)
+    }
+    newdata <- .complete_cases_df(newdata, all.vars(object$formula))
+    S <- predict(object, newdata = newdata, times = times)
+    y <- survival::Surv(newdata[[parsed$time_col]], .recode_status_vec(parsed, newdata))
+    out <- evaluate.matrix(S, y = y, times = attr(S, "times"), metrics = metrics)
+    out$model <- object$model_id
+    out$formula <- object$formula
+    return(out)
+  }
+  .evaluate_core(object$formula, object$data, model, object$spec,
                  times = times, resampling = resampling, metrics = metrics,
                  ncores = ncores)
 }
@@ -47,6 +90,45 @@ evaluate.formula <- function(object, data, model, spec = list(), times = NULL,
                  ncores = ncores)
 }
 
+#' @rdname evaluate
+#' @export
+evaluate.matrix <- function(object, y, times = NULL,
+                            metrics = c("cindex", "ibs"), ...) {
+  if (!inherits(y, "Surv")) stop("`y` must be a Surv() object.", call. = FALSE)
+  P <- unclass(as.matrix(object))
+  if (!is.numeric(P)) stop("`object` must be a numeric matrix.", call. = FALSE)
+  if (nrow(P) != NROW(y)) {
+    stop("`object` has ", nrow(P), " rows but `y` has ", NROW(y), " entries.",
+         call. = FALSE)
+  }
+  if (is.null(times)) times <- attr(object, "times")
+  if (is.null(times) && !is.null(colnames(P))) {
+    times <- suppressWarnings(as.numeric(sub("^t=", "", colnames(P))))
+    if (anyNA(times)) times <- NULL
+  }
+  if (is.null(times)) {
+    stop("Give `times`, or name the columns \"t=<time>\".", call. = FALSE)
+  }
+  times <- as.numeric(times)
+  if (length(times) != ncol(P)) {
+    stop("`times` has length ", length(times), " but `object` has ", ncol(P),
+         " columns.", call. = FALSE)
+  }
+  attributes(P) <- list(dim = dim(P))
+  colnames(P) <- paste0("t=", times)
+  sc <- .score_metrics(y, as.data.frame(P), times, metrics)
+  per <- data.frame(id = "supplied", metric = sc$metric, value = sc$value,
+                    stringsAsFactors = FALSE)
+  summ <- data.frame(metric = sc$metric, mean = sc$value, sd = NA_real_,
+                     n = 1L, se = NA_real_, lower = NA_real_, upper = NA_real_)
+  structure(
+    list(per_split = per, summary = summ, times = times, resampling = NULL,
+         metrics = metrics, model = "supplied predictions", formula = NULL,
+         n = nrow(P)),
+    class = "survalis_eval"
+  )
+}
+
 #' @keywords internal
 .recode_status_vec <- function(parsed, df) {
   s <- df[[parsed$status_col]]
@@ -57,8 +139,9 @@ evaluate.formula <- function(object, data, model, spec = list(), times = NULL,
 #' @keywords internal
 .evaluate_splits <- function(splits, formula, data, model, spec, times, metrics,
                              parsed, ncores = 1) {
-  fit_fun  <- get(paste0("fit_", model), envir = asNamespace("survalis"))
-  pred_fun <- get(paste0("predict_", model), envir = asNamespace("survalis"))
+  lrn <- .resolve_learner(model)
+  fit_fun  <- lrn$fit
+  pred_fun <- lrn$predict
 
   one <- function(sp) {
     tr <- data[sp$analysis, , drop = FALSE]
@@ -83,8 +166,7 @@ evaluate.formula <- function(object, data, model, spec = list(), times = NULL,
 #' @keywords internal
 .evaluate_core <- function(formula, data, model, spec, times, resampling,
                            metrics, ncores = 1) {
-  known <- list_survlearners()$learner
-  if (!model %in% known) stop("Unknown model ", sQuote(model), ".", call. = FALSE)
+  .resolve_learner(model)
   parsed <- .parse_surv_formula(formula, data)
   data <- .complete_cases_df(data, all.vars(formula))
   status <- .recode_status_vec(parsed, data)
@@ -97,7 +179,7 @@ evaluate.formula <- function(object, data, model, spec = list(), times = NULL,
 
   structure(
     list(per_split = per, summary = as.data.frame(summ), times = times,
-         resampling = resampling, metrics = metrics, model = model,
+         resampling = resampling, metrics = metrics, model = .learner_label(model),
          formula = formula),
     class = "survalis_eval"
   )
@@ -106,13 +188,21 @@ evaluate.formula <- function(object, data, model, spec = list(), times = NULL,
 #' @export
 print.survalis_eval <- function(x, ...) {
   cat(sprintf("<survalis_eval> model = %s\n", x$model))
-  print(x$resampling)
+  if (is.null(x$resampling)) {
+    cat(sprintf("  scored once on %d subjects (no resampling)\n", x$n))
+  } else {
+    print(x$resampling)
+  }
   cat(sprintf("  grid: %d times in [%s, %s]\n",
               length(x$times), format(min(x$times)), format(max(x$times))))
   s <- x$summary
   for (i in seq_len(nrow(s))) {
-    cat(sprintf("  %-7s %.4f  (sd %.4f, 95%% [%.4f, %.4f], n = %d)\n",
-                s$metric[i], s$mean[i], s$sd[i], s$lower[i], s$upper[i], s$n[i]))
+    if (is.null(x$resampling)) {
+      cat(sprintf("  %-7s %.4f\n", s$metric[i], s$mean[i]))
+    } else {
+      cat(sprintf("  %-7s %.4f  (sd %.4f, 95%% [%.4f, %.4f], n = %d)\n",
+                  s$metric[i], s$mean[i], s$sd[i], s$lower[i], s$upper[i], s$n[i]))
+    }
   }
   invisible(x)
 }
