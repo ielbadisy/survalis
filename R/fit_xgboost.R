@@ -266,7 +266,7 @@ tune_xgboost <- function(formula, data, times,
     param_grid <- do.call(expand.grid, c(param_grid, stringsAsFactors = FALSE))
   }
 
-  .higher_is_better <- function(metric) metric %in% c("cindex", "auc", "accuracy")
+  .higher_is_better <- function(metric) .metric_maximize(metric)
 
   results <- .pmap_rbind_dt(
     param_grid,
