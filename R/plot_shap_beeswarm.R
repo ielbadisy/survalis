@@ -1,10 +1,10 @@
 #' Time-Integrated SHAP Values for a Set of Observations
 #'
-#' Computes \code{\link{compute_shap}} for every row of \code{newdata} and,
+#' Computes \code{compute_shap} for every row of \code{newdata} and,
 #' instead of averaging across observations (as the internal
 #' \code{compute_shap_mean()} helper does), keeps one time-integrated SHAP
 #' value per (observation, feature) pair together with each observation's raw
-#' feature value -- the input needed for \code{\link{plot_shap_beeswarm}}.
+#' feature value -- the input needed for \code{plot_shap_beeswarm}.
 #'
 #' @param model An \code{mlsurv_model} object from a \code{fit_*()} learner.
 #' @param newdata A data.frame of observations to explain (one row per
@@ -12,17 +12,17 @@
 #' @param baseline_data A data.frame to sample background values from
 #'   (typically the training data used to fit \code{model}).
 #' @param times Numeric vector of evaluation times passed to
-#'   \code{\link{compute_shap}}.
+#'   \code{compute_shap}.
 #' @param sample.size Integer, number of random feature orderings sampled per
-#'   observation and time point (passed to \code{\link{compute_shap}}).
+#'   observation and time point (passed to \code{compute_shap}).
 #'   Default \code{100}.
 #' @param features Optional character vector of covariate names to explain,
-#'   passed through to \code{\link{compute_shap}}. If \code{NULL} (default),
+#'   passed through to \code{compute_shap}. If \code{NULL} (default),
 #'   inferred as \code{setdiff(colnames(newdata), c(model$time, model$status))}.
 #'
 #' @details
 #' For each observation \eqn{x}, per-time Shapley values
-#' \eqn{\varphi_j(x, t)} (from \code{\link{compute_shap}}) are time-integrated
+#' \eqn{\varphi_j(x, t)} (from \code{compute_shap}) are time-integrated
 #' via the trapezoidal rule over the requested time grid,
 #' \deqn{
 #'   \Phi_j(x) = \int_0^{T} \varphi_j(x, t)\, dt
@@ -33,14 +33,14 @@
 #' \code{compute_shap(..., aggregate = TRUE, method = "integral")}. This
 #' produces one summary contribution per (observation, feature) that reflects
 #' impact over the *entire* prediction horizon in a single value, which is
-#' what \code{\link{plot_shap_beeswarm}} visualizes -- as opposed to a
+#' what \code{plot_shap_beeswarm} visualizes -- as opposed to a
 #' per-timepoint SurvSHAP(t) panel.
 #'
 #' @return A long data.frame with columns \code{observation}, \code{feature},
 #'   \code{phi} (time-integrated SHAP value), and \code{raw_value} (the
 #'   observation's value for that feature).
 #'
-#' @seealso [compute_shap()], [plot_shap_beeswarm()]
+#' @seealso `compute_shap()`, `plot_shap_beeswarm()`
 #'
 #' @examples
 #' \donttest{
@@ -50,7 +50,7 @@
 #'                           sample.size = 5)
 #' head(sm)
 #' }
-#' @export
+#' @noRd
 compute_shap_matrix <- function(model, newdata, baseline_data, times, sample.size = 100, features = NULL) {
   stopifnot(nrow(newdata) >= 1)
   feature_names <- if (is.null(features)) {
@@ -87,12 +87,12 @@ compute_shap_matrix <- function(model, newdata, baseline_data, times, sample.siz
 #' SHAP Beeswarm Plot (Time-Integrated)
 #'
 #' Plots the distribution of time-integrated SHAP contributions
-#' (\code{\link{compute_shap_matrix}} output) across observations, one row per
+#' (\code{compute_shap_matrix} output) across observations, one row per
 #' feature, with points coloured by each observation's (min-max scaled) raw
 #' feature value -- summarizing global feature impact across the entire
 #' prediction horizon in a single panel.
 #'
-#' @param shap_matrix A data.frame returned by \code{\link{compute_shap_matrix}}.
+#' @param shap_matrix A data.frame returned by \code{compute_shap_matrix}.
 #' @param top_n Optional integer; if supplied, only the \code{top_n} features
 #'   with the largest mean absolute SHAP value are shown.
 #' @param title Plot title. If missing, an automatically generated title is
@@ -100,7 +100,7 @@ compute_shap_matrix <- function(model, newdata, baseline_data, times, sample.siz
 #'
 #' @return A \pkg{ggplot2} object.
 #'
-#' @seealso [compute_shap_matrix()]
+#' @seealso `compute_shap_matrix()`
 #'
 #' @examples
 #' \donttest{
@@ -110,7 +110,7 @@ compute_shap_matrix <- function(model, newdata, baseline_data, times, sample.siz
 #'                           sample.size = 5)
 #' plot_shap_beeswarm(sm)
 #' }
-#' @export
+#' @noRd
 plot_shap_beeswarm <- function(shap_matrix, top_n = NULL, title) {
   features <- unique(shap_matrix$feature)
   imp <- vapply(features, function(f) mean(abs(shap_matrix$phi[shap_matrix$feature == f])), numeric(1))
