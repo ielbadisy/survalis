@@ -35,7 +35,7 @@
 #' summary(mod)
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_orsf <- function(formula, data, ...) {
   stopifnot(requireNamespace("aorsf", quietly = TRUE))
@@ -63,7 +63,7 @@ fit_orsf <- function(formula, data, ...) {
 #' Generates survival probability predictions at specified time points
 #' from a fitted Oblique Random Survival Forest model.
 #'
-#' @param object A fitted ORSF model object from \code{\link{fit_orsf}}.
+#' @param object A fitted ORSF model object from \code{fit_orsf}.
 #' @param newdata A data frame of new observations for prediction.
 #' @param times A numeric vector of time points at which to estimate survival probabilities.
 #' @param ... Additional arguments passed to \code{predict.aorsf()}.
@@ -81,7 +81,7 @@ fit_orsf <- function(formula, data, ...) {
 #' head(pred)
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_orsf <- function(object, newdata, times, ...) {
 
@@ -134,25 +134,25 @@ predict_orsf <- function(object, newdata, times, ...) {
 #'   selection metric.
 #' @param folds Integer; number of cross-validation folds. Default is \code{5}.
 #' @param seed Integer random seed for reproducibility. Default is \code{123}.
-#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if \code{TRUE}, refits the best configuration on the
 #'   full data and returns it. Default is \code{FALSE}.
 #' @param ... Additional arguments forwarded to the underlying engine via
-#'   \code{\link{fit_orsf}}.
+#'   \code{fit_orsf}.
 #'
 #' @return If \code{refit_best = FALSE}, a \code{data.frame} (class \code{"tuned_surv"})
 #'   with one row per grid combination and columns for hyperparameters and metrics,
 #'   ordered by the first metric. If \code{refit_best = TRUE}, a fitted
-#'   \code{mlsurv_model} from \code{\link{fit_orsf}} using the best settings.
+#'   \code{mlsurv_model} from \code{fit_orsf} using the best settings.
 #'
 #' @details
-#' Internally calls \code{cv_survlearner()} with \code{\link{fit_orsf}} /
-#' \code{\link{predict_orsf}} so tuning uses the exact same code paths as production.
+#' Internally calls \code{cv_survlearner()} with \code{fit_orsf} /
+#' \code{predict_orsf} so tuning uses the exact same code paths as production.
 #' The \code{min_events} column of \code{param_grid} is passed to the engine as
 #' \code{n_split} (minimum events for a candidate split).
 #'
-#' @seealso \code{\link{fit_orsf}}, \code{\link{predict_orsf}}, \pkg{aorsf}
+#' @seealso \code{fit_orsf}, \code{predict_orsf}, \pkg{aorsf}
 #'
 #' @examplesIf requireNamespace("aorsf", quietly = TRUE)
 #' \donttest{
@@ -187,7 +187,7 @@ predict_orsf <- function(object, newdata, times, ...) {
 #'   summary(mod_orsf_best)
 #' }
 #' @keywords internal
-#' @export
+#' @noRd
 
 tune_orsf <- function(formula, data, times,
                       param_grid = expand.grid(
