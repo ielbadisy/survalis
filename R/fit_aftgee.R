@@ -39,7 +39,7 @@
 #'
 #' @importFrom stats model.frame model.matrix model.response terms
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_aftgee <- function(formula, data, corstr = "independence") {
   stopifnot(requireNamespace("aftgee", quietly = TRUE))
@@ -66,7 +66,7 @@ fit_aftgee <- function(formula, data, corstr = "independence") {
 #' Computes survival probabilities \eqn{S(t \mid x)} at specified time points from a fitted
 #' AFT model using a log-normal approximation for the error distribution.
 #'
-#' @param object An \code{mlsurv_model} produced by \code{\link{fit_aftgee}}.
+#' @param object An \code{mlsurv_model} produced by \code{fit_aftgee}.
 #' @param newdata A data.frame of predictor values for prediction.
 #' @param times Numeric vector of time points at which to estimate survival probabilities.
 #'   If \code{NULL}, a sequence of 20 values from \code{1} to the maximum observed time in
@@ -88,7 +88,7 @@ fit_aftgee <- function(formula, data, corstr = "independence") {
 #'
 #' @importFrom stats delete.response model.matrix terms pnorm
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_aftgee <- function(object, newdata, times = NULL) {
 
