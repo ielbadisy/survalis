@@ -14,7 +14,9 @@ knitr::opts_chunk$set(
 
 
 
-# Survalis: Unified Survival Machine Learning and Interpretability in R
+# survalis <img src="man/figures/logo.svg" align="right" height="139" alt="survalis logo" />
+
+Unified survival machine learning and interpretability in R.
 
 <!-- badges: start -->
 [![CRAN status](https://www.r-pkg.org/badges/version/survalis)](https://CRAN.R-project.org/package=survalis)
@@ -24,13 +26,13 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 `survalis` provides a unified framework for survival machine learning in R. It
-supports 24 learners, evaluation metrics, cross-validation, benchmarking, and
+supports 22 learners, evaluation metrics, cross-validation, benchmarking, and
 model-agnostic interpretability methods through a common survival-probability
 matrix (`survmat`) interface.
 
 `survalis` is available on CRAN: <https://CRAN.R-project.org/package=survalis>.
 
-## New in version 1.3.0: the seven-verb interface
+## The seven-verb interface
 
 ```{r, eval = FALSE}
 library(survalis)
@@ -51,7 +53,7 @@ estimate(f, veteran, model = "ranger", treatment = "trt", tau = 365)
 `fit()` / `predict()` / `evaluate()` / `tune()` / `compare()` / `interpret()` /
 `estimate()` cover the whole workflow. The granular `fit_*()` / `predict_*()` /
 `compute_*()` / `benchmark*()` functions remain available as the low-level
-layer; see `vignette("from-1.0", package = "survalis")` and `?`survalis-lowlevel``.
+layer; see `vignette("from-1.0", package = "survalis")` and `?"survalis-lowlevel"`.
 
 
 
