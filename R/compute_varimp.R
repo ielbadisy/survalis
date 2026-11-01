@@ -22,7 +22,7 @@
 #' }
 #' The full per-repetition values (one row per feature per repetition, columns
 #' \code{feature}, \code{repetition}, \code{value}, \code{scaled_value}) are attached
-#' as the \code{"raw_scores"} attribute, used by \code{\link{plot_varimp}()} to draw
+#' as the \code{"raw_scores"} attribute, used by \code{plot_varimp()} to draw
 #' boxplots instead of a single point per feature.
 #'
 #' @details
@@ -43,7 +43,7 @@
 #' )
 #' head(imp)
 #' }
-#' @export
+#' @noRd
 
 compute_varimp <- function(model, times,
                            metric = "ibs",
@@ -152,7 +152,7 @@ compute_varimp <- function(model, times,
 #' distribution shown) for \code{varimp_df} objects that lack the
 #' \code{"raw_scores"} attribute (e.g., hand-built summary tables).
 #'
-#' @param varimp_df A data frame as returned by \code{\link{compute_varimp}}.
+#' @param varimp_df A data frame as returned by \code{compute_varimp}.
 #' @param use_scaled Logical; if \code{TRUE} (default), plot \code{scaled_importance}
 #'   (percent). If unavailable, falls back to raw \code{importance} with a warning.
 #' @param title Plot title. If missing, an automatically generated title is
@@ -173,7 +173,7 @@ compute_varimp <- function(model, times,
 #' )
 #' plot_varimp(imp, use_scaled = TRUE)
 #' plot_varimp(imp, use_scaled = FALSE)
-#' @export
+#' @noRd
 
 plot_varimp <- function(varimp_df, use_scaled = TRUE, title) {
   if (use_scaled && (!"scaled_importance" %in% names(varimp_df) || all(is.na(varimp_df$scaled_importance)))) {
