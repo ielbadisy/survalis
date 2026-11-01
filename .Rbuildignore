@@ -13,3 +13,6 @@
 ^README\.Rmd$
 ^\.github$
 ^\.codex$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
