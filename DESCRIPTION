@@ -28,7 +28,7 @@ Description: A modular toolkit for interpretable survival machine learning
   interpretation. Clustering of individualized survival curves is described
   in El Badisy (2026) <doi:10.1093/bioadv/vbag218>.
 License: MIT + file LICENSE
-URL: https://CRAN.R-project.org/package=survalis
+URL: https://elbadisyimad.com/survalis/, https://github.com/ielbadisy/survalis, https://CRAN.R-project.org/package=survalis
 BugReports: https://github.com/ielbadisy/survalis/issues
 Encoding: UTF-8
 LazyData: true
