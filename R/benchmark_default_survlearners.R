@@ -74,7 +74,6 @@ benchmark <- function(formula, data, learners, times,
                       verbose = FALSE,
                       suppress_errors = TRUE,
                       ...) {
-  .legacy_notice()
   if (isTRUE(tune)) {
     benchmark_tuned_survlearners(
       formula = formula, data = data, learners = learners, times = times,
@@ -152,7 +151,6 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
                                    verbose = FALSE,
                                    suppress_errors = TRUE,
                                    ...) {
-  .legacy_notice()
   stopifnot(is.character(learners), length(learners) > 0)
 
   results_list <- lapply(learners, function(learner) {
@@ -411,7 +409,6 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
                                          verbose = FALSE,
                                          suppress_errors = TRUE,
                                          ...) {
-  .legacy_notice()
   stopifnot(is.character(learners), length(learners) > 0)
   stopifnot(is.list(learner_args))
 
@@ -660,7 +657,6 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
 #' @export
 
 summarise_benchmark <- function(benchmark_results, digits = 3) {
-  .legacy_notice()
   df <- as.data.frame(benchmark_results)
   by_cols <- c("learner", "metric")
   mean_tbl <- basetable::aggregate(df, by = by_cols, value = "value", fun = "mean", na.rm = TRUE)
@@ -750,7 +746,6 @@ plot_benchmark <- function(benchmark_results, title) {
 #' @export
 
 summarize_benchmark_results <- function(results, digits = 3) {
-  .legacy_notice()
 
   stopifnot(is.data.frame(results), all(c("learner", "metric", "value") %in% colnames(results)))
 
@@ -806,7 +801,6 @@ summarize_benchmark_results <- function(results, digits = 3) {
 #' @export
 
 best_survlearner <- function(benchmark_results, metric, maximize = NULL) {
-  .legacy_notice()
   if (!metric %in% benchmark_results$metric) {
     stop("Metric not found in results: ", metric)
   }
