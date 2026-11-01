@@ -31,7 +31,7 @@
 #' summary(mod_cox)
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_coxph <- function(formula, data, ...) {
   stopifnot(requireNamespace("survival", quietly = TRUE))
@@ -74,7 +74,7 @@ fit_coxph <- function(formula, data, ...) {
 #' predict_coxph(mod_cox, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_coxph <- function(object, newdata, times) {
 
