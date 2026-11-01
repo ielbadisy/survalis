@@ -49,7 +49,7 @@
 #' )
 #' head(cf)
 #'
-#' @export
+#' @noRd
 
 compute_counterfactual <- function(model, newdata, times, target_time,
                                    features_to_change = NULL, grid.size = 100,
@@ -60,7 +60,7 @@ compute_counterfactual <- function(model, newdata, times, target_time,
 
   # infer the predict function 
   learner <- model$learner
-  pred_fun <- get(paste0("predict_", learner))
+  pred_fun <- .predict_fun(model)
 
   # convert newdata columns to factors if needed
   for (col in names(newdata)) {
@@ -165,7 +165,7 @@ compute_counterfactual <- function(model, newdata, times, target_time,
 #' Plot Counterfactual Recommendations
 #'
 #' Visualizes counterfactual feature changes returned by
-#' \code{\link{compute_counterfactual}}, ranking recommendations by either raw
+#' \code{compute_counterfactual}, ranking recommendations by either raw
 #' survival gain or penalized gain.
 #'
 #' @param counterfactual_df A data frame returned by \code{compute_counterfactual()}.
@@ -194,7 +194,7 @@ compute_counterfactual <- function(model, newdata, times, target_time,
 #'   grid.size = 10
 #' )
 #' plot_counterfactual(cf)
-#' @export
+#' @noRd
 plot_counterfactual <- function(counterfactual_df,
                                 metric = c("penalized_gain", "survival_gain"),
                                 top_n = NULL,
