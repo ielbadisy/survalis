@@ -544,6 +544,14 @@ round(ece, 6)
 
 .score_metrics <- function(surv_obj, pred, times, metrics, digits = 3) {
   values <- vapply(metrics, function(m) {
+    th <- .parse_range_metric(m)
+    if (!is.null(th) || m == "survacc") {
+      if (length(times) != 1) stop(m, " requires a single time point.")
+      risk <- 1 - as.matrix(pred)[, 1]
+      wt <- .dw_weight(if (is.null(th)) "survacc" else "range", thresholds = th)
+      loss <- .dw_ipcw(surv_obj, risk, times, wt)
+      return(if (is.null(th)) 1 - loss else loss)
+    }
     unname(switch(m,
       "cindex" = cindex_survmat(surv_obj, predicted = pred, t_star = max(times)),
       "auc"    = auc_survmat(surv_obj, predicted = pred, t_star = max(times)),
