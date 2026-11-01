@@ -14,7 +14,7 @@
 #' @param times Numeric vector of time points at which to evaluate survival
 #'   probabilities.
 #' @param grid.size Integer number of quantile cut points used to build the ALE
-#'   grid (default 20). The algorithm uses quantiles of `newdata[[feature]]`.
+#'   grid (default 20). The algorithm uses quantiles of `newdata[`feature`]`.
 #'
 #' @details
 #' For consecutive quantile bins \eqn{[z_k, z_{k+1}]} of the target feature,
@@ -44,8 +44,8 @@
 #' )
 #' head(ale_res$ale)
 #'
-#' @seealso [plot_ale()], [compute_pdp()]
-#' @export
+#' @seealso `plot_ale()`, `compute_pdp()`
+#' @noRd
 
 compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
   if (!feature %in% names(newdata)) stop("Feature not found in data.")
@@ -55,10 +55,10 @@ compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
   }
 
   # infer prediction function from model$learner
-  if (is.null(model$learner) || !exists(paste0("predict_", model$learner))) {
-    stop("Invalid or missing 'learner' in model. Make sure model was created using fit_*() functions.")
+  if (is.null(model$learner) && !is.function(model$predict_fun)) {
+    stop("`model` must come from fit().", call. = FALSE)
   }
-  predict_function <- get(paste0("predict_", model$learner))
+  predict_function <- .predict_fun(model)
 
   # Create quantile grid
   grid <- quantile(newdata[[feature]], probs = seq(0, 1, length.out = grid.size), na.rm = TRUE)
@@ -96,11 +96,11 @@ compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
 
 #' Plot ALE Curves for Survival Models
 #'
-#' Visualizes ALE results produced by [compute_ale()] either as per-time curves
+#' Visualizes ALE results produced by `compute_ale()` either as per-time curves
 #' (one curve per evaluation time) or as an integrated curve averaged across
 #' times.
 #'
-#' @param ale_result A list returned by [compute_ale()].
+#' @param ale_result A list returned by `compute_ale()`.
 #' @param feature Character name of the feature (for axis labeling only).
 #' @param which Either `"per_time"` to plot one ALE curve per time, or
 #'   `"integrated"` to plot the time-averaged ALE (requires multiple `times`).
@@ -129,8 +129,8 @@ compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
 #' plot_ale(ale_res, feature = "karno", which = "per_time")
 #' plot_ale(ale_res, feature = "karno", which = "integrated", smooth = TRUE)
 #'
-#' @seealso [compute_ale()], [compute_pdp()], [plot_pdp()]
-#' @export
+#' @seealso `compute_ale()`, `compute_pdp()`, `plot_pdp()`
+#' @noRd
 
 plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), smooth = FALSE, title) {
   which <- match.arg(which)
