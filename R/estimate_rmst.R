@@ -7,17 +7,17 @@
 #' percentile bootstrap inference adapted from the \pkg{tvrmst} package's
 #' dynamic-RMST bootstrap design. The two variants are dispatched by the
 #' \code{trt_col} argument (\code{NULL} = marginal estimate, matching the
-#' \code{group = NULL} dispatch already used by \code{\link{plot_survmat}}),
+#' \code{group = NULL} dispatch already used by \code{plot_survmat}),
 #' rather than by separate function names.
 #'
 #' @param model An \code{mlsurv_model} object from a \code{fit_*()} learner
 #'   (must expose \code{model$learner} so \code{predict_<learner>()} can be
-#'   dispatched, as in \code{\link{compute_calibration}}).
+#'   dispatched, as in \code{compute_calibration}).
 #' @param data A data.frame of covariates to standardize over.
 #' @param tau Positive numeric restriction time for RMST.
 #' @param times Numeric vector of evaluation times passed to
 #'   \code{predict_<learner>()}; must be dense enough to integrate up to
-#'   \code{tau} (see \code{\link{survmat_to_rmst}}).
+#'   \code{tau} (see \code{survmat_to_rmst}).
 #' @param trt_col Optional character; name of a binary grouping/exposure
 #'   column in \code{data}. If \code{NULL} (default), \code{estimate_rmst()}
 #'   returns the standardized marginal RMST at \code{tau} for \code{data} as
@@ -30,7 +30,7 @@
 #'
 #' @details
 #' \strong{Marginal mode (\code{trt_col = NULL}).} Individual RMSTs
-#' \eqn{\mathrm{RMST}_i(\tau)} are obtained via \code{\link{survmat_to_rmst}}
+#' \eqn{\mathrm{RMST}_i(\tau)} are obtained via \code{survmat_to_rmst}
 #' from \eqn{\hat S(t \mid X_i)}, and the standardized estimate is
 #' \eqn{\widehat{\mathrm{RMST}}(\tau) = n^{-1}\sum_i \mathrm{RMST}_i(\tau)}.
 #'
@@ -70,7 +70,7 @@
 #' Trials with a Time-to-Event Outcome." \emph{BMC Medical Research
 #' Methodology}, 13, 152.
 #'
-#' @seealso [survmat_to_rmst()], [plot_rmst()]
+#' @seealso `survmat_to_rmst()`, `plot_rmst()`
 #'
 #' @examples
 #' \donttest{
@@ -85,17 +85,17 @@
 #' contrast$estimate
 #' }
 #' @keywords internal
-#' @export
+#' @noRd
 estimate_rmst <- function(model, data, tau, times, trt_col = NULL,
                           R = 200, conf = 0.95, seed = NULL) {
-  if (is.null(model$learner) || !exists(paste0("predict_", model$learner))) {
-    stop("Could not infer prediction function. Ensure model was created using fit_*() and includes a valid 'learner'.")
+  if (is.null(model$learner) && !is.function(model$predict_fun)) {
+    stop("`model` must come from fit().", call. = FALSE)
   }
   if (!is.finite(tau) || tau <= 0) stop("`tau` must be a positive finite number.")
   if (!is.finite(conf) || conf <= 0 || conf >= 1) stop("`conf` must be in (0,1).")
   if (!is.null(seed)) set.seed(seed)
 
-  predict_function <- get(paste0("predict_", model$learner))
+  predict_function <- .predict_fun(model)
   n <- nrow(data)
 
   if (is.null(trt_col)) {
@@ -154,9 +154,9 @@ estimate_rmst <- function(model, data, tau, times, trt_col = NULL,
 
 #' RMST Estimate or Contrast Curve Over a Grid of Restriction Times
 #'
-#' Evaluates \code{\link{estimate_rmst}} across a grid of restriction times
+#' Evaluates \code{estimate_rmst} across a grid of restriction times
 #' \eqn{\tau} and plots the resulting curve with percentile bootstrap
-#' confidence bands. As in \code{\link{estimate_rmst}}, marginal vs. contrast
+#' confidence bands. As in \code{estimate_rmst}, marginal vs. contrast
 #' mode is dispatched by \code{trt_col} rather than by separate function names.
 #'
 #' @param model An \code{mlsurv_model} object from a \code{fit_*()} learner.
@@ -177,7 +177,7 @@ estimate_rmst <- function(model, data, tau, times, trt_col = NULL,
 #'   underlying \code{data.frame} (\code{tau}, \code{estimate}, \code{lo},
 #'   \code{hi}).
 #'
-#' @seealso [estimate_rmst()]
+#' @seealso `estimate_rmst()`
 #'
 #' @examples
 #' \donttest{
@@ -186,7 +186,7 @@ estimate_rmst <- function(model, data, tau, times, trt_col = NULL,
 #' plot_rmst(mod, data = veteran, tau_seq = seq(50, 250, by = 50),
 #'                 times = times, trt_col = "trt", R = 10, seed = 1)
 #' }
-#' @export
+#' @noRd
 plot_rmst <- function(model, data, tau_seq, times, trt_col = NULL,
                             R = 100, conf = 0.95, seed = NULL, title) {
   curve <- do.call(rbind, lapply(tau_seq, function(tau) {
