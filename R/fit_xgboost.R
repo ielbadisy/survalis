@@ -36,7 +36,7 @@
 #' Design contract: returns a named list with engine metadata and preserves
 #' \code{terms(formula)} so prediction uses the exact same encoding as training.
 #'
-#' @seealso [predict_xgboost()], [tune_xgboost()]
+#' @seealso `predict_xgboost()`, `tune_xgboost()`
 #'
 #' @examples
 #' \donttest{
@@ -47,7 +47,7 @@
 #'   }
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_xgboost <- function(formula, data,
                         booster = "gbtree",
@@ -117,7 +117,7 @@ fit_xgboost <- function(formula, data,
 #' is provided, returns survival probabilities computed via the AFT mapping
 #' using \code{object$dist} and \code{object$scale}.
 #'
-#' @param object A fitted \code{mlsurv_model} returned by [fit_xgboost()].
+#' @param object A fitted \code{mlsurv_model} returned by `fit_xgboost()`.
 #' @param newdata A \code{data.frame} of new observations for prediction.
 #' @param times Optional numeric vector of evaluation time points (same scale as training time).
 #'   If \code{NULL}, returns the linear predictor.
@@ -140,7 +140,7 @@ fit_xgboost <- function(formula, data,
 #' probabilities are still computed using the supplied AFT distribution/scale
 #' stored in the object; interpret with caution.
 #'
-#' @seealso [fit_xgboost()], [tune_xgboost()]
+#' @seealso `fit_xgboost()`, `tune_xgboost()`
 #'
 #' @examples
 #' \donttest{
@@ -150,7 +150,7 @@ fit_xgboost <- function(formula, data,
 #' }
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_xgboost <- function(object, newdata, times = NULL) {
   stopifnot(object$learner == "xgboost")
@@ -191,12 +191,12 @@ predict_xgboost <- function(object, newdata, times = NULL) {
 #' @param param_grid A \code{data.frame} (e.g., from \code{expand.grid()}) with columns:
 #'   \code{nrounds}, \code{max_depth}, \code{eta}, \code{aft_loss_distribution},
 #'   \code{aft_loss_distribution_scale}, and \code{objective}. Values are passed
-#'   through to \code{\link{fit_xgboost}} and ultimately to \pkg{xgboost}.
+#'   through to \code{fit_xgboost} and ultimately to \pkg{xgboost}.
 #' @param metrics Character vector of metrics to evaluate (e.g., \code{"cindex"}, \code{"ibs"}).
 #'   The first entry is treated as the primary selection metric for ordering.
 #' @param folds Integer number of CV folds.
 #' @param seed Integer random seed for reproducibility.
-#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).
 #'
 #' @return A \code{tibble} with one row per grid configuration, containing:
@@ -208,12 +208,12 @@ predict_xgboost <- function(object, newdata, times = NULL) {
 #' The table is arranged by the first metric in \code{metrics} (ascending, as implemented).
 #'
 #' @details
-#' Internally calls \code{\link{cv_survlearner}} with \code{\link{fit_xgboost}} /
-#' \code{\link{predict_xgboost}}. Any configuration that errors (e.g., due to
+#' Internally calls \code{cv_survlearner} with \code{fit_xgboost} /
+#' \code{predict_xgboost}. Any configuration that errors (e.g., due to
 #' invalid parameters or data issues) is recorded with \code{failed = TRUE} and
 #' omitted from metric summarization.
 #'
-#' @seealso \code{\link{fit_xgboost}}, \code{\link{predict_xgboost}}
+#' @seealso \code{fit_xgboost}, \code{predict_xgboost}
 #'
 #' @examples
 #' \donttest{
@@ -240,7 +240,7 @@ predict_xgboost <- function(object, newdata, times = NULL) {
 #' }
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 
 tune_xgboost <- function(formula, data, times,
