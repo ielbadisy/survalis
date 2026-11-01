@@ -26,7 +26,7 @@
 #'   \item{eval_times}{Engine's internal time grid used for prediction.}
 #' }
 #'
-#' @seealso \code{\link{predict_bart}}, \code{\link[BART]{surv.bart}}
+#' @seealso \code{predict_bart}, \code{surv.bart}
 #'
 #' @examplesIf requireNamespace("BART", quietly = TRUE)
 #' ex_data <- veteran[1:40, c("time", "status", "age", "karno", "celltype")]
@@ -41,7 +41,7 @@
 #'   seed = 42
 #' )
 #' @keywords internal
-#' @export
+#' @noRd
 
 
 fit_bart <- function(formula, data, K = 3, ...) {
@@ -97,9 +97,9 @@ fit_bart <- function(formula, data, K = 3, ...) {
 #' Predict Survival Probabilities from a BART Survival Model
 #'
 #' Generates survival probability predictions at requested times for new data
-#' using a model fitted by \code{\link{fit_bart}}.
+#' using a model fitted by \code{fit_bart}.
 #'
-#' @param object An \code{mlsurv_model} returned by \code{\link{fit_bart}}.
+#' @param object An \code{mlsurv_model} returned by \code{fit_bart}.
 #' @param newdata A \code{data.frame} of new observations for prediction.
 #' @param times Numeric vector of time points at which to estimate survival
 #'   probabilities (same scale as the training time).
@@ -113,7 +113,7 @@ fit_bart <- function(formula, data, K = 3, ...) {
 #' and columns named \code{"t=<time>"} (character), containing survival
 #' probabilities in \[0, 1].
 #'
-#' @seealso \code{\link{fit_bart}}, \code{\link[BART]{surv.bart}}
+#' @seealso \code{fit_bart}, \code{surv.bart}
 #'
 #' @examplesIf requireNamespace("BART", quietly = TRUE)
 #' ex_data <- veteran[1:40, c("time", "status", "age", "karno", "celltype")]
@@ -129,7 +129,7 @@ fit_bart <- function(formula, data, K = 3, ...) {
 #' )
 #' predict_bart(mod_bart, newdata = ex_data[1:5, ], times = c(10, 30, 60))
 #' @keywords internal
-#' @export
+#' @noRd
 
 
 predict_bart <- function(object, newdata, times) {
@@ -220,20 +220,20 @@ predict_bart <- function(object, newdata, times) {
 #'   The first entry is used as the primary selection metric.
 #' @param folds Integer; number of cross‐validation folds (default \code{5}).
 #' @param seed Integer random seed for reproducibility (default \code{123}).
-#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if \code{TRUE}, refits the best configuration on the
 #'   full data and returns it. If \code{FALSE}, returns a results table.
 #'
 #' @return If \code{refit_best = FALSE}, a \code{data.frame} (class \code{"tuned_surv"})
 #' sorted by the primary metric with one row per grid combination.
-#' If \code{refit_best = TRUE}, a fitted \code{mlsurv_model} returned by \code{\link{fit_bart}}.
+#' If \code{refit_best = TRUE}, a fitted \code{mlsurv_model} returned by \code{fit_bart}.
 #'
 #' @details
 #' Internally calls \code{cv_survlearner()} with \code{fit_bart()}/\code{predict_bart()}
 #' so tuning mirrors the production prediction path.
 #'
-#' @seealso \code{\link{fit_bart}}, \code{\link{predict_bart}}, \code{\link[BART]{surv.bart}}
+#' @seealso \code{fit_bart}, \code{predict_bart}, \code{surv.bart}
 #'
 #' @examplesIf requireNamespace("BART", quietly = TRUE)
 #' \donttest{
@@ -257,7 +257,7 @@ predict_bart <- function(object, newdata, times) {
 #' summary(mod_bart)
 #' }
 #' @keywords internal
-#' @export
+#' @noRd
 
 tune_bart <- function(formula, data, times,
                       param_grid = expand.grid(
