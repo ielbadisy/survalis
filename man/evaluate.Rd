@@ -4,12 +4,14 @@
 \alias{evaluate}
 \alias{evaluate.survalis_fit}
 \alias{evaluate.formula}
-\title{Resampled performance of a survival learner}
+\alias{evaluate.matrix}
+\title{Performance of a survival learner}
 \usage{
 evaluate(object, ...)
 
 \method{evaluate}{survalis_fit}(
   object,
+  newdata = NULL,
   times = NULL,
   resampling = cv(),
   metrics = c("cindex", "ibs"),
@@ -28,15 +30,25 @@ evaluate(object, ...)
   ncores = 1,
   ...
 )
+
+\method{evaluate}{matrix}(object, y, times = NULL, metrics = c("cindex", "ibs"), ...)
 }
 \arguments{
-\item{object}{A \code{survalis_fit} from \code{\link[=fit]{fit()}}, or a survival \code{formula}.}
+\item{object}{A \code{survalis_fit} from \code{\link[=fit]{fit()}}, a survival \code{formula}, or a
+numeric matrix of survival probabilities (rows = subjects, columns = times).}
 
 \item{...}{Unused.}
 
-\item{times}{Evaluation grid; \code{NULL} uses \code{\link[=default_times]{default_times()}} and records it.}
+\item{newdata}{When \code{object} is a \code{survalis_fit}: optional data frame with the
+outcome columns. If given, the fit is scored on it once and \code{resampling} is
+ignored.}
 
-\item{resampling}{A \link{resampling} spec (default \code{cv()}).}
+\item{times}{Evaluation grid. \code{NULL} picks a grid from the data quantiles and
+records it; for a matrix, \code{NULL} reads the \code{"times"} attribute or column
+names of the form \code{"t=<time>"}.}
+
+\item{resampling}{A resampling spec from \code{\link[=cv]{cv()}}, \code{\link[=holdout]{holdout()}}, \code{\link[=group_cv]{group_cv()}} or
+\code{\link[=bootstrap]{bootstrap()}} (default \code{cv()}).}
 
 \item{metrics}{Character vector from \code{list_metrics()$metric}. \code{"brier"} and
 \code{"ece"} require a single \code{times} value.}
@@ -46,25 +58,44 @@ evaluate(object, ...)
 \item{data}{When \code{object} is a formula: the data frame.}
 
 \item{model}{When \code{object} is a formula: a learner id
-(\code{list_survlearners()$learner}).}
+(\code{list_survlearners()$learner}) or a custom learner (see \code{\link[=fit]{fit()}}).}
 
 \item{spec}{When \code{object} is a formula: engine arguments (named list).}
+
+\item{y}{When \code{object} is a matrix: a \code{\link[survival:Surv]{survival::Surv()}} object with one
+entry per row of \code{object}.}
 }
 \value{
 A \code{survalis_eval} object: \code{per_split} (long data frame), \code{summary}
-(mean / sd / se / 95\% interval per metric), \code{times}, \code{resampling},
-\code{metrics}, \code{model}.
+(mean / sd / se / 95\% interval per metric), \code{times}, \code{resampling} (\code{NULL}
+when scored once), \code{metrics}, \code{model}.
 }
 \description{
-Refits \code{model} on each training split of \code{resampling} and scores its
-predictions on the held-out split, returning per-split metric values plus a
-summary. A \code{survalis_fit} may be passed directly, in which case its stored
-formula, data and \code{spec} are reused.
+Scores survival predictions in one of three ways:
+\describe{
+\item{Resampled}{\code{evaluate(fit)} or \code{evaluate(formula, data, model)} refits
+the learner on each training split of \code{resampling} and scores it on the
+held-out split (internal validation).}
+\item{New data}{\code{evaluate(fit, newdata = test)} scores a fitted learner on
+data it was not trained on (external or temporal validation).}
+\item{Supplied predictions}{\code{evaluate(S, y = Surv(time, status))} scores an
+\verb{n x length(times)} matrix of survival probabilities produced elsewhere,
+for example by another package.}
+}
 }
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 m <- fit(Surv(time, status) ~ age + karno + celltype, veteran, "ranger",
          spec = list(num.trees = 100))
 evaluate(m, times = c(90, 180, 365), resampling = cv(3))
+
+# train / test split
+idx <- seq_len(100)
+m_tr <- fit(Surv(time, status) ~ age + karno, veteran[idx, ], "coxph")
+evaluate(m_tr, newdata = veteran[-idx, ], times = c(90, 180))
+
+# predictions from anywhere
+S <- predict(m_tr, veteran[-idx, ], times = c(90, 180))
+evaluate(S, y = Surv(veteran$time[-idx], veteran$status[-idx]))
 \dontshow{\}) # examplesIf}
 }
