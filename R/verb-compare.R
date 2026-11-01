@@ -6,10 +6,11 @@
 #'
 #' @param formula A survival formula.
 #' @param data A data frame.
-#' @param models Character vector of learner ids.
-#' @param specs Named list of engine-argument lists, keyed by model id
+#' @param models Character vector of learner ids, or a list mixing ids and
+#'   custom learners (see [fit()]). List names, when given, label the learners.
+#' @param specs Named list of engine-argument lists, keyed by learner label
 #'   (`specs[["ranger"]] <- list(num.trees = 500)`).
-#' @param times Evaluation grid; `NULL` uses [default_times()].
+#' @param times Evaluation grid; `NULL` picks up to 50 event-time quantiles (5th to 95th percentile).
 #' @param resampling A [resampling] spec (default `cv()`); the split set is drawn
 #'   once and reused for every model.
 #' @param metrics Character vector from `list_metrics()$metric`.
@@ -33,10 +34,19 @@
 compare <- function(formula, data, models, specs = list(), times = NULL,
                     resampling = cv(), metrics = c("cindex", "ibs"),
                     tune = FALSE, ncores = 1, ...) {
-  known <- list_survlearners()$learner
-  bad <- setdiff(models, known)
-  if (length(bad)) stop("Unknown model(s): ", paste(bad, collapse = ", "), ".", call. = FALSE)
+  if (.is_custom_learner(models)) models <- list(models)
+  models <- as.list(models)
   if (length(models) < 2L) stop("`models` must name at least two learners.", call. = FALSE)
+  for (m in models) .resolve_learner(m)
+  labels <- vapply(models, .learner_label, character(1))
+  if (!is.null(names(models))) {
+    nm <- names(models)
+    labels[nzchar(nm)] <- nm[nzchar(nm)]
+  }
+  if (anyDuplicated(labels)) {
+    stop("Learner labels must be unique; got ", paste(labels, collapse = ", "),
+         ". Name the list elements or give custom learners a `name`.", call. = FALSE)
+  }
 
 
   parsed <- .parse_surv_formula(formula, data)
@@ -48,9 +58,11 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
   tunable <- list_survlearners(has_tune = TRUE)$learner
 
   per <- list()
-  for (mdl in models) {
-    spec <- as.list(.null_default(specs[[mdl]], list()))
-    if (isTRUE(tune) && mdl %in% tunable) {
+  for (k in seq_along(models)) {
+    mdl <- models[[k]]
+    lab <- labels[k]
+    spec <- as.list(.null_default(specs[[lab]], list()))
+    if (isTRUE(tune) && is.character(mdl) && mdl %in% tunable) {
       tuned <- tune(formula, data, mdl, times = times,
                     resampling = if (resampling$type == "cv") resampling else cv(seed = 1),
                     metric = metrics[1], ncores = ncores)
@@ -59,8 +71,8 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
               "its resampled scores are optimistic.")
     }
     d <- .evaluate_splits(splits, formula, data, mdl, spec, times, metrics, parsed, ncores)
-    d$model <- mdl
-    per[[mdl]] <- d
+    d$model <- lab
+    per[[lab]] <- d
   }
   per <- do.call(rbind, per)
 
@@ -73,7 +85,7 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
 
   structure(
     list(leaderboard = leaderboard, per_split = per, times = times,
-         resampling = resampling, metrics = metrics, models = models,
+         resampling = resampling, metrics = metrics, models = labels,
          tuned = isTRUE(tune), formula = formula),
     class = "survalis_compare"
   )
