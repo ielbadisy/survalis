@@ -17,8 +17,7 @@
 #'   `fit_<model>()` (for example `list(num.trees = 500)` for `"ranger"`).
 #' @param seed Optional integer seed set immediately before fitting, for learners
 #'   with a stochastic training step.
-#' @param ... Deprecated: engine arguments passed here are merged into `spec`
-#'   with a one-time warning. Use `spec`.
+#' @param ... Not used; engine arguments passed here give an error. Use `spec`.
 #'
 #' @return An object of class `c("survalis_fit", "mlsurv_model")` with elements
 #'   `model`, `learner`, `engine`, `formula`, `data`, `time`, `status`,
@@ -42,10 +41,6 @@ fit <- function(formula, data, model, spec = list(), seed = NULL, ...) {
          "For non-survival outcomes use funcml::fit().", call. = FALSE)
   }
 
-  if (identical(model, "survdnn")) {
-    stop("The 'survdnn' learner was removed in survalis 1.7.0 (it needed torch). ",
-         "Use model = \"densemlp\" instead.", call. = FALSE)
-  }
   known <- list_survlearners()$learner
   if (length(model) != 1L || !is.character(model) || !model %in% known) {
     stop("Unknown model ", sQuote(model %||% "NULL"),
@@ -56,11 +51,8 @@ fit <- function(formula, data, model, spec = list(), seed = NULL, ...) {
   spec <- as.list(spec)
   dots <- list(...)
   if (length(dots)) {
-    rlang::warn(
-      "fit(): pass engine arguments through `spec = list(...)`, not `...`. Merging them for now.",
-      .frequency = "once", .frequency_id = "survalis-fit-dots"
-    )
-    spec <- utils::modifyList(spec, dots)
+    stop("fit(): engine arguments go in `spec = list(...)`; got unused argument(s) ",
+         paste(sQuote(names(dots)), collapse = ", "), ".", call. = FALSE)
   }
 
   if (!is.null(seed)) set.seed(as.integer(seed))
