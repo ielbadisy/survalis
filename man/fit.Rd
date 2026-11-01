@@ -21,8 +21,7 @@ side, e.g. \code{Surv(time, status) ~ age + karno}.}
 \item{seed}{Optional integer seed set immediately before fitting, for learners
 with a stochastic training step.}
 
-\item{...}{Deprecated: engine arguments passed here are merged into \code{spec}
-with a one-time warning. Use \code{spec}.}
+\item{...}{Not used; engine arguments passed here give an error. Use \code{spec}.}
 }
 \value{
 An object of class \code{c("survalis_fit", "mlsurv_model")} with elements
