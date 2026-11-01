@@ -1,40 +1,41 @@
 #' Interpret a fitted survival learner
 #'
-#' A single entry point to the package's model-agnostic explanation methods. The
-#' available `method` ids are derived from `list_interpretability_methods()`
-#' (plus `"ice"`, a variant of `"pdp"`, and `"permute"`, an alias of
-#' `"varimp"`).
+#' A single entry point to the package's model-agnostic explanation and
+#' diagnostic methods. `list_interpretability_methods()` lists the `method` ids
+#' with a one-line description of each.
 #'
 #' @param fit A `survalis_fit` (from [fit()]), a `survalis_tune`, or a legacy
 #'   `mlsurv_model`.
 #' @param method One of `"pdp"`, `"ice"`, `"ale"`, `"shap"`, `"shap_matrix"`,
 #'   `"varimp"` / `"permute"`, `"interaction"`, `"counterfactual"`,
-#'   `"surrogate"`, `"tree_surrogate"`, `"calibration"`, `"survcluster"`.
+#'   `"surrogate"`, `"tree_surrogate"`, `"calibration"`, `"roc"`, `"dca"`,
+#'   `"survcluster"`.
 #' @param newdata Instances to explain (SHAP, ALE, counterfactual, surrogate,
-#'   survcluster). Defaults to `data`.
+#'   survcluster) or to assess (`roc`, `dca`; these need the outcome columns).
+#'   Defaults to `data`, so `roc` and `dca` are apparent unless you pass
+#'   held-out data.
 #' @param data Background data for the method. Defaults to the training data.
-#' @param times Evaluation grid; `NULL` uses [default_times()]. Methods that need
-#'   a single time (`calibration`) take `eval_time` in `...` or the sole `times`
-#'   value.
+#' @param times Evaluation grid; `NULL` picks one from the data quantiles.
+#'   Methods that need a single time (`calibration`, `roc`, `dca`) take
+#'   `eval_time` in `...` or the sole `times` value.
 #' @param ... Method-specific arguments, e.g. `feature` (pdp / ice / ale),
-#'   `target_time` (counterfactual), `eval_time` (calibration), `K`
-#'   (survcluster). For `"shap"`, `compute_shap()`'s own aggregation `method`
-#'   argument (`"meanabs"` / `"integral"`) is passed as `shap_method`, since
-#'   `method` here already names the `interpret()` dispatch argument.
+#'   `target_time` (counterfactual, surrogate), `eval_time` (calibration, roc,
+#'   dca), `thresholds` (dca), `K` (survcluster). For `"shap"`, the aggregation
+#'   over time (`"meanabs"` or `"integral"`) is passed as `shap_method`.
 #'
-#' @return A `survalis_interpret` object wrapping the underlying `compute_*`
-#'   result, with `method`, `times`, and a `plot()` method that dispatches to the
-#'   paired `plot_*` helper. `as.data.frame()` returns the raw result frame.
+#' @return A `survalis_interpret` object holding the method's `result`, with
+#'   `method`, `times`, and a `plot()` method. `as.data.frame()` returns the
+#'   result frame.
 #'
-#' @seealso For the scalar calibration summary use
-#'   `evaluate(metrics = "ece")` / [ece_survmat()]; `method = "calibration"` here
-#'   is the calibration *curve*.
+#' @seealso For scalar summaries use [evaluate()]: `metrics = "ece"` summarises
+#'   calibration and `metrics = "auc"` summarises the ROC curve.
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE)
 #' m <- fit(Surv(time, status) ~ age + karno + celltype, veteran, "ranger",
 #'          spec = list(num.trees = 100))
 #' interpret(m, "pdp", feature = "karno", times = c(90, 180))
 #' interpret(m, "varimp", times = c(90, 180))
+#' plot(interpret(m, "roc", eval_time = 180))
 #' @export
 interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ...) {
   if (inherits(fit, "survalis_tune")) fit <- fit$fit
@@ -75,6 +76,30 @@ interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..
     dots[[nm]]
   }
   drop_known <- function(dots, nms) dots[setdiff(names(dots), nms)]
+  one_time <- function(dots, times, method) {
+    et <- dots$eval_time
+    if (is.null(et)) {
+      if (length(times) != 1L) {
+        stop("interpret(method = \"", method, "\") needs a single time: pass ",
+             "`eval_time` or a length-1 `times`.", call. = FALSE)
+      }
+      et <- times
+    }
+    et
+  }
+  outcome_and_pred <- function(fit, newdata, et) {
+    parsed <- attr(fit, "surv_parsed")
+    if (is.null(parsed)) parsed <- .parse_surv_formula(fit$formula, fit$data)
+    need <- c(parsed$time_col, parsed$status_col)
+    if (!all(need %in% names(newdata))) {
+      stop("`newdata` must contain the outcome columns ",
+           paste(sQuote(need), collapse = ", "), ".", call. = FALSE)
+    }
+    newdata <- .complete_cases_df(newdata, all.vars(fit$formula))
+    y <- survival::Surv(newdata[[parsed$time_col]], .recode_status_vec(parsed, newdata))
+    p <- .finalize_survmat(.predict_fun(fit)(fit, newdata = newdata, times = et), times = et)
+    list(y = y, p = p)
+  }
 
   list(
     pdp = list(plot = "plot_pdp", run = function(fit, newdata, data, times, dots) {
@@ -130,17 +155,22 @@ interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..
       do.call(compute_tree_surrogate, c(list(model = fit, data = data, times = times), dots))
     }),
     calibration = list(plot = "plot_calibration", run = function(fit, newdata, data, times, dots) {
-      et <- dots$eval_time
-      if (is.null(et)) {
-        if (length(times) != 1L) {
-          stop("interpret(method = \"calibration\") needs a single time: pass ",
-               "`eval_time` or a length-1 `times`.", call. = FALSE)
-        }
-        et <- times
-      }
+      et <- one_time(dots, times, "calibration")
       do.call(compute_calibration, c(list(model = fit, data = data,
         time = fit$time, status = fit$status, eval_time = et),
         drop_known(dots, "eval_time")))
+    }),
+    roc = list(plot = "plot_roc", run = function(fit, newdata, data, times, dots) {
+      et <- one_time(dots, times, "roc")
+      op <- outcome_and_pred(fit, newdata, et)
+      roc_survmat(op$y, predicted = op$p, t_star = et)
+    }),
+    dca = list(plot = "plot_dca", run = function(fit, newdata, data, times, dots) {
+      et <- one_time(dots, times, "dca")
+      op <- outcome_and_pred(fit, newdata, et)
+      args <- list(op$y, predicted = op$p, t_star = et)
+      if (!is.null(dots$thresholds)) args$thresholds <- dots$thresholds
+      do.call(dca_survmat, args)
     }),
     survcluster = list(plot = "plot_survcluster", run = function(fit, newdata, data, times, dots) {
       do.call(compute_survcluster, c(list(model = fit, newdata = newdata, times = times), dots))
