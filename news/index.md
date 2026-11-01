@@ -45,6 +45,13 @@
   [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md)
   and [`tune()`](https://elbadisyimad.com/survalis/reference/tune.md).
 
+- The `"brier"` and `"ibs"` metrics now use the same censoring weights
+  as
+  [`dwscore()`](https://elbadisyimad.com/survalis/reference/dwscore.md)
+  and the usual IPCW Brier score (Graf et al. 1999): events at or before
+  `t` are weighted by `1 / G(T-)`. Values can change in the fourth
+  decimal.
+
 - Custom learners: `model` in every verb also accepts
   `list(fit = function(formula, data, ...), predict = function(object, newdata, times))`,
   where `predict` returns an `nrow(newdata) x length(times)` matrix of

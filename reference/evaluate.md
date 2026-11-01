@@ -135,7 +135,7 @@ evaluate(m, times = c(90, 180, 365), resampling = cv(3))
 #> <survalis_resampling> 3-fold CV, strata = status
 #>   grid: 3 times in [90, 365]
 #>   cindex  0.6410  (sd 0.0790, 95% [0.5520, 0.7300], n = 3)
-#>   ibs     0.1790  (sd 0.0180, 95% [0.1590, 0.1990], n = 3)
+#>   ibs     0.1780  (sd 0.0160, 95% [0.1600, 0.1960], n = 3)
 
 # train / test split
 idx <- seq_len(100)
@@ -145,7 +145,7 @@ evaluate(m_tr, newdata = veteran[-idx, ], times = c(90, 180))
 #>   scored once on 37 subjects (no resampling)
 #>   grid: 2 times in [90, 180]
 #>   cindex  0.7540
-#>   ibs     0.1760
+#>   ibs     0.1770
 
 # predictions from anywhere
 S <- predict(m_tr, veteran[-idx, ], times = c(90, 180))
@@ -154,5 +154,5 @@ evaluate(S, y = Surv(veteran$time[-idx], veteran$status[-idx]))
 #>   scored once on 37 subjects (no resampling)
 #>   grid: 2 times in [90, 180]
 #>   cindex  0.7540
-#>   ibs     0.1760
+#>   ibs     0.1770
 ```

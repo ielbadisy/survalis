@@ -129,7 +129,7 @@ evaluate(Surv(time, status) ~ age + karno, veteran, model = expo,
 #> <survalis_resampling> 3-fold CV, strata = status, seed = 1
 #>   grid: 2 times in [90, 180]
 #>   cindex  0.7070  (sd 0.0420, 95% [0.6590, 0.7540], n = 3)
-#>   ibs     0.1810  (sd 0.0120, 95% [0.1680, 0.1950], n = 3)
+#>   ibs     0.1800  (sd 0.0100, 95% [0.1690, 0.1920], n = 3)
 ```
 
 ## Other changes on purpose

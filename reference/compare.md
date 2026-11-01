@@ -96,7 +96,7 @@ cmp
 #>      ranger           0.6607  (se 0.0206)
 #> 
 #>   ibs (lower is better):
-#>    * coxph            0.1510  (se 0.0079)
-#>      ranger           0.1623  (se 0.0046)
+#>    * coxph            0.1497  (se 0.0070)
+#>      ranger           0.1613  (se 0.0049)
 plot(cmp)
 ```

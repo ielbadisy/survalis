@@ -93,9 +93,9 @@ interpret(m, "varimp", times = c(90, 180))
 #>   grid: 2 times in [90, 180]
 #>   $result:
 #>    feature importance importance_05 importance_95 scaled_importance
-#> 1    karno     0.1377       0.11600       0.16690         100.00000
-#> 2 celltype     0.0620       0.05125       0.07615          45.02542
-#> 3      age     0.0430       0.03235       0.05295          31.22731
+#> 1    karno     0.1408       0.11545       0.17390         100.00000
+#> 2 celltype     0.0672       0.05490       0.08305          47.72727
+#> 3      age     0.0439       0.03280       0.05395          31.17898
 #> 4      trt     0.0000       0.00000       0.00000           0.00000
 #> 5 diagtime     0.0000       0.00000       0.00000           0.00000
 plot(interpret(m, "roc", eval_time = 180))
