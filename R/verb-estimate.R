@@ -23,15 +23,16 @@
 #'   **confounders** (the treatment is added by the function, with
 #'   treatment-by-confounder interactions).
 #' @param data A data frame.
-#' @param model A learner id (`list_survlearners()$learner`).
+#' @param model A learner id (`list_survlearners()$learner`) or a custom
+#'   learner (see [fit()]).
 #' @param estimand One of `"RMST_diff"` (default), `"RMST_ratio"`,
 #'   `"survival_diff"`, `"survival_ratio"`.
 #' @param treatment Name of a binary column in `data`. The larger value is the
 #'   "treated" (A = 1) level.
 #' @param tau Horizon: the RMST restriction time for the RMST estimands, or the
 #'   evaluation time for the survival estimands.
-#' @param times Prediction grid; `NULL` uses [default_times()]. Must reach `tau`.
-#' @param spec Engine arguments for `fit_<model>()` (named list).
+#' @param times Prediction grid; `NULL` picks up to 50 event-time quantiles (5th to 95th percentile). Must reach `tau`.
+#' @param spec Engine arguments for the learner (named list).
 #' @param R Bootstrap replicates (default `200`).
 #' @param conf Confidence level (default `0.95`).
 #' @param refit Logical; refit the model inside each bootstrap replicate
@@ -55,10 +56,7 @@ estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio
                      treatment, tau, times = NULL, spec = list(),
                      R = 200, conf = 0.95, refit = TRUE, seed = NULL, ...) {
   estimand <- match.arg(estimand)
-  known <- list_survlearners()$learner
-  if (length(model) != 1L || !model %in% known) {
-    stop("Unknown model ", sQuote(model), ". See list_survlearners().", call. = FALSE)
-  }
+  lrn <- .resolve_learner(model)
   if (missing(treatment) || !is.character(treatment) || length(treatment) != 1L ||
       !treatment %in% names(data)) {
     stop("`treatment` must name a column in `data`.", call. = FALSE)
@@ -92,8 +90,8 @@ estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio
     stop("`times` must reach `tau` (max(times) = ", max(times), " < ", tau, ").", call. = FALSE)
   }
 
-  fit_fun  <- get(paste0("fit_", model), envir = asNamespace("survalis"))
-  pred_fun <- get(paste0("predict_", model), envir = asNamespace("survalis"))
+  fit_fun  <- lrn$fit
+  pred_fun <- lrn$predict
   spec <- as.list(spec)
 
   contrast_of <- function(S1bar, S0bar) {
@@ -138,7 +136,7 @@ estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio
   structure(list(
     estimand = estimand, estimate = point, conf.low = ci[1], conf.high = ci[2],
     conf = conf, treatment = treatment, levels = c(lo, hi), tau = tau,
-    R = R, refit = isTRUE(refit), model = model, boot = boot,
+    R = R, refit = isTRUE(refit), model = lrn$id, boot = boot,
     curves = data.frame(time = times, surv_treated = point_curves$S1bar,
                         surv_control = point_curves$S0bar)
   ), class = "survalis_estimate")
