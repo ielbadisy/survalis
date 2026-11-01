@@ -1,0 +1,146 @@
+url: https://elbadisyimad.com/survalis/
+
+template:
+  bootstrap: 5
+  light-switch: true
+  bslib:
+    primary: "#0f172a"
+    navbar-bg: "#0f172a"
+    base_font: {google: "Source Sans 3"}
+    heading_font: {google: "Source Sans 3"}
+    code_font: {google: "JetBrains Mono"}
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github, lightswitch]
+
+reference:
+- title: Workflow verbs
+  desc: >
+    The high-level interface: fit a learner, evaluate it, compare learners,
+    tune, interpret and estimate contrasts from one formula and one dataset.
+  contents:
+  - fit
+  - predict.survalis_fit
+  - evaluate
+  - compare
+  - tune
+  - interpret
+  - estimate
+  - survalis-tidiers
+  - survalis-package
+
+- title: Resampling
+  desc: Split schemes used by `evaluate()`, `compare()` and `tune()`.
+  contents:
+  - resampling
+  - holdout
+  - cv
+  - group_cv
+  - bootstrap
+
+- title: Learners
+  desc: >
+    Low-level fit and predict pairs, one per engine. Every `predict_*()`
+    returns a survival matrix (rows are subjects, columns are times).
+  contents:
+  - starts_with("fit_")
+  - starts_with("predict_")
+  - list_survlearners
+  - summary.mlsurv_model
+
+- title: Tuning
+  desc: Grid search per learner.
+  contents:
+  - starts_with("tune_")
+  - list_tunable_survlearners
+
+- title: Cross-validation and benchmarking
+  contents:
+  - cv_survlearner
+  - cv_survmetalearner
+  - cv_summary
+  - cv_plot
+  - starts_with("benchmark")
+  - summarise_benchmark
+  - summarize_benchmark_results
+  - best_survlearner
+  - plot_benchmark
+  - plot_survmetalearner_weights
+
+- title: Performance metrics
+  desc: Discrimination, calibration and overall accuracy on a survival matrix.
+  contents:
+  - score_survmodel
+  - list_metrics
+  - cindex_survmat
+  - brier
+  - ibs_survmat
+  - iae_survmat
+  - ise_survmat
+  - auc_survmat
+  - roc_survmat
+  - timeroc_survmat
+  - ece_survmat
+  - dca_survmat
+  - compute_calibration
+
+- title: Interpretability
+  desc: Model-agnostic explanation methods and their plots.
+  contents:
+  - list_interpretability_methods
+  - starts_with("compute_")
+  - plot_varimp
+  - plot_pdp
+  - plot_ale
+  - plot_shap
+  - plot_shap_beeswarm
+  - plot_interactions
+  - plot_counterfactual
+  - plot_surrogate
+  - plot_tree_surrogate
+  - plot_survcluster
+
+- title: Survival matrices and estimands
+  desc: Convert predicted survival into hazards, quantiles and RMST.
+  contents:
+  - survmat
+  - survmat_times
+  - starts_with("survmat_to_")
+  - estimate_rmst
+  - default_times
+  - screen_fdr
+
+- title: Plotting
+  contents:
+  - plot_survcurve
+  - plot_survmat
+  - plot_calibration
+  - plot_roc
+  - plot_dca
+  - plot_rmst
+  - theme_survalis
+  - survalis-scales
+
+- title: Low-level interface
+  contents:
+  - survalis-lowlevel
+
+- title: Data and re-exports
+  contents:
+  - veteran
+  - reexports
+
+articles:
+- title: Guides
+  navbar: ~
+  contents:
+  - causal-estimation
+- title: Upgrading
+  navbar: Upgrading
+  contents:
+  - from-1.0
+
+news:
+  cran_dates: true
