@@ -218,7 +218,7 @@ tune_rpart <- function(formula, data, times,
     .wide_metric_row(list(minsplit = minsplit, cp = cp, maxdepth = maxdepth), summary)
   })
 
-  maximize <- metrics[1] %in% c("cindex", "auc", "accuracy")
+  maximize <- .metric_maximize(metrics[1])
   res <- .arrange_by_metric_dt(res, metrics[1], maximize)
 
   if (refit_best) {
