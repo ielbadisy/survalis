@@ -5,13 +5,13 @@
 #' (e.g., Weibull, exponential, log-normal) and returns a model object compatible
 #' with the `mlsurv_model` interface for downstream survival predictions.
 #'
-#' @param formula A \code{\link[survival]{Surv}}-based survival formula of the form
+#' @param formula A \code{Surv}-based survival formula of the form
 #'   \code{Surv(time, status) ~ predictors}.
 #' @param data A data frame containing the variables in the model.
 #' @param dist Character string specifying the parametric distribution to use
-#'   (default = `"weibull"`). See \code{\link[flexsurv]{flexsurvreg}} for available
+#'   (default = `"weibull"`). See \code{flexsurvreg} for available
 #'   options.
-#' @param ... Additional arguments passed to \code{\link[flexsurv]{flexsurvreg}}.
+#' @param ... Additional arguments passed to \code{flexsurvreg}.
 #'
 #' @return An object of class \code{mlsurv_model} containing:
 #'   \itemize{
@@ -29,7 +29,7 @@
 #'                             data = veteran,
 #'                             dist = "weibull")
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_flexsurvreg <- function(formula, data, dist = "weibull", ...) {
 
@@ -50,15 +50,15 @@ fit_flexsurvreg <- function(formula, data, dist = "weibull", ...) {
 #' Predict Survival Probabilities from a flexsurvreg Model
 #'
 #' This function generates survival probability predictions at specified time
-#' points from a model fitted with \code{\link{fit_flexsurvreg}}.
+#' points from a model fitted with \code{fit_flexsurvreg}.
 #'
 #' @param object A fitted \code{mlsurv_model} object returned by
-#'   \code{\link{fit_flexsurvreg}}.
+#'   \code{fit_flexsurvreg}.
 #' @param newdata A data frame of new observations for which to predict survival
 #'   probabilities.
 #' @param times Numeric vector of time points at which to estimate survival
 #'   probabilities.
-#' @param ... Additional arguments passed to \code{\link[flexsurv]{predict.flexsurvreg}}.
+#' @param ... Additional arguments passed to \code{predict.flexsurvreg}.
 #'
 #' @return A data frame of survival probabilities with one row per observation in
 #'   \code{newdata} and one column per time point. Column names are of the form
@@ -71,7 +71,7 @@ fit_flexsurvreg <- function(formula, data, dist = "weibull", ...) {
 #' predict_flexsurvreg(mod_flex, newdata = veteran[1:5, ],
 #'                     times = c(100, 200, 300))
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_flexsurvreg <- function(object, newdata, times, ...) {
 
@@ -113,11 +113,11 @@ predict_flexsurvreg <- function(object, newdata, times, ...) {
 
 #' Tune Parametric Survival Models with flexsurvreg
 #'
-#' Performs hyperparameter tuning for \code{\link{fit_flexsurvreg}} over a grid
+#' Performs hyperparameter tuning for \code{fit_flexsurvreg} over a grid
 #' of parametric distributions using cross-validation. Returns either a summary
 #' table of performance metrics or a refitted best model.
 #'
-#' @param formula A \code{\link[survival]{Surv}}-based survival formula.
+#' @param formula A \code{Surv}-based survival formula.
 #' @param data A data frame containing the variables in the model.
 #' @param times Numeric vector of time points at which to evaluate performance.
 #' @param param_grid Character vector of distributions to test
@@ -126,11 +126,11 @@ predict_flexsurvreg <- function(object, newdata, times, ...) {
 #'   (default = \code{c("cindex", "ibs")}).
 #' @param folds Integer, number of cross-validation folds (default = 5).
 #' @param seed Random seed for reproducibility.
-#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if \code{TRUE}, refits the best-performing model
 #'   on the full dataset and returns it. If \code{FALSE}, returns the tuning results.
-#' @param ... Additional arguments passed to \code{\link{fit_flexsurvreg}}.
+#' @param ... Additional arguments passed to \code{fit_flexsurvreg}.
 #'
 #' @return If \code{refit_best = FALSE}, returns a data frame of tuning results
 #'   with one row per distribution and columns for each metric.  
@@ -151,7 +151,7 @@ predict_flexsurvreg <- function(object, newdata, times, ...) {
 #'                              refit_best = TRUE)
 #' summary(best_mod)
 #' @keywords internal
-#' @export
+#' @noRd
 
 tune_flexsurvreg <- function(formula, data, times,
                           param_grid = c("weibull", "exponential", "lognormal"),
