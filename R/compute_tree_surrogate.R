@@ -44,7 +44,7 @@
 #' )
 #' }
 #'
-#' @export
+#' @noRd
 
 compute_tree_surrogate <- function(model, data, times, minsplit = 10, cp = 0.01) {
   if (!requireNamespace("rpart", quietly = TRUE)) stop("Please install 'rpart'.")
@@ -53,10 +53,10 @@ compute_tree_surrogate <- function(model, data, times, minsplit = 10, cp = 0.01)
   if (length(times) < 1) stop("At least one evaluation time must be specified.")
 
   # infer prediction function from model
-  if (is.null(model$learner) || !exists(paste0("predict_", model$learner))) {
-    stop("Could not infer prediction function. Ensure model was created using fit_*() and includes a valid 'learner'.")
+  if (is.null(model$learner) && !is.function(model$predict_fun)) {
+    stop("`model` must come from fit().", call. = FALSE)
   }
-  predict_function <- get(paste0("predict_", model$learner))
+  predict_function <- .predict_fun(model)
 
   is_dynamic <- length(times) > 1
 
@@ -113,7 +113,7 @@ compute_tree_surrogate <- function(model, data, times, minsplit = 10, cp = 0.01)
 #'
 #' @description
 #' Visualizes the results of a `tree_surrogate` object returned by
-#' [compute_tree_surrogate()]. Can display either the fitted surrogate trees
+#' `compute_tree_surrogate()`. Can display either the fitted surrogate trees
 #' or aggregated feature importance based on split counts.
 #'
 #' @param tree_surrogate An object of class `"tree_surrogate"`.
@@ -143,7 +143,7 @@ compute_tree_surrogate <- function(model, data, times, minsplit = 10, cp = 0.01)
 #' plot_tree_surrogate(tree_ranger, type = "importance", top_n = 5)
 #' }
 #'
-#' @export
+#' @noRd
 
 plot_tree_surrogate <- function(tree_surrogate, type = c("tree", "importance"), top_n = 10, title) {
   if (!requireNamespace("partykit", quietly = TRUE)) stop("Please install 'partykit'.")
