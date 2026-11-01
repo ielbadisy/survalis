@@ -42,7 +42,7 @@
 #'   head(predict_blackboost(mod, newdata = veteran[1:5, ], times = c(100, 200)))
 #' }
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_blackboost <- function(formula, data, weights = NULL, mstop = 100, nu = 0.1,
                        minsplit = 10, minbucket = 4, maxdepth = 2, ...) {
@@ -98,9 +98,9 @@ fit_blackboost <- function(formula, data, weights = NULL, mstop = 100, nu = 0.1,
 #' Predict Survival Probabilities from a blackboost Model
 #'
 #' Generates survival probabilities at requested times from a fitted
-#' \pkg{mboost} Cox boosting model produced by [fit_blackboost()].
+#' \pkg{mboost} Cox boosting model produced by `fit_blackboost()`.
 #'
-#' @param object An `mlsurv_model` returned by [fit_blackboost()].
+#' @param object An `mlsurv_model` returned by `fit_blackboost()`.
 #' @param newdata A `data.frame` of new observations for prediction.
 #' @param times Numeric vector of time points at which to compute survival
 #'   probabilities.
@@ -121,7 +121,7 @@ fit_blackboost <- function(formula, data, weights = NULL, mstop = 100, nu = 0.1,
 #' mod <- fit_blackboost(Surv(time, status) ~ age + karno + celltype, data = veteran)
 #' predict_blackboost(mod, newdata = veteran[1:5, ], times = c(5, 10, 40))
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_blackboost <- function(object, newdata, times, ...) {
 
@@ -179,15 +179,15 @@ predict_blackboost <- function(object, newdata, times, ...) {
 #'   The first entry is the primary selection metric.
 #' @param folds Integer; number of CV folds. Default \code{5}.
 #' @param seed Integer random seed for reproducibility. Default \code{123}.
-#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical; if \code{TRUE}, refits the best configuration on the full
 #'   data and returns it. Default \code{FALSE}.
-#' @param ... Additional arguments forwarded to [fit_blackboost()].
+#' @param ... Additional arguments forwarded to `fit_blackboost()`.
 #'
 #' @return If \code{refit_best = FALSE}, a `data.frame` (class `"tuned_surv"`) of grid
 #' results with metric columns, sorted by the primary metric. If \code{refit_best = TRUE},
-#' a fitted `mlsurv_model` from [fit_blackboost()] using the selected hyperparameters.
+#' a fitted `mlsurv_model` from `fit_blackboost()` using the selected hyperparameters.
 #'
 #' @details
 #' Internally calls \code{cv_survlearner()} with \code{fit_blackboost()}/\code{predict_blackboost()}
@@ -226,7 +226,7 @@ predict_blackboost <- function(object, newdata, times, ...) {
 #' summary(mod_blackboost_best)
 #' }
 #' @keywords internal
-#' @export
+#' @noRd
 
 tune_blackboost <- function(formula, data, times,
                         param_grid = expand.grid(
