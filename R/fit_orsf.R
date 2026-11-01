@@ -223,7 +223,7 @@ tune_orsf <- function(formula, data, times,
     .wide_metric_row(list(n_tree = n_tree, mtry = mtry, min_events = min_events), summary)
   })
 
-  maximize <- metrics[1] %in% c("cindex", "auc", "accuracy")
+  maximize <- .metric_maximize(metrics[1])
   results <- .arrange_by_metric_dt(results, metrics[1], maximize)
 
   if (!refit_best) {
