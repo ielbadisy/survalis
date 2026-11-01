@@ -30,7 +30,7 @@ Resampling is described by \code{\link[=cv]{cv()}}, \code{\link[=holdout]{holdou
 \code{\link[=list_metrics]{list_metrics()}} and \code{\link[=list_interpretability_methods]{list_interpretability_methods()}}.
 
 The granular \verb{fit_*()} / \verb{predict_*()} / \verb{tune_*()} / \verb{compute_*()} /
-\verb{benchmark*()} functions remain available; see \verb{?}survalis-deprecated``.
+\verb{benchmark*()} functions are the low-level layer under the verbs; see \verb{?}survalis-lowlevel``.
 }
 
 \seealso{
