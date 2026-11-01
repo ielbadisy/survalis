@@ -9,13 +9,13 @@ expo <- list(
   }
 )
 
-test_that("the exported surface is the seven verbs plus helpers", {
+test_that("the exported surface is the seven verbs plus helpers and dwscore", {
   ex <- sort(getNamespaceExports("survalis"))
   expect_setequal(ex, c(
     "fit", "evaluate", "compare", "tune", "interpret", "estimate",
     "cv", "holdout", "group_cv", "bootstrap",
     "list_survlearners", "list_metrics", "list_interpretability_methods",
-    "Surv"
+    "dwscore", "Surv"
   ))
 })
 
