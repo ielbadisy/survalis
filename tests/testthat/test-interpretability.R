@@ -55,9 +55,8 @@ test_that("core interpretability methods return expected structures", {
   ))
 
   interp_methods <- list_interpretability_methods()
-  cf_row <- interp_methods[interp_methods$compute == "compute_counterfactual", , drop = FALSE]
-  expect_identical(cf_row$plot, "plot_counterfactual")
-  expect_true(cf_row$has_plot)
+  expect_true(all(c("counterfactual", "roc", "dca") %in% interp_methods$method))
+  expect_identical(sort(interp_methods$method), sort(names(.interpret_dispatch())))
 })
 
 test_that("interaction, variable importance, and calibration helpers run", {
