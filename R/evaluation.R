@@ -225,9 +225,10 @@ timeroc_survmat <- function(object, predicted, times) {
 #'
 #' @details
 #' The censoring distribution \eqn{G(t)} is estimated via Kaplan-Meier on
-#' \code{1 - status}. Observed events before \code{t_star} contribute
-#' \eqn{S(t_i)^2 / G(t_i)}; those at risk at \code{t_star} contribute
-#' \eqn{(1 - S(t^{*}))^2 / G(t^{*})}. Returns \code{NA} if \eqn{G(t^{*})} is
+#' \code{1 - status}. Observed events at or before \code{t_star} contribute
+#' \eqn{S(t_i)^2 / G(t_i-)}; subjects event free after \code{t_star} contribute
+#' \eqn{(1 - S(t^{*}))^2 / G(t^{*})} (Graf et al. 1999). This is the
+#' \code{"brier"} member of [dwscore()]. Returns \code{NA} if \eqn{G(t^{*})} is
 #' undefined or zero.
 #'
 #' @return A named numeric scalar: \code{"brier"}.
@@ -241,39 +242,13 @@ timeroc_survmat <- function(object, predicted, times) {
 brier <- function(object, pre_sp, t_star) {
   if (!inherits(object, "Surv")) stop("object must be a survival object")
   if (length(pre_sp) != nrow(object)) stop("Length of predictions must match number of observations")
-
-  time <- object[, 1]
-  status <- object[, 2]
-  km_fit <- survfit(Surv(time, 1 - status) ~ 1)
-
-  all_times <- sort(unique(c(t_star, time)))
-  G_all <- summary(km_fit, times = all_times, extend = TRUE)$surv
-  names(G_all) <- as.character(all_times)
-
-  Gt <- G_all[as.character(t_star)]
-
-  if (is.na(Gt) || Gt == 0) {
+  bs_value <- suppressWarnings(.dw_ipcw(object, 1 - pre_sp, t_star, .dw_weight("brier")))
+  if (is.na(bs_value)) {
     warning("Brier: Gt(t_star) is NA or zero at t = ", t_star, "; returning NA.")
     return(NA_real_)
   }
-
-  early_event <- which(time < t_star & status == 1)
-  later_risk  <- which(time >= t_star)
-  score_vec <- numeric(length(time))
-
-  if (length(early_event) > 0) {
-    Gti <- G_all[as.character(time[early_event])]
-    valid <- which(!is.na(Gti) & Gti > 0)
-    score_vec[early_event[valid]] <- (pre_sp[early_event[valid]]^2) / Gti[valid]
-  }
-
-  if (Gt > 0 && length(later_risk) > 0) {
-    score_vec[later_risk] <- ((1 - pre_sp[later_risk])^2) / Gt
-  }
-
-  bs_value <- mean(score_vec, na.rm = TRUE)
   names(bs_value) <- "brier"
-  return(round(bs_value, 6))
+  round(bs_value, 6)
 }
 
 #' Integrated Brier Score (Discrete Integration)
