@@ -13,10 +13,15 @@ side, e.g. \code{Surv(time, status) ~ age + karno}.}
 \item{data}{A data frame containing the formula variables.}
 
 \item{model}{A learner id from \code{list_survlearners()$learner} (for example
-\code{"coxph"}, \code{"ranger"}, \code{"densemlp"}).}
+\code{"coxph"}, \code{"ranger"}, \code{"densemlp"}), or a custom learner: a list with
+\verb{fit = function(formula, data, ...)} returning any fitted object and
+\verb{predict = function(object, newdata, times)} returning an
+\verb{nrow(newdata) x length(times)} matrix of survival probabilities. An
+optional \code{name} element labels it in printed output. A custom learner works
+with every verb.}
 
-\item{spec}{A named list of engine arguments forwarded to the underlying
-\verb{fit_<model>()} (for example \code{list(num.trees = 500)} for \code{"ranger"}).}
+\item{spec}{A named list of engine arguments forwarded to the learner's
+fitting routine (for example \code{list(num.trees = 500)} for \code{"ranger"}).}
 
 \item{seed}{Optional integer seed set immediately before fitting, for learners
 with a stochastic training step.}
@@ -34,15 +39,23 @@ id, passes engine arguments through \code{spec}, and returns a \code{survalis_fi
 object that the other verbs (\code{\link[=predict]{predict()}}, \code{\link[=evaluate]{evaluate()}}, \code{\link[=tune]{tune()}}, \code{\link[=interpret]{interpret()}},
 \code{\link[=estimate]{estimate()}}) consume.
 }
-\details{
-\code{survalis_fit} extends the internal \code{mlsurv_model} contract, so every legacy
-\verb{predict_*()} / \verb{compute_*()} helper keeps working on it unchanged.
-}
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 m <- fit(Surv(time, status) ~ age + karno + celltype, veteran,
          model = "ranger", spec = list(num.trees = 200))
 m
+
+# A custom learner: an exponential AFT model from survival::survreg
+expo <- list(
+  name = "exponential",
+  fit = function(formula, data, ...) survival::survreg(formula, data, dist = "exponential"),
+  predict = function(object, newdata, times) {
+    rate <- 1 / predict(object, newdata, type = "response")
+    exp(-outer(rate, times))
+  }
+)
+m2 <- fit(Surv(time, status) ~ age + karno, veteran, model = expo)
+predict(m2, veteran[1:3, ], times = c(90, 180))
 \dontshow{\}) # examplesIf}
 }
 \seealso{
