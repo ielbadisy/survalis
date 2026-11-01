@@ -19,7 +19,7 @@
 #'   Taken from \code{data} when \code{base_preds} is \code{NULL}.
 #' @param times Numeric vector of evaluation times at which to learn weights. When
 #'   \code{NULL} and \code{base_preds} is \code{NULL}, a grid of 20 times from
-#'   \code{\link{default_times}()} is used.
+#'   \code{default_times()} is used.
 #' @param base_models A named list of fitted base learner objects; names must
 #'   match \code{names(base_preds)} and the learner names used by \code{predict_*()}.
 #'   Fitted automatically when \code{base_preds} is \code{NULL}.
@@ -50,8 +50,8 @@
 #'   \item{learner}{The string \code{"survmetalearner"} (for \code{predict_*} dispatch).}
 #' }
 #'
-#' @seealso \code{\link{predict_survmetalearner}}, \code{\link{plot_survmetalearner_weights}},
-#'   \code{\link{cv_survmetalearner}}
+#' @seealso \code{predict_survmetalearner}, \code{plot_survmetalearner_weights},
+#'   \code{cv_survmetalearner}
 #'
 #' @examples
 #' form <- Surv(time, status) ~ age + karno + trt
@@ -74,7 +74,7 @@
 #' )
 #' meta_model$weights
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_survmetalearner <- function(base_preds = NULL, time = NULL, status = NULL, times = NULL,
                                 base_models = NULL, formula = NULL, data = NULL,
@@ -157,7 +157,7 @@ fit_survmetalearner <- function(base_preds = NULL, time = NULL, status = NULL, t
 #' Predict with a Stacked Survival Meta‑Learner
 #'
 #' Produces stacked survival probabilities by combining base learner predictions
-#' via the time‑specific weights learned by \code{\link{fit_survmetalearner}}.
+#' via the time‑specific weights learned by \code{fit_survmetalearner}.
 #'
 #' @param model A \code{"survmetalearner"} object returned by \code{fit_survmetalearner()}.
 #' @param newdata A data frame of new observations for prediction.
@@ -173,7 +173,7 @@ fit_survmetalearner <- function(base_preds = NULL, time = NULL, status = NULL, t
 #' @return A data frame with one row per observation and one column per requested
 #'   time (columns named \code{"t=<time>"}), containing stacked survival probabilities.
 #'
-#' @seealso \code{\link{fit_survmetalearner}}, \code{\link{plot_survmetalearner_weights}}
+#' @seealso \code{fit_survmetalearner}, \code{plot_survmetalearner_weights}
 #'
 #' @examples
 #' form <- Surv(time, status) ~ age + karno + trt
@@ -196,7 +196,7 @@ fit_survmetalearner <- function(base_preds = NULL, time = NULL, status = NULL, t
 #' )
 #' predict_survmetalearner(meta_model, newdata = veteran[1:3, ], times = times)
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_survmetalearner <- function(model, newdata, times) {
   stopifnot(inherits(model, "survmetalearner"))
@@ -238,7 +238,7 @@ predict_survmetalearner <- function(model, newdata, times) {
 #' Visualizes the learned nonnegative NNLS stacking weights \eqn{w_\ell(t)} over time
 #' for each base learner.
 #'
-#' @param model A \code{"survmetalearner"} object from \code{\link{fit_survmetalearner}}.
+#' @param model A \code{"survmetalearner"} object from \code{fit_survmetalearner}.
 #' @param title Plot title. If missing, an automatically generated title is
 #'   used. Pass \code{NULL} to omit the title entirely (e.g., for journals
 #'   requiring caption-only figures).
@@ -265,7 +265,7 @@ predict_survmetalearner <- function(model, newdata, times) {
 #'   data = veteran
 #' )
 #' plot_survmetalearner_weights(meta_model)
-#' @export
+#' @noRd
 
 plot_survmetalearner_weights <- function(model, title) {
   stopifnot(inherits(model, "survmetalearner"))
@@ -312,9 +312,9 @@ plot_survmetalearner_weights <- function(model, title) {
 #'
 #' @details
 #' For each fold: (1) subset \code{base_preds} to the analysis indices;
-#' (2) learn time‑specific NNLS weights with \code{\link{fit_survmetalearner}};
+#' (2) learn time‑specific NNLS weights with \code{fit_survmetalearner};
 #'
-#' (3) predict stacked survival on the assessment set with \code{\link{predict_survmetalearner}};
+#' (3) predict stacked survival on the assessment set with \code{predict_survmetalearner};
 #' (4) compute requested metrics. After CV, a final meta‑learner is fit on the full data.
 #'
 #' @return An object of class \code{"cv_survmetalearner_result"} with components:
@@ -325,8 +325,8 @@ plot_survmetalearner_weights <- function(model, title) {
 #'   \item{folds, metrics}{CV settings.}
 #' }
 #'
-#' @seealso \code{\link{fit_survmetalearner}}, \code{\link{predict_survmetalearner}},
-#'   \code{\link{plot_survmetalearner_weights}}
+#' @seealso \code{fit_survmetalearner}, \code{predict_survmetalearner},
+#'   \code{plot_survmetalearner_weights}
 #'
 #' @examples
 #' \donttest{
@@ -349,7 +349,7 @@ plot_survmetalearner_weights <- function(model, title) {
 #' cv_res$summary
 #' plot_survmetalearner_weights(cv_res$model)
 #' }
-#' @export
+#' @noRd
 
 cv_survmetalearner <- function(formula, data, times,
                            base_models, base_preds,
