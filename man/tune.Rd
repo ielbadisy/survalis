@@ -21,21 +21,24 @@ tune(
 
 \item{data}{A data frame.}
 
-\item{model}{A tunable learner id.}
+\item{model}{A learner id (\code{list_survlearners()$learner}) or a custom
+learner.}
 
-\item{grid}{A data frame / list of hyperparameter combinations. \code{NULL} uses
-the learner's built-in default grid.}
+\item{grid}{A data frame of hyperparameter combinations (one row per
+configuration, for example from \code{\link[=expand.grid]{expand.grid()}}). \code{NULL} uses the learner's
+built-in default grid, if it has one.}
 
-\item{times}{Evaluation grid; \code{NULL} uses \code{\link[=default_times]{default_times()}}.}
+\item{times}{Evaluation grid; \code{NULL} picks one from the data quantiles.}
 
-\item{resampling}{A \code{\link[=cv]{cv()}} spec (only \code{cv()} is supported here); its \code{v} and
-\code{seed} drive the inner cross-validation.}
+\item{resampling}{A resampling spec. Built-in grids use \code{\link[=cv]{cv()}} only (its \code{v}
+and \code{seed} drive the inner cross-validation); a supplied \code{grid} for a
+learner without a built-in tuner accepts any spec.}
 
 \item{metric}{A single metric to optimise (default \code{"ibs"}).}
 
 \item{ncores}{Cores for the inner CV (default \code{1}).}
 
-\item{...}{Forwarded to \verb{tune_<model>()} / \verb{fit_<model>()}.}
+\item{...}{Forwarded to the learner's built-in tuner.}
 }
 \value{
 A \code{survalis_tune} object: \code{fit} (the refit \code{survalis_fit} at the best
@@ -43,9 +46,12 @@ configuration), \code{results} (the scored grid), \code{best} (one-row best conf
 \code{times}, \code{resampling}, \code{metric}, \code{model}.
 }
 \description{
-Grid search with cross-validation for learners that expose a \verb{tune_<model>()}
-routine (\code{list_survlearners(has_tune = TRUE)}). The best configuration is
-refit on the full data and returned as a ready-to-use \code{survalis_fit}.
+Grid search over resampling folds. Learners listed by
+\code{list_survlearners(has_tune = TRUE)} have a built-in default grid; any other
+learner, including a custom one (see \code{\link[=fit]{fit()}}), is tuned over the \code{grid} you
+supply, with every configuration scored on the same splits. The best
+configuration is refit on the full data and returned as a ready-to-use
+\code{survalis_fit}.
 }
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE)) withAutoprint(\{ # examplesIf}
