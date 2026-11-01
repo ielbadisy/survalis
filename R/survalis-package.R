@@ -25,7 +25,7 @@
 #' [list_metrics()] and [list_interpretability_methods()].
 #'
 #' The granular `fit_*()` / `predict_*()` / `tune_*()` / `compute_*()` /
-#' `benchmark*()` functions remain available; see `?`survalis-deprecated``.
+#' `benchmark*()` functions are the low-level layer under the verbs; see `?`survalis-lowlevel``.
 #'
 #' @keywords internal
 "_PACKAGE"
@@ -58,7 +58,6 @@ survival::Surv
 #' @importFrom BART surv.bart
 #' @importFrom xgboost xgb.train xgb.cv xgb.DMatrix
 #' @importFrom CoxBoost CoxBoost cv.CoxBoost
-#' @importFrom rstpm2 stpm2 gsm nsx
 #'
 #' @importFrom stats model.frame model.matrix model.response delete.response
 #'   terms formula update as.formula na.omit na.exclude na.pass predict
