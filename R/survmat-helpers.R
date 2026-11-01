@@ -171,7 +171,7 @@
 #' S <- data.frame(`t=1` = c(0.9, 0.8), `t=2` = c(0.7, 0.6))
 #' survmat_to_chf(S)
 #'
-#' @export
+#' @noRd
 survmat_to_chf <- function(S, eps = 1e-12) {
   S <- .survmat_as_matrix(S, clamp = FALSE)
 
@@ -207,7 +207,7 @@ survmat_to_chf <- function(S, eps = 1e-12) {
 #'   keep \code{t0 = 0}.
 #'
 #' @return A numeric matrix of hazards with the same dimensions as \code{S}.
-#' Each column corresponds to the interval ending at \code{times[j]}.
+#' Each column corresponds to the interval ending at \code{times`j`}.
 #'
 #' @examples
 #' times <- c(1, 2, 3)
@@ -217,7 +217,7 @@ survmat_to_chf <- function(S, eps = 1e-12) {
 #' H <- survmat_to_haz(S, times)
 #' H
 #'
-#' @export
+#' @noRd
 survmat_to_haz <- function(S, times, eps = 1e-12, t0 = 0) {
   S <- .survmat_as_matrix(S, times = times, strict_colnames = FALSE, clamp = FALSE)
 
@@ -270,7 +270,7 @@ survmat_to_haz <- function(S, times, eps = 1e-12, t0 = 0) {
 #' colnames(S) <- paste0("t=", times)
 #' survmat_to_rmst(S, times, tau = 3)
 #'
-#' @export
+#' @noRd
 survmat_to_rmst <- function(S, times, tau = max(times)) {
   S <- .survmat_as_matrix(S, times = times, strict_colnames = FALSE, clamp = FALSE)
   times <- as.numeric(times)
@@ -329,7 +329,7 @@ survmat_to_rmst <- function(S, times, tau = max(times)) {
 #' colnames(S) <- paste0("t=", times)
 #' survmat_to_quantile(S, times, p = 0.5)  # median on the grid
 #'
-#' @export
+#' @noRd
 survmat_to_quantile <- function(S, times, p = 0.5) {
   S <- .survmat_as_matrix(S, times = times, strict_colnames = FALSE, clamp = FALSE)
   times <- as.numeric(times)
@@ -381,7 +381,7 @@ survmat_to_quantile <- function(S, times, p = 0.5) {
 #' plot_survmat(S)
 #' plot_survmat(S, group = c("A", "B", "A"))
 #'
-#' @export
+#' @noRd
 plot_survmat <- function(S,
                          times = NULL,
                          group = NULL,
