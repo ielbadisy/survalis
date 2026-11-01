@@ -5,16 +5,18 @@
 #' object that the other verbs ([predict()], [evaluate()], [tune()], [interpret()],
 #' [estimate()]) consume.
 #'
-#' `survalis_fit` extends the internal `mlsurv_model` contract, so every legacy
-#' `predict_*()` / `compute_*()` helper keeps working on it unchanged.
-#'
 #' @param formula A survival formula with a `Surv()` outcome on the left-hand
 #'   side, e.g. `Surv(time, status) ~ age + karno`.
 #' @param data A data frame containing the formula variables.
 #' @param model A learner id from `list_survlearners()$learner` (for example
-#'   `"coxph"`, `"ranger"`, `"densemlp"`).
-#' @param spec A named list of engine arguments forwarded to the underlying
-#'   `fit_<model>()` (for example `list(num.trees = 500)` for `"ranger"`).
+#'   `"coxph"`, `"ranger"`, `"densemlp"`), or a custom learner: a list with
+#'   `fit = function(formula, data, ...)` returning any fitted object and
+#'   `predict = function(object, newdata, times)` returning an
+#'   `nrow(newdata) x length(times)` matrix of survival probabilities. An
+#'   optional `name` element labels it in printed output. A custom learner works
+#'   with every verb.
+#' @param spec A named list of engine arguments forwarded to the learner's
+#'   fitting routine (for example `list(num.trees = 500)` for `"ranger"`).
 #' @param seed Optional integer seed set immediately before fitting, for learners
 #'   with a stochastic training step.
 #' @param ... Not used; engine arguments passed here give an error. Use `spec`.
@@ -30,6 +32,18 @@
 #' m <- fit(Surv(time, status) ~ age + karno + celltype, veteran,
 #'          model = "ranger", spec = list(num.trees = 200))
 #' m
+#'
+#' # A custom learner: an exponential AFT model from survival::survreg
+#' expo <- list(
+#'   name = "exponential",
+#'   fit = function(formula, data, ...) survival::survreg(formula, data, dist = "exponential"),
+#'   predict = function(object, newdata, times) {
+#'     rate <- 1 / predict(object, newdata, type = "response")
+#'     exp(-outer(rate, times))
+#'   }
+#' )
+#' m2 <- fit(Surv(time, status) ~ age + karno, veteran, model = expo)
+#' predict(m2, veteran[1:3, ], times = c(90, 180))
 #' @export
 fit <- function(formula, data, model, spec = list(), seed = NULL, ...) {
   if (!inherits(formula, "formula")) {
@@ -41,12 +55,7 @@ fit <- function(formula, data, model, spec = list(), seed = NULL, ...) {
          "For non-survival outcomes use funcml::fit().", call. = FALSE)
   }
 
-  known <- list_survlearners()$learner
-  if (length(model) != 1L || !is.character(model) || !model %in% known) {
-    stop("Unknown model ", sQuote(model %||% "NULL"),
-         ". See list_survlearners() for the ", length(known), " available ids.",
-         call. = FALSE)
-  }
+  lrn <- .resolve_learner(model)
 
   spec <- as.list(spec)
   dots <- list(...)
@@ -57,11 +66,12 @@ fit <- function(formula, data, model, spec = list(), seed = NULL, ...) {
 
   if (!is.null(seed)) set.seed(as.integer(seed))
 
-  fit_fun <- get(paste0("fit_", model), envir = asNamespace("survalis"))
-  mlobj <- do.call(fit_fun, c(list(formula = formula, data = data), spec))
+  mlobj <- do.call(lrn$fit, c(list(formula = formula, data = data), spec))
 
-  .as_survalis_fit(mlobj, model_id = model, spec = spec,
-                   formula = formula, data = data, parsed = parsed)
+  out <- .as_survalis_fit(mlobj, model_id = lrn$id, spec = spec,
+                          formula = formula, data = data, parsed = parsed)
+  if (lrn$custom) out$learner_def <- model
+  out
 }
 
 #' @keywords internal
