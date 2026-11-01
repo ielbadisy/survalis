@@ -31,7 +31,7 @@
 #' Design contract: returns a named list with engine metadata and preserves
 #' \code{terms(formula)} so prediction uses the exact same encoding as training.
 #'
-#' @seealso [predict_coxboost()], [tune_coxboost()]
+#' @seealso `predict_coxboost()`, `tune_coxboost()`
 #'
 #' @examples
 #' \donttest{
@@ -43,7 +43,7 @@
 #'   }
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_coxboost <- function(formula, data,
                          stepno = 100,
@@ -89,7 +89,7 @@ fit_coxboost <- function(formula, data,
 #' Generates survival-probability predictions from a CoxBoost
 #' \code{mlsurv_model}.
 #'
-#' @param object A fitted \code{mlsurv_model} returned by [fit_coxboost()].
+#' @param object A fitted \code{mlsurv_model} returned by `fit_coxboost()`.
 #' @param newdata A \code{data.frame} of new observations for prediction.
 #' @param times Optional numeric vector of evaluation time points. If
 #'   \code{NULL}, returns the linear predictor.
@@ -102,7 +102,7 @@ fit_coxboost <- function(formula, data,
 #'         probabilities with columns named \code{"t=<time>"}.
 #' }
 #'
-#' @seealso [fit_coxboost()], [tune_coxboost()]
+#' @seealso `fit_coxboost()`, `tune_coxboost()`
 #'
 #' @examples
 #' \donttest{
@@ -112,7 +112,7 @@ fit_coxboost <- function(formula, data,
 #' }
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_coxboost <- function(object, newdata, times = NULL) {
   stopifnot(object$learner == "coxboost")
@@ -142,23 +142,23 @@ predict_coxboost <- function(object, newdata, times = NULL) {
 #' @param times Numeric vector of evaluation time points.
 #' @param param_grid A \code{data.frame} (e.g., from \code{expand.grid()}) with
 #'   columns: \code{stepno}, \code{penalty}, \code{criterion}, \code{stepsize.factor}.
-#'   Values are passed through to \code{\link{fit_coxboost}}.
+#'   Values are passed through to \code{fit_coxboost}.
 #' @param metrics Character vector of metrics to evaluate (e.g., \code{"cindex"}, \code{"ibs"}).
 #'   The first entry is treated as the primary selection metric for ordering.
 #' @param folds Integer number of CV folds.
 #' @param seed Integer random seed for reproducibility.
-#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).
 #'
 #' @return A \code{data.frame} with one row per grid configuration, containing
 #'   the grid values, a \code{failed} column, and one column per metric.
 #'
 #' @details
-#' Internally calls \code{\link{cv_survlearner}} with \code{\link{fit_coxboost}} /
-#' \code{\link{predict_coxboost}}. Any configuration that errors is recorded
+#' Internally calls \code{cv_survlearner} with \code{fit_coxboost} /
+#' \code{predict_coxboost}. Any configuration that errors is recorded
 #' with \code{failed = TRUE} and omitted from metric summarization.
 #'
-#' @seealso \code{\link{fit_coxboost}}, \code{\link{predict_coxboost}}
+#' @seealso \code{fit_coxboost}, \code{predict_coxboost}
 #'
 #' @examples
 #' \donttest{
@@ -183,7 +183,7 @@ predict_coxboost <- function(object, newdata, times = NULL) {
 #' }
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 tune_coxboost <- function(formula, data, times,
                           param_grid = expand.grid(
