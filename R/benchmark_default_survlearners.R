@@ -3,9 +3,9 @@
 #'
 #' The single entry point for comparing multiple survival learners. With
 #' \code{tune = FALSE} (default), each learner is run with fixed
-#' hyperparameters via \code{\link{benchmark_default_survlearners}}. With
+#' hyperparameters via \code{benchmark_default_survlearners}. With
 #' \code{tune = TRUE}, each learner is tuned internally per outer fold via
-#' nested cross-validation using \code{\link{benchmark_tuned_survlearners}}.
+#' nested cross-validation using \code{benchmark_tuned_survlearners}.
 #'
 #' @param formula A survival formula of the form \code{Surv(time, status) ~ x1 + x2 + ...}.
 #' @param data A data frame containing the variables in \code{formula}.
@@ -27,7 +27,7 @@
 #'   used only when \code{tune = TRUE}.
 #' @param learner_args Optional named list of learner-specific tuning
 #'   arguments; used only when \code{tune = TRUE}. See
-#'   \code{\link{benchmark_tuned_survlearners}}.
+#'   \code{benchmark_tuned_survlearners}.
 #' @param refit_final Logical; if \code{TRUE} (and \code{tune = TRUE}), tunes
 #'   and refits each learner on the full dataset in addition to the outer CV.
 #' @param verbose Logical; print progress.
@@ -39,9 +39,9 @@
 #'   (common tuning arguments) when \code{tune = TRUE}.
 #'
 #' @return With \code{tune = FALSE}, a data frame of CV results (see
-#'   \code{\link{benchmark_default_survlearners}}). With \code{tune = TRUE}, a
+#'   \code{benchmark_default_survlearners}). With \code{tune = TRUE}, a
 #'   list of class \code{"nested_surv_benchmark"} (see
-#'   \code{\link{benchmark_tuned_survlearners}}).
+#'   \code{benchmark_tuned_survlearners}).
 #'
 #' @examples
 #' \donttest{
@@ -57,9 +57,9 @@
 #' head(res)
 #' }
 #'
-#' @seealso [benchmark_default_survlearners()], [benchmark_tuned_survlearners()]
+#' @seealso `benchmark_default_survlearners()`, `benchmark_tuned_survlearners()`
 #' @keywords internal
-#' @export
+#' @noRd
 benchmark <- function(formula, data, learners, times,
                       metrics = c("cindex", "ibs"),
                       tune = FALSE,
@@ -140,9 +140,9 @@ benchmark <- function(formula, data, learners, times,
 #' head(res)
 #' }
 #'
-#' @seealso [cv_survlearner()], [plot_benchmark()], [summarise_benchmark()]
+#' @seealso `cv_survlearner()`, `plot_benchmark()`, `summarise_benchmark()`
 #' @keywords internal
-#' @export
+#' @noRd
 
 benchmark_default_survlearners <- function(formula, data, learners, times,
                                    metrics = c("cindex", "ibs"),
@@ -394,10 +394,10 @@ benchmark_default_survlearners <- function(formula, data, learners, times,
 #' res$outer_summary
 #' }
 #'
-#' @seealso \code{\link{benchmark_default_survlearners}},
-#'   \code{\link{cv_survlearner}}
+#' @seealso \code{benchmark_default_survlearners},
+#'   \code{cv_survlearner}
 #' @keywords internal
-#' @export
+#' @noRd
 benchmark_tuned_survlearners <- function(formula, data, learners, times,
                                          metrics = c("cindex", "ibs"),
                                          outer_folds = 5,
@@ -651,10 +651,10 @@ benchmark_tuned_survlearners <- function(formula, data, learners, times,
 #' )
 #' summarise_benchmark(res)
 #'
-#' @seealso [benchmark_default_survlearners()], [plot_benchmark()],
-#'   [summarize_benchmark_results()]
+#' @seealso `benchmark_default_survlearners()`, `plot_benchmark()`,
+#'   `summarize_benchmark_results()`
 #' @keywords internal
-#' @export
+#' @noRd
 
 summarise_benchmark <- function(benchmark_results, digits = 3) {
   df <- as.data.frame(benchmark_results)
@@ -700,8 +700,8 @@ summarise_benchmark <- function(benchmark_results, digits = 3) {
 #' )
 #' plot_benchmark(res)
 #'
-#' @seealso [benchmark_default_survlearners()], [summarise_benchmark()]
-#' @export
+#' @seealso `benchmark_default_survlearners()`, `summarise_benchmark()`
+#' @noRd
 
 plot_benchmark <- function(benchmark_results, title) {
   if (missing(title)) title <- "Cross-Validated Performance of Survival Learners"
@@ -741,9 +741,9 @@ plot_benchmark <- function(benchmark_results, title) {
 #' )
 #' summarize_benchmark_results(res, digits = 2)
 #'
-#' @seealso [summarise_benchmark()], [benchmark_default_survlearners()]
+#' @seealso `summarise_benchmark()`, `benchmark_default_survlearners()`
 #' @keywords internal
-#' @export
+#' @noRd
 
 summarize_benchmark_results <- function(results, digits = 3) {
 
@@ -796,9 +796,9 @@ summarize_benchmark_results <- function(results, digits = 3) {
 #' best_survlearner(res, metric = "cindex")
 #' best_survlearner(res, metric = "ibs")
 #'
-#' @seealso [benchmark_default_survlearners()], [summarise_benchmark()]
+#' @seealso `benchmark_default_survlearners()`, `summarise_benchmark()`
 #' @keywords internal
-#' @export
+#' @noRd
 
 best_survlearner <- function(benchmark_results, metric, maximize = NULL) {
   if (!metric %in% benchmark_results$metric) {
