@@ -1,11 +1,40 @@
-# survalis 1.7.0
+# survalis 2.0.0
 
-* The granular functions (`fit_*()`, `predict_*()`, `tune_*()`,
-  `cv_survlearner()`, `score_survmodel()`, `benchmark*()`, `compute_*()`,
-  `estimate_rmst()`, ...) are no longer scheduled for removal. They stay
-  exported as the low-level layer under the verbs and no longer print the
-  one-time "granular survalis function" note. `?survalis-deprecated` is now
-  `?survalis-lowlevel`.
+* survalis is now built around seven verbs: `fit()`, `predict()`,
+  `evaluate()`, `tune()`, `compare()`, `interpret()` and `estimate()`. The
+  exported API is these verbs plus the resampling specs (`cv()`, `holdout()`,
+  `group_cv()`, `bootstrap()`), the lookups (`list_survlearners()`,
+  `list_metrics()`, `list_interpretability_methods()`), `Surv()` and the
+  `veteran` data. The granular layer is no longer exported: `fit_*()`,
+  `predict_*()`, `tune_*()`, `cv_survlearner()`, `cv_survmetalearner()`,
+  `cv_summary()`, `cv_plot()`, `score_survmodel()`, `benchmark*()`,
+  `summarise_benchmark()`, `summarize_benchmark_results()`,
+  `best_survlearner()`, `compute_*()`, `plot_*()`, the `*_survmat()` metrics,
+  `brier()`, `survmat_to_*()`, `estimate_rmst()`, `default_times()`,
+  `list_tunable_survlearners()`, `theme_survalis()` and the colour scales.
+  `vignette("from-1.0")` maps each one to its verb. `screen_fdr()` is removed;
+  use the `"selectcox"` or `"glmnet"` learners for variable selection.
+
+* Custom learners: `model` in every verb also accepts
+  `list(fit = function(formula, data, ...), predict = function(object, newdata, times))`,
+  where `predict` returns an `nrow(newdata) x length(times)` matrix of
+  survival probabilities. `compare()` accepts a list mixing ids and custom
+  learners.
+
+* `evaluate(fit, newdata = test)` scores a fitted learner on new data
+  (external or temporal validation), and `evaluate(S, y = Surv(time, status))`
+  scores a survival matrix produced anywhere.
+
+* `tune()` works for any learner when you supply `grid`: configurations are
+  scored on shared splits under any resampling spec. Learners listed by
+  `list_survlearners(has_tune = TRUE)` keep their built-in default grids.
+
+* `interpret()` gains `method = "roc"` (time-dependent ROC curve) and
+  `method = "dca"` (decision curve), both at one `eval_time`.
+
+* `list_survlearners()` now returns `learner` and `tunable` only, and
+  `list_interpretability_methods()` returns the `interpret()` method ids with
+  a one-line summary.
 
 * `fit()` no longer accepts engine arguments through `...`; pass them in
   `spec = list(...)`. Extra arguments now give an error instead of a warning.
