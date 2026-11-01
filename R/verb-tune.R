@@ -37,7 +37,7 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
                  resampling = cv(), metric = "ibs", ncores = 1, ...) {
   lrn <- .resolve_learner(model)
   if (length(metric) != 1L) stop("`metric` must be a single value.", call. = FALSE)
-  if (!metric %in% list_metrics()$metric) {
+  if (!.is_metric(metric)) {
     stop("Unknown metric ", sQuote(metric), ". See list_metrics().", call. = FALSE)
   }
   if (!inherits(resampling, "survalis_resampling")) {
@@ -91,12 +91,12 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
       if (any(keep)) results <- results[keep, , drop = FALSE]
     }
     results <- as.data.frame(.arrange_by_metric_dt(results, metric, .metric_maximize(metric)))
-    param_cols0 <- setdiff(names(results), c(intersect(names(results), list_metrics()$metric), "failed"))
+    param_cols0 <- setdiff(names(results), c(names(results)[.is_metric(names(results))], "failed"))
     spec0 <- as.list(results[1, param_cols0, drop = FALSE])
     best_model <- do.call(lrn$fit, c(list(formula = formula, data = data), spec0))
   }
 
-  metric_cols <- intersect(names(results), list_metrics()$metric)
+  metric_cols <- names(results)[.is_metric(names(results))]
   param_cols <- setdiff(names(results), c(metric_cols, "failed"))
   best_row <- results[1, , drop = FALSE]
   spec <- as.list(best_row[, param_cols, drop = FALSE])
@@ -170,7 +170,7 @@ summary.survalis_tune <- function(object, ...) object$results
 plot.survalis_tune <- function(x, title, ...) {
   res <- x$results
   if (!x$metric %in% names(res)) stop("Metric column not found in tuning results.")
-  param_cols <- setdiff(names(res), intersect(names(res), list_metrics()$metric))
+  param_cols <- setdiff(names(res), names(res)[.is_metric(names(res))])
   varying <- param_cols[vapply(param_cols, function(c) length(unique(res[[c]])) > 1L, logical(1))]
   xcol <- if (length(varying)) varying[1] else param_cols[1]
   if (missing(title)) title <- sprintf("Tuning %s: %s vs %s", x$model, x$metric, xcol)
