@@ -39,7 +39,7 @@
   # entry rather than being spread across columns by base data.frame()'s
   # default list-argument handling.
   params <- lapply(params, function(x) if (is.list(x)) I(x) else x)
-  do.call(data.frame, c(params, metric_vals, stringsAsFactors = FALSE))
+  do.call(data.frame, c(params, metric_vals, stringsAsFactors = FALSE, check.names = FALSE))
 }
 
 .arrange_by_metric_dt <- function(dt, metric, maximize) {
