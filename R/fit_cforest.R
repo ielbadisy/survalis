@@ -6,7 +6,7 @@
 #' @param formula A `Surv()` survival formula specifying the outcome and predictors.
 #' @param data A data frame containing the variables in the model.
 #' @param teststat Character string specifying the test statistic to use 
-#'   (default = `"quad"`). See [party::cforest_control()].
+#'   (default = `"quad"`). See `cforest_control()`.
 #' @param testtype Character string specifying the type of test 
 #'   (default = `"Univariate"`).
 #' @param mincriterion Numeric, the value of the test statistic that must be
@@ -18,7 +18,7 @@
 #'   (default = `TRUE`).
 #' @param fraction Proportion of samples to draw if `replace = FALSE`
 #'   (default = `0.632`).
-#' @param ... Additional arguments passed to [party::cforest_control()].
+#' @param ... Additional arguments passed to `cforest_control()`.
 #'
 #' @return An object of class `"mlsurv_model"`, containing:
 #'   \item{model}{The fitted `cforest` model.}
@@ -35,7 +35,7 @@
 #' head(predict_cforest(mod, newdata = veteran[1:5, ], times = c(100, 200)))
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 fit_cforest <- function(formula, data,
                         teststat = "quad",
@@ -83,7 +83,7 @@ fit_cforest <- function(formula, data,
 #' Generates predicted survival probabilities at specified time points from a
 #' fitted `cforest` survival model.
 #'
-#' @param object An `mlsurv_model` object returned by [fit_cforest()].
+#' @param object An `mlsurv_model` object returned by `fit_cforest()`.
 #' @param newdata A data frame containing the predictor variables for prediction.
 #' @param times A numeric vector of time points at which to estimate survival
 #'   probabilities.
@@ -100,7 +100,7 @@ fit_cforest <- function(formula, data,
 #' predict_cforest(mod, newdata = veteran[1:5, ], times = c(100, 200, 300))
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 predict_cforest <- function(object, newdata, times, ...) {
 
@@ -151,11 +151,11 @@ predict_cforest <- function(object, newdata, times, ...) {
 #'   (default = `c("cindex", "ibs")`).
 #' @param folds Integer, number of cross-validation folds (default = `5`).
 #' @param seed Integer, random seed for reproducibility.
-#' @param ncores Integer number of CPU cores passed to \code{\link{cv_survlearner}}
+#' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).
 #' @param refit_best Logical, if `TRUE` refits a model with the best-performing
 #'   hyperparameters and returns it; otherwise returns a summary table of results.
-#' @param ... Additional arguments passed to [fit_cforest()].
+#' @param ... Additional arguments passed to `fit_cforest()`.
 #'
 #' @return If `refit_best = FALSE`, a data frame of mean cross-validation scores
 #'   for each hyperparameter combination (class `"tuned_surv"`).  
@@ -181,7 +181,7 @@ predict_cforest <- function(object, newdata, times, ...) {
 #' print(res)
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 
 tune_cforest <- function(formula, data, times,
                          param_grid = expand.grid(
