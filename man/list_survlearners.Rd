@@ -2,29 +2,23 @@
 % Please edit documentation in R/list_functions.R
 \name{list_survlearners}
 \alias{list_survlearners}
-\title{List survival learners available in survalis}
+\title{List the survival learners}
 \usage{
 list_survlearners(has_tune = FALSE)
 }
 \arguments{
 \item{has_tune}{Logical (default \code{FALSE}). If \code{TRUE}, return only learners
-that have a corresponding \verb{tune_*} function. If \code{FALSE}, return all.}
+with a built-in tuning grid, so that \code{\link[=tune]{tune()}} works without a \code{grid}.}
 }
 \value{
-A data.frame with columns:
-\itemize{
-\item \code{learner} – learner id (e.g., "ranger")
-\item \code{fit}, \code{predict}, \code{tune} – function names (tune may be \code{NA})
-\item \code{has_fit}, \code{has_predict}, \code{has_tune} – logical flags
-\item \code{available} – \code{has_fit & has_predict}
-}
+A data frame with columns \code{learner} (the id) and \code{tunable} (whether
+a built-in tuning grid exists).
 }
 \description{
-Returns a table of known survival learners, showing the expected
-\verb{fit_*}, \verb{predict_*}, and (if present) \verb{tune_*} functions, plus
-booleans indicating which functions are available.
+The ids accepted by the \code{model} argument of \code{\link[=fit]{fit()}}, \code{\link[=evaluate]{evaluate()}},
+\code{\link[=compare]{compare()}}, \code{\link[=tune]{tune()}} and \code{\link[=estimate]{estimate()}}.
 }
 \examples{
-list_survlearners()                   # all learners (default)
-list_survlearners(has_tune = TRUE)    # only tunable learners
+list_survlearners()
+list_survlearners(has_tune = TRUE)
 }
