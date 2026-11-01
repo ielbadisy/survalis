@@ -4,7 +4,7 @@
 #' Computes Harrell's concordance index using predicted survival probabilities
 #' at a specified time point (or the last column if \code{t_star} is \code{NULL}).
 #'
-#' @param object A \code{\link[survival]{Surv}} object of length \eqn{n}.
+#' @param object A \code{Surv} object of length \eqn{n}.
 #' @param predicted An \code{n x k} matrix or data frame of survival probabilities
 #'   with columns named \code{"t=<time>"}.
 #' @param t_star Optional numeric time at which to evaluate the c-index; if omitted,
@@ -24,7 +24,7 @@
 #'   dimnames = list(NULL, "t=100")
 #' )
 #' cindex_survmat(y, predicted = sp, t_star = 100)
-#' @export
+#' @noRd
 
 cindex_survmat <- function(object, predicted, t_star = NULL) {
   if (!inherits(object, "Surv")) stop("object must be a survival object (from Surv())")
@@ -84,7 +84,7 @@ cindex_survmat <- function(object, predicted, t_star = NULL) {
 #' known to survive beyond \code{t_star}. Subjects censored before \code{t_star}
 #' are handled through IPCW weighting.
 #'
-#' @param object A \code{\link[survival]{Surv}} object of length \eqn{n}.
+#' @param object A \code{Surv} object of length \eqn{n}.
 #' @param predicted An \code{n x k} matrix or data frame of survival probabilities
 #'   with columns named \code{"t=<time>"}.
 #' @param t_star Optional numeric time at which to evaluate AUC; if omitted,
@@ -105,7 +105,7 @@ cindex_survmat <- function(object, predicted, t_star = NULL) {
 #'   dimnames = list(NULL, "t=100")
 #' )
 #' auc_survmat(y, predicted = sp, t_star = 100)
-#' @export
+#' @noRd
 auc_survmat <- function(object, predicted, t_star = NULL) {
   if (!inherits(object, "Surv")) stop("object must be a survival object (from Surv())")
 
@@ -171,12 +171,12 @@ auc_survmat <- function(object, predicted, t_star = NULL) {
 #' Computes the cumulative/dynamic time-dependent AUC (Uno et al., 2007;
 #' Heagerty and Zheng, 2005) at each time in \code{times}, using marginal
 #' (Kaplan-Meier) inverse-probability-of-censoring weighting for cases. This
-#' is a thin vectorized wrapper around \code{\link{auc_survmat}} that returns
+#' is a thin vectorized wrapper around \code{auc_survmat} that returns
 #' a full \eqn{AUC(t)} curve instead of a single time point, matching the
 #' quantity reported by \code{timeROC::timeROC()} with
 #' \code{weighting = "marginal"}.
 #'
-#' @param object A \code{\link[survival]{Surv}} object of length \eqn{n}.
+#' @param object A \code{Surv} object of length \eqn{n}.
 #' @param predicted An \code{n x k} matrix or data frame of survival probabilities
 #'   with columns named \code{"t=<time>"}, one column per entry of \code{times}.
 #' @param times Numeric vector of evaluation time points; each must have a
@@ -185,7 +185,7 @@ auc_survmat <- function(object, predicted, t_star = NULL) {
 #' @return A \code{data.frame} (class \code{"timeroc_survmat"}) with columns
 #'   \code{time} and \code{auc}, one row per entry of \code{times}.
 #'
-#' @seealso [auc_survmat()]
+#' @seealso `auc_survmat()`
 #'
 #' @references
 #' Uno H, Cai T, Tian L, Wei LJ (2007). Evaluating prediction rules for
@@ -200,7 +200,7 @@ auc_survmat <- function(object, predicted, t_star = NULL) {
 #' sp <- sapply(times, function(t) stats::plogis(-scale(veteran$karno) + log(t) / 5))
 #' colnames(sp) <- paste0("t=", times)
 #' timeroc_survmat(y, predicted = sp, times = times)
-#' @export
+#' @noRd
 timeroc_survmat <- function(object, predicted, times) {
   if (!inherits(object, "Surv")) stop("object must be a survival object (from Surv())")
   if (!length(times)) stop("times must be a non-empty numeric vector.")
@@ -219,7 +219,7 @@ timeroc_survmat <- function(object, predicted, times) {
 #' Computes the inverse-probability-of-censoring weighted (IPCW) Brier score
 #' at a single time \code{t_star}.
 #'
-#' @param object A \code{\link[survival]{Surv}} object.
+#' @param object A \code{Surv} object.
 #' @param pre_sp Numeric vector of predicted survival probabilities \eqn{S(t^{*}\mid x_i)}.
 #' @param t_star Numeric evaluation time.
 #'
@@ -236,7 +236,7 @@ timeroc_survmat <- function(object, predicted, times) {
 #' y <- survival::Surv(time = veteran$time, event = veteran$status)
 #' pre_sp <- stats::plogis(scale(veteran$karno))
 #' brier(y, pre_sp = pre_sp, t_star = 100)
-#' @export
+#' @noRd
 
 brier <- function(object, pre_sp, t_star) {
   if (!inherits(object, "Surv")) stop("object must be a survival object")
@@ -281,7 +281,7 @@ brier <- function(object, pre_sp, t_star) {
 #' Computes the Integrated Brier Score (IBS) over a vector of times, using
 #' discrete left Riemann integration of IPCW Brier scores.
 #'
-#' @param object A \code{\link[survival]{Surv}} object.
+#' @param object A \code{Surv} object.
 #' @param sp_matrix Matrix/data frame of survival probabilities with one column
 #'   per time in \code{times}.
 #' @param times Numeric vector of strictly increasing times (length must equal
@@ -296,7 +296,7 @@ brier <- function(object, pre_sp, t_star) {
 #' sp <- cbind("t=60" = pmin(1, lp + 0.05), "t=120" = pmax(0, lp - 0.05))
 #' colnames(sp) <- c("t=60", "t=120")
 #' ibs_survmat(y, sp_matrix = sp, times = times)
-#' @export
+#' @noRd
 
 ibs_survmat <- function(object, sp_matrix, times) {
   if (!inherits(object, "Surv")) stop("object must be a survival object")
@@ -324,7 +324,7 @@ ibs_survmat <- function(object, sp_matrix, times) {
 #' \eqn{\hat{S}_{KM}(t)} is the Kaplan-Meier estimate. Integration is carried
 #' out over KM event times using a left Riemann sum.
 #'
-#' @param object A \code{\link[survival]{Surv}} object.
+#' @param object A \code{Surv} object.
 #' @param sp_matrix Matrix/data frame of survival probabilities (rows = subjects,
 #'   columns aligned with \code{times}).
 #' @param times Numeric vector of times corresponding to the columns of \code{sp_matrix}.
@@ -338,7 +338,7 @@ ibs_survmat <- function(object, sp_matrix, times) {
 #' sp <- cbind("t=60" = pmin(1, lp + 0.05), "t=120" = pmax(0, lp - 0.05))
 #' colnames(sp) <- c("t=60", "t=120")
 #' iae_survmat(y, sp_matrix = sp, times = times)
-#' @export
+#' @noRd
 
 iae_survmat <- function(object, sp_matrix, times) {
   if (!inherits(object, "Surv")) stop("object must be a survival object")
@@ -366,7 +366,7 @@ iae_survmat <- function(object, sp_matrix, times) {
 #' is the Kaplan-Meier curve. Integration uses KM event times and a left
 #' Riemann sum.
 #'
-#' @param object A \code{\link[survival]{Surv}} object.
+#' @param object A \code{Surv} object.
 #' @param sp_matrix Matrix/data frame of survival probabilities (rows = subjects,
 #'   columns aligned with \code{times}).
 #' @param times Numeric vector of times corresponding to the columns of \code{sp_matrix}.
@@ -380,7 +380,7 @@ iae_survmat <- function(object, sp_matrix, times) {
 #' sp <- cbind("t=60" = pmin(1, lp + 0.05), "t=120" = pmax(0, lp - 0.05))
 #' colnames(sp) <- c("t=60", "t=120")
 #' ise_survmat(y, sp_matrix = sp, times = times)
-#' @export
+#' @noRd
 
 ise_survmat <- function(object, sp_matrix, times) {
   if (!inherits(object, "Surv")) stop("object must be a survival object")
@@ -409,7 +409,7 @@ ise_survmat <- function(object, sp_matrix, times) {
 #' Computes a binned Expected Calibration Error at time \code{t_star}, using
 #' quantile-based bins of predicted survival probabilities.
 #'
-#' @param object A \code{\link[survival]{Surv}} object.
+#' @param object A \code{Surv} object.
 #' @param sp_matrix Matrix or data frame of survival probabilities with rows =
 #'   subjects and (optionally) columns named \code{"t=<time>"}.
 #' @param t_star Numeric evaluation time (must be a single value).
@@ -443,7 +443,7 @@ ise_survmat <- function(object, sp_matrix, times) {
 #' )
 #' sp <- cbind("t=5" = c(0.15, 0.20, 0.35, 0.40, 0.55, 0.65, 0.75, 0.80))
 #' ece_survmat(y, sp_matrix = sp, t_star = 5, n_bins = 4)
-#' @export
+#' @noRd
 ece_survmat <- function(object,
   sp_matrix,
   t_star,
@@ -623,11 +623,11 @@ round(ece, 6)
 #' )
 #' }
 #'
-#' @seealso \code{\link[functionals]{fmapn}}
+#' @seealso \code{fmapn}
 #' @importFrom functionals fmapn
 #' @keywords survival cross-validation fmapn parallel
 #' @keywords internal
-#' @export
+#' @noRd
 
 cv_survlearner <- function(formula, data,
   fit_fun, pred_fun,
@@ -708,7 +708,7 @@ data.frame(
 #' Summarize Cross-Validation Results
 #'
 #' Produces mean, standard deviation, standard error, and 95\% Wald intervals
-#' for each metric returned by \code{\link{cv_survlearner}}.
+#' for each metric returned by \code{cv_survlearner}.
 #'
 #' @param cv_results A tibble/data frame as returned by \code{cv_survlearner()}.
 #' @param digits Integer number of decimal places for \code{mean}, \code{sd},
@@ -724,7 +724,7 @@ data.frame(
 #' )
 #' cv_summary(cv_results)
 #' @keywords internal
-#' @export
+#' @noRd
 
 cv_summary <- function(cv_results, digits = 3) {
   df <- as.data.frame(cv_results)
@@ -748,7 +748,7 @@ cv_summary <- function(cv_results, digits = 3) {
 
 #' Boxplot of Cross-Validation Metric Distributions
 #'
-#' Visualizes per-fold metric values from \code{\link{cv_survlearner}} using a
+#' Visualizes per-fold metric values from \code{cv_survlearner} using a
 #' boxplot with jittered points.
 #'
 #' @param cv_results A tibble/data frame as returned by \code{cv_survlearner()}.
@@ -765,7 +765,7 @@ cv_summary <- function(cv_results, digits = 3) {
 #' )
 #' cv_plot(cv_results)
 #' @keywords internal
-#' @export
+#' @noRd
 
 cv_plot <- function(cv_results, title) {
   if (missing(title)) title <- "Cross-Validation Performance"
@@ -807,7 +807,7 @@ cv_plot <- function(cv_results, title) {
 #'   metrics = c("cindex", "ibs")
 #' )
 #' @keywords internal
-#' @export
+#' @noRd
 
 score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", "iae", "ise")) {
   stopifnot(inherits(model, "mlsurv_model"))
