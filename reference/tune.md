@@ -1,9 +1,12 @@
 # Tune a survival learner over a hyperparameter grid
 
-Grid search with cross-validation for learners that expose a
-`tune_<model>()` routine (`list_survlearners(has_tune = TRUE)`). The
-best configuration is refit on the full data and returned as a
-ready-to-use `survalis_fit`.
+Grid search over resampling folds. Learners listed by
+`list_survlearners(has_tune = TRUE)` have a built-in default grid; any
+other learner, including a custom one (see
+[`fit()`](https://elbadisyimad.com/survalis/reference/fit.md)), is tuned
+over the `grid` you supply, with every configuration scored on the same
+splits. The best configuration is refit on the full data and returned as
+a ready-to-use `survalis_fit`.
 
 ## Usage
 
@@ -33,24 +36,25 @@ tune(
 
 - model:
 
-  A tunable learner id.
+  A learner id (`list_survlearners()$learner`) or a custom learner.
 
 - grid:
 
-  A data frame / list of hyperparameter combinations. `NULL` uses the
-  learner's built-in default grid.
+  A data frame of hyperparameter combinations (one row per
+  configuration, for example from
+  [`expand.grid()`](https://rdrr.io/r/base/expand.grid.html)). `NULL`
+  uses the learner's built-in default grid, if it has one.
 
 - times:
 
-  Evaluation grid; `NULL` uses
-  [`default_times()`](https://elbadisyimad.com/survalis/reference/default_times.md).
+  Evaluation grid; `NULL` picks one from the data quantiles.
 
 - resampling:
 
-  A [`cv()`](https://elbadisyimad.com/survalis/reference/resampling.md)
-  spec (only
-  [`cv()`](https://elbadisyimad.com/survalis/reference/resampling.md) is
-  supported here); its `v` and `seed` drive the inner cross-validation.
+  A resampling spec. Built-in grids use
+  [`cv()`](https://elbadisyimad.com/survalis/reference/resampling.md)
+  only (its `v` and `seed` drive the inner cross-validation); a supplied
+  `grid` for a learner without a built-in tuner accepts any spec.
 
 - metric:
 
@@ -62,7 +66,7 @@ tune(
 
 - ...:
 
-  Forwarded to `tune_<model>()` / `fit_<model>()`.
+  Forwarded to the learner's built-in tuner.
 
 ## Value
 

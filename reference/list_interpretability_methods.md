@@ -1,7 +1,7 @@
-# List interpretability methods available in survalis
+# List the interpretability methods
 
-Returns a table mapping each `compute_*` function to its paired `plot_*`
-helper (if any). Methods without a plot helper show `NA`.
+The ids accepted by the `method` argument of
+[`interpret()`](https://elbadisyimad.com/survalis/reference/interpret.md).
 
 ## Usage
 
@@ -11,36 +11,42 @@ list_interpretability_methods()
 
 ## Value
 
-A data.frame with columns `compute`, `plot`, `has_compute`, and
-`has_plot`.
+A data frame with columns `method` and `summary`.
 
 ## Examples
 
 ``` r
 list_interpretability_methods()
-#>                                       compute                plot has_compute
-#> compute_shap                     compute_shap           plot_shap        TRUE
-#> compute_pdp                       compute_pdp            plot_pdp        TRUE
-#> compute_ale                       compute_ale            plot_ale        TRUE
-#> compute_surrogate           compute_surrogate      plot_surrogate        TRUE
-#> compute_tree_surrogate compute_tree_surrogate plot_tree_surrogate        TRUE
-#> compute_varimp                 compute_varimp         plot_varimp        TRUE
-#> compute_interactions     compute_interactions   plot_interactions        TRUE
-#> compute_counterfactual compute_counterfactual plot_counterfactual        TRUE
-#> compute_shap_matrix       compute_shap_matrix  plot_shap_beeswarm        TRUE
-#> compute_survcluster       compute_survcluster    plot_survcluster        TRUE
-#>                        has_plot
-#> compute_shap               TRUE
-#> compute_pdp                TRUE
-#> compute_ale                TRUE
-#> compute_surrogate          TRUE
-#> compute_tree_surrogate     TRUE
-#> compute_varimp             TRUE
-#> compute_interactions       TRUE
-#> compute_counterfactual     TRUE
-#> compute_shap_matrix        TRUE
-#> compute_survcluster        TRUE
-subset(list_interpretability_methods(), is.na(plot))  # methods without plot
-#> [1] compute     plot        has_compute has_plot   
-#> <0 rows> (or 0-length row.names)
+#>            method
+#> 1             pdp
+#> 2             ice
+#> 3             ale
+#> 4            shap
+#> 5     shap_matrix
+#> 6          varimp
+#> 7         permute
+#> 8     interaction
+#> 9  counterfactual
+#> 10      surrogate
+#> 11 tree_surrogate
+#> 12    calibration
+#> 13            roc
+#> 14            dca
+#> 15    survcluster
+#>                                                                    summary
+#> 1      Partial dependence of predicted survival on one feature, over time.
+#> 2               Individual conditional expectation curves for one feature.
+#> 3                               Accumulated local effects for one feature.
+#> 4                   Shapley values for one instance, aggregated over time.
+#> 5                       Shapley values for many instances (beeswarm plot).
+#> 6                   Permutation variable importance on the survival scale.
+#> 7                                                         Alias of varimp.
+#> 8                   Friedman H-statistic interaction strength per feature.
+#> 9  Smallest feature changes that move predicted survival at a target time.
+#> 10               Local linear surrogate for one instance at a target time.
+#> 11                      Global decision-tree surrogate of the predictions.
+#> 12                                          Calibration curve at one time.
+#> 13                                   Time-dependent ROC curve at one time.
+#> 14          Decision curve (net benefit over risk thresholds) at one time.
+#> 15            Clusters of subjects with similar predicted survival curves.
 ```

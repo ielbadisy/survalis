@@ -31,12 +31,17 @@ fit(formula, data, model, spec = list(), seed = NULL, ...)
 - model:
 
   A learner id from `list_survlearners()$learner` (for example
-  `"coxph"`, `"ranger"`, `"densemlp"`).
+  `"coxph"`, `"ranger"`, `"densemlp"`), or a custom learner: a list with
+  `fit = function(formula, data, ...)` returning any fitted object and
+  `predict = function(object, newdata, times)` returning an
+  `nrow(newdata) x length(times)` matrix of survival probabilities. An
+  optional `name` element labels it in printed output. A custom learner
+  works with every verb.
 
 - spec:
 
-  A named list of engine arguments forwarded to the underlying
-  `fit_<model>()` (for example `list(num.trees = 500)` for `"ranger"`).
+  A named list of engine arguments forwarded to the learner's fitting
+  routine (for example `list(num.trees = 500)` for `"ranger"`).
 
 - seed:
 
@@ -52,12 +57,6 @@ fit(formula, data, model, spec = list(), seed = NULL, ...)
 An object of class `c("survalis_fit", "mlsurv_model")` with elements
 `model`, `learner`, `engine`, `formula`, `data`, `time`, `status`,
 `model_id`, and `spec`.
-
-## Details
-
-`survalis_fit` extends the internal `mlsurv_model` contract, so every
-legacy `predict_*()` / `compute_*()` helper keeps working on it
-unchanged.
 
 ## See also
 
@@ -79,4 +78,21 @@ m
 #>   formula: Surv(time, status) ~ age + karno + celltype
 #>   data:    137 obs, 128 events (93%)
 #>   spec:    num.trees = 200
+
+# A custom learner: an exponential AFT model from survival::survreg
+expo <- list(
+  name = "exponential",
+  fit = function(formula, data, ...) survival::survreg(formula, data, dist = "exponential"),
+  predict = function(object, newdata, times) {
+    rate <- 1 / predict(object, newdata, type = "response")
+    exp(-outer(rate, times))
+  }
+)
+m2 <- fit(Surv(time, status) ~ age + karno, veteran, model = expo)
+predict(m2, veteran[1:3, ], times = c(90, 180))
+#> <survmat> survival  |  3 obs x 2 times  [90, 180]
+#>           t=90     t=180
+#> [1,] 0.4587666 0.2104668
+#> [2,] 0.5774304 0.3334259
+#> [3,] 0.4625431 0.2139461
 ```

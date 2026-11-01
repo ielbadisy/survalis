@@ -1,10 +1,11 @@
-# List Available Evaluation Metrics
+# List the evaluation metrics
 
-Returns a data frame describing the evaluation metrics supported by
-`survalis` (as used by helpers like
-[`cv_survlearner()`](https://elbadisyimad.com/survalis/reference/cv_survlearner.md)
+The ids accepted by the `metrics` argument of
+[`evaluate()`](https://elbadisyimad.com/survalis/reference/evaluate.md)
 and
-[`score_survmodel()`](https://elbadisyimad.com/survalis/reference/score_survmodel.md)).
+[`compare()`](https://elbadisyimad.com/survalis/reference/compare.md)
+and the `metric` argument of
+[`tune()`](https://elbadisyimad.com/survalis/reference/tune.md).
 
 ## Usage
 

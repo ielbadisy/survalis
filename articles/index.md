@@ -7,5 +7,5 @@
 
 ### Upgrading
 
-- [Moving to the survalis verb
-  interface](https://elbadisyimad.com/survalis/articles/from-1.0.md):
+- [Moving from survalis 1.x to the seven
+  verbs](https://elbadisyimad.com/survalis/articles/from-1.0.md):

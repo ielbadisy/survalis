@@ -33,17 +33,20 @@ compare(
 
 - models:
 
-  Character vector of learner ids.
+  Character vector of learner ids, or a list mixing ids and custom
+  learners (see
+  [`fit()`](https://elbadisyimad.com/survalis/reference/fit.md)). List
+  names, when given, label the learners.
 
 - specs:
 
-  Named list of engine-argument lists, keyed by model id
+  Named list of engine-argument lists, keyed by learner label
   (`specs[["ranger"]] <- list(num.trees = 500)`).
 
 - times:
 
-  Evaluation grid; `NULL` uses
-  [`default_times()`](https://elbadisyimad.com/survalis/reference/default_times.md).
+  Evaluation grid; `NULL` picks up to 50 event-time quantiles (5th to
+  95th percentile).
 
 - resampling:
 
@@ -89,11 +92,11 @@ cmp
 #> <survalis_resampling> 3-fold CV, strata = status
 #> 
 #>   cindex (higher is better):
-#>    * coxph            0.7433  (se 0.0305)
-#>      ranger           0.6600  (se 0.0165)
+#>    * coxph            0.7277  (se 0.0226)
+#>      ranger           0.6607  (se 0.0206)
 #> 
 #>   ibs (lower is better):
-#>    * coxph            0.1493  (se 0.0234)
-#>      ranger           0.1600  (se 0.0193)
+#>    * coxph            0.1510  (se 0.0079)
+#>      ranger           0.1623  (se 0.0046)
 plot(cmp)
 ```

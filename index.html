@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,7 +46,7 @@
 <li><a class="dropdown-item" href="articles/causal-estimation.html">Standardised treatment contrasts with estimate()</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Upgrading</h6></li>
-    <li><a class="dropdown-item" href="articles/from-1.0.html">Moving to the survalis verb interface</a></li>
+    <li><a class="dropdown-item" href="articles/from-1.0.html">Moving from survalis 1.x to the seven verbs</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -79,7 +79,7 @@
 <p>Unified survival machine learning and interpretability in R.</p>
 <!-- badges: start -->
 
-<p><code>survalis</code> provides a unified framework for survival machine learning in R. It supports 22 learners, evaluation metrics, cross-validation, benchmarking, and model-agnostic interpretability methods through a common survival-probability matrix (<code>survmat</code>) interface.</p>
+<p><code>survalis</code> provides a unified framework for survival machine learning in R. Seven verbs cover the whole workflow for 22 built-in learners and for any learner you write yourself: fitting, prediction, resampled and external evaluation, tuning, paired comparison, model-agnostic interpretation, and causal contrasts.</p>
 <p><code>survalis</code> is available on CRAN: <a href="https://CRAN.R-project.org/package=survalis" class="external-link uri">https://CRAN.R-project.org/package=survalis</a>.</p>
 <div class="section level2">
 <h2 id="the-seven-verb-interface">The seven-verb interface<a class="anchor" aria-label="anchor" href="#the-seven-verb-interface"></a>
@@ -89,7 +89,7 @@
 <span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">karno</span> <span class="op">+</span> <span class="va">celltype</span></span>
 <span></span>
 <span><span class="va">m</span>   <span class="op">&lt;-</span> <span class="fu"><a href="reference/fit.html">fit</a></span><span class="op">(</span><span class="va">f</span>, <span class="va">veteran</span>, model <span class="op">=</span> <span class="st">"ranger"</span>, spec <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>num.trees <span class="op">=</span> <span class="fl">500</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">m</span>, <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="op">]</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">180</span>, <span class="fl">365</span><span class="op">)</span><span class="op">)</span>          <span class="co"># survmat</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">m</span>, <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="op">]</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">180</span>, <span class="fl">365</span><span class="op">)</span><span class="op">)</span>          <span class="co"># survival matrix</span></span>
 <span><span class="fu"><a href="reference/evaluate.html">evaluate</a></span><span class="op">(</span><span class="va">m</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">180</span>, <span class="fl">365</span><span class="op">)</span>, resampling <span class="op">=</span> <span class="fu"><a href="reference/resampling.html">cv</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span>     <span class="co"># resampled metrics</span></span>
 <span></span>
 <span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compare.html">compare</a></span><span class="op">(</span><span class="va">f</span>, <span class="va">veteran</span>, models <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"coxph"</span>, <span class="st">"ranger"</span>, <span class="st">"densemlp"</span><span class="op">)</span>,</span>
@@ -98,7 +98,7 @@
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">m</span>, <span class="st">"shap"</span>, newdata <span class="op">=</span> <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span>, times <span class="op">=</span> <span class="fl">180</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/estimate.html">estimate</a></span><span class="op">(</span><span class="va">f</span>, <span class="va">veteran</span>, model <span class="op">=</span> <span class="st">"ranger"</span>, treatment <span class="op">=</span> <span class="st">"trt"</span>, tau <span class="op">=</span> <span class="fl">365</span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="reference/fit.html">fit()</a></code> / <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> / <code><a href="reference/evaluate.html">evaluate()</a></code> / <code><a href="reference/tune.html">tune()</a></code> / <code><a href="reference/compare.html">compare()</a></code> / <code><a href="reference/interpret.html">interpret()</a></code> / <code><a href="reference/estimate.html">estimate()</a></code> cover the whole workflow. The granular <code>fit_*()</code> / <code>predict_*()</code> / <code>compute_*()</code> / <code>benchmark*()</code> functions remain available as the low-level layer; see <code><a href="articles/from-1.0.html">vignette("from-1.0", package = "survalis")</a></code> and <code><a href="reference/survalis-lowlevel.html">?"survalis-lowlevel"</a></code>.</p>
+<p><code><a href="reference/fit.html">fit()</a></code>, <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>, <code><a href="reference/evaluate.html">evaluate()</a></code>, <code><a href="reference/tune.html">tune()</a></code>, <code><a href="reference/compare.html">compare()</a></code>, <code><a href="reference/interpret.html">interpret()</a></code> and <code><a href="reference/estimate.html">estimate()</a></code> are the whole interface. Resampling is described by <code><a href="reference/resampling.html">cv()</a></code>, <code><a href="reference/resampling.html">holdout()</a></code>, <code><a href="reference/resampling.html">group_cv()</a></code> and <code><a href="reference/resampling.html">bootstrap()</a></code>, and <code><a href="reference/list_survlearners.html">list_survlearners()</a></code>, <code><a href="reference/list_metrics.html">list_metrics()</a></code> and <code><a href="reference/list_interpretability_methods.html">list_interpretability_methods()</a></code> give the valid ids. Upgrading from 1.x? See <code><a href="articles/from-1.0.html">vignette("from-1.0", package = "survalis")</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -111,242 +111,49 @@
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"ielbadisy/survalis"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="new-in-version-110">New in version 1.1.0<a class="anchor" aria-label="anchor" href="#new-in-version-110"></a>
-</h2>
-<p>Version 1.1.0 adds a set of downstream tools that work with the same fitted models and <code>survmat</code> predictions used throughout the package:</p>
-<ul>
-<li>
-<code><a href="reference/screen_fdr.html">screen_fdr()</a></code> performs univariate Cox screening with Benjamini-Hochberg FDR control and an optional minimum-screen guarantee.</li>
-<li>
-<code><a href="reference/estimate_rmst.html">estimate_rmst()</a></code> and <code><a href="reference/plot_rmst.html">plot_rmst()</a></code> estimate standardized marginal RMST or a two-group RMST contrast with percentile-bootstrap intervals.</li>
-<li>
-<code><a href="reference/compute_shap_matrix.html">compute_shap_matrix()</a></code> and <code><a href="reference/plot_shap_beeswarm.html">plot_shap_beeswarm()</a></code> summarize time-integrated SHAP contributions across observations.</li>
-<li>
-<code><a href="reference/roc_survmat.html">roc_survmat()</a></code> and <code><a href="reference/dca_survmat.html">dca_survmat()</a></code> provide IPCW time-dependent ROC and decision-curve analyses, with <code><a href="reference/roc_survmat.html">plot_roc()</a></code> and <code><a href="reference/dca_survmat.html">plot_dca()</a></code> helpers.</li>
-</ul>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># FDR screening</span></span>
-<span><span class="va">selected</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/screen_fdr.html">screen_fdr</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">karno</span> <span class="op">+</span> <span class="va">diagtime</span> <span class="op">+</span> <span class="va">prior</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">veteran</span>,</span>
-<span>  alpha <span class="op">=</span> <span class="fl">0.1</span>,</span>
-<span>  minscreen <span class="op">=</span> <span class="fl">2</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Standardized RMST contrast between treatment groups</span></span>
-<span><span class="va">rmst</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/estimate_rmst.html">estimate_rmst</a></span><span class="op">(</span></span>
-<span>  <span class="va">mod_cox</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">veteran</span>,</span>
-<span>  tau <span class="op">=</span> <span class="fl">200</span>,</span>
-<span>  times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">300</span>, by <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>,</span>
-<span>  trt_col <span class="op">=</span> <span class="st">"trt"</span>,</span>
-<span>  R <span class="op">=</span> <span class="fl">200</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">1</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Time-dependent ROC and decision curves from survmat predictions</span></span>
-<span><span class="va">pred_100</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/predict_coxph.html">predict_coxph</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="va">veteran</span>, times <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
-<span><span class="va">roc</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/roc_survmat.html">roc_survmat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">veteran</span><span class="op">$</span><span class="va">time</span>, <span class="va">veteran</span><span class="op">$</span><span class="va">status</span><span class="op">)</span>, <span class="va">pred_100</span>, t_star <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
-<span><span class="va">dca</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/dca_survmat.html">dca_survmat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">veteran</span><span class="op">$</span><span class="va">time</span>, <span class="va">veteran</span><span class="op">$</span><span class="va">status</span><span class="op">)</span>, <span class="va">pred_100</span>, t_star <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/roc_survmat.html">plot_roc</a></span><span class="op">(</span><span class="va">roc</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/dca_survmat.html">plot_dca</a></span><span class="op">(</span><span class="va">dca</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
 <h2 id="core-philosophy">Core philosophy<a class="anchor" aria-label="anchor" href="#core-philosophy"></a>
 </h2>
 <ul>
 <li>Seven verbs cover the whole workflow: <code><a href="reference/fit.html">fit()</a></code>, <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>, <code><a href="reference/evaluate.html">evaluate()</a></code>, <code><a href="reference/tune.html">tune()</a></code>, <code><a href="reference/compare.html">compare()</a></code>, <code><a href="reference/interpret.html">interpret()</a></code>, <code><a href="reference/estimate.html">estimate()</a></code>
 </li>
-<li>Every learner returns a standardized <code>survalis_fit</code> (a <code>mlsurv_model</code> subclass)</li>
-<li>Matrix predictions return a <code>survmat</code>: columns <code>t=100</code>, <code>t=200</code>, …, with the grid recorded in <code>attr(x, "times")</code>
+<li>One function per job: learners are chosen by <code>model</code>, metrics by <code>metrics</code>, explanations by <code>method</code>, outputs by <code>type</code>
 </li>
-<li>Evaluation is fully modular: any learner id works with <code><a href="reference/evaluate.html">evaluate()</a></code>/<code><a href="reference/compare.html">compare()</a></code> under any <code><a href="reference/resampling.html">cv()</a></code>/<code><a href="reference/resampling.html">holdout()</a></code>/<code><a href="reference/resampling.html">group_cv()</a></code>/<code><a href="reference/resampling.html">bootstrap()</a></code> resampling</li>
-<li>Designed for interpretability post prediction, through a single <code><a href="reference/interpret.html">interpret()</a></code> entry point</li>
+<li>Every verb returns an S3 object with <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code>, <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>, <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> and <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> methods</li>
+<li>Matrix predictions are survival matrices: one row per subject, columns <code>t=100</code>, <code>t=200</code>, …, with the grid recorded in <code>attr(x, "times")</code>
+</li>
+<li>A custom learner is two functions, <code>list(fit = , predict = )</code>, and works with every verb</li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="exploring-the-package">Exploring the package<a class="anchor" aria-label="anchor" href="#exploring-the-package"></a>
 </h2>
-<div class="section level3">
-<h3 id="list-all-available-survival-learners">List all available survival learners<a class="anchor" aria-label="anchor" href="#list-all-available-survival-learners"></a>
-</h3>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://elbadisyimad.com/survalis/">survalis</a></span><span class="op">)</span></span>
-<span><span class="co"># See all available learners</span></span>
-<span><span class="fu"><a href="reference/list_survlearners.html">list_survlearners</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;            learner                 fit                 predict             tune</span></span>
-<span><span class="co">#&gt; 1            coxph           fit_coxph           predict_coxph             &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 2            aalen           fit_aalen           predict_aalen             &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 3           glmnet          fit_glmnet          predict_glmnet      tune_glmnet</span></span>
-<span><span class="co">#&gt; 4        selectcox       fit_selectcox       predict_selectcox   tune_selectcox</span></span>
-<span><span class="co">#&gt; 5           aftgee          fit_aftgee          predict_aftgee             &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 6      flexsurvreg     fit_flexsurvreg     predict_flexsurvreg tune_flexsurvreg</span></span>
-<span><span class="co">#&gt; 7          bnnsurv         fit_bnnsurv         predict_bnnsurv     tune_bnnsurv</span></span>
-<span><span class="co">#&gt; 8            rpart           fit_rpart           predict_rpart       tune_rpart</span></span>
-<span><span class="co">#&gt; 9             bart            fit_bart            predict_bart        tune_bart</span></span>
-<span><span class="co">#&gt; 10         xgboost         fit_xgboost         predict_xgboost     tune_xgboost</span></span>
-<span><span class="co">#&gt; 11        coxboost        fit_coxboost        predict_coxboost    tune_coxboost</span></span>
-<span><span class="co">#&gt; 12         fastgbm         fit_fastgbm         predict_fastgbm             &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 13          ranger          fit_ranger          predict_ranger      tune_ranger</span></span>
-<span><span class="co">#&gt; 14             rsf             fit_rsf             predict_rsf         tune_rsf</span></span>
-<span><span class="co">#&gt; 15         cforest         fit_cforest         predict_cforest     tune_cforest</span></span>
-<span><span class="co">#&gt; 16      blackboost      fit_blackboost      predict_blackboost  tune_blackboost</span></span>
-<span><span class="co">#&gt; 17         survsvm         fit_survsvm         predict_survsvm     tune_survsvm</span></span>
-<span><span class="co">#&gt; 18        densemlp        fit_densemlp        predict_densemlp             &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 19            orsf            fit_orsf            predict_orsf        tune_orsf</span></span>
-<span><span class="co">#&gt; 20          rpsurv          fit_rpsurv          predict_rpsurv             &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 21          nbsurv          fit_nbsurv          predict_nbsurv             &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 22 survmetalearner fit_survmetalearner predict_survmetalearner             &lt;NA&gt;</span></span>
-<span><span class="co">#&gt;    has_fit has_predict has_tune available</span></span>
-<span><span class="co">#&gt; 1     TRUE        TRUE    FALSE      TRUE</span></span>
-<span><span class="co">#&gt; 2     TRUE        TRUE    FALSE      TRUE</span></span>
-<span><span class="co">#&gt; 3     TRUE        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 4     TRUE        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 5     TRUE        TRUE    FALSE      TRUE</span></span>
-<span><span class="co">#&gt; 6     TRUE        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 7     TRUE        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 8     TRUE        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 9     TRUE        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 10    TRUE        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 11    TRUE        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 12    TRUE        TRUE    FALSE      TRUE</span></span>
-<span><span class="co">#&gt; 13    TRUE        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 14    TRUE        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 15    TRUE        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 16    TRUE        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 17    TRUE        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 18    TRUE        TRUE    FALSE      TRUE</span></span>
-<span><span class="co">#&gt; 19    TRUE        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 20    TRUE        TRUE    FALSE      TRUE</span></span>
-<span><span class="co">#&gt; 21    TRUE        TRUE    FALSE      TRUE</span></span>
-<span><span class="co">#&gt; 22    TRUE        TRUE    FALSE      TRUE</span></span>
-<span></span>
-<span><span class="co"># See only tunable learners (those with a tune_* function)</span></span>
-<span><span class="fu"><a href="reference/list_survlearners.html">list_survlearners</a></span><span class="op">(</span>has_tune <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt;        learner             fit             predict             tune has_fit</span></span>
-<span><span class="co">#&gt; 3       glmnet      fit_glmnet      predict_glmnet      tune_glmnet    TRUE</span></span>
-<span><span class="co">#&gt; 4    selectcox   fit_selectcox   predict_selectcox   tune_selectcox    TRUE</span></span>
-<span><span class="co">#&gt; 6  flexsurvreg fit_flexsurvreg predict_flexsurvreg tune_flexsurvreg    TRUE</span></span>
-<span><span class="co">#&gt; 7      bnnsurv     fit_bnnsurv     predict_bnnsurv     tune_bnnsurv    TRUE</span></span>
-<span><span class="co">#&gt; 8        rpart       fit_rpart       predict_rpart       tune_rpart    TRUE</span></span>
-<span><span class="co">#&gt; 9         bart        fit_bart        predict_bart        tune_bart    TRUE</span></span>
-<span><span class="co">#&gt; 10     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE</span></span>
-<span><span class="co">#&gt; 11    coxboost    fit_coxboost    predict_coxboost    tune_coxboost    TRUE</span></span>
-<span><span class="co">#&gt; 13      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE</span></span>
-<span><span class="co">#&gt; 14         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE</span></span>
-<span><span class="co">#&gt; 15     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE</span></span>
-<span><span class="co">#&gt; 16  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE</span></span>
-<span><span class="co">#&gt; 17     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE</span></span>
-<span><span class="co">#&gt; 19        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE</span></span>
-<span><span class="co">#&gt;    has_predict has_tune available</span></span>
-<span><span class="co">#&gt; 3         TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 4         TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 6         TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 7         TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 8         TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 9         TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 10        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 11        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 13        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 14        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 15        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 16        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 17        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 19        TRUE     TRUE      TRUE</span></span>
-<span></span>
-<span><span class="co"># Shortcut for tunable learners</span></span>
-<span><span class="fu"><a href="reference/list_tunable_survlearners.html">list_tunable_survlearners</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;        learner             fit             predict             tune has_fit</span></span>
-<span><span class="co">#&gt; 3       glmnet      fit_glmnet      predict_glmnet      tune_glmnet    TRUE</span></span>
-<span><span class="co">#&gt; 4    selectcox   fit_selectcox   predict_selectcox   tune_selectcox    TRUE</span></span>
-<span><span class="co">#&gt; 6  flexsurvreg fit_flexsurvreg predict_flexsurvreg tune_flexsurvreg    TRUE</span></span>
-<span><span class="co">#&gt; 7      bnnsurv     fit_bnnsurv     predict_bnnsurv     tune_bnnsurv    TRUE</span></span>
-<span><span class="co">#&gt; 8        rpart       fit_rpart       predict_rpart       tune_rpart    TRUE</span></span>
-<span><span class="co">#&gt; 9         bart        fit_bart        predict_bart        tune_bart    TRUE</span></span>
-<span><span class="co">#&gt; 10     xgboost     fit_xgboost     predict_xgboost     tune_xgboost    TRUE</span></span>
-<span><span class="co">#&gt; 11    coxboost    fit_coxboost    predict_coxboost    tune_coxboost    TRUE</span></span>
-<span><span class="co">#&gt; 13      ranger      fit_ranger      predict_ranger      tune_ranger    TRUE</span></span>
-<span><span class="co">#&gt; 14         rsf         fit_rsf         predict_rsf         tune_rsf    TRUE</span></span>
-<span><span class="co">#&gt; 15     cforest     fit_cforest     predict_cforest     tune_cforest    TRUE</span></span>
-<span><span class="co">#&gt; 16  blackboost  fit_blackboost  predict_blackboost  tune_blackboost    TRUE</span></span>
-<span><span class="co">#&gt; 17     survsvm     fit_survsvm     predict_survsvm     tune_survsvm    TRUE</span></span>
-<span><span class="co">#&gt; 19        orsf        fit_orsf        predict_orsf        tune_orsf    TRUE</span></span>
-<span><span class="co">#&gt;    has_predict has_tune available</span></span>
-<span><span class="co">#&gt; 3         TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 4         TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 6         TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 7         TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 8         TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 9         TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 10        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 11        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 13        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 14        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 15        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 16        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 17        TRUE     TRUE      TRUE</span></span>
-<span><span class="co">#&gt; 19        TRUE     TRUE      TRUE</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="list-interpretability-tools">List interpretability tools<a class="anchor" aria-label="anchor" href="#list-interpretability-tools"></a>
-</h3>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># List available interpretability methods</span></span>
-<span><span class="fu"><a href="reference/list_interpretability_methods.html">list_interpretability_methods</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                                       compute                plot has_compute</span></span>
-<span><span class="co">#&gt; compute_shap                     compute_shap           plot_shap        TRUE</span></span>
-<span><span class="co">#&gt; compute_pdp                       compute_pdp            plot_pdp        TRUE</span></span>
-<span><span class="co">#&gt; compute_ale                       compute_ale            plot_ale        TRUE</span></span>
-<span><span class="co">#&gt; compute_surrogate           compute_surrogate      plot_surrogate        TRUE</span></span>
-<span><span class="co">#&gt; compute_tree_surrogate compute_tree_surrogate plot_tree_surrogate        TRUE</span></span>
-<span><span class="co">#&gt; compute_varimp                 compute_varimp         plot_varimp        TRUE</span></span>
-<span><span class="co">#&gt; compute_interactions     compute_interactions   plot_interactions        TRUE</span></span>
-<span><span class="co">#&gt; compute_counterfactual compute_counterfactual plot_counterfactual        TRUE</span></span>
-<span><span class="co">#&gt; compute_shap_matrix       compute_shap_matrix  plot_shap_beeswarm        TRUE</span></span>
-<span><span class="co">#&gt; compute_survcluster       compute_survcluster    plot_survcluster        TRUE</span></span>
-<span><span class="co">#&gt;                        has_plot</span></span>
-<span><span class="co">#&gt; compute_shap               TRUE</span></span>
-<span><span class="co">#&gt; compute_pdp                TRUE</span></span>
-<span><span class="co">#&gt; compute_ale                TRUE</span></span>
-<span><span class="co">#&gt; compute_surrogate          TRUE</span></span>
-<span><span class="co">#&gt; compute_tree_surrogate     TRUE</span></span>
-<span><span class="co">#&gt; compute_varimp             TRUE</span></span>
-<span><span class="co">#&gt; compute_interactions       TRUE</span></span>
-<span><span class="co">#&gt; compute_counterfactual     TRUE</span></span>
-<span><span class="co">#&gt; compute_shap_matrix        TRUE</span></span>
-<span><span class="co">#&gt; compute_survcluster        TRUE</span></span>
-<span></span>
-<span><span class="co"># Show which compute_* methods have a plot_* counterpart</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="fu"><a href="reference/list_interpretability_methods.html">list_interpretability_methods</a></span><span class="op">(</span><span class="op">)</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">plot</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                                       compute                plot has_compute</span></span>
-<span><span class="co">#&gt; compute_shap                     compute_shap           plot_shap        TRUE</span></span>
-<span><span class="co">#&gt; compute_pdp                       compute_pdp            plot_pdp        TRUE</span></span>
-<span><span class="co">#&gt; compute_ale                       compute_ale            plot_ale        TRUE</span></span>
-<span><span class="co">#&gt; compute_surrogate           compute_surrogate      plot_surrogate        TRUE</span></span>
-<span><span class="co">#&gt; compute_tree_surrogate compute_tree_surrogate plot_tree_surrogate        TRUE</span></span>
-<span><span class="co">#&gt; compute_varimp                 compute_varimp         plot_varimp        TRUE</span></span>
-<span><span class="co">#&gt; compute_interactions     compute_interactions   plot_interactions        TRUE</span></span>
-<span><span class="co">#&gt; compute_counterfactual compute_counterfactual plot_counterfactual        TRUE</span></span>
-<span><span class="co">#&gt; compute_shap_matrix       compute_shap_matrix  plot_shap_beeswarm        TRUE</span></span>
-<span><span class="co">#&gt; compute_survcluster       compute_survcluster    plot_survcluster        TRUE</span></span>
-<span><span class="co">#&gt;                        has_plot</span></span>
-<span><span class="co">#&gt; compute_shap               TRUE</span></span>
-<span><span class="co">#&gt; compute_pdp                TRUE</span></span>
-<span><span class="co">#&gt; compute_ale                TRUE</span></span>
-<span><span class="co">#&gt; compute_surrogate          TRUE</span></span>
-<span><span class="co">#&gt; compute_tree_surrogate     TRUE</span></span>
-<span><span class="co">#&gt; compute_varimp             TRUE</span></span>
-<span><span class="co">#&gt; compute_interactions       TRUE</span></span>
-<span><span class="co">#&gt; compute_counterfactual     TRUE</span></span>
-<span><span class="co">#&gt; compute_shap_matrix        TRUE</span></span>
-<span><span class="co">#&gt; compute_survcluster        TRUE</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="list-evaluation-metrics">List evaluation metrics<a class="anchor" aria-label="anchor" href="#list-evaluation-metrics"></a>
-</h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># List available metrics used in cross-validation and scoring</span></span>
-<span><span class="fu"><a href="reference/list_metrics.html">list_metrics</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/list_survlearners.html">list_survlearners</a></span><span class="op">(</span><span class="op">)</span>               <span class="co"># ids for `model`</span></span>
+<span><span class="co">#&gt;            learner tunable</span></span>
+<span><span class="co">#&gt; 1            coxph   FALSE</span></span>
+<span><span class="co">#&gt; 2            aalen   FALSE</span></span>
+<span><span class="co">#&gt; 3           glmnet    TRUE</span></span>
+<span><span class="co">#&gt; 4        selectcox    TRUE</span></span>
+<span><span class="co">#&gt; 5           aftgee   FALSE</span></span>
+<span><span class="co">#&gt; 6      flexsurvreg    TRUE</span></span>
+<span><span class="co">#&gt; 7          bnnsurv    TRUE</span></span>
+<span><span class="co">#&gt; 8            rpart    TRUE</span></span>
+<span><span class="co">#&gt; 9             bart    TRUE</span></span>
+<span><span class="co">#&gt; 10         xgboost    TRUE</span></span>
+<span><span class="co">#&gt; 11        coxboost    TRUE</span></span>
+<span><span class="co">#&gt; 12         fastgbm   FALSE</span></span>
+<span><span class="co">#&gt; 13          ranger    TRUE</span></span>
+<span><span class="co">#&gt; 14             rsf    TRUE</span></span>
+<span><span class="co">#&gt; 15         cforest    TRUE</span></span>
+<span><span class="co">#&gt; 16      blackboost    TRUE</span></span>
+<span><span class="co">#&gt; 17         survsvm    TRUE</span></span>
+<span><span class="co">#&gt; 18        densemlp   FALSE</span></span>
+<span><span class="co">#&gt; 19            orsf    TRUE</span></span>
+<span><span class="co">#&gt; 20          rpsurv   FALSE</span></span>
+<span><span class="co">#&gt; 21          nbsurv   FALSE</span></span>
+<span><span class="co">#&gt; 22 survmetalearner   FALSE</span></span>
+<span><span class="fu"><a href="reference/list_metrics.html">list_metrics</a></span><span class="op">(</span><span class="op">)</span>                    <span class="co"># ids for `metrics`</span></span>
 <span><span class="co">#&gt;   metric direction</span></span>
 <span><span class="co">#&gt; 1 cindex  maximize</span></span>
 <span><span class="co">#&gt; 2    auc  maximize</span></span>
@@ -370,21 +177,53 @@
 <span><span class="co">#&gt; 4   [0, 1] (lower is better)</span></span>
 <span><span class="co">#&gt; 5 [0, Inf) (lower is better)</span></span>
 <span><span class="co">#&gt; 6 [0, Inf) (lower is better)</span></span>
-<span><span class="co">#&gt; 7   [0, 1] (lower is better)</span></span></code></pre></div>
-</div>
+<span><span class="co">#&gt; 7   [0, 1] (lower is better)</span></span>
+<span><span class="fu"><a href="reference/list_interpretability_methods.html">list_interpretability_methods</a></span><span class="op">(</span><span class="op">)</span>   <span class="co"># ids for `method` in interpret()</span></span>
+<span><span class="co">#&gt;            method</span></span>
+<span><span class="co">#&gt; 1             pdp</span></span>
+<span><span class="co">#&gt; 2             ice</span></span>
+<span><span class="co">#&gt; 3             ale</span></span>
+<span><span class="co">#&gt; 4            shap</span></span>
+<span><span class="co">#&gt; 5     shap_matrix</span></span>
+<span><span class="co">#&gt; 6          varimp</span></span>
+<span><span class="co">#&gt; 7         permute</span></span>
+<span><span class="co">#&gt; 8     interaction</span></span>
+<span><span class="co">#&gt; 9  counterfactual</span></span>
+<span><span class="co">#&gt; 10      surrogate</span></span>
+<span><span class="co">#&gt; 11 tree_surrogate</span></span>
+<span><span class="co">#&gt; 12    calibration</span></span>
+<span><span class="co">#&gt; 13            roc</span></span>
+<span><span class="co">#&gt; 14            dca</span></span>
+<span><span class="co">#&gt; 15    survcluster</span></span>
+<span><span class="co">#&gt;                                                                    summary</span></span>
+<span><span class="co">#&gt; 1      Partial dependence of predicted survival on one feature, over time.</span></span>
+<span><span class="co">#&gt; 2               Individual conditional expectation curves for one feature.</span></span>
+<span><span class="co">#&gt; 3                               Accumulated local effects for one feature.</span></span>
+<span><span class="co">#&gt; 4                   Shapley values for one instance, aggregated over time.</span></span>
+<span><span class="co">#&gt; 5                       Shapley values for many instances (beeswarm plot).</span></span>
+<span><span class="co">#&gt; 6                   Permutation variable importance on the survival scale.</span></span>
+<span><span class="co">#&gt; 7                                                         Alias of varimp.</span></span>
+<span><span class="co">#&gt; 8                   Friedman H-statistic interaction strength per feature.</span></span>
+<span><span class="co">#&gt; 9  Smallest feature changes that move predicted survival at a target time.</span></span>
+<span><span class="co">#&gt; 10               Local linear surrogate for one instance at a target time.</span></span>
+<span><span class="co">#&gt; 11                      Global decision-tree surrogate of the predictions.</span></span>
+<span><span class="co">#&gt; 12                                          Calibration curve at one time.</span></span>
+<span><span class="co">#&gt; 13                                   Time-dependent ROC curve at one time.</span></span>
+<span><span class="co">#&gt; 14          Decision curve (net benefit over risk thresholds) at one time.</span></span>
+<span><span class="co">#&gt; 15            Clusters of subjects with similar predicted survival curves.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="basic-workflow">Basic Workflow<a class="anchor" aria-label="anchor" href="#basic-workflow"></a>
 </h2>
 <p><strong>1. Fit a model</strong></p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_cox</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fit.html">fit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">karno</span> <span class="op">+</span> <span class="va">celltype</span>, <span class="va">veteran</span>, model <span class="op">=</span> <span class="st">"coxph"</span><span class="op">)</span></span>
 <span><span class="va">mod_cox</span></span>
 <span><span class="co">#&gt; &lt;survalis_fit&gt; model = coxph  (engine: survival)</span></span>
 <span><span class="co">#&gt;   formula: Surv(time, status) ~ age + karno + celltype</span></span>
 <span><span class="co">#&gt;   data:    137 obs, 128 events (93%)</span></span></code></pre></div>
 <p><strong>2. Predict survival probabilities</strong></p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">mod_cox</span>, newdata <span class="op">=</span> <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="op">]</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">pred</span></span>
 <span><span class="co">#&gt; &lt;survmat&gt; survival  |  5 obs x 2 times  [100, 200]</span></span>
@@ -396,7 +235,7 @@
 <span><span class="co">#&gt; [5,] 0.6959633 0.4620783</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> also returns other quantities via <code>type</code>: <code>"risk"</code> (1 - S(t)), <code>"chf"</code>, <code>"hazard"</code>, <code>"rmst"</code>, <code>"quantile"</code>, <code>"median"</code>.</p>
 <p><strong>3. Evaluate model performance</strong></p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/evaluate.html">evaluate</a></span><span class="op">(</span><span class="va">mod_cox</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">80</span>, <span class="fl">160</span><span class="op">)</span>, resampling <span class="op">=</span> <span class="fu"><a href="reference/resampling.html">cv</a></span><span class="op">(</span><span class="fl">5</span>, seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">ev</span></span>
 <span><span class="co">#&gt; &lt;survalis_eval&gt; model = coxph</span></span>
@@ -404,14 +243,33 @@
 <span><span class="co">#&gt;   grid: 2 times in [80, 160]</span></span>
 <span><span class="co">#&gt;   cindex  0.7180  (sd 0.0530, 95% [0.6720, 0.7640], n = 5)</span></span>
 <span><span class="co">#&gt;   ibs     0.1820  (sd 0.0420, 95% [0.1460, 0.2190], n = 5)</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ev</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   metric  mean    sd n    se lower upper</span></span>
 <span><span class="co">#&gt; 1 cindex 0.718 0.053 5 0.023 0.672 0.764</span></span>
 <span><span class="co">#&gt; 2    ibs 0.182 0.042 5 0.019 0.146 0.219</span></span></code></pre></div>
+<p>To score a model on data it was not trained on, pass <code>newdata</code>; to score predictions made elsewhere, pass the survival matrix and the outcome.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">train</span> <span class="op">&lt;-</span> <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span>, <span class="op">]</span></span>
+<span><span class="va">test</span>  <span class="op">&lt;-</span> <span class="va">veteran</span><span class="op">[</span><span class="op">-</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">)</span>, <span class="op">]</span></span>
+<span><span class="va">m_tr</span>  <span class="op">&lt;-</span> <span class="fu"><a href="reference/fit.html">fit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">karno</span> <span class="op">+</span> <span class="va">celltype</span>, <span class="va">train</span>, model <span class="op">=</span> <span class="st">"coxph"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/evaluate.html">evaluate</a></span><span class="op">(</span><span class="va">m_tr</span>, newdata <span class="op">=</span> <span class="va">test</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">80</span>, <span class="fl">160</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;survalis_eval&gt; model = coxph</span></span>
+<span><span class="co">#&gt;   scored once on 37 subjects (no resampling)</span></span>
+<span><span class="co">#&gt;   grid: 2 times in [80, 160]</span></span>
+<span><span class="co">#&gt;   cindex  0.7470</span></span>
+<span><span class="co">#&gt;   ibs     0.1720</span></span>
+<span></span>
+<span><span class="va">S</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">m_tr</span>, <span class="va">test</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">80</span>, <span class="fl">160</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/evaluate.html">evaluate</a></span><span class="op">(</span><span class="va">S</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">test</span><span class="op">$</span><span class="va">time</span>, <span class="va">test</span><span class="op">$</span><span class="va">status</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;survalis_eval&gt; model = supplied predictions</span></span>
+<span><span class="co">#&gt;   scored once on 37 subjects (no resampling)</span></span>
+<span><span class="co">#&gt;   grid: 2 times in [80, 160]</span></span>
+<span><span class="co">#&gt;   cindex  0.7470</span></span>
+<span><span class="co">#&gt;   ibs     0.1720</span></span></code></pre></div>
 <p><strong>4. Compare multiple learners</strong></p>
 <p><code><a href="reference/compare.html">compare()</a></code> evaluates every learner on the <em>same</em> resampling folds, so results are paired; <code>tune = TRUE</code> tunes each tunable learner first.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compare.html">compare</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">karno</span> <span class="op">+</span> <span class="va">celltype</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">veteran</span>,</span>
@@ -434,17 +292,35 @@
 <span><span class="co">#&gt;      ranger           0.1990  (se 0.0042)</span></span>
 <span><span class="co">#&gt;      rpart            0.2160  (se 0.0062)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-12-1.png" alt="" width="100%"></p>
-<p><strong>5. Kaplan-Meier curves</strong></p>
-<p><code><a href="reference/plot_survcurve.html">plot_survcurve()</a></code> produces a styled Kaplan-Meier curve with a confidence ribbon, log-rank p-value, and an aligned number-at-risk table, in the spirit of <code>survminer::ggsurvplot()</code> but implemented natively (no dependency on survminer).</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/plot_survcurve.html">plot_survcurve</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">trt</span>, data <span class="op">=</span> <span class="va">veteran</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: Removed 2 rows containing missing values or values outside the scale range</span></span>
-<span><span class="co">#&gt; (`geom_ribbon()`).</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-13-1.png" alt="" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-10-1.png" alt="" width="100%"></p>
+<p><strong>5. Bring your own learner</strong></p>
+<p>A custom learner is a list with a <code>fit</code> function and a <code>predict</code> function that returns one row per subject and one column per time. It then works with every verb.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">expo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  name <span class="op">=</span> <span class="st">"exponential"</span>,</span>
+<span>  fit <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">formula</span>, <span class="va">data</span>, <span class="va">...</span><span class="op">)</span> <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/survreg.html" class="external-link">survreg</a></span><span class="op">(</span><span class="va">formula</span>, <span class="va">data</span>, dist <span class="op">=</span> <span class="st">"exponential"</span><span class="op">)</span>,</span>
+<span>  predict <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">object</span>, <span class="va">newdata</span>, <span class="va">times</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">rate</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">newdata</span>, type <span class="op">=</span> <span class="st">"response"</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="va">rate</span>, <span class="va">times</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/compare.html">compare</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">karno</span> <span class="op">+</span> <span class="va">celltype</span>, <span class="va">veteran</span>,</span>
+<span>        models <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"coxph"</span>, <span class="va">expo</span><span class="op">)</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">80</span>, <span class="fl">160</span><span class="op">)</span>,</span>
+<span>        resampling <span class="op">=</span> <span class="fu"><a href="reference/resampling.html">cv</a></span><span class="op">(</span><span class="fl">3</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;survalis_compare&gt; 2 models</span></span>
+<span><span class="co">#&gt; &lt;survalis_resampling&gt; 3-fold CV, strata = status, seed = 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   cindex (higher is better):</span></span>
+<span><span class="co">#&gt;    * exponential      0.7330  (se 0.0200)</span></span>
+<span><span class="co">#&gt;      coxph            0.7307  (se 0.0188)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   ibs (lower is better):</span></span>
+<span><span class="co">#&gt;    * exponential      0.1787  (se 0.0033)</span></span>
+<span><span class="co">#&gt;      coxph            0.1790  (se 0.0055)</span></span></code></pre></div>
 <p><strong>6. Visualize interpretation</strong></p>
-<p><code><a href="reference/interpret.html">interpret()</a></code> is the single entry point to every explanation method; its <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> dispatches to the matching <code>plot_*()</code> helper.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<p><code><a href="reference/interpret.html">interpret()</a></code> is the single entry point to every explanation method, and <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws its result.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">shap_meanabs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  <span class="va">mod_cox</span>, <span class="st">"shap"</span>,</span>
 <span>  newdata     <span class="op">=</span> <span class="va">veteran</span><span class="op">[</span><span class="fl">100</span>, <span class="op">]</span>,</span>
@@ -457,40 +333,40 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">shap_meanabs</span><span class="op">)</span></span>
 <span><span class="co">#&gt;           feature         phi</span></span>
 <span><span class="co">#&gt; trt           trt 0.000000000</span></span>
-<span><span class="co">#&gt; celltype celltype 0.017380404</span></span>
-<span><span class="co">#&gt; karno       karno 0.019501719</span></span>
+<span><span class="co">#&gt; celltype celltype 0.005120004</span></span>
+<span><span class="co">#&gt; karno       karno 0.036640340</span></span>
 <span><span class="co">#&gt; diagtime diagtime 0.000000000</span></span>
-<span><span class="co">#&gt; age           age 0.001231928</span></span>
+<span><span class="co">#&gt; age           age 0.003908879</span></span>
 <span><span class="co">#&gt; prior       prior 0.000000000</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">shap_meanabs</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-15-1.png" alt="" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-13-1.png" alt="" width="100%"></p>
 <div class="section level3">
 <h3 id="more-interpretability-methods">More interpretability methods<a class="anchor" aria-label="anchor" href="#more-interpretability-methods"></a>
 </h3>
-<p><code>survalis</code> also provides PDP, ALE, surrogate explanations, tree surrogates, permutation importance, interaction analysis, and counterfactuals – all through <code>interpret(fit, method = ..., ...)</code>.</p>
+<p><code>survalis</code> also provides PDP, ALE, surrogate explanations, tree surrogates, permutation importance, interaction analysis, and counterfactuals, all through <code>interpret(fit, method = ..., ...)</code>.</p>
 <p><strong>Partial dependence and ICE</strong></p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pdp_age</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="st">"pdp"</span>, feature <span class="op">=</span> <span class="st">"age"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pdp_age</span>, which <span class="op">=</span> <span class="st">"per_time"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-16-1.png" alt="" width="100%"></p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<p><img src="reference/figures/README-unnamed-chunk-14-1.png" alt="" width="100%"></p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pdp_age</span>, which <span class="op">=</span> <span class="st">"integrated"</span>, smooth <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-16-2.png" alt="" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-14-2.png" alt="" width="100%"></p>
 <p><strong>Accumulated local effects</strong></p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ale_karno</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="st">"ale"</span>, feature <span class="op">=</span> <span class="st">"karno"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ale_karno</span>, which <span class="op">=</span> <span class="st">"per_time"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-17-1.png" alt="" width="100%"></p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<p><img src="reference/figures/README-unnamed-chunk-15-1.png" alt="" width="100%"></p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ale_karno</span>, which <span class="op">=</span> <span class="st">"integrated"</span>, smooth <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-17-2.png" alt="" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-15-2.png" alt="" width="100%"></p>
 <p><strong>Local surrogate explanation</strong></p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">local_surrogate</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  <span class="va">mod_cox</span>, <span class="st">"surrogate"</span>,</span>
 <span>  newdata     <span class="op">=</span> <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span>,</span>
@@ -507,17 +383,17 @@
 <span><span class="co">#&gt; 4 diagtime             7 0.001800378         200</span></span>
 <span><span class="co">#&gt; 5    prior             0 0.000000000         200</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">local_surrogate</span>, top_n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-18-1.png" alt="" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-16-1.png" alt="" width="100%"></p>
 <p><strong>Tree surrogate</strong></p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tree_surrogate</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="st">"tree_surrogate"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tree_surrogate</span>, type <span class="op">=</span> <span class="st">"importance"</span>, top_n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-19-1.png" alt="" width="100%"></p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<p><img src="reference/figures/README-unnamed-chunk-17-1.png" alt="" width="100%"></p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># plot(tree_surrogate, type = "tree")</span></span></code></pre></div>
 <p><strong>Permutation variable importance</strong></p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">varimp_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  <span class="va">mod_cox</span>, <span class="st">"varimp"</span>,</span>
 <span>  times          <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span>,</span>
@@ -536,9 +412,9 @@
 <span><span class="co">#&gt; 5 diagtime     0.0000        0.0000        0.0000           0.00000</span></span>
 <span><span class="co">#&gt; 6    prior     0.0000        0.0000        0.0000           0.00000</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">varimp_res</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-20-1.png" alt="" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-18-1.png" alt="" width="100%"></p>
 <p><strong>Feature interactions</strong></p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">interaction_1way</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="st">"interaction"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span>,</span>
 <span>                              target_time <span class="op">=</span> <span class="fl">200</span>, type <span class="op">=</span> <span class="st">"1way"</span><span class="op">)</span></span>
 <span><span class="va">interaction_heatmap</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="st">"interaction"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span>,</span>
@@ -547,15 +423,15 @@
 <span>                              type <span class="op">=</span> <span class="st">"time"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">interaction_1way</span>, type <span class="op">=</span> <span class="st">"1way"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-21-1.png" alt="" width="100%"></p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<p><img src="reference/figures/README-unnamed-chunk-19-1.png" alt="" width="100%"></p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">interaction_heatmap</span>, type <span class="op">=</span> <span class="st">"heatmap"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-21-2.png" alt="" width="100%"></p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<p><img src="reference/figures/README-unnamed-chunk-19-2.png" alt="" width="100%"></p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">interaction_time</span>, type <span class="op">=</span> <span class="st">"time"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-21-3.png" alt="" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-19-3.png" alt="" width="100%"></p>
 <p><strong>Counterfactual explanations</strong></p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">counterfactuals</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  <span class="va">mod_cox</span>, <span class="st">"counterfactual"</span>,</span>
 <span>  newdata            <span class="op">=</span> <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span>,</span>
@@ -574,10 +450,16 @@
 <span><span class="co">#&gt; 1         0.0245</span></span>
 <span><span class="co">#&gt; 2        -0.0008</span></span>
 <span><span class="co">#&gt; 3        -0.0010</span></span></code></pre></div>
-<p><strong>7. Calibration</strong></p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<p><strong>7. Calibration, ROC and decision curves</strong></p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="st">"calibration"</span>, eval_time <span class="op">=</span> <span class="fl">80</span>, n_bins <span class="op">=</span> <span class="fl">10</span>, n_boot <span class="op">=</span> <span class="fl">30</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-23-1.png" alt="" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-21-1.png" alt="" width="100%"></p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">m_tr</span>, <span class="st">"roc"</span>, newdata <span class="op">=</span> <span class="va">test</span>, eval_time <span class="op">=</span> <span class="fl">80</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-21-2.png" alt="" width="100%"></p>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">m_tr</span>, <span class="st">"dca"</span>, newdata <span class="op">=</span> <span class="va">test</span>, eval_time <span class="op">=</span> <span class="fl">80</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-21-3.png" alt="" width="100%"></p>
 </div>
 </div>
 <div class="section level2">
@@ -588,7 +470,7 @@
 <span><span class="co">#&gt; To cite survalis in publications, use:</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   El Badisy I (2026). _survalis: Interpretable Survival Machine</span></span>
-<span><span class="co">#&gt;   Learning Framework_. R package version 1.7.0,</span></span>
+<span><span class="co">#&gt;   Learning Framework_. R package version 2.0.0,</span></span>
 <span><span class="co">#&gt;   &lt;https://CRAN.R-project.org/package=survalis&gt;.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; A BibTeX entry for LaTeX users is</span></span>
@@ -597,7 +479,7 @@
 <span><span class="co">#&gt;     title = {survalis: Interpretable Survival Machine Learning Framework},</span></span>
 <span><span class="co">#&gt;     author = {Imad {El Badisy}},</span></span>
 <span><span class="co">#&gt;     year = {2026},</span></span>
-<span><span class="co">#&gt;     note = {R package version 1.7.0},</span></span>
+<span><span class="co">#&gt;     note = {R package version 2.0.0},</span></span>
 <span><span class="co">#&gt;     url = {https://CRAN.R-project.org/package=survalis},</span></span>
 <span><span class="co">#&gt;   }</span></span></code></pre></div>
 </div>

@@ -16,9 +16,7 @@ Resolve a caller-supplied `times` argument against the default grid
 
 - time, status:
 
-  Passed to
-  [`default_times()`](https://elbadisyimad.com/survalis/reference/default_times.md)
-  when `times` is `NULL`.
+  Passed to `default_times()` when `times` is `NULL`.
 
 - n:
 

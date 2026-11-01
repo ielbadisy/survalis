@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Moving to the survalis verb interface • survalis</title>
+<title>Moving from survalis 1.x to the seven verbs • survalis</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -17,7 +17,7 @@
 <link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
-<meta property="og:title" content="Moving to the survalis verb interface">
+<meta property="og:title" content="Moving from survalis 1.x to the seven verbs">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,7 +43,7 @@
 <li><a class="dropdown-item" href="../articles/causal-estimation.html">Standardised treatment contrasts with estimate()</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Upgrading</h6></li>
-    <li><a class="dropdown-item" href="../articles/from-1.0.html">Moving to the survalis verb interface</a></li>
+    <li><a class="dropdown-item" href="../articles/from-1.0.html">Moving from survalis 1.x to the seven verbs</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -73,7 +73,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.svg" class="logo" alt=""><h1>Moving to the survalis verb interface</h1>
+      <img src="../logo.svg" class="logo" alt=""><h1>Moving from survalis 1.x to the seven verbs</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/ielbadisy/survalis/blob/main/vignettes/from-1.0.Rmd" class="external-link"><code>vignettes/from-1.0.Rmd</code></a></small>
@@ -82,22 +82,37 @@
 
     
     
-<p>survalis 1.3.0 introduced a seven-verb interface. It keeps every
-prior function working – nothing you have written breaks. The granular
-helpers stay exported as the low-level layer under the verbs (see
-<code>?survalis-lowlevel</code>). This vignette shows the verb that
-covers each of them.</p>
+<p>survalis 2.0.0 exports seven verbs and nothing that duplicates them:
+<code><a href="../reference/fit.html">fit()</a></code>, <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>, <code><a href="../reference/evaluate.html">evaluate()</a></code>,
+<code><a href="../reference/tune.html">tune()</a></code>, <code><a href="../reference/compare.html">compare()</a></code>, <code><a href="../reference/interpret.html">interpret()</a></code>
+and <code><a href="../reference/estimate.html">estimate()</a></code>. Around them sit the resampling specs
+(<code><a href="../reference/resampling.html">cv()</a></code>, <code><a href="../reference/resampling.html">holdout()</a></code>, <code><a href="../reference/resampling.html">group_cv()</a></code>,
+<code><a href="../reference/resampling.html">bootstrap()</a></code>) and three lookups that give the valid ids
+(<code><a href="../reference/list_survlearners.html">list_survlearners()</a></code>, <code><a href="../reference/list_metrics.html">list_metrics()</a></code>,
+<code><a href="../reference/list_interpretability_methods.html">list_interpretability_methods()</a></code>).</p>
+<p>The 1.x per-learner functions (<code>fit_ranger()</code>,
+<code>predict_ranger()</code>, <code>tune_ranger()</code>, …) and the
+helper families (<code>cv_*()</code>, <code>benchmark*()</code>,
+<code>compute_*()</code>, <code>plot_*()</code>,
+<code>*_survmat()</code>) are no longer exported. Each one maps to a
+verb argument: the learner goes in <code>model</code>, the metric in
+<code>metrics</code>, the explanation in <code>method</code>, the output
+scale in <code>type</code>, and every result has a <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>
+method.</p>
 <div class="section level2">
 <h2 id="the-mapping">The mapping<a class="anchor" aria-label="anchor" href="#the-mapping"></a>
 </h2>
+<div class="section level3">
+<h3 id="fitting-and-prediction">Fitting and prediction<a class="anchor" aria-label="anchor" href="#fitting-and-prediction"></a>
+</h3>
 <table class="table">
 <colgroup>
 <col width="50%">
 <col width="50%">
 </colgroup>
 <thead><tr class="header">
-<th>Granular (still works)</th>
-<th>Verb interface (recommended)</th>
+<th>1.x</th>
+<th>2.0</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -109,114 +124,308 @@ covers each of them.</p>
 <td><code>predict(m, nd, times)</code></td>
 </tr>
 <tr class="odd">
-<td>
-<code>predict_*()</code> then <code><a href="../reference/survmat_to_rmst.html">survmat_to_rmst()</a></code>
-</td>
+<td><code>survmat_to_rmst(S, times, tau)</code></td>
 <td><code>predict(m, nd, times, type = "rmst", tau = ...)</code></td>
 </tr>
 <tr class="even">
+<td><code>survmat_to_quantile(S, times, p)</code></td>
 <td>
-<code>predict_*()</code> then
-<code><a href="../reference/survmat_to_quantile.html">survmat_to_quantile()</a></code>
-</td>
-<td>
-<code>predict(m, nd, times, type = "median")</code> /
-<code>type = "quantile"</code>
+<code>predict(m, nd, times, type = "quantile", probs = p)</code> or
+<code>type = "median"</code>
 </td>
 </tr>
 <tr class="odd">
-<td><code>cv_survlearner(f, data, fit_ranger, predict_ranger, times, folds = 5)</code></td>
+<td><code>survmat_to_chf(S)</code></td>
+<td><code>predict(m, nd, times, type = "chf")</code></td>
+</tr>
+<tr class="even">
+<td><code>survmat_to_haz(S, times)</code></td>
+<td><code>predict(m, nd, times, type = "hazard")</code></td>
+</tr>
+<tr class="odd">
+<td><code>fit_survmetalearner(...)</code></td>
+<td><code>fit(f, data, "survmetalearner", spec = list(learners = ...))</code></td>
+</tr>
+<tr class="even">
+<td>a hand-written <code>fit_fun</code> / <code>pred_fun</code>
+pair</td>
+<td><code>fit(f, data, model = list(fit = , predict = ))</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
+<h3 id="evaluation">Evaluation<a class="anchor" aria-label="anchor" href="#evaluation"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th>1.x</th>
+<th>2.0</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>cv_survlearner(f, data, fit_fun, pred_fun, times, folds = 5)</code></td>
 <td><code>evaluate(f, data, "ranger", times = ..., resampling = cv(5))</code></td>
 </tr>
 <tr class="even">
 <td><code>score_survmodel(m, times, metrics)</code></td>
-<td><code>evaluate(m, times = ..., resampling = cv())</code></td>
+<td><code>evaluate(m, times = ..., metrics = ...)</code></td>
 </tr>
+<tr class="odd">
+<td><code>cv_summary(res)</code></td>
+<td><code>summary(evaluate(...))</code></td>
+</tr>
+<tr class="even">
+<td><code>cv_plot(res)</code></td>
+<td><code>plot(evaluate(...))</code></td>
+</tr>
+<tr class="odd">
+<td>
+<code>cindex_survmat(y, S, t)</code>,
+<code>ibs_survmat(y, S, times)</code>, <code>brier(...)</code>,
+<code>auc_survmat()</code>, <code>iae_survmat()</code>,
+<code>ise_survmat()</code>, <code>ece_survmat()</code>
+</td>
+<td><code>evaluate(S, y = y, metrics = c("cindex", "ibs", ...))</code></td>
+</tr>
+<tr class="even">
+<td>predict on a test set, then a metric helper</td>
+<td><code>evaluate(m, newdata = test, times = ...)</code></td>
+</tr>
+<tr class="odd">
+<td>
+<code>roc_survmat()</code> + <code>plot_roc()</code>
+</td>
+<td><code>plot(interpret(m, "roc", newdata = test, eval_time = t))</code></td>
+</tr>
+<tr class="even">
+<td>
+<code>dca_survmat()</code> + <code>plot_dca()</code>
+</td>
+<td><code>plot(interpret(m, "dca", newdata = test, eval_time = t))</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
+<h3 id="tuning-and-comparison">Tuning and comparison<a class="anchor" aria-label="anchor" href="#tuning-and-comparison"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th>1.x</th>
+<th>2.0</th>
+</tr></thead>
+<tbody>
 <tr class="odd">
 <td><code>tune_ranger(f, data, times, param_grid, refit_best = TRUE)</code></td>
 <td><code>tune(f, data, "ranger", grid = param_grid, times = ...)</code></td>
 </tr>
 <tr class="even">
+<td><code>list_tunable_survlearners()</code></td>
+<td><code>list_survlearners(has_tune = TRUE)</code></td>
+</tr>
+<tr class="odd">
 <td><code>benchmark(f, data, learners, times)</code></td>
 <td><code>compare(f, data, models = learners, times = ...)</code></td>
 </tr>
+<tr class="even">
+<td><code>benchmark_default_survlearners(...)</code></td>
+<td><code>compare(...)</code></td>
+</tr>
 <tr class="odd">
-<td><code>best_survlearner(bench, metric)</code></td>
-<td>
-<code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> a <code>survalis_compare</code> (best is
-flagged)</td>
+<td><code>benchmark_tuned_survlearners(...)</code></td>
+<td><code>compare(..., tune = TRUE)</code></td>
 </tr>
 <tr class="even">
-<td><code>compute_pdp(m, data, "karno", times)</code></td>
-<td><code>interpret(m, "pdp", feature = "karno", times = ...)</code></td>
+<td>
+<code>summarise_benchmark()</code>,
+<code>best_survlearner()</code>
+</td>
+<td>
+<code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> or <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> a
+<code><a href="../reference/compare.html">compare()</a></code> result</td>
 </tr>
 <tr class="odd">
-<td><code>compute_shap(m, nd, data, times)</code></td>
-<td><code>interpret(m, "shap", newdata = nd, times = ...)</code></td>
+<td><code>plot_benchmark()</code></td>
+<td><code>plot(compare(...))</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
+<h3 id="interpretation-and-causal-contrasts">Interpretation and causal contrasts<a class="anchor" aria-label="anchor" href="#interpretation-and-causal-contrasts"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th>1.x</th>
+<th>2.0</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>
+<code>compute_pdp(m, data, "karno", times)</code> +
+<code>plot_pdp()</code>
+</td>
+<td><code>plot(interpret(m, "pdp", feature = "karno", times = ...))</code></td>
 </tr>
 <tr class="even">
-<td><code>compute_varimp(m, times)</code></td>
-<td><code>interpret(m, "varimp", times = ...)</code></td>
+<td>
+<code>compute_ale()</code> + <code>plot_ale()</code>
+</td>
+<td><code>interpret(m, "ale", feature = ...)</code></td>
 </tr>
 <tr class="odd">
-<td><code>plot_pdp(res, "karno")</code></td>
 <td>
-<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> a <code>survalis_interpret</code>
+<code>compute_shap()</code> + <code>plot_shap()</code>
+</td>
+<td><code>interpret(m, "shap", newdata = nd, ...)</code></td>
+</tr>
+<tr class="even">
+<td>
+<code>compute_shap_matrix()</code> +
+<code>plot_shap_beeswarm()</code>
+</td>
+<td><code>interpret(m, "shap_matrix", newdata = nd, ...)</code></td>
+</tr>
+<tr class="odd">
+<td>
+<code>compute_varimp()</code> + <code>plot_varimp()</code>
+</td>
+<td><code>interpret(m, "varimp", ...)</code></td>
+</tr>
+<tr class="even">
+<td>
+<code>compute_interactions()</code> +
+<code>plot_interactions()</code>
+</td>
+<td><code>interpret(m, "interaction", ...)</code></td>
+</tr>
+<tr class="odd">
+<td><code>compute_counterfactual()</code></td>
+<td><code>interpret(m, "counterfactual", target_time = ...)</code></td>
+</tr>
+<tr class="even">
+<td>
+<code>compute_surrogate()</code>,
+<code>compute_tree_surrogate()</code>
+</td>
+<td>
+<code>interpret(m, "surrogate", ...)</code>,
+<code>interpret(m, "tree_surrogate", ...)</code>
 </td>
 </tr>
+<tr class="odd">
+<td>
+<code>compute_calibration()</code> +
+<code>plot_calibration()</code>
+</td>
+<td><code>interpret(m, "calibration", eval_time = ...)</code></td>
+</tr>
 <tr class="even">
-<td><code>estimate_rmst(m, data, tau, times, trt_col = "trt")</code></td>
+<td>
+<code>compute_survcluster()</code> +
+<code>plot_survcluster()</code>
+</td>
+<td><code>interpret(m, "survcluster", K = ...)</code></td>
+</tr>
+<tr class="odd">
+<td>
+<code>estimate_rmst(m, data, tau, times, trt_col = "trt")</code> +
+<code>plot_rmst()</code>
+</td>
 <td><code>estimate(f, data, "&lt;model&gt;", treatment = "trt", tau = ...)</code></td>
 </tr>
 </tbody>
 </table>
 </div>
+<div class="section level3">
+<h3 id="removed-without-a-replacement">Removed without a replacement<a class="anchor" aria-label="anchor" href="#removed-without-a-replacement"></a>
+</h3>
+<ul>
+<li>
+<code>screen_fdr()</code>: use the <code>"selectcox"</code> or
+<code>"glmnet"</code> learners, which select variables while
+fitting.</li>
+<li>
+<code>plot_survcurve()</code>, <code>theme_survalis()</code>,
+<code>scale_color_survalis()</code> and
+<code>scale_fill_survalis()</code>: survalis plots still use this style
+internally; for Kaplan-Meier figures use a dedicated package such as
+‘ggsurvfit’.</li>
+</ul>
+</div>
+</div>
 <div class="section level2">
-<h2 id="side-by-side">Side-by-side<a class="anchor" aria-label="anchor" href="#side-by-side"></a>
+<h2 id="side-by-side">Side by side<a class="anchor" aria-label="anchor" href="#side-by-side"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://elbadisyimad.com/survalis/">survalis</a></span><span class="op">)</span></span>
 <span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">karno</span> <span class="op">+</span> <span class="va">celltype</span></span>
 <span></span>
-<span><span class="co"># 1.x</span></span>
-<span><span class="va">m1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_ranger.html">fit_ranger</a></span><span class="op">(</span><span class="va">f</span>, <span class="va">veteran</span>, num.trees <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
-<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/predict_ranger.html">predict_ranger</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="op">]</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">180</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 2.0</span></span>
-<span><span class="va">m2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit.html">fit</a></span><span class="op">(</span><span class="va">f</span>, <span class="va">veteran</span>, <span class="st">"ranger"</span>, spec <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>num.trees <span class="op">=</span> <span class="fl">200</span><span class="op">)</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">m2</span>, <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="op">]</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">180</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">p2</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit.html">fit</a></span><span class="op">(</span><span class="va">f</span>, <span class="va">veteran</span>, <span class="st">"ranger"</span>, spec <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>num.trees <span class="op">=</span> <span class="fl">200</span><span class="op">)</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">m</span>, <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="op">]</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">180</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       t=90 t=180</span></span>
 <span><span class="co">#&gt; [1,] 0.404 0.269</span></span>
 <span><span class="co">#&gt; [2,] 0.857 0.484</span></span>
-<span><span class="co">#&gt; [3,] 0.649 0.435</span></span></code></pre></div>
+<span><span class="co">#&gt; [3,] 0.649 0.435</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">m</span>, <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="op">]</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">180</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"rmst"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;         1         2         3 </span></span>
+<span><span class="co">#&gt;  93.42357 143.92197 122.97001</span></span></code></pre></div>
+<p>A learner of your own replaces the 1.x <code>fit_fun</code> /
+<code>pred_fun</code> arguments. Its <code>predict</code> returns one
+row per subject and one column per time:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">expo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  name <span class="op">=</span> <span class="st">"exponential"</span>,</span>
+<span>  fit <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">formula</span>, <span class="va">data</span>, <span class="va">...</span><span class="op">)</span> <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/survreg.html" class="external-link">survreg</a></span><span class="op">(</span><span class="va">formula</span>, <span class="va">data</span>, dist <span class="op">=</span> <span class="st">"exponential"</span><span class="op">)</span>,</span>
+<span>  predict <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">object</span>, <span class="va">newdata</span>, <span class="va">times</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">rate</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">newdata</span>, type <span class="op">=</span> <span class="st">"response"</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="va">rate</span>, <span class="va">times</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/evaluate.html">evaluate</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">karno</span>, <span class="va">veteran</span>, model <span class="op">=</span> <span class="va">expo</span>,</span>
+<span>         times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">180</span><span class="op">)</span>, resampling <span class="op">=</span> <span class="fu"><a href="../reference/resampling.html">cv</a></span><span class="op">(</span><span class="fl">3</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;survalis_eval&gt; model = exponential</span></span>
+<span><span class="co">#&gt; &lt;survalis_resampling&gt; 3-fold CV, strata = status, seed = 1</span></span>
+<span><span class="co">#&gt;   grid: 2 times in [90, 180]</span></span>
+<span><span class="co">#&gt;   cindex  0.7070  (sd 0.0420, 95% [0.6590, 0.7540], n = 3)</span></span>
+<span><span class="co">#&gt;   ibs     0.1810  (sd 0.0120, 95% [0.1680, 0.1950], n = 3)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="what-changed-on-purpose">What changed on purpose<a class="anchor" aria-label="anchor" href="#what-changed-on-purpose"></a>
+<h2 id="other-changes-on-purpose">Other changes on purpose<a class="anchor" aria-label="anchor" href="#other-changes-on-purpose"></a>
 </h2>
 <ul>
 <li>
-<strong><code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> always returns a
-<code>survmat</code></strong> for the curve types: an
-<code>n x length(times)</code> matrix with the grid in
-<code>attr(x, "times")</code>. The <code>"t=&lt;time&gt;"</code> column
-names are still there, so the <code>*_survmat()</code> metric helpers
-keep accepting it.</li>
+<strong><code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> returns a survival matrix</strong>
+for the curve types: an <code>n x length(times)</code> matrix with the
+grid in <code>attr(x, "times")</code> and column names
+<code>"t=&lt;time&gt;"</code>.</li>
 <li>
-<strong><code>times</code> is optional.</strong> When omitted,
-<code><a href="../reference/default_times.html">default_times()</a></code> builds a grid over the observed event times
-and records it on the result (<code>res$times</code>), so a run is
+<strong><code>times</code> is optional.</strong> When omitted, a
+grid of up to 50 event-time quantiles (5th to 95th percentile) is used
+and recorded on the result (<code>res$times</code>), so a run is
 reproducible.</li>
 <li>
-<strong><code><a href="../reference/evaluate.html">evaluate()</a></code> / <code><a href="../reference/compare.html">compare()</a></code> take a
-resampling object</strong> (<code><a href="../reference/resampling.html">cv()</a></code>, <code><a href="../reference/resampling.html">holdout()</a></code>,
-<code><a href="../reference/resampling.html">group_cv()</a></code>, <code><a href="../reference/resampling.html">bootstrap()</a></code>) instead of a bare
-<code>folds</code> integer, and <code><a href="../reference/compare.html">compare()</a></code> evaluates every
-model on the <em>same</em> folds.</li>
+<strong>Resampling is an object</strong> (<code><a href="../reference/resampling.html">cv()</a></code>,
+<code><a href="../reference/resampling.html">holdout()</a></code>, <code><a href="../reference/resampling.html">group_cv()</a></code>,
+<code><a href="../reference/resampling.html">bootstrap()</a></code>) instead of a bare <code>folds</code> integer,
+and <code><a href="../reference/compare.html">compare()</a></code> evaluates every model on the <em>same</em>
+splits.</li>
 <li>
-<strong><code><a href="../reference/fit.html">fit()</a></code> engine arguments go in
-<code>spec</code>,</strong> not <code>...</code>.</li>
+<strong>Engine arguments go in <code>spec</code>,</strong> not
+<code>...</code>.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -2,12 +2,10 @@
 
 Produces predictions from a
 [`fit()`](https://elbadisyimad.com/survalis/reference/fit.md) object.
-Every matrix-valued `type` returns a
-[survmat](https://elbadisyimad.com/survalis/reference/survmat.md) (an
-`n x length(times)` numeric matrix carrying its grid in the `"times"`
-attribute); the scalar-valued types (`"rmst"`, `"quantile"`, `"median"`)
-return a numeric vector (or an `n x length(probs)` matrix for a vector
-`probs`).
+Every matrix-valued `type` returns a `survmat` (an `n x length(times)`
+numeric matrix carrying its grid in the `"times"` attribute); the
+scalar-valued types (`"rmst"`, `"quantile"`, `"median"`) return a
+numeric vector (or an `n x length(probs)` matrix for a vector `probs`).
 
 ## Usage
 
@@ -36,9 +34,9 @@ predict(
 
 - times:
 
-  Numeric evaluation grid. When `NULL`,
-  [`default_times()`](https://elbadisyimad.com/survalis/reference/default_times.md)
-  is used and recorded on the result.
+  Numeric evaluation grid. When `NULL`, up to 50 event-time quantiles
+  between the 5th and 95th percentiles are used and recorded on the
+  result.
 
 - type:
 
@@ -79,9 +77,8 @@ predict(
 
 ## Value
 
-A [survmat](https://elbadisyimad.com/survalis/reference/survmat.md) for
-`"survival"`, `"risk"`, `"chf"`, `"hazard"`; a numeric vector for
-`"rmst"`, `"median"` and scalar-`probs` `"quantile"`; an
+A `survmat` for `"survival"`, `"risk"`, `"chf"`, `"hazard"`; a numeric
+vector for `"rmst"`, `"median"` and scalar-`probs` `"quantile"`; an
 `n x length(probs)` matrix for vector `probs`.
 
 ## Examples
@@ -92,13 +89,13 @@ m <- fit(Surv(time, status) ~ age + karno, veteran, "ranger",
 predict(m, veteran[1:5, ], times = c(90, 180, 365))
 #> <survmat> survival  |  5 obs x 3 times  [90, 365]
 #>           t=90     t=180     t=365
-#> [1,] 0.2710445 0.2053296 0.1857899
-#> [2,] 0.9244360 0.4663988 0.3378462
-#> [3,] 0.7278194 0.4639897 0.2474468
-#> [4,] 0.7714770 0.3181532 0.1623141
-#> [5,] 0.8235893 0.3335018 0.2486018
+#> [1,] 0.2862184 0.2174035 0.1834157
+#> [2,] 0.8884633 0.4196587 0.3147160
+#> [3,] 0.7739392 0.4820237 0.2803373
+#> [4,] 0.7754299 0.3380532 0.1692770
+#> [5,] 0.8428483 0.3286396 0.2363576
 predict(m, veteran[1:5, ], times = c(90, 180, 365), type = "risk")
 predict(m, veteran[1:5, ], type = "rmst", tau = 365)
 #>        1        2        3        4        5 
-#> 120.0569 223.4384 172.5615 169.1469 183.1916 
+#> 121.5023 210.5785 182.4584 172.9730 184.9342 
 ```

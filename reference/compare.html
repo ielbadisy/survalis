@@ -11,7 +11,7 @@ full per-split table."><meta property="og:image" content="https://elbadisyimad.c
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,7 +25,7 @@ full per-split table."><meta property="og:image" content="https://elbadisyimad.c
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/causal-estimation.html">Standardised treatment contrasts with estimate()</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Upgrading</h6></li>
-    <li><a class="dropdown-item" href="../articles/from-1.0.html">Moving to the survalis verb interface</a></li>
+    <li><a class="dropdown-item" href="../articles/from-1.0.html">Moving from survalis 1.x to the seven verbs</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -84,16 +84,17 @@ full per-split table.</p>
 
 
 <dt id="arg-models">models<a class="anchor" aria-label="anchor" href="#arg-models"></a></dt>
-<dd><p>Character vector of learner ids.</p></dd>
+<dd><p>Character vector of learner ids, or a list mixing ids and
+custom learners (see <code><a href="fit.html">fit()</a></code>). List names, when given, label the learners.</p></dd>
 
 
 <dt id="arg-specs">specs<a class="anchor" aria-label="anchor" href="#arg-specs"></a></dt>
-<dd><p>Named list of engine-argument lists, keyed by model id
+<dd><p>Named list of engine-argument lists, keyed by learner label
 (<code>specs[["ranger"]] &lt;- list(num.trees = 500)</code>).</p></dd>
 
 
 <dt id="arg-times">times<a class="anchor" aria-label="anchor" href="#arg-times"></a></dt>
-<dd><p>Evaluation grid; <code>NULL</code> uses <code><a href="default_times.html">default_times()</a></code>.</p></dd>
+<dd><p>Evaluation grid; <code>NULL</code> picks up to 50 event-time quantiles (5th to 95th percentile).</p></dd>
 
 
 <dt id="arg-resampling">resampling<a class="anchor" aria-label="anchor" href="#arg-resampling"></a></dt>
@@ -136,12 +137,12 @@ se), <code>per_split</code> (long), <code>times</code>, <code>resampling</code>,
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;survalis_resampling&gt; 3-fold CV, strata = status</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   cindex (higher is better):</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    * coxph            0.7433  (se 0.0305)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      ranger           0.6600  (se 0.0165)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    * coxph            0.7277  (se 0.0226)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      ranger           0.6607  (se 0.0206)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ibs (lower is better):</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    * coxph            0.1493  (se 0.0234)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      ranger           0.1600  (se 0.0193)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    * coxph            0.1510  (se 0.0079)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      ranger           0.1623  (se 0.0046)</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="compare-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>

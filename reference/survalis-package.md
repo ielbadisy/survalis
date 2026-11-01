@@ -48,14 +48,17 @@ Discover components with
 [`list_metrics()`](https://elbadisyimad.com/survalis/reference/list_metrics.md)
 and
 [`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/list_interpretability_methods.md).
-
-The granular `fit_*()` / `predict_*()` / `tune_*()` / `compute_*()` /
-`benchmark*()` functions are the low-level layer under the verbs; see
-`?`survalis-lowlevel“.
+Custom learners plug into every verb as
+`model = list(fit = , predict = )`; see
+[`fit()`](https://elbadisyimad.com/survalis/reference/fit.md).
 
 ## See also
 
 Useful links:
+
+- <https://elbadisyimad.com/survalis/>
+
+- <https://github.com/ielbadisy/survalis>
 
 - <https://CRAN.R-project.org/package=survalis>
 

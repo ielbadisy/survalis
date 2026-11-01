@@ -41,7 +41,8 @@ estimate(
 
 - model:
 
-  A learner id (`list_survlearners()$learner`).
+  A learner id (`list_survlearners()$learner`) or a custom learner (see
+  [`fit()`](https://elbadisyimad.com/survalis/reference/fit.md)).
 
 - estimand:
 
@@ -60,13 +61,12 @@ estimate(
 
 - times:
 
-  Prediction grid; `NULL` uses
-  [`default_times()`](https://elbadisyimad.com/survalis/reference/default_times.md).
-  Must reach `tau`.
+  Prediction grid; `NULL` picks up to 50 event-time quantiles (5th to
+  95th percentile). Must reach `tau`.
 
 - spec:
 
-  Engine arguments for `fit_<model>()` (named list).
+  Engine arguments for the learner (named list).
 
 - R:
 
