@@ -23,15 +23,15 @@
 #'   \code{learner} (\code{"nbsurv"}), \code{formula}, \code{data}, \code{time},
 #'   and \code{status}.
 #'
-#' @seealso \code{\link{predict_nbsurv}}, \code{\link[nbsurv]{nbsurv}},
-#'   \code{\link{fit}} for the verb interface
+#' @seealso \code{predict_nbsurv}, \code{nbsurv},
+#'   \code{fit} for the verb interface
 #'
 #' @examplesIf requireNamespace("nbsurv", quietly = TRUE)
 #' mod <- fit_nbsurv(Surv(time, status) ~ age + karno + celltype, veteran)
 #' summary(mod)
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 fit_nbsurv <- function(formula, data, scale = TRUE, laplace = 1, min_sd = 0.05, ...) {
   stopifnot(requireNamespace("nbsurv", quietly = TRUE))
 
@@ -53,9 +53,9 @@ fit_nbsurv <- function(formula, data, scale = TRUE, laplace = 1, min_sd = 0.05, 
 #' Predict Survival Probabilities from a nbsurv Model
 #'
 #' Generates predicted survival probabilities at the requested \code{times}
-#' for a model fitted with \code{\link{fit_nbsurv}}.
+#' for a model fitted with \code{fit_nbsurv}.
 #'
-#' @param object An \code{"mlsurv_model"} from \code{\link{fit_nbsurv}}.
+#' @param object An \code{"mlsurv_model"} from \code{fit_nbsurv}.
 #' @param newdata A \code{data.frame} of predictors.
 #' @param times Numeric vector of evaluation time points.
 #'
@@ -63,14 +63,14 @@ fit_nbsurv <- function(formula, data, scale = TRUE, laplace = 1, min_sd = 0.05, 
 #'   observation in \code{newdata} and one column per time point (columns named
 #'   \code{"t=<time>"}).
 #'
-#' @seealso \code{\link{fit_nbsurv}}
+#' @seealso \code{fit_nbsurv}
 #'
 #' @examplesIf requireNamespace("nbsurv", quietly = TRUE)
 #' mod <- fit_nbsurv(Surv(time, status) ~ age + karno, veteran)
 #' predict_nbsurv(mod, veteran[1:5, ], times = c(100, 200, 300))
 #'
 #' @keywords internal
-#' @export
+#' @noRd
 predict_nbsurv <- function(object, newdata, times) {
   if (!is.null(object$learner) && object$learner != "nbsurv") {
     warning("Object passed to predict_nbsurv() may not come from fit_nbsurv().")
