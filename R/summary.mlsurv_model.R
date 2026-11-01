@@ -30,10 +30,11 @@
 #' s <- summary(mod)  # capture the structured result invisibly
 #' str(s)
 #'
-#' @seealso [fit_coxph()], other `fit_*()` learners returning `mlsurv_model` objects.
+#' @seealso `fit_coxph()`, other `fit_*()` learners returning `mlsurv_model` objects.
 #'
 #' @export
 #' @method summary mlsurv_model
+#' @noRd
 
 summary.mlsurv_model <- function(object, ...) {
   stopifnot(inherits(object, "mlsurv_model"))
