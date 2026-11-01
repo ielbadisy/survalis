@@ -123,8 +123,8 @@ test_that("ibs_survmat integrates Brier over multiple times", {
               "t=6" = rep(0.3, n))
 
   b_at <- function(t, Scol) {
-    early <- which(time < t)
-    late  <- which(time >= t)
+    early <- which(time <= t)
+    late  <- which(time > t)
     mean(c(rep(Scol[1]^2, length(early)), rep((1 - Scol[1])^2, length(late))))
   }
   b2 <- b_at(2, sp[,1]); b4 <- b_at(4, sp[,2]); b6 <- b_at(6, sp[,3])
