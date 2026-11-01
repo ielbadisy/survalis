@@ -1,7 +1,7 @@
 #' Cluster Predicted Survival Curves
 #'
 #' Clusters the individualized survival curves predicted by a fitted
-#' `mlsurv_model` using [unsurv::unsurv()] (Partitioning Around Medoids on a
+#' `mlsurv_model` using `unsurv()` (Partitioning Around Medoids on a
 #' weighted feature representation of the curves).
 #'
 #' @param model An `mlsurv_model` fitted via a `fit_*()` function; must include a
@@ -10,16 +10,16 @@
 #' @param times Numeric vector of evaluation times (the common time grid on
 #'   which survival curves are predicted and clustered).
 #' @param K Optional integer number of clusters. If `NULL`, selected by
-#'   silhouette width (see [unsurv::unsurv()]).
+#'   silhouette width (see `unsurv()`).
 #' @param K_max Maximum `K` considered when `K` is `NULL`.
-#' @param distance Distance type passed to [unsurv::unsurv()]: `"L2"` or `"L1"`.
-#' @param seed Optional integer seed forwarded to [unsurv::unsurv()].
-#' @param ... Additional arguments forwarded to [unsurv::unsurv()] (e.g.
+#' @param distance Distance type passed to `unsurv()`: `"L2"` or `"L1"`.
+#' @param seed Optional integer seed forwarded to `unsurv()`.
+#' @param ... Additional arguments forwarded to `unsurv()` (e.g.
 #'   `weights`, `enforce_monotone`, `smooth_median_width`, `standardize_cols`).
 #'
 #' @details
 #' Predicted survival is obtained from the model's `predict_<learner>()` on
-#' `times`, coerced to a numeric matrix, and passed to [unsurv::unsurv()].
+#' `times`, coerced to a numeric matrix, and passed to `unsurv()`.
 #' Requires the \pkg{unsurv} package.
 #'
 #' @return A list with components:
@@ -43,8 +43,8 @@
 #'   table(cl$fit$clusters)
 #' }
 #'
-#' @seealso [plot_survcluster()]
-#' @export
+#' @seealso `plot_survcluster()`
+#' @noRd
 compute_survcluster <- function(model, newdata, times, K = NULL, K_max = 10,
                                  distance = c("L2", "L1"), seed = NULL, ...) {
   if (!requireNamespace("unsurv", quietly = TRUE)) {
@@ -53,10 +53,10 @@ compute_survcluster <- function(model, newdata, times, K = NULL, K_max = 10,
 
   distance <- match.arg(distance)
 
-  if (is.null(model$learner) || !exists(paste0("predict_", model$learner))) {
-    stop("Could not infer prediction function. Ensure model was created using fit_*() and includes a valid 'learner'.")
+  if (is.null(model$learner) && !is.function(model$predict_fun)) {
+    stop("`model` must come from fit().", call. = FALSE)
   }
-  predict_function <- get(paste0("predict_", model$learner))
+  predict_function <- .predict_fun(model)
 
   pred_raw <- predict_function(model, newdata = newdata, times = times)
   survmat <- .survmat_as_matrix(pred_raw, times = times)
@@ -79,10 +79,10 @@ compute_survcluster <- function(model, newdata, times, K = NULL, K_max = 10,
 
 #' Plot Clustered Survival Curves
 #'
-#' Plots the individualized survival curves from [compute_survcluster()],
+#' Plots the individualized survival curves from `compute_survcluster()`,
 #' colored by cluster membership, with medoid curves overlaid.
 #'
-#' @param survcluster_output Output list returned by [compute_survcluster()].
+#' @param survcluster_output Output list returned by `compute_survcluster()`.
 #' @param title Plot title. If missing, an automatically generated title is
 #'   used. Pass `NULL` to omit the title entirely (e.g., for journals
 #'   requiring caption-only figures).
@@ -99,8 +99,8 @@ compute_survcluster <- function(model, newdata, times, K = NULL, K_max = 10,
 #'   plot_survcluster(cl)
 #' }
 #'
-#' @seealso [compute_survcluster()]
-#' @export
+#' @seealso `compute_survcluster()`
+#' @noRd
 plot_survcluster <- function(survcluster_output, title) {
   fit <- survcluster_output$fit
   survmat <- survcluster_output$survmat
