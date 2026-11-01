@@ -2,19 +2,16 @@
 % Please edit documentation in R/list_functions.R
 \name{list_interpretability_methods}
 \alias{list_interpretability_methods}
-\title{List interpretability methods available in survalis}
+\title{List the interpretability methods}
 \usage{
 list_interpretability_methods()
 }
 \value{
-A data.frame with columns \code{compute}, \code{plot},
-\code{has_compute}, and \code{has_plot}.
+A data frame with columns \code{method} and \code{summary}.
 }
 \description{
-Returns a table mapping each \code{compute_*} function to its paired
-\code{plot_*} helper (if any). Methods without a plot helper show \code{NA}.
+The ids accepted by the \code{method} argument of \code{\link[=interpret]{interpret()}}.
 }
 \examples{
 list_interpretability_methods()
-subset(list_interpretability_methods(), is.na(plot))  # methods without plot
 }
