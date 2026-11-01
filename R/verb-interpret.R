@@ -41,8 +41,6 @@ interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..
   if (!inherits(fit, "mlsurv_model")) {
     stop("`fit` must come from fit() / tune().", call. = FALSE)
   }
-  op <- options(survalis.quiet_legacy = TRUE)
-  on.exit(options(op), add = TRUE)
 
   disp <- .interpret_dispatch()
   method <- match.arg(method, names(disp))
