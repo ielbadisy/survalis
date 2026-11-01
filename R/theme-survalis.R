@@ -14,7 +14,7 @@
 #' A Consistent ggplot2 Theme for survalis Figures
 #'
 #' A clean, minimal theme shared across \pkg{survalis} plotting functions
-#' (\code{\link{plot_pdp}}, \code{\link{plot_benchmark}}, \code{\link{cv_plot}},
+#' (\code{plot_pdp}, \code{plot_benchmark}, \code{cv_plot},
 #' and others), so figures produced by the package look like one consistent
 #' system rather than each using an independent ad-hoc style.
 #'
@@ -28,8 +28,8 @@
 #' p <- ggplot2::ggplot(veteran, ggplot2::aes(age, karno)) + ggplot2::geom_point()
 #' p + theme_survalis()
 #'
-#' @seealso [scale_color_survalis()], [scale_fill_survalis()]
-#' @export
+#' @seealso `scale_color_survalis()`, `scale_fill_survalis()`
+#' @noRd
 theme_survalis <- function(base_size = 13, legend.position = "bottom") {
   ggplot2::theme_minimal(base_size = base_size) +
     ggplot2::theme(
@@ -45,7 +45,7 @@ theme_survalis <- function(base_size = 13, legend.position = "bottom") {
     )
 }
 
-#' Discrete Color/Fill Scales Matching \code{\link{theme_survalis}}
+#' Discrete Color/Fill Scales Matching \code{theme_survalis}
 #'
 #' Colorblind-friendly discrete color and fill scales (based on ColorBrewer
 #' "Dark2", recycled/interpolated beyond 8 levels) for consistent group
@@ -61,13 +61,13 @@ theme_survalis <- function(base_size = 13, legend.position = "bottom") {
 #' p + scale_color_survalis()
 #'
 #' @name survalis-scales
-#' @export
+#' @noRd
 scale_color_survalis <- function(...) {
   ggplot2::discrete_scale("colour", palette = .survalis_pal, ...)
 }
 
 #' @rdname survalis-scales
-#' @export
+#' @noRd
 scale_fill_survalis <- function(...) {
   ggplot2::discrete_scale("fill", palette = .survalis_pal, ...)
 }
