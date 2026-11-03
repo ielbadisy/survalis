@@ -79,7 +79,7 @@
 <p>Unified survival machine learning and interpretability in R.</p>
 <!-- badges: start -->
 
-<p><code>survalis</code> provides a unified framework for survival machine learning in R. Seven verbs cover the whole workflow for 22 built-in learners and for any learner you write yourself: fitting, prediction, resampled and external evaluation, tuning, paired comparison, model-agnostic interpretation, and causal contrasts.</p>
+<p><code>survalis</code> provides a unified framework for survival machine learning in R. Seven verbs cover the whole workflow for 22 built-in learners and for any learner you write yourself: fitting, prediction, resampled and external evaluation, tuning, paired comparison, model-agnostic interpretation, and causal contrasts. Discrimination, calibration and Brier metrics sit next to decision-weighted scores (<code><a href="reference/dwscore.html">dwscore()</a></code>), which average the loss of a risk-threshold decision rule over a stated range of thresholds.</p>
 <p><code>survalis</code> is available on CRAN: <a href="https://CRAN.R-project.org/package=survalis" class="external-link uri">https://CRAN.R-project.org/package=survalis</a>.</p>
 <div class="section level2">
 <h2 id="the-seven-verb-interface">The seven-verb interface<a class="anchor" aria-label="anchor" href="#the-seven-verb-interface"></a>
@@ -98,7 +98,7 @@
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">m</span>, <span class="st">"shap"</span>, newdata <span class="op">=</span> <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span>, times <span class="op">=</span> <span class="fl">180</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/estimate.html">estimate</a></span><span class="op">(</span><span class="va">f</span>, <span class="va">veteran</span>, model <span class="op">=</span> <span class="st">"ranger"</span>, treatment <span class="op">=</span> <span class="st">"trt"</span>, tau <span class="op">=</span> <span class="fl">365</span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="reference/fit.html">fit()</a></code>, <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>, <code><a href="reference/evaluate.html">evaluate()</a></code>, <code><a href="reference/tune.html">tune()</a></code>, <code><a href="reference/compare.html">compare()</a></code>, <code><a href="reference/interpret.html">interpret()</a></code> and <code><a href="reference/estimate.html">estimate()</a></code> are the whole interface. Resampling is described by <code><a href="reference/resampling.html">cv()</a></code>, <code><a href="reference/resampling.html">holdout()</a></code>, <code><a href="reference/resampling.html">group_cv()</a></code> and <code><a href="reference/resampling.html">bootstrap()</a></code>, and <code><a href="reference/list_survlearners.html">list_survlearners()</a></code>, <code><a href="reference/list_metrics.html">list_metrics()</a></code> and <code><a href="reference/list_interpretability_methods.html">list_interpretability_methods()</a></code> give the valid ids. Upgrading from 1.x? See <code><a href="articles/from-1.0.html">vignette("from-1.0", package = "survalis")</a></code>.</p>
+<p><code><a href="reference/fit.html">fit()</a></code>, <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>, <code><a href="reference/evaluate.html">evaluate()</a></code>, <code><a href="reference/tune.html">tune()</a></code>, <code><a href="reference/compare.html">compare()</a></code>, <code><a href="reference/interpret.html">interpret()</a></code> and <code><a href="reference/estimate.html">estimate()</a></code> are the whole interface. Resampling is described by <code><a href="reference/resampling.html">cv()</a></code>, <code><a href="reference/resampling.html">holdout()</a></code>, <code><a href="reference/resampling.html">group_cv()</a></code> and <code><a href="reference/resampling.html">bootstrap()</a></code>, <code><a href="reference/dwscore.html">dwscore()</a></code> scores a survival matrix directly, and <code><a href="reference/list_survlearners.html">list_survlearners()</a></code>, <code><a href="reference/list_metrics.html">list_metrics()</a></code> and <code><a href="reference/list_interpretability_methods.html">list_interpretability_methods()</a></code> give the valid ids. Upgrading from 1.x? See <code><a href="articles/from-1.0.html">vignette("from-1.0", package = "survalis")</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -154,22 +154,26 @@
 <span><span class="co">#&gt; 21          nbsurv   FALSE</span></span>
 <span><span class="co">#&gt; 22 survmetalearner   FALSE</span></span>
 <span><span class="fu"><a href="reference/list_metrics.html">list_metrics</a></span><span class="op">(</span><span class="op">)</span>                    <span class="co"># ids for `metrics`</span></span>
-<span><span class="co">#&gt;   metric direction</span></span>
-<span><span class="co">#&gt; 1 cindex  maximize</span></span>
-<span><span class="co">#&gt; 2    auc  maximize</span></span>
-<span><span class="co">#&gt; 3  brier  minimize</span></span>
-<span><span class="co">#&gt; 4    ibs  minimize</span></span>
-<span><span class="co">#&gt; 5    iae  minimize</span></span>
-<span><span class="co">#&gt; 6    ise  minimize</span></span>
-<span><span class="co">#&gt; 7    ece  minimize</span></span>
-<span><span class="co">#&gt;                                                                    summary</span></span>
-<span><span class="co">#&gt; 1                Harrell-style concordance index for survival predictions.</span></span>
-<span><span class="co">#&gt; 2     Cumulative/dynamic time-dependent AUC at a selected evaluation time.</span></span>
-<span><span class="co">#&gt; 3 Brier Score at specified evaluation time(s) (IPCW-weighted when needed).</span></span>
-<span><span class="co">#&gt; 4     Integrated Brier Score over an evaluation time grid (IPCW-weighted).</span></span>
-<span><span class="co">#&gt; 5                Integrated absolute error against the Kaplan-Meier curve.</span></span>
-<span><span class="co">#&gt; 6                 Integrated squared error against the Kaplan-Meier curve.</span></span>
-<span><span class="co">#&gt; 7                  Expected calibration error at a single evaluation time.</span></span>
+<span><span class="co">#&gt;                  metric direction</span></span>
+<span><span class="co">#&gt; 1                cindex  maximize</span></span>
+<span><span class="co">#&gt; 2                   auc  maximize</span></span>
+<span><span class="co">#&gt; 3                 brier  minimize</span></span>
+<span><span class="co">#&gt; 4                   ibs  minimize</span></span>
+<span><span class="co">#&gt; 5                   iae  minimize</span></span>
+<span><span class="co">#&gt; 6                   ise  minimize</span></span>
+<span><span class="co">#&gt; 7                   ece  minimize</span></span>
+<span><span class="co">#&gt; 8               survacc  maximize</span></span>
+<span><span class="co">#&gt; 9 range:&lt;lower&gt;-&lt;upper&gt;  minimize</span></span>
+<span><span class="co">#&gt;                                                                                                        summary</span></span>
+<span><span class="co">#&gt; 1                                                    Harrell-style concordance index for survival predictions.</span></span>
+<span><span class="co">#&gt; 2                                         Cumulative/dynamic time-dependent AUC at a selected evaluation time.</span></span>
+<span><span class="co">#&gt; 3                                     Brier Score at specified evaluation time(s) (IPCW-weighted when needed).</span></span>
+<span><span class="co">#&gt; 4                                         Integrated Brier Score over an evaluation time grid (IPCW-weighted).</span></span>
+<span><span class="co">#&gt; 5                                                    Integrated absolute error against the Kaplan-Meier curve.</span></span>
+<span><span class="co">#&gt; 6                                                     Integrated squared error against the Kaplan-Meier curve.</span></span>
+<span><span class="co">#&gt; 7                                                      Expected calibration error at a single evaluation time.</span></span>
+<span><span class="co">#&gt; 8                           SurvAcc: spherical decision-weighted score at a single time (IPCW), see dwscore().</span></span>
+<span><span class="co">#&gt; 9 Decision-weighted loss over a risk-threshold range, e.g. "range:0.05-0.20", at a single time, see dwscore().</span></span>
 <span><span class="co">#&gt;                        range</span></span>
 <span><span class="co">#&gt; 1  [0, 1] (higher is better)</span></span>
 <span><span class="co">#&gt; 2  [0, 1] (higher is better)</span></span>
@@ -178,6 +182,8 @@
 <span><span class="co">#&gt; 5 [0, Inf) (lower is better)</span></span>
 <span><span class="co">#&gt; 6 [0, Inf) (lower is better)</span></span>
 <span><span class="co">#&gt; 7   [0, 1] (lower is better)</span></span>
+<span><span class="co">#&gt; 8  [0, 1] (higher is better)</span></span>
+<span><span class="co">#&gt; 9   [0, 1] (lower is better)</span></span>
 <span><span class="fu"><a href="reference/list_interpretability_methods.html">list_interpretability_methods</a></span><span class="op">(</span><span class="op">)</span>   <span class="co"># ids for `method` in interpret()</span></span>
 <span><span class="co">#&gt;            method</span></span>
 <span><span class="co">#&gt; 1             pdp</span></span>
@@ -242,12 +248,13 @@
 <span><span class="co">#&gt; &lt;survalis_resampling&gt; 5-fold CV, strata = status, seed = 123</span></span>
 <span><span class="co">#&gt;   grid: 2 times in [80, 160]</span></span>
 <span><span class="co">#&gt;   cindex  0.7180  (sd 0.0530, 95% [0.6720, 0.7640], n = 5)</span></span>
-<span><span class="co">#&gt;   ibs     0.1820  (sd 0.0420, 95% [0.1460, 0.2190], n = 5)</span></span></code></pre></div>
+<span><span class="co">#&gt;   ibs     0.1740  (sd 0.0380, 95% [0.1400, 0.2070], n = 5)</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ev</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   metric  mean    sd n    se lower upper</span></span>
 <span><span class="co">#&gt; 1 cindex 0.718 0.053 5 0.023 0.672 0.764</span></span>
-<span><span class="co">#&gt; 2    ibs 0.182 0.042 5 0.019 0.146 0.219</span></span></code></pre></div>
+<span><span class="co">#&gt; 2    ibs 0.174 0.038 5 0.017 0.140 0.207</span></span></code></pre></div>
+<p>Metrics are chosen by <code>metrics</code>. Next to <code>"cindex"</code>, <code>"auc"</code>, <code>"brier"</code>, <code>"ibs"</code> and the calibration errors, the decision-weighted scores <code>"survacc"</code> and <code>"range:&lt;lower&gt;-&lt;upper&gt;"</code> are available at a single time.</p>
 <p>To score a model on data it was not trained on, pass <code>newdata</code>; to score predictions made elsewhere, pass the survival matrix and the outcome.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">train</span> <span class="op">&lt;-</span> <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span>, <span class="op">]</span></span>
@@ -258,7 +265,7 @@
 <span><span class="co">#&gt;   scored once on 37 subjects (no resampling)</span></span>
 <span><span class="co">#&gt;   grid: 2 times in [80, 160]</span></span>
 <span><span class="co">#&gt;   cindex  0.7470</span></span>
-<span><span class="co">#&gt;   ibs     0.1720</span></span>
+<span><span class="co">#&gt;   ibs     0.1410</span></span>
 <span></span>
 <span><span class="va">S</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">m_tr</span>, <span class="va">test</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">80</span>, <span class="fl">160</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/evaluate.html">evaluate</a></span><span class="op">(</span><span class="va">S</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">test</span><span class="op">$</span><span class="va">time</span>, <span class="va">test</span><span class="op">$</span><span class="va">status</span><span class="op">)</span><span class="op">)</span></span>
@@ -266,10 +273,30 @@
 <span><span class="co">#&gt;   scored once on 37 subjects (no resampling)</span></span>
 <span><span class="co">#&gt;   grid: 2 times in [80, 160]</span></span>
 <span><span class="co">#&gt;   cindex  0.7470</span></span>
-<span><span class="co">#&gt;   ibs     0.1720</span></span></code></pre></div>
+<span><span class="co">#&gt;   ibs     0.1410</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/evaluate.html">evaluate</a></span><span class="op">(</span><span class="va">m_tr</span>, newdata <span class="op">=</span> <span class="va">test</span>, times <span class="op">=</span> <span class="fl">160</span>,</span>
+<span>         metrics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"brier"</span>, <span class="st">"survacc"</span>, <span class="st">"range:0.05-0.20"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;survalis_eval&gt; model = coxph</span></span>
+<span><span class="co">#&gt;   scored once on 37 subjects (no resampling)</span></span>
+<span><span class="co">#&gt;   grid: 1 times in [160, 160]</span></span>
+<span><span class="co">#&gt;   brier           0.0790</span></span>
+<span><span class="co">#&gt;   survacc         0.9120</span></span>
+<span><span class="co">#&gt;   range:0.05-0.20 0.0180</span></span></code></pre></div>
+<p><code><a href="reference/dwscore.html">dwscore()</a></code> gives the decision-weighted loss itself: the IPCW loss of the rule “act if predicted risk exceeds c”, averaged over thresholds c with a chosen weight (<code>"range"</code>, <code>"survacc"</code>, <code>"brier"</code>, <code>"log"</code> or <code>"beta"</code>). Each score is a weighted area under the net benefit curve.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">test</span><span class="op">$</span><span class="va">time</span>, <span class="va">test</span><span class="op">$</span><span class="va">status</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/dwscore.html">dwscore</a></span><span class="op">(</span><span class="va">S</span>, <span class="va">y</span>, weight <span class="op">=</span> <span class="st">"range"</span>, thresholds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span>, <span class="fl">0.20</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   time          weight       loss</span></span>
+<span><span class="co">#&gt; 1   80 range(0.05,0.2) 0.04391892</span></span>
+<span><span class="co">#&gt; 2  160 range(0.05,0.2) 0.01829955</span></span>
+<span><span class="fu"><a href="reference/dwscore.html">dwscore</a></span><span class="op">(</span><span class="va">S</span>, <span class="va">y</span>, weight <span class="op">=</span> <span class="st">"survacc"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   time  weight       loss</span></span>
+<span><span class="co">#&gt; 1   80 survacc 0.15739061</span></span>
+<span><span class="co">#&gt; 2  160 survacc 0.08765717</span></span></code></pre></div>
 <p><strong>4. Compare multiple learners</strong></p>
 <p><code><a href="reference/compare.html">compare()</a></code> evaluates every learner on the <em>same</em> resampling folds, so results are paired; <code>tune = TRUE</code> tunes each tunable learner first.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compare.html">compare</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">karno</span> <span class="op">+</span> <span class="va">celltype</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">veteran</span>,</span>
@@ -288,14 +315,33 @@
 <span><span class="co">#&gt;      ranger           0.6890  (se 0.0239)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   ibs (lower is better):</span></span>
-<span><span class="co">#&gt;    * coxph            0.1790  (se 0.0055)</span></span>
-<span><span class="co">#&gt;      ranger           0.1990  (se 0.0042)</span></span>
-<span><span class="co">#&gt;      rpart            0.2160  (se 0.0062)</span></span>
+<span><span class="co">#&gt;    * coxph            0.1710  (se 0.0012)</span></span>
+<span><span class="co">#&gt;      ranger           0.1920  (se 0.0032)</span></span>
+<span><span class="co">#&gt;      rpart            0.2067  (se 0.0095)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-10-1.png" alt="" width="100%"></p>
-<p><strong>5. Bring your own learner</strong></p>
+<p><img src="reference/figures/README-unnamed-chunk-11-1.png" alt="" width="100%"></p>
+<p><strong>5. Tune a learner</strong></p>
+<p><code><a href="reference/tune.html">tune()</a></code> scores a grid of configurations on shared folds and refits the best one. Learners with <code>tunable = TRUE</code> have a default grid; any learner, custom ones included, can be tuned over a <code>grid</code> you supply.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tuned</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune.html">tune</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">karno</span> <span class="op">+</span> <span class="va">celltype</span>, <span class="va">veteran</span>, model <span class="op">=</span> <span class="st">"rpart"</span>,</span>
+<span>  grid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>cp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span><span class="op">)</span>, minsplit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span>, maxdepth <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">80</span>, <span class="fl">160</span><span class="op">)</span>, resampling <span class="op">=</span> <span class="fu"><a href="reference/resampling.html">cv</a></span><span class="op">(</span><span class="fl">3</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, metric <span class="op">=</span> <span class="st">"ibs"</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="va">tuned</span></span>
+<span><span class="co">#&gt; &lt;survalis_tune&gt; model = rpart  |  optimise ibs over 6 configs</span></span>
+<span><span class="co">#&gt; &lt;survalis_resampling&gt; 3-fold CV, strata = status, seed = 1</span></span>
+<span><span class="co">#&gt;   best: minsplit = 10, cp = 0.05, maxdepth = 5</span></span>
+<span><span class="co">#&gt;   ibs at best: 0.1960</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">tuned</span>, <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="op">]</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">80</span>, <span class="fl">160</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;survmat&gt; survival  |  3 obs x 2 times  [80, 160]</span></span>
+<span><span class="co">#&gt;           t=80     t=160</span></span>
+<span><span class="co">#&gt; [1,] 0.6363686 0.4049649</span></span>
+<span><span class="co">#&gt; [2,] 0.6363686 0.4049649</span></span>
+<span><span class="co">#&gt; [3,] 0.6363686 0.4049649</span></span></code></pre></div>
+<p><strong>6. Bring your own learner</strong></p>
 <p>A custom learner is a list with a <code>fit</code> function and a <code>predict</code> function that returns one row per subject and one column per time. It then works with every verb.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">expo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  name <span class="op">=</span> <span class="st">"exponential"</span>,</span>
 <span>  fit <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">formula</span>, <span class="va">data</span>, <span class="va">...</span><span class="op">)</span> <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/survreg.html" class="external-link">survreg</a></span><span class="op">(</span><span class="va">formula</span>, <span class="va">data</span>, dist <span class="op">=</span> <span class="st">"exponential"</span><span class="op">)</span>,</span>
@@ -316,11 +362,11 @@
 <span><span class="co">#&gt;      coxph            0.7307  (se 0.0188)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   ibs (lower is better):</span></span>
-<span><span class="co">#&gt;    * exponential      0.1787  (se 0.0033)</span></span>
-<span><span class="co">#&gt;      coxph            0.1790  (se 0.0055)</span></span></code></pre></div>
-<p><strong>6. Visualize interpretation</strong></p>
+<span><span class="co">#&gt;    * coxph            0.1710  (se 0.0012)</span></span>
+<span><span class="co">#&gt;      exponential      0.1710  (se 0.0030)</span></span></code></pre></div>
+<p><strong>7. Visualize interpretation</strong></p>
 <p><code><a href="reference/interpret.html">interpret()</a></code> is the single entry point to every explanation method, and <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws its result.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">shap_meanabs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  <span class="va">mod_cox</span>, <span class="st">"shap"</span>,</span>
 <span>  newdata     <span class="op">=</span> <span class="va">veteran</span><span class="op">[</span><span class="fl">100</span>, <span class="op">]</span>,</span>
@@ -338,35 +384,35 @@
 <span><span class="co">#&gt; diagtime diagtime 0.000000000</span></span>
 <span><span class="co">#&gt; age           age 0.003908879</span></span>
 <span><span class="co">#&gt; prior       prior 0.000000000</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">shap_meanabs</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-13-1.png" alt="" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-15-1.png" alt="" width="100%"></p>
 <div class="section level3">
 <h3 id="more-interpretability-methods">More interpretability methods<a class="anchor" aria-label="anchor" href="#more-interpretability-methods"></a>
 </h3>
-<p><code>survalis</code> also provides PDP, ALE, surrogate explanations, tree surrogates, permutation importance, interaction analysis, and counterfactuals, all through <code>interpret(fit, method = ..., ...)</code>.</p>
+<p><code>survalis</code> also provides PDP, ALE, surrogate explanations, tree surrogates, permutation importance, interaction analysis, counterfactuals, and clustering of individualized survival curves, all through <code>interpret(fit, method = ..., ...)</code>.</p>
 <p><strong>Partial dependence and ICE</strong></p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pdp_age</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="st">"pdp"</span>, feature <span class="op">=</span> <span class="st">"age"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pdp_age</span>, which <span class="op">=</span> <span class="st">"per_time"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-14-1.png" alt="" width="100%"></p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<p><img src="reference/figures/README-unnamed-chunk-16-1.png" alt="" width="100%"></p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pdp_age</span>, which <span class="op">=</span> <span class="st">"integrated"</span>, smooth <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-14-2.png" alt="" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-16-2.png" alt="" width="100%"></p>
 <p><strong>Accumulated local effects</strong></p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ale_karno</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="st">"ale"</span>, feature <span class="op">=</span> <span class="st">"karno"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ale_karno</span>, which <span class="op">=</span> <span class="st">"per_time"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-15-1.png" alt="" width="100%"></p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<p><img src="reference/figures/README-unnamed-chunk-17-1.png" alt="" width="100%"></p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ale_karno</span>, which <span class="op">=</span> <span class="st">"integrated"</span>, smooth <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-15-2.png" alt="" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-17-2.png" alt="" width="100%"></p>
 <p><strong>Local surrogate explanation</strong></p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">local_surrogate</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  <span class="va">mod_cox</span>, <span class="st">"surrogate"</span>,</span>
 <span>  newdata     <span class="op">=</span> <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span>,</span>
@@ -383,17 +429,17 @@
 <span><span class="co">#&gt; 4 diagtime             7 0.001800378         200</span></span>
 <span><span class="co">#&gt; 5    prior             0 0.000000000         200</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">local_surrogate</span>, top_n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-16-1.png" alt="" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-18-1.png" alt="" width="100%"></p>
 <p><strong>Tree surrogate</strong></p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tree_surrogate</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="st">"tree_surrogate"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tree_surrogate</span>, type <span class="op">=</span> <span class="st">"importance"</span>, top_n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-17-1.png" alt="" width="100%"></p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<p><img src="reference/figures/README-unnamed-chunk-19-1.png" alt="" width="100%"></p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># plot(tree_surrogate, type = "tree")</span></span></code></pre></div>
 <p><strong>Permutation variable importance</strong></p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">varimp_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  <span class="va">mod_cox</span>, <span class="st">"varimp"</span>,</span>
 <span>  times          <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span>,</span>
@@ -405,16 +451,16 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">varimp_res</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # basetable: 6 x 5</span></span>
 <span><span class="co">#&gt;    feature importance importance_05 importance_95 scaled_importance</span></span>
-<span><span class="co">#&gt; 1    karno     0.0672        0.0494        0.0826         100.00000</span></span>
-<span><span class="co">#&gt; 2 celltype     0.0468        0.0394        0.0574          69.64286</span></span>
-<span><span class="co">#&gt; 3      age    -0.0022       -0.0030       -0.0012           3.27381</span></span>
-<span><span class="co">#&gt; 4      trt     0.0000        0.0000        0.0000           0.00000</span></span>
-<span><span class="co">#&gt; 5 diagtime     0.0000        0.0000        0.0000           0.00000</span></span>
-<span><span class="co">#&gt; 6    prior     0.0000        0.0000        0.0000           0.00000</span></span>
+<span><span class="co">#&gt; 1    karno     0.0638        0.0448        0.0782        100.000000</span></span>
+<span><span class="co">#&gt; 2 celltype     0.0446        0.0384        0.0546         69.905956</span></span>
+<span><span class="co">#&gt; 3      age    -0.0012       -0.0020       -0.0002          1.880878</span></span>
+<span><span class="co">#&gt; 4      trt     0.0000        0.0000        0.0000          0.000000</span></span>
+<span><span class="co">#&gt; 5 diagtime     0.0000        0.0000        0.0000          0.000000</span></span>
+<span><span class="co">#&gt; 6    prior     0.0000        0.0000        0.0000          0.000000</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">varimp_res</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-18-1.png" alt="" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-20-1.png" alt="" width="100%"></p>
 <p><strong>Feature interactions</strong></p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">interaction_1way</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="st">"interaction"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span>,</span>
 <span>                              target_time <span class="op">=</span> <span class="fl">200</span>, type <span class="op">=</span> <span class="st">"1way"</span><span class="op">)</span></span>
 <span><span class="va">interaction_heatmap</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="st">"interaction"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span>,</span>
@@ -423,15 +469,15 @@
 <span>                              type <span class="op">=</span> <span class="st">"time"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">interaction_1way</span>, type <span class="op">=</span> <span class="st">"1way"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-19-1.png" alt="" width="100%"></p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">interaction_heatmap</span>, type <span class="op">=</span> <span class="st">"heatmap"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-19-2.png" alt="" width="100%"></p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">interaction_time</span>, type <span class="op">=</span> <span class="st">"time"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-19-3.png" alt="" width="100%"></p>
-<p><strong>Counterfactual explanations</strong></p>
+<p><img src="reference/figures/README-unnamed-chunk-21-1.png" alt="" width="100%"></p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">interaction_heatmap</span>, type <span class="op">=</span> <span class="st">"heatmap"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-21-2.png" alt="" width="100%"></p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">interaction_time</span>, type <span class="op">=</span> <span class="st">"time"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-21-3.png" alt="" width="100%"></p>
+<p><strong>Counterfactual explanations</strong></p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">counterfactuals</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span></span>
 <span>  <span class="va">mod_cox</span>, <span class="st">"counterfactual"</span>,</span>
 <span>  newdata            <span class="op">=</span> <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span>,</span>
@@ -450,22 +496,39 @@
 <span><span class="co">#&gt; 1         0.0245</span></span>
 <span><span class="co">#&gt; 2        -0.0008</span></span>
 <span><span class="co">#&gt; 3        -0.0010</span></span></code></pre></div>
-<p><strong>7. Calibration, ROC and decision curves</strong></p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="st">"calibration"</span>, eval_time <span class="op">=</span> <span class="fl">80</span>, n_bins <span class="op">=</span> <span class="fl">10</span>, n_boot <span class="op">=</span> <span class="fl">30</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-21-1.png" alt="" width="100%"></p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">m_tr</span>, <span class="st">"roc"</span>, newdata <span class="op">=</span> <span class="va">test</span>, eval_time <span class="op">=</span> <span class="fl">80</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-21-2.png" alt="" width="100%"></p>
+<p><strong>Clusters of survival curves</strong></p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">clusters</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="st">"survcluster"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">400</span>, by <span class="op">=</span> <span class="fl">30</span><span class="op">)</span>,</span>
+<span>                      K <span class="op">=</span> <span class="fl">3</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">clusters</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-23-1.png" alt="" width="100%"></p>
+<p><strong>8. Calibration, ROC and decision curves</strong></p>
+<p>The decision curve uses the same censoring weights as <code><a href="reference/dwscore.html">dwscore()</a></code>, so each <code>"range:&lt;lower&gt;-&lt;upper&gt;"</code> loss equals the weighted area between the treat-all and model curves.</p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">mod_cox</span>, <span class="st">"calibration"</span>, eval_time <span class="op">=</span> <span class="fl">80</span>, n_bins <span class="op">=</span> <span class="fl">10</span>, n_boot <span class="op">=</span> <span class="fl">30</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-24-1.png" alt="" width="100%"></p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">m_tr</span>, <span class="st">"roc"</span>, newdata <span class="op">=</span> <span class="va">test</span>, eval_time <span class="op">=</span> <span class="fl">80</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-24-2.png" alt="" width="100%"></p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/interpret.html">interpret</a></span><span class="op">(</span><span class="va">m_tr</span>, <span class="st">"dca"</span>, newdata <span class="op">=</span> <span class="va">test</span>, eval_time <span class="op">=</span> <span class="fl">80</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-21-3.png" alt="" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-24-3.png" alt="" width="100%"></p>
+<p><strong>9. Causal contrasts</strong></p>
+<p><code><a href="reference/estimate.html">estimate()</a></code> gives a plug-in G-formula contrast (RMST or survival, difference or ratio) with bootstrap intervals. See <code><a href="articles/causal-estimation.html">vignette("causal-estimation", package = "survalis")</a></code>.</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/estimate.html">estimate</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">karno</span> <span class="op">+</span> <span class="va">celltype</span>, <span class="va">veteran</span>, model <span class="op">=</span> <span class="st">"coxph"</span>,</span>
+<span>         treatment <span class="op">=</span> <span class="st">"trt"</span>, tau <span class="op">=</span> <span class="fl">365</span>, R <span class="op">=</span> <span class="fl">50</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;survalis_estimate&gt; RMST difference at tau = 365  (model: coxph)</span></span>
+<span><span class="co">#&gt;   treatment: trt  (2 vs 1)</span></span>
+<span><span class="co">#&gt;   estimate: -14.5005   95% CI [-45.9365, 11.4581]   (50 bootstrap, refit)</span></span>
+<span><span class="co">#&gt;   plug-in G-formula; causal reading needs exchangeability, positivity,</span></span>
+<span><span class="co">#&gt;   consistency, no interference and a correct outcome model.</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"survalis"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; To cite survalis in publications, use:</span></span>
 <span><span class="co">#&gt; </span></span>
