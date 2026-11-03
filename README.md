@@ -18,7 +18,10 @@ MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.or
 R. Seven verbs cover the whole workflow for 22 built-in learners and for
 any learner you write yourself: fitting, prediction, resampled and
 external evaluation, tuning, paired comparison, model-agnostic
-interpretation, and causal contrasts.
+interpretation, and causal contrasts. Discrimination, calibration and
+Brier metrics sit next to decision-weighted scores (`dwscore()`), which
+average the loss of a risk-threshold decision rule over a stated range
+of thresholds.
 
 `survalis` is available on CRAN:
 <https://CRAN.R-project.org/package=survalis>.
@@ -43,9 +46,9 @@ estimate(f, veteran, model = "ranger", treatment = "trt", tau = 365)
 
 `fit()`, `predict()`, `evaluate()`, `tune()`, `compare()`, `interpret()`
 and `estimate()` are the whole interface. Resampling is described by
-`cv()`, `holdout()`, `group_cv()` and `bootstrap()`, and
-`list_survlearners()`, `list_metrics()` and
-`list_interpretability_methods()` give the valid ids. Upgrading from
+`cv()`, `holdout()`, `group_cv()` and `bootstrap()`, `dwscore()` scores
+a survival matrix directly, and `list_survlearners()`, `list_metrics()`
+and `list_interpretability_methods()` give the valid ids. Upgrading from
 1.x? See `vignette("from-1.0", package = "survalis")`.
 
 ## Installation
@@ -100,22 +103,26 @@ list_survlearners()               # ids for `model`
 #> 21          nbsurv   FALSE
 #> 22 survmetalearner   FALSE
 list_metrics()                    # ids for `metrics`
-#>   metric direction
-#> 1 cindex  maximize
-#> 2    auc  maximize
-#> 3  brier  minimize
-#> 4    ibs  minimize
-#> 5    iae  minimize
-#> 6    ise  minimize
-#> 7    ece  minimize
-#>                                                                    summary
-#> 1                Harrell-style concordance index for survival predictions.
-#> 2     Cumulative/dynamic time-dependent AUC at a selected evaluation time.
-#> 3 Brier Score at specified evaluation time(s) (IPCW-weighted when needed).
-#> 4     Integrated Brier Score over an evaluation time grid (IPCW-weighted).
-#> 5                Integrated absolute error against the Kaplan-Meier curve.
-#> 6                 Integrated squared error against the Kaplan-Meier curve.
-#> 7                  Expected calibration error at a single evaluation time.
+#>                  metric direction
+#> 1                cindex  maximize
+#> 2                   auc  maximize
+#> 3                 brier  minimize
+#> 4                   ibs  minimize
+#> 5                   iae  minimize
+#> 6                   ise  minimize
+#> 7                   ece  minimize
+#> 8               survacc  maximize
+#> 9 range:<lower>-<upper>  minimize
+#>                                                                                                        summary
+#> 1                                                    Harrell-style concordance index for survival predictions.
+#> 2                                         Cumulative/dynamic time-dependent AUC at a selected evaluation time.
+#> 3                                     Brier Score at specified evaluation time(s) (IPCW-weighted when needed).
+#> 4                                         Integrated Brier Score over an evaluation time grid (IPCW-weighted).
+#> 5                                                    Integrated absolute error against the Kaplan-Meier curve.
+#> 6                                                     Integrated squared error against the Kaplan-Meier curve.
+#> 7                                                      Expected calibration error at a single evaluation time.
+#> 8                           SurvAcc: spherical decision-weighted score at a single time (IPCW), see dwscore().
+#> 9 Decision-weighted loss over a risk-threshold range, e.g. "range:0.05-0.20", at a single time, see dwscore().
 #>                        range
 #> 1  [0, 1] (higher is better)
 #> 2  [0, 1] (higher is better)
@@ -124,6 +131,8 @@ list_metrics()                    # ids for `metrics`
 #> 5 [0, Inf) (lower is better)
 #> 6 [0, Inf) (lower is better)
 #> 7   [0, 1] (lower is better)
+#> 8  [0, 1] (higher is better)
+#> 9   [0, 1] (lower is better)
 list_interpretability_methods()   # ids for `method` in interpret()
 #>            method
 #> 1             pdp
@@ -197,15 +206,20 @@ ev
 #> <survalis_resampling> 5-fold CV, strata = status, seed = 123
 #>   grid: 2 times in [80, 160]
 #>   cindex  0.7180  (sd 0.0530, 95% [0.6720, 0.7640], n = 5)
-#>   ibs     0.1820  (sd 0.0420, 95% [0.1460, 0.2190], n = 5)
+#>   ibs     0.1740  (sd 0.0380, 95% [0.1400, 0.2070], n = 5)
 ```
 
 ``` r
 summary(ev)
 #>   metric  mean    sd n    se lower upper
 #> 1 cindex 0.718 0.053 5 0.023 0.672 0.764
-#> 2    ibs 0.182 0.042 5 0.019 0.146 0.219
+#> 2    ibs 0.174 0.038 5 0.017 0.140 0.207
 ```
+
+Metrics are chosen by `metrics`. Next to `"cindex"`, `"auc"`, `"brier"`,
+`"ibs"` and the calibration errors, the decision-weighted scores
+`"survacc"` and `"range:<lower>-<upper>"` are available at a single
+time.
 
 To score a model on data it was not trained on, pass `newdata`; to score
 predictions made elsewhere, pass the survival matrix and the outcome.
@@ -219,7 +233,7 @@ evaluate(m_tr, newdata = test, times = c(80, 160))
 #>   scored once on 37 subjects (no resampling)
 #>   grid: 2 times in [80, 160]
 #>   cindex  0.7470
-#>   ibs     0.1720
+#>   ibs     0.1410
 
 S <- predict(m_tr, test, times = c(80, 160))
 evaluate(S, y = Surv(test$time, test$status))
@@ -227,7 +241,33 @@ evaluate(S, y = Surv(test$time, test$status))
 #>   scored once on 37 subjects (no resampling)
 #>   grid: 2 times in [80, 160]
 #>   cindex  0.7470
-#>   ibs     0.1720
+#>   ibs     0.1410
+
+evaluate(m_tr, newdata = test, times = 160,
+         metrics = c("brier", "survacc", "range:0.05-0.20"))
+#> <survalis_eval> model = coxph
+#>   scored once on 37 subjects (no resampling)
+#>   grid: 1 times in [160, 160]
+#>   brier           0.0790
+#>   survacc         0.9120
+#>   range:0.05-0.20 0.0180
+```
+
+`dwscore()` gives the decision-weighted loss itself: the IPCW loss of
+the rule “act if predicted risk exceeds c”, averaged over thresholds c
+with a chosen weight (`"range"`, `"survacc"`, `"brier"`, `"log"` or
+`"beta"`). Each score is a weighted area under the net benefit curve.
+
+``` r
+y <- Surv(test$time, test$status)
+dwscore(S, y, weight = "range", thresholds = c(0.05, 0.20))
+#>   time          weight       loss
+#> 1   80 range(0.05,0.2) 0.04391892
+#> 2  160 range(0.05,0.2) 0.01829955
+dwscore(S, y, weight = "survacc")
+#>   time  weight       loss
+#> 1   80 survacc 0.15739061
+#> 2  160 survacc 0.08765717
 ```
 
 **4. Compare multiple learners**
@@ -254,15 +294,40 @@ cmp
 #>      ranger           0.6890  (se 0.0239)
 #> 
 #>   ibs (lower is better):
-#>    * coxph            0.1790  (se 0.0055)
-#>      ranger           0.1990  (se 0.0042)
-#>      rpart            0.2160  (se 0.0062)
+#>    * coxph            0.1710  (se 0.0012)
+#>      ranger           0.1920  (se 0.0032)
+#>      rpart            0.2067  (se 0.0095)
 plot(cmp)
 ```
 
-<img src="man/figures/README-unnamed-chunk-10-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-11-1.png" alt="" width="100%" />
 
-**5. Bring your own learner**
+**5. Tune a learner**
+
+`tune()` scores a grid of configurations on shared folds and refits the
+best one. Learners with `tunable = TRUE` have a default grid; any
+learner, custom ones included, can be tuned over a `grid` you supply.
+
+``` r
+tuned <- tune(
+  Surv(time, status) ~ age + karno + celltype, veteran, model = "rpart",
+  grid = expand.grid(cp = c(0.001, 0.01, 0.05), minsplit = c(10, 20), maxdepth = 5),
+  times = c(80, 160), resampling = cv(3, seed = 1), metric = "ibs"
+  )
+tuned
+#> <survalis_tune> model = rpart  |  optimise ibs over 6 configs
+#> <survalis_resampling> 3-fold CV, strata = status, seed = 1
+#>   best: minsplit = 10, cp = 0.05, maxdepth = 5
+#>   ibs at best: 0.1960
+predict(tuned, veteran[1:3, ], times = c(80, 160))
+#> <survmat> survival  |  3 obs x 2 times  [80, 160]
+#>           t=80     t=160
+#> [1,] 0.6363686 0.4049649
+#> [2,] 0.6363686 0.4049649
+#> [3,] 0.6363686 0.4049649
+```
+
+**6. Bring your own learner**
 
 A custom learner is a list with a `fit` function and a `predict`
 function that returns one row per subject and one column per time. It
@@ -289,11 +354,11 @@ compare(Surv(time, status) ~ age + karno + celltype, veteran,
 #>      coxph            0.7307  (se 0.0188)
 #> 
 #>   ibs (lower is better):
-#>    * exponential      0.1787  (se 0.0033)
-#>      coxph            0.1790  (se 0.0055)
+#>    * coxph            0.1710  (se 0.0012)
+#>      exponential      0.1710  (se 0.0030)
 ```
 
-**6. Visualize interpretation**
+**7. Visualize interpretation**
 
 `interpret()` is the single entry point to every explanation method, and
 `plot()` draws its result.
@@ -322,13 +387,14 @@ as.data.frame(shap_meanabs)
 plot(shap_meanabs)
 ```
 
-<img src="man/figures/README-unnamed-chunk-13-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-15-1.png" alt="" width="100%" />
 
 ### More interpretability methods
 
 `survalis` also provides PDP, ALE, surrogate explanations, tree
-surrogates, permutation importance, interaction analysis, and
-counterfactuals, all through `interpret(fit, method = ..., ...)`.
+surrogates, permutation importance, interaction analysis,
+counterfactuals, and clustering of individualized survival curves, all
+through `interpret(fit, method = ..., ...)`.
 
 **Partial dependence and ICE**
 
@@ -338,14 +404,14 @@ pdp_age <- interpret(mod_cox, "pdp", feature = "age", times = c(100, 200, 300))
 plot(pdp_age, which = "per_time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-14-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-16-1.png" alt="" width="100%" />
 
 ``` r
 plot(pdp_age, which = "integrated", smooth = TRUE)
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-<img src="man/figures/README-unnamed-chunk-14-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-16-2.png" alt="" width="100%" />
 
 **Accumulated local effects**
 
@@ -355,14 +421,14 @@ ale_karno <- interpret(mod_cox, "ale", feature = "karno", times = c(100, 200, 30
 plot(ale_karno, which = "per_time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-15-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-17-1.png" alt="" width="100%" />
 
 ``` r
 plot(ale_karno, which = "integrated", smooth = TRUE)
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-<img src="man/figures/README-unnamed-chunk-15-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-17-2.png" alt="" width="100%" />
 
 **Local surrogate explanation**
 
@@ -385,7 +451,7 @@ as.data.frame(local_surrogate)
 plot(local_surrogate, top_n = 10)
 ```
 
-<img src="man/figures/README-unnamed-chunk-16-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-18-1.png" alt="" width="100%" />
 
 **Tree surrogate**
 
@@ -395,7 +461,7 @@ tree_surrogate <- interpret(mod_cox, "tree_surrogate", times = c(100, 200, 300))
 plot(tree_surrogate, type = "importance", top_n = 5)
 ```
 
-<img src="man/figures/README-unnamed-chunk-17-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-19-1.png" alt="" width="100%" />
 
 ``` r
 # plot(tree_surrogate, type = "tree")
@@ -415,16 +481,16 @@ varimp_res <- interpret(
 as.data.frame(varimp_res)
 #> # basetable: 6 x 5
 #>    feature importance importance_05 importance_95 scaled_importance
-#> 1    karno     0.0672        0.0494        0.0826         100.00000
-#> 2 celltype     0.0468        0.0394        0.0574          69.64286
-#> 3      age    -0.0022       -0.0030       -0.0012           3.27381
-#> 4      trt     0.0000        0.0000        0.0000           0.00000
-#> 5 diagtime     0.0000        0.0000        0.0000           0.00000
-#> 6    prior     0.0000        0.0000        0.0000           0.00000
+#> 1    karno     0.0638        0.0448        0.0782        100.000000
+#> 2 celltype     0.0446        0.0384        0.0546         69.905956
+#> 3      age    -0.0012       -0.0020       -0.0002          1.880878
+#> 4      trt     0.0000        0.0000        0.0000          0.000000
+#> 5 diagtime     0.0000        0.0000        0.0000          0.000000
+#> 6    prior     0.0000        0.0000        0.0000          0.000000
 plot(varimp_res)
 ```
 
-<img src="man/figures/README-unnamed-chunk-18-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-20-1.png" alt="" width="100%" />
 
 **Feature interactions**
 
@@ -439,19 +505,19 @@ interaction_time <- interpret(mod_cox, "interaction", times = c(100, 200, 300),
 plot(interaction_1way, type = "1way")
 ```
 
-<img src="man/figures/README-unnamed-chunk-19-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-21-1.png" alt="" width="100%" />
 
 ``` r
 plot(interaction_heatmap, type = "heatmap")
 ```
 
-<img src="man/figures/README-unnamed-chunk-19-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-21-2.png" alt="" width="100%" />
 
 ``` r
 plot(interaction_time, type = "time")
 ```
 
-<img src="man/figures/README-unnamed-chunk-19-3.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-21-3.png" alt="" width="100%" />
 
 **Counterfactual explanations**
 
@@ -476,25 +542,55 @@ as.data.frame(counterfactuals)
 #> 3        -0.0010
 ```
 
-**7. Calibration, ROC and decision curves**
+**Clusters of survival curves**
+
+``` r
+clusters <- interpret(mod_cox, "survcluster", times = seq(10, 400, by = 30),
+                      K = 3, seed = 1)
+plot(clusters)
+```
+
+<img src="man/figures/README-unnamed-chunk-23-1.png" alt="" width="100%" />
+
+**8. Calibration, ROC and decision curves**
+
+The decision curve uses the same censoring weights as `dwscore()`, so
+each `"range:<lower>-<upper>"` loss equals the weighted area between the
+treat-all and model curves.
 
 ``` r
 interpret(mod_cox, "calibration", eval_time = 80, n_bins = 10, n_boot = 30) |> plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-21-1.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-24-1.png" alt="" width="100%" />
 
 ``` r
 interpret(m_tr, "roc", newdata = test, eval_time = 80) |> plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-21-2.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-24-2.png" alt="" width="100%" />
 
 ``` r
 interpret(m_tr, "dca", newdata = test, eval_time = 80) |> plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-21-3.png" alt="" width="100%" />
+<img src="man/figures/README-unnamed-chunk-24-3.png" alt="" width="100%" />
+
+**9. Causal contrasts**
+
+`estimate()` gives a plug-in G-formula contrast (RMST or survival,
+difference or ratio) with bootstrap intervals. See
+`vignette("causal-estimation", package = "survalis")`.
+
+``` r
+estimate(Surv(time, status) ~ age + karno + celltype, veteran, model = "coxph",
+         treatment = "trt", tau = 365, R = 50, seed = 1)
+#> <survalis_estimate> RMST difference at tau = 365  (model: coxph)
+#>   treatment: trt  (2 vs 1)
+#>   estimate: -14.5005   95% CI [-45.9365, 11.4581]   (50 bootstrap, refit)
+#>   plug-in G-formula; causal reading needs exchangeability, positivity,
+#>   consistency, no interference and a correct outcome model.
+```
 
 ## Citation
 
