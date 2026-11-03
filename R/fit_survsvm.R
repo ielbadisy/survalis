@@ -311,7 +311,12 @@ tune_survsvm <- function(formula, data, times,
                          refit_best = FALSE,
                          dist = "km", shape = 1) {
   stopifnot(is.list(param_grid))
-  param_df <- do.call(expand.grid, c(param_grid, list(stringsAsFactors = FALSE)))
+  # A data frame is already one row per configuration; a list is crossed.
+  param_df <- if (is.data.frame(param_grid)) param_grid else
+    do.call(expand.grid, c(param_grid, list(stringsAsFactors = FALSE)))
+  for (nm in names(param_df)) {
+    if (is.factor(param_df[[nm]])) param_df[[nm]] <- as.character(param_df[[nm]])
+  }
 
   results <- .pmap_rbind_dt(param_df, function(gamma.mu, kernel) {
     tryCatch({

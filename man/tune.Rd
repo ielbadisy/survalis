@@ -26,19 +26,23 @@ learner.}
 
 \item{grid}{A data frame of hyperparameter combinations (one row per
 configuration, for example from \code{\link[=expand.grid]{expand.grid()}}). \code{NULL} uses the learner's
-built-in default grid, if it has one.}
+built-in default grid, if it has one. A \code{grid} need not name every tuned
+parameter: parameters it leaves out take the learner's default values
+(those of \code{\link[=fit]{fit()}} with no \code{spec}).}
 
 \item{times}{Evaluation grid; \code{NULL} picks one from the data quantiles.}
 
-\item{resampling}{A resampling spec. Built-in grids use \code{\link[=cv]{cv()}} only (its \code{v}
-and \code{seed} drive the inner cross-validation); a supplied \code{grid} for a
-learner without a built-in tuner accepts any spec.}
+\item{resampling}{A resampling spec. The built-in tuner uses \code{\link[=cv]{cv()}} only
+(its \code{v} and \code{seed} drive the inner cross-validation). It runs when \code{grid}
+is \code{NULL} or has exactly the columns of the built-in grid; any other
+\code{grid} is scored on shared splits and accepts any spec.}
 
 \item{metric}{A single metric to optimise (default \code{"ibs"}).}
 
 \item{ncores}{Cores for the inner CV (default \code{1}).}
 
-\item{...}{Forwarded to the learner's built-in tuner.}
+\item{...}{Fixed learner arguments: forwarded to the built-in tuner, or
+added to every configuration of a supplied \code{grid}.}
 }
 \value{
 A \code{survalis_tune} object: \code{fit} (the refit \code{survalis_fit} at the best

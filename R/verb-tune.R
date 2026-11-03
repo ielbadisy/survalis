@@ -13,14 +13,18 @@
 #'   learner.
 #' @param grid A data frame of hyperparameter combinations (one row per
 #'   configuration, for example from [expand.grid()]). `NULL` uses the learner's
-#'   built-in default grid, if it has one.
+#'   built-in default grid, if it has one. A `grid` need not name every tuned
+#'   parameter: parameters it leaves out take the learner's default values
+#'   (those of [fit()] with no `spec`).
 #' @param times Evaluation grid; `NULL` picks one from the data quantiles.
-#' @param resampling A resampling spec. Built-in grids use [cv()] only (its `v`
-#'   and `seed` drive the inner cross-validation); a supplied `grid` for a
-#'   learner without a built-in tuner accepts any spec.
+#' @param resampling A resampling spec. The built-in tuner uses [cv()] only
+#'   (its `v` and `seed` drive the inner cross-validation). It runs when `grid`
+#'   is `NULL` or has exactly the columns of the built-in grid; any other
+#'   `grid` is scored on shared splits and accepts any spec.
 #' @param metric A single metric to optimise (default `"ibs"`).
 #' @param ncores Cores for the inner CV (default `1`).
-#' @param ... Forwarded to the learner's built-in tuner.
+#' @param ... Fixed learner arguments: forwarded to the built-in tuner, or
+#'   added to every configuration of a supplied `grid`.
 #'
 #' @return A `survalis_tune` object: `fit` (the refit `survalis_fit` at the best
 #'   configuration), `results` (the scored grid), `best` (one-row best config),
@@ -49,6 +53,14 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
     stop("Learner ", sQuote(lrn$id), " has no built-in grid; supply `grid`.",
          call. = FALSE)
   }
+  # The built-in tuners pass every tuned parameter by name, so they only take a
+  # grid with exactly their own columns. Any other grid (one that leaves out a
+  # tuned parameter, or adds an engine argument) goes through the generic
+  # search, where parameters not in the grid keep the learner's defaults.
+  if (builtin && !is.null(grid) &&
+      !setequal(names(grid), .builtin_grid_names(lrn$tune))) {
+    builtin <- FALSE
+  }
   if (builtin && resampling$type != "cv") {
     stop("The built-in tuner of ", sQuote(lrn$id), " supports resampling = cv() only.",
          call. = FALSE)
@@ -62,7 +74,7 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
 
   if (!builtin) {
     return(.tune_grid(formula, data, model, lrn, grid, times, resampling, metric,
-                      parsed, ncores))
+                      parsed, ncores, fixed = list(...)))
   }
 
   tuner <- lrn$tune
@@ -114,13 +126,13 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
 #' Generic grid search on shared splits (learners without a built-in tuner)
 #' @noRd
 .tune_grid <- function(formula, data, model, lrn, grid, times, resampling,
-                       metric, parsed, ncores = 1) {
+                       metric, parsed, ncores = 1, fixed = list()) {
   grid <- as.data.frame(grid, stringsAsFactors = FALSE)
   for (nm in names(grid)) if (is.factor(grid[[nm]])) grid[[nm]] <- as.character(grid[[nm]])
   if (!nrow(grid)) stop("`grid` has no rows.", call. = FALSE)
   splits <- .make_splits(resampling, data, parsed$status_col)
   vals <- vapply(seq_len(nrow(grid)), function(i) {
-    spec <- as.list(grid[i, , drop = FALSE])
+    spec <- c(as.list(grid[i, , drop = FALSE]), fixed)
     per <- tryCatch(.evaluate_splits(splits, formula, data, model, spec, times,
                                      metric, parsed, ncores),
                     error = function(e) NULL)
@@ -136,7 +148,7 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
   ord <- order(results[[metric]], decreasing = .metric_maximize(metric))
   results <- results[ord, , drop = FALSE]
   rownames(results) <- NULL
-  spec <- as.list(results[1, names(grid), drop = FALSE])
+  spec <- c(as.list(results[1, names(grid), drop = FALSE]), fixed)
   best_model <- do.call(lrn$fit, c(list(formula = formula, data = data), spec))
   fit_obj <- .as_survalis_fit(best_model, model_id = lrn$id, spec = spec,
                               formula = formula, data = data, parsed = parsed)
@@ -146,6 +158,13 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
          times = times, resampling = resampling, metric = metric, model = lrn$id),
     class = "survalis_tune"
   )
+}
+
+#' Column names of a built-in tuner's default grid
+#' @noRd
+.builtin_grid_names <- function(tuner) {
+  g <- eval(formals(tuner)$param_grid, envir = environment(tuner))
+  names(g)
 }
 
 #' @export

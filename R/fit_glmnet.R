@@ -187,7 +187,9 @@ tune_glmnet <- function(formula, data, times,
                         refit_best = FALSE,
                         ...) {
 
-  grid_df <- do.call(expand.grid, c(as.list(param_grid), list(stringsAsFactors = FALSE)))
+  # A data frame is already one row per configuration; a list is crossed.
+  grid_df <- if (is.data.frame(param_grid)) param_grid else
+    do.call(expand.grid, c(as.list(param_grid), list(stringsAsFactors = FALSE)))
 
   results <- .pmap_rbind_dt(grid_df, function(alpha) {
     cv_results <- cv_survlearner(

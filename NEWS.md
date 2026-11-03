@@ -47,6 +47,17 @@
   scored on shared splits under any resampling spec. Learners listed by
   `list_survlearners(has_tune = TRUE)` keep their built-in default grids.
 
+* A `grid` passed to `tune()` no longer has to name every parameter of a
+  learner's built-in tuner. A grid that left one out (for example
+  `grid = data.frame(cp = c(0.001, 0.01))` for `"rpart"`) stopped with
+  'argument "maxdepth" is missing'. Parameters not in the grid now take the
+  learner's defaults: such a grid, or one with extra engine arguments, is
+  scored on shared splits like the grid of any other learner, and `...`
+  supplies fixed arguments to every configuration. A grid with exactly the
+  built-in columns still uses the built-in tuner. The `"survsvm"` and
+  `"glmnet"` tuners also take a data frame grid row by row instead of crossing
+  its columns.
+
 * `interpret()` gains `method = "roc"` (time-dependent ROC curve) and
   `method = "dca"` (decision curve), both at one `eval_time`.
 
