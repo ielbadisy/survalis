@@ -50,6 +50,13 @@
 * `interpret()` gains `method = "roc"` (time-dependent ROC curve) and
   `method = "dca"` (decision curve), both at one `eval_time`.
 
+* `as.data.frame()` works on every `interpret()` result. It failed for
+  `"survcluster"`, `"roc"`, `"dca"` and `"tree_surrogate"` ("cannot coerce
+  class ... to a data.frame"). `"survcluster"` gives one row per observation
+  and time (`id`, `cluster`, `medoid`, `time`, `surv`), `"roc"` and `"dca"`
+  the curve with its `eval_time`, and `"tree_surrogate"` one row per time and
+  feature (`splits`, `r_squared`).
+
 * `list_survlearners()` now returns `learner` and `tunable` only, and
   `list_interpretability_methods()` returns the `interpret()` method ids with
   a one-line summary.

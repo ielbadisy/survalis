@@ -25,7 +25,12 @@
 #'
 #' @return A `survalis_interpret` object holding the method's `result`, with
 #'   `method`, `times`, and a `plot()` method. `as.data.frame()` returns the
-#'   result frame.
+#'   result frame. For `"survcluster"` it is in long format, one row per
+#'   observation and time: `id` (row of `newdata`), `cluster`, `medoid` (`TRUE`
+#'   for the cluster's medoid curve), `time` and predicted survival `surv`.
+#'   For `"roc"` and `"dca"` it is the curve with an `eval_time` column (and
+#'   `auc` for `"roc"`); for `"tree_surrogate"` one row per time and feature
+#'   with the number of `splits` on it and the tree's `r_squared`.
 #'
 #' @seealso For scalar summaries use [evaluate()]: `metrics = "ece"` summarises
 #'   calibration and `metrics = "auc"` summarises the ROC curve.
@@ -184,7 +189,7 @@ print.survalis_interpret <- function(x, ...) {
   if (!is.null(x$feature)) cat("  feature:", x$feature, "\n")
   cat(sprintf("  grid: %d times in [%s, %s]\n",
               length(x$times), format(min(x$times)), format(max(x$times))))
-  df <- tryCatch(as.data.frame(x$result), error = function(e) NULL)
+  df <- tryCatch(as.data.frame(x), error = function(e) NULL)
   if (is.data.frame(df)) {
     cat("  $result:\n")
     print(utils::head(df, 5))
@@ -197,7 +202,49 @@ print.survalis_interpret <- function(x, ...) {
 #' @export
 as.data.frame.survalis_interpret <- function(x, ...) {
   if (is.data.frame(x$result)) return(x$result)
+  switch(x$method,
+    survcluster = return(.survcluster_long(x$result)),
+    roc = return(data.frame(eval_time = x$result$t_star, x$result$curve,
+                            auc = x$result$auc)),
+    dca = return(data.frame(eval_time = x$result$t_star, x$result$curve)),
+    tree_surrogate = return(.tree_surrogate_long(x$result))
+  )
   as.data.frame(x$result, ...)
+}
+
+#' Long format of a survcluster result: one row per observation and time
+#' @noRd
+.survcluster_long <- function(res) {
+  S <- res$survmat
+  n <- nrow(S)
+  nt <- length(res$times)
+  cl <- res$fit$clusters
+  med <- seq_len(n) %in% res$fit$medoid_indices
+  data.frame(
+    id = rep(seq_len(n), times = nt),
+    cluster = rep(cl, times = nt),
+    medoid = rep(med, times = nt),
+    time = rep(res$times, each = n),
+    surv = as.vector(S),
+    stringsAsFactors = FALSE
+  )
+}
+
+#' Long format of a tree_surrogate result: one row per time and feature
+#' @noRd
+.tree_surrogate_long <- function(res) {
+  parts <- lapply(res$results, function(r) {
+    sc <- r$split_count
+    if (!length(sc)) {
+      return(data.frame(time = r$time, feature = NA_character_, splits = 0L,
+                        r_squared = r$r_squared, stringsAsFactors = FALSE))
+    }
+    data.frame(time = r$time, feature = names(sc), splits = as.integer(sc),
+               r_squared = r$r_squared, stringsAsFactors = FALSE)
+  })
+  out <- do.call(rbind, parts)
+  rownames(out) <- NULL
+  out
 }
 
 #' @export

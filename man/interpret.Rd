@@ -34,7 +34,12 @@ over time (\code{"meanabs"} or \code{"integral"}) is passed as \code{shap_method
 \value{
 A \code{survalis_interpret} object holding the method's \code{result}, with
 \code{method}, \code{times}, and a \code{plot()} method. \code{as.data.frame()} returns the
-result frame.
+result frame. For \code{"survcluster"} it is in long format, one row per
+observation and time: \code{id} (row of \code{newdata}), \code{cluster}, \code{medoid} (\code{TRUE}
+for the cluster's medoid curve), \code{time} and predicted survival \code{surv}.
+For \code{"roc"} and \code{"dca"} it is the curve with an \code{eval_time} column (and
+\code{auc} for \code{"roc"}); for \code{"tree_surrogate"} one row per time and feature
+with the number of \code{splits} on it and the tree's \code{r_squared}.
 }
 \description{
 A single entry point to the package's model-agnostic explanation and
