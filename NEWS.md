@@ -129,8 +129,10 @@
 
 * survalis no longer defines a `plot.formula()` method. It replaced
   `graphics::plot.formula()` for every package as soon as survalis was loaded
-  ("Registered S3 method overwritten"). Use `plot_survcurve()` for a
-  Kaplan-Meier curve.
+  ("Registered S3 method overwritten"). `plot_survcurve()` is no longer
+  exported either: for a Kaplan-Meier curve use `plot(survival::survfit())`
+  or a dedicated package such as 'ggsurvfit'. `plot()` on a `fit()` result
+  draws the model's predicted survival curves.
 
 # survalis 1.6.4
 
