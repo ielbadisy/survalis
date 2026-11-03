@@ -57,7 +57,13 @@ A `survalis_interpret` object holding the method's `result`, with
 `method`, `times`, and a
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) method.
 [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) returns
-the result frame.
+the result frame. For `"survcluster"` it is in long format, one row per
+observation and time: `id` (row of `newdata`), `cluster`, `medoid`
+(`TRUE` for the cluster's medoid curve), `time` and predicted survival
+`surv`. For `"roc"` and `"dca"` it is the curve with an `eval_time`
+column (and `auc` for `"roc"`); for `"tree_surrogate"` one row per time
+and feature with the number of `splits` on it and the tree's
+`r_squared`.
 
 ## See also
 
@@ -92,6 +98,7 @@ interpret(m, "varimp", times = c(90, 180))
 #> <survalis_interpret> method = varimp  |  model = ranger
 #>   grid: 2 times in [90, 180]
 #>   $result:
+#> # basetable: 5 x 5
 #>    feature importance importance_05 importance_95 scaled_importance
 #> 1    karno     0.1408       0.11545       0.17390         100.00000
 #> 2 celltype     0.0672       0.05490       0.08305          47.72727

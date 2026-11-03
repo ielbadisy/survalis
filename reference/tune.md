@@ -43,7 +43,11 @@ tune(
   A data frame of hyperparameter combinations (one row per
   configuration, for example from
   [`expand.grid()`](https://rdrr.io/r/base/expand.grid.html)). `NULL`
-  uses the learner's built-in default grid, if it has one.
+  uses the learner's built-in default grid, if it has one. A `grid` need
+  not name every tuned parameter: parameters it leaves out take the
+  learner's default values (those of
+  [`fit()`](https://elbadisyimad.com/survalis/reference/fit.md) with no
+  `spec`).
 
 - times:
 
@@ -51,10 +55,11 @@ tune(
 
 - resampling:
 
-  A resampling spec. Built-in grids use
+  A resampling spec. The built-in tuner uses
   [`cv()`](https://elbadisyimad.com/survalis/reference/resampling.md)
-  only (its `v` and `seed` drive the inner cross-validation); a supplied
-  `grid` for a learner without a built-in tuner accepts any spec.
+  only (its `v` and `seed` drive the inner cross-validation). It runs
+  when `grid` is `NULL` or has exactly the columns of the built-in grid;
+  any other `grid` is scored on shared splits and accepts any spec.
 
 - metric:
 
@@ -66,7 +71,8 @@ tune(
 
 - ...:
 
-  Forwarded to the learner's built-in tuner.
+  Fixed learner arguments: forwarded to the built-in tuner, or added to
+  every configuration of a supplied `grid`.
 
 ## Value
 

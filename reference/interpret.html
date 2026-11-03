@@ -104,7 +104,12 @@ over time (<code>"meanabs"</code> or <code>"integral"</code>) is passed as <code
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <code>survalis_interpret</code> object holding the method's <code>result</code>, with
 <code>method</code>, <code>times</code>, and a <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> method. <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> returns the
-result frame.</p>
+result frame. For <code>"survcluster"</code> it is in long format, one row per
+observation and time: <code>id</code> (row of <code>newdata</code>), <code>cluster</code>, <code>medoid</code> (<code>TRUE</code>
+for the cluster's medoid curve), <code>time</code> and predicted survival <code>surv</code>.
+For <code>"roc"</code> and <code>"dca"</code> it is the curve with an <code>eval_time</code> column (and
+<code>auc</code> for <code>"roc"</code>); for <code>"tree_surrogate"</code> one row per time and feature
+with the number of <code>splits</code> on it and the tree's <code>r_squared</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -137,6 +142,7 @@ calibration and <code>metrics = "auc"</code> summarises the ROC curve.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;survalis_interpret&gt; method = varimp  |  model = ranger</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   grid: 2 times in [90, 180]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   $result:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> # basetable: 5 x 5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    feature importance importance_05 importance_95 scaled_importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1    karno     0.1408       0.11545       0.17390         100.00000</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2 celltype     0.0672       0.05490       0.08305          47.72727</span>

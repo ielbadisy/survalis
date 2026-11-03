@@ -99,7 +99,9 @@ learner.</p></dd>
 <dt id="arg-grid">grid<a class="anchor" aria-label="anchor" href="#arg-grid"></a></dt>
 <dd><p>A data frame of hyperparameter combinations (one row per
 configuration, for example from <code><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid()</a></code>). <code>NULL</code> uses the learner's
-built-in default grid, if it has one.</p></dd>
+built-in default grid, if it has one. A <code>grid</code> need not name every tuned
+parameter: parameters it leaves out take the learner's default values
+(those of <code><a href="fit.html">fit()</a></code> with no <code>spec</code>).</p></dd>
 
 
 <dt id="arg-times">times<a class="anchor" aria-label="anchor" href="#arg-times"></a></dt>
@@ -107,9 +109,10 @@ built-in default grid, if it has one.</p></dd>
 
 
 <dt id="arg-resampling">resampling<a class="anchor" aria-label="anchor" href="#arg-resampling"></a></dt>
-<dd><p>A resampling spec. Built-in grids use <code><a href="resampling.html">cv()</a></code> only (its <code>v</code>
-and <code>seed</code> drive the inner cross-validation); a supplied <code>grid</code> for a
-learner without a built-in tuner accepts any spec.</p></dd>
+<dd><p>A resampling spec. The built-in tuner uses <code><a href="resampling.html">cv()</a></code> only
+(its <code>v</code> and <code>seed</code> drive the inner cross-validation). It runs when <code>grid</code>
+is <code>NULL</code> or has exactly the columns of the built-in grid; any other
+<code>grid</code> is scored on shared splits and accepts any spec.</p></dd>
 
 
 <dt id="arg-metric">metric<a class="anchor" aria-label="anchor" href="#arg-metric"></a></dt>
@@ -121,7 +124,8 @@ learner without a built-in tuner accepts any spec.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Forwarded to the learner's built-in tuner.</p></dd>
+<dd><p>Fixed learner arguments: forwarded to the built-in tuner, or
+added to every configuration of a supplied <code>grid</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

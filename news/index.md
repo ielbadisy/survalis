@@ -77,9 +77,32 @@
   `list_survlearners(has_tune = TRUE)` keep their built-in default
   grids.
 
+- A `grid` passed to
+  [`tune()`](https://elbadisyimad.com/survalis/reference/tune.md) no
+  longer has to name every parameter of a learner’s built-in tuner. A
+  grid that left one out (for example
+  `grid = data.frame(cp = c(0.001, 0.01))` for `"rpart"`) stopped with
+  ‘argument “maxdepth” is missing’. Parameters not in the grid now take
+  the learner’s defaults: such a grid, or one with extra engine
+  arguments, is scored on shared splits like the grid of any other
+  learner, and `...` supplies fixed arguments to every configuration. A
+  grid with exactly the built-in columns still uses the built-in tuner.
+  The `"survsvm"` and `"glmnet"` tuners also take a data frame grid row
+  by row instead of crossing its columns.
+
 - [`interpret()`](https://elbadisyimad.com/survalis/reference/interpret.md)
   gains `method = "roc"` (time-dependent ROC curve) and `method = "dca"`
   (decision curve), both at one `eval_time`.
+
+- [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) works
+  on every
+  [`interpret()`](https://elbadisyimad.com/survalis/reference/interpret.md)
+  result. It failed for `"survcluster"`, `"roc"`, `"dca"` and
+  `"tree_surrogate"` (“cannot coerce class … to a data.frame”).
+  `"survcluster"` gives one row per observation and time (`id`,
+  `cluster`, `medoid`, `time`, `surv`), `"roc"` and `"dca"` the curve
+  with its `eval_time`, and `"tree_surrogate"` one row per time and
+  feature (`splits`, `r_squared`).
 
 - [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/list_survlearners.md)
   now returns `learner` and `tunable` only, and
@@ -153,7 +176,12 @@
 - survalis no longer defines a `plot.formula()` method. It replaced
   [`graphics::plot.formula()`](https://rdrr.io/r/graphics/plot.formula.html)
   for every package as soon as survalis was loaded (“Registered S3
-  method overwritten”). Use `plot_survcurve()` for a Kaplan-Meier curve.
+  method overwritten”). `plot_survcurve()` is no longer exported either:
+  for a Kaplan-Meier curve use `plot(survival::survfit())` or a
+  dedicated package such as ‘ggsurvfit’.
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a
+  [`fit()`](https://elbadisyimad.com/survalis/reference/fit.md) result
+  draws the model’s predicted survival curves.
 
 ## survalis 1.6.4
 
