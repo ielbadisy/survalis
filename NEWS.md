@@ -116,6 +116,10 @@
   `fit(model = "rpsurv")`, which fits the same Royston-Parmar model on the
   hazard, odds, or probit scale and adds nonlinear effects (`nle`).
 
+* The `orsf` tuner passed its `min_events` grid column to 'aorsf' as
+  `n_split`, the number of candidate cut points, not the minimum number of
+  events. The column is now `split_min_events` and sets that minimum.
+
 * The `survsvm` learner now has its own engine and no longer depends on
   'survivalsvm'. Its "quadprog" path called `Matrix::nearPD()`, which could
   stop with "error code 1 from Lapack routine 'dsyevr'" depending on the
@@ -124,10 +128,6 @@
   censored times) and solves it exactly by active-set Newton steps with one
   Cholesky factorization each, so no quadratic programming solver is needed;
   it is 10 to 50 times faster. Survival curves now come from the
-* The `orsf` tuner passed its `min_events` grid column to 'aorsf' as
-  `n_split`, the number of candidate cut points, not the minimum number of
-  events. The column is now `split_min_events` and sets that minimum.
-
   Kaplan-Meier estimate of cross-fitted residuals,
   `S(t | x) = S_e(log t - f(x))`, which is calibrated, instead of
   `exp(-t / f(x))`, which assumed an exponential shape and could give
@@ -165,6 +165,14 @@
 * survalis now declares `R (>= 4.4.0)` and `fastgbm (>= 0.7.0)`. It claimed
   R 4.1, but 'fastgbm' up to 0.6.1 needed R 4.5.0 and 'rms' (imported through
   'pec') needs R 4.4.0, so installation failed on older R.
+
+* Fitting no longer floods the console with warnings. The `glmnet` learner
+  passes `cox.ties = "breslow"`, its current default, so 'glmnet' 5.0 does
+  not warn on every fit (this gave most of the warnings in a tuning or
+  comparison run). The `rpsurv` learner muffles the "standard errors
+  unavailable" warning of 'rpsurv' 0.8.1, since survalis uses only the
+  predictions. `flexsurvreg` predictions at a single time no longer warn
+  about an unknown `.pred` column.
 
 * The `survdnn` learner is removed, and with it the 'survdnn' and 'torch'
   dependencies. 'torch' needs a separate LibTorch download that often failed

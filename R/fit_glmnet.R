@@ -43,7 +43,14 @@ fit_glmnet <- function(formula, data, alpha = 1, ...) {
   x <- .glmnet_pad(model.matrix(formula, data = data)[, -1, drop = FALSE])
   y <- survival::Surv(data[[all.vars(formula)[1]]], data[[all.vars(formula)[2]]])
 
-  model <- glmnet::cv.glmnet(x, y, family = "cox", alpha = alpha, ...)
+  dots <- list(...)
+  # glmnet >= 5.0 warns on every Cox fit unless the tie method is given; keep
+  # the established Breslow default explicitly (older glmnet has no argument).
+  if (is.null(dots$cox.ties) && "cox.ties" %in% names(formals(glmnet::glmnet))) {
+    dots$cox.ties <- "breslow"
+  }
+  model <- do.call(glmnet::cv.glmnet,
+                   c(list(x = x, y = y, family = "cox", alpha = alpha), dots))
 
   structure(list(
     model = model,

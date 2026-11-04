@@ -96,7 +96,7 @@ predict_flexsurvreg <- function(object, newdata, times, ...) {
   survmat <- matrix(NA_real_, nrow = n, ncol = k)
   colnames(survmat) <- paste0("t=", times)
 
-  if (!is.null(pred$.pred)) {
+  if (".pred" %in% names(pred)) {
     # Several times: a list-column with one tibble of predictions per subject.
     .pred <- pred$.pred
     for (i in seq_len(n)) {

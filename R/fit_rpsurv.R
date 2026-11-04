@@ -40,9 +40,20 @@ fit_rpsurv <- function(formula, data, df = 4, knots = NULL, tve = NULL,
   stopifnot(requireNamespace("rpsurv", quietly = TRUE))
   scale <- match.arg(scale)
 
-  model <- rpsurv::rpsurv(
-    formula, data = data, df = df, knots = knots, tve = tve, tve.df = tve.df,
-    scale = scale, ...
+  # survalis only uses the point predictions, never the standard errors, so
+  # rpsurv's "standard errors unavailable" warning (raised on every fit by
+  # rpsurv 0.8.1 for a numerically singular Hessian) carries no information
+  # here and is muffled. Every other rpsurv warning still reaches the user.
+  model <- withCallingHandlers(
+    rpsurv::rpsurv(
+      formula, data = data, df = df, knots = knots, tve = tve, tve.df = tve.df,
+      scale = scale, ...
+    ),
+    warning = function(w) {
+      if (grepl("standard errors unavailable", conditionMessage(w), fixed = TRUE)) {
+        invokeRestart("muffleWarning")
+      }
+    }
   )
 
   time_status <- all.vars(formula[[2]])
