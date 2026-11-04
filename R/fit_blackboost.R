@@ -87,8 +87,8 @@ fit_blackboost <- function(formula, data, weights = NULL, mstop = 100, nu = 0.1,
       learner = "blackboost",
       formula = formula,
       data = data,
-      time = all.vars(formula)[[2]],
-      status = all.vars(formula)[[3]]
+      time = all.vars(formula[[2]])[[1]],
+      status = all.vars(formula[[2]])[[2]]
     ),
     class = "mlsurv_model",
     engine = "mboost"

@@ -50,8 +50,17 @@ fit_rsf <- function(formula, data,
 
   stopifnot(requireNamespace("randomForestSRC", quietly = TRUE))
 
+  # rfsrc() only recognises a bare Surv() outcome: drop a `survival::` prefix.
+  rf_formula <- formula
+  lhs <- rf_formula[[2]]
+  if (is.call(lhs) && is.call(lhs[[1]]) &&
+      as.character(lhs[[1]][[1]]) %in% c("::", ":::")) {
+    lhs[[1]] <- as.name("Surv")
+    rf_formula[[2]] <- lhs
+  }
+
   model <- randomForestSRC::rfsrc(
-    formula = formula,
+    formula = rf_formula,
     data = data,
     ntree = ntree,
     mtry = mtry,
@@ -64,8 +73,8 @@ fit_rsf <- function(formula, data,
     learner = "rsf",
     formula = formula,
     data = data,
-    time = all.vars(formula)[[2]],
-    status = all.vars(formula)[[3]]
+    time = all.vars(formula[[2]])[[1]],
+    status = all.vars(formula[[2]])[[2]]
   ), class = "mlsurv_model", engine = "randomForestSRC")
 }
 
@@ -218,7 +227,7 @@ tune_rsf <- function(formula, data, times,
 
     summary <- cv_summary(cv_results)
     .wide_metric_row(list(ntree = ntree, mtry = mtry, nodesize = nodesize), summary)
-  })
+  }, learner = "rsf")
 
   maximize <- .metric_maximize(metrics[1])
   results <- .arrange_by_metric_dt(results, metrics[1], maximize)

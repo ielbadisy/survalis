@@ -140,6 +140,11 @@
   `c(0.01, 0.1, 1)`, matched to the new loss scale. The fitted object's
   `engine` is now `"survalis"`.
 
+* The `rsf` learner failed with "formula is incorrectly specified" for a
+  `survival::Surv()` outcome, so the survival super learner dropped it. The
+  `rsf`, `orsf`, `blackboost`, `bnnsurv` and `flexsurvreg` model objects also
+  recorded the wrong `time` and `status` column names.
+
 * The `bnnsurv` learner (bagged k-nearest-neighbour Kaplan-Meier) now has its
   own engine and no longer depends on 'bnnSurvival', which is unmaintained.
   'bnnSurvival' predicted through `parallel::mclapply()`, and forking a session
