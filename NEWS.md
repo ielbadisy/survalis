@@ -61,12 +61,23 @@
 * `interpret()` gains `method = "roc"` (time-dependent ROC curve) and
   `method = "dca"` (decision curve), both at one `eval_time`.
 
-* `as.data.frame()` works on every `interpret()` result. It failed for
-  `"survcluster"`, `"roc"`, `"dca"` and `"tree_surrogate"` ("cannot coerce
-  class ... to a data.frame"). `"survcluster"` gives one row per observation
-  and time (`id`, `cluster`, `medoid`, `time`, `surv`), `"roc"` and `"dca"`
-  the curve with its `eval_time`, and `"tree_surrogate"` one row per time and
-  feature (`splits`, `r_squared`).
+* `as.data.frame()` works on every `interpret()` result and returns plain
+  column names. It failed for `"survcluster"`, `"roc"`, `"dca"` and
+  `"tree_surrogate"` ("cannot coerce class ... to a data.frame"), and for
+  `"pdp"`, `"ice"`, `"ale"` and `"calibration"` it pasted the parts of the
+  result side by side, recycling the shorter ones, under names such as
+  `results.time` or `integrated.integrated_surv`. Now `"pdp"` and `"ice"`
+  give one row per feature value, observation and time (`feature`,
+  `feature_value`, `id`, `time`, `surv`, `type`), `"ale"` one row per
+  feature value and time (`feature`, `feature_value`, `time`, `ale`),
+  `"calibration"` the calibration table with its `eval_time`,
+  `"survcluster"` one row per observation and time (`id`, `cluster`,
+  `medoid`, `time`, `surv`), `"roc"` and `"dca"` the curve with its
+  `eval_time`, and `"tree_surrogate"` one row per time and feature (`splits`,
+  `r_squared`). For `"pdp"` and `"ale"`, `as.data.frame(x, what =
+  "integrated")` returns the curve integrated over time (`feature`,
+  `feature_value`, `integrated`). `print()` shows the first rows of this
+  data frame instead of the raw result list.
 
 * `list_survlearners()` now returns `learner` and `tunable` only, and
   `list_interpretability_methods()` returns the `interpret()` method ids with

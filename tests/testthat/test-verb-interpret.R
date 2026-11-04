@@ -119,3 +119,80 @@ test_that("as.data.frame() tidies roc, dca and tree_surrogate results", {
   expect_named(ts, c("time", "feature", "splits", "r_squared"))
   expect_setequal(unique(ts$time), c(90, 180))
 })
+
+test_that("as.data.frame() tidies pdp, ice, ale, calibration and varimp results", {
+  testthat::skip_on_cran()
+  m <- fit(f, veteran, "coxph")
+  tt <- c(90, 180)
+  p <- as.data.frame(interpret(m, "pdp", feature = "karno", times = tt))
+  expect_named(p, c("feature", "feature_value", "id", "time", "surv", "type"))
+  expect_true(all(p$feature == "karno"))
+  expect_setequal(unique(p$type), c("ice", "pdp"))
+  expect_true(all(is.na(p$id[p$type == "pdp"])))
+  pi <- interpret(m, "pdp", feature = "karno", times = tt)
+  integ <- as.data.frame(pi, what = "integrated")
+  expect_named(integ, c("feature", "feature_value", "integrated"))
+  expect_equal(nrow(integ), nrow(pi$result$pdp_integrated))
+
+  i <- as.data.frame(interpret(m, "ice", feature = "celltype", times = tt))
+  expect_named(i, c("feature", "feature_value", "id", "time", "surv", "type"))
+  expect_true(all(i$type == "ice"))
+
+  a <- interpret(m, "ale", feature = "age", times = tt)
+  ad <- as.data.frame(a)
+  expect_named(ad, c("feature", "feature_value", "time", "ale"))
+  expect_named(as.data.frame(a, what = "integrated"),
+               c("feature", "feature_value", "integrated"))
+  expect_equal(nrow(ad), nrow(a$result$ale) * length(tt))
+  expect_setequal(unique(ad$time), tt)
+  expect_equal(ad$ale[ad$time == 180], a$result$ale[["t=180"]])
+
+  cal <- as.data.frame(interpret(m, "calibration", eval_time = 90, n_boot = 3))
+  expect_named(cal, c("eval_time", "bin", "mean_pred_surv", "observed_surv",
+                      "lower_ci", "upper_ci"))
+  expect_true(all(cal$eval_time == 90))
+
+  vi <- as.data.frame(interpret(m, "varimp", times = tt))
+  expect_identical(class(vi), "data.frame")
+})
+
+test_that("every interpret() method prints and has a tidy data frame form", {
+  testthat::skip_on_cran()
+  testthat::skip_if_not_installed("unsurv")
+  testthat::skip_if_not_installed("partykit")
+  m <- fit(f, veteran, "coxph")
+  tt <- c(90, 180)
+  one <- veteran[1, , drop = FALSE]
+  args <- list(
+    pdp = list(feature = "karno", times = tt),
+    ice = list(feature = "karno", times = tt),
+    ale = list(feature = "age", times = tt),
+    shap = list(times = tt),
+    shap_matrix = list(newdata = veteran[1:4, ], times = tt),
+    varimp = list(times = tt),
+    permute = list(times = tt),
+    interaction = list(times = tt, target_time = 180, type = "1way"),
+    counterfactual = list(newdata = one, times = tt, target_time = 90),
+    surrogate = list(newdata = one, times = tt, target_time = 90),
+    tree_surrogate = list(times = tt),
+    calibration = list(eval_time = 90, n_boot = 3),
+    roc = list(eval_time = 90),
+    dca = list(eval_time = 90),
+    survcluster = list(times = tt, K = 2, seed = 1)
+  )
+  expect_setequal(names(args), list_interpretability_methods()$method)
+  for (meth in names(args)) {
+    r <- do.call(interpret, c(list(m, meth), args[[meth]]))
+    d <- as.data.frame(r)
+    expect_identical(class(d), "data.frame", info = meth)
+    expect_gt(nrow(d), 0)
+    expect_false(any(grepl("[.=]", names(d))), info = meth)
+    expect_false(anyDuplicated(names(d)) > 0, info = meth)
+    expect_output(print(r), "\\$result:")
+  }
+  r <- interpret(m, "shap", times = tt)
+  expect_error(as.data.frame(r, what = "integrated"), "applies to")
+  r$method <- "unknown"
+  r$result <- list(a = 1:2, b = 1:3)
+  expect_error(as.data.frame(r), "No data frame form")
+})

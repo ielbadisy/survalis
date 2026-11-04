@@ -30,7 +30,14 @@
 #'   for the cluster's medoid curve), `time` and predicted survival `surv`.
 #'   For `"roc"` and `"dca"` it is the curve with an `eval_time` column (and
 #'   `auc` for `"roc"`); for `"tree_surrogate"` one row per time and feature
-#'   with the number of `splits` on it and the tree's `r_squared`.
+#'   with the number of `splits` on it and the tree's `r_squared`. For
+#'   `"pdp"` / `"ice"` it is one row per curve point (`feature`,
+#'   `feature_value`, `id` (`NA` on PDP rows), `time`, `surv`, `type`), for
+#'   `"ale"` one row per feature value and time (`feature`, `feature_value`,
+#'   `time`, `ale`), and for `"calibration"` the binned table with its
+#'   `eval_time`. For `"pdp"` and `"ale"`, `as.data.frame(x, what =
+#'   "integrated")` returns the curve integrated over time instead (`feature`,
+#'   `feature_value`, `integrated`).
 #'
 #' @seealso For scalar summaries use [evaluate()]: `metrics = "ece"` summarises
 #'   calibration and `metrics = "auc"` summarises the ROC curve.
@@ -189,27 +196,82 @@ print.survalis_interpret <- function(x, ...) {
   if (!is.null(x$feature)) cat("  feature:", x$feature, "\n")
   cat(sprintf("  grid: %d times in [%s, %s]\n",
               length(x$times), format(min(x$times)), format(max(x$times))))
-  df <- tryCatch(as.data.frame(x), error = function(e) NULL)
-  if (is.data.frame(df)) {
-    cat("  $result:\n")
-    print(utils::head(df, 5))
-  } else {
-    cat("  $result: <", class(x$result)[1], ">\n", sep = "")
-  }
+  cat("  $result:\n")
+  print(utils::head(as.data.frame(x), 5))
   invisible(x)
 }
 
 #' @export
-as.data.frame.survalis_interpret <- function(x, ...) {
-  if (is.data.frame(x$result)) return(x$result)
+as.data.frame.survalis_interpret <- function(x, row.names = NULL, optional = FALSE,
+                                            what = c("curves", "integrated"), ...) {
+  what <- match.arg(what)
+  res <- x$result
+  if (what == "integrated") {
+    if (!x$method %in% c("pdp", "ale")) {
+      stop("`what = \"integrated\"` applies to interpret(method = \"pdp\") and ",
+           "\"ale\" only.", call. = FALSE)
+    }
+    return(.integrated_frame(res, x$method, x$feature))
+  }
+  if (is.data.frame(res)) {
+    # plain data.frame (varimp comes back as a basetable); attributes are kept
+    class(res) <- "data.frame"
+    return(res)
+  }
   switch(x$method,
-    survcluster = return(.survcluster_long(x$result)),
-    roc = return(data.frame(eval_time = x$result$t_star, x$result$curve,
-                            auc = x$result$auc)),
-    dca = return(data.frame(eval_time = x$result$t_star, x$result$curve)),
-    tree_surrogate = return(.tree_surrogate_long(x$result))
+    pdp = ,
+    ice = .pdp_long(res),
+    ale = .ale_long(res, x$feature),
+    calibration = data.frame(eval_time = res$eval_time, res$calibration_table),
+    survcluster = .survcluster_long(res),
+    roc = data.frame(eval_time = res$t_star, res$curve, auc = res$auc),
+    dca = data.frame(eval_time = res$t_star, res$curve),
+    tree_surrogate = .tree_surrogate_long(res),
+    stop("No data frame form for interpret(method = \"", x$method, "\").",
+         call. = FALSE)
   )
-  as.data.frame(x$result, ...)
+}
+
+#' Long format of a pdp / ice result: one row per curve point
+#' @noRd
+.pdp_long <- function(res) {
+  r <- res$results
+  feature <- names(r)[1]
+  out <- data.frame(feature = feature, feature_value = r[[1]], id = r$.id,
+                    time = r$time, surv = r$surv_prob, type = r$type,
+                    stringsAsFactors = FALSE)
+  out
+}
+
+#' Integrated (time-averaged) curve of a pdp or ale result
+#' @noRd
+.integrated_frame <- function(res, method, feature) {
+  integ <- if (method == "pdp") res$pdp_integrated else res$integrated
+  if (!is.data.frame(integ) || !nrow(integ)) {
+    stop("This result has no integrated curve (it needs a PDP over more than ",
+         "one time).", call. = FALSE)
+  }
+  feat <- if (method == "pdp") names(integ)[1] else feature
+  data.frame(feature = if (is.null(feat)) NA_character_ else feat,
+             feature_value = integ[[1]],
+             integrated = integ[[2]], stringsAsFactors = FALSE)
+}
+
+#' Long format of an ale result: one row per feature value and time
+#' @noRd
+.ale_long <- function(res, feature) {
+  ale <- res$ale
+  tcols <- setdiff(names(ale), "feature_value")
+  times <- as.numeric(sub("^t=", "", tcols))
+  nv <- nrow(ale)
+  out <- data.frame(
+    feature = if (is.null(feature)) NA_character_ else feature,
+    feature_value = rep(ale$feature_value, times = length(tcols)),
+    time = rep(times, each = nv),
+    ale = unlist(ale[tcols], use.names = FALSE),
+    stringsAsFactors = FALSE
+  )
+  out
 }
 
 #' Long format of a survcluster result: one row per observation and time

@@ -39,7 +39,13 @@ observation and time: \code{id} (row of \code{newdata}), \code{cluster}, \code{m
 for the cluster's medoid curve), \code{time} and predicted survival \code{surv}.
 For \code{"roc"} and \code{"dca"} it is the curve with an \code{eval_time} column (and
 \code{auc} for \code{"roc"}); for \code{"tree_surrogate"} one row per time and feature
-with the number of \code{splits} on it and the tree's \code{r_squared}.
+with the number of \code{splits} on it and the tree's \code{r_squared}. For
+\code{"pdp"} / \code{"ice"} it is one row per curve point (\code{feature},
+\code{feature_value}, \code{id} (\code{NA} on PDP rows), \code{time}, \code{surv}, \code{type}), for
+\code{"ale"} one row per feature value and time (\code{feature}, \code{feature_value},
+\code{time}, \code{ale}), and for \code{"calibration"} the binned table with its
+\code{eval_time}. For \code{"pdp"} and \code{"ale"}, \code{as.data.frame(x, what = "integrated")} returns the curve integrated over time instead (\code{feature},
+\code{feature_value}, \code{integrated}).
 }
 \description{
 A single entry point to the package's model-agnostic explanation and
