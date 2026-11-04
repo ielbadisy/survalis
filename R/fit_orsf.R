@@ -127,7 +127,7 @@ predict_orsf <- function(object, newdata, times, ...) {
 #'   \itemize{
 #'     \item \code{n_tree}: number of trees (e.g., \code{c(100, 300)})
 #'     \item \code{mtry}: number of variables tried at each split
-#'     \item \code{min_events}: minimum number of events required to attempt a split
+#'     \item \code{split_min_events}: minimum number of events required to attempt a split
 #'   }
 #' @param metrics Character vector of metrics to evaluate/optimize
 #'   (e.g., \code{"cindex"}, \code{"ibs"}). The first entry is used as the primary
@@ -149,8 +149,9 @@ predict_orsf <- function(object, newdata, times, ...) {
 #' @details
 #' Internally calls \code{cv_survlearner()} with \code{fit_orsf} /
 #' \code{predict_orsf} so tuning uses the exact same code paths as production.
-#' The \code{min_events} column of \code{param_grid} is passed to the engine as
-#' \code{n_split} (minimum events for a candidate split).
+#' The \code{split_min_events} column of \code{param_grid} is passed to
+#' \code{aorsf::orsf()} as is (minimum number of events in a node to attempt a
+#' split).
 #'
 #' @seealso \code{fit_orsf}, \code{predict_orsf}, \pkg{aorsf}
 #'
@@ -163,7 +164,7 @@ predict_orsf <- function(object, newdata, times, ...) {
 #'     param_grid = expand.grid(
 #'       n_tree     = c(100, 200),
 #'       mtry       = c(1, 2),
-#'       min_events = c(5, 10)
+#'       split_min_events = c(5, 10)
 #'     ),
 #'     metrics    = c("cindex", "ibs"),
 #'     folds      = 2
@@ -177,7 +178,7 @@ predict_orsf <- function(object, newdata, times, ...) {
 #'     param_grid = expand.grid(
 #'       n_tree     = c(100, 200),
 #'       mtry       = c(1, 2),
-#'       min_events = c(5, 10)
+#'       split_min_events = c(5, 10)
 #'     ),
 #'     metrics    = c("cindex", "ibs"),
 #'     folds      = 2,
@@ -193,7 +194,7 @@ tune_orsf <- function(formula, data, times,
                       param_grid = expand.grid(
                         n_tree = c(100, 300),
                         mtry = c(2, 3),
-                        min_events = c(5, 10)
+                        split_min_events = c(5, 10)
                       ),
                       metrics = c("cindex", "ibs"),
                       folds = 5,
@@ -202,7 +203,7 @@ tune_orsf <- function(formula, data, times,
                       refit_best = FALSE,
                       ...) {
 
-  results <- .pmap_rbind_dt(param_grid, function(n_tree, mtry, min_events) {
+  results <- .pmap_rbind_dt(param_grid, function(n_tree, mtry, split_min_events) {
     cv_results <- cv_survlearner(
       formula = formula,
       data = data,
@@ -215,13 +216,13 @@ tune_orsf <- function(formula, data, times,
       ncores = ncores,
       n_tree = n_tree,
       mtry = mtry,
-      n_split = min_events,
+      split_min_events = split_min_events,
       ...
     )
 
     summary <- cv_summary(cv_results)
-    .wide_metric_row(list(n_tree = n_tree, mtry = mtry, min_events = min_events), summary)
-  })
+    .wide_metric_row(list(n_tree = n_tree, mtry = mtry, split_min_events = split_min_events), summary)
+  }, learner = "orsf")
 
   maximize <- .metric_maximize(metrics[1])
   results <- .arrange_by_metric_dt(results, metrics[1], maximize)
@@ -238,7 +239,7 @@ tune_orsf <- function(formula, data, times,
       data = data,
       n_tree = best_row$n_tree,
       mtry = best_row$mtry,
-      n_split = best_row$min_events,
+      split_min_events = best_row$split_min_events,
       ...
     )
     return(best_model)

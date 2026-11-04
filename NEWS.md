@@ -116,6 +116,10 @@
   censored times) and solves it exactly by active-set Newton steps with one
   Cholesky factorization each, so no quadratic programming solver is needed;
   it is 10 to 50 times faster. Survival curves now come from the
+* The `orsf` tuner passed its `min_events` grid column to 'aorsf' as
+  `n_split`, the number of candidate cut points, not the minimum number of
+  events. The column is now `split_min_events` and sets that minimum.
+
   Kaplan-Meier estimate of cross-fitted residuals,
   `S(t | x) = S_e(log t - f(x))`, which is calibrated, instead of
   `exp(-t / f(x))`, which assumed an exponential shape and could give

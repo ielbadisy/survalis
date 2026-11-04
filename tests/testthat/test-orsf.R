@@ -88,7 +88,7 @@ test_that("tune_orsf() returns a compact grid and refit_best yields a fitted mod
   grid <- expand.grid(
     n_tree     = c(80, 120),   
     mtry       = c(1, 2),
-    min_events = c(5, 10),
+    split_min_events = c(5, 10),
     stringsAsFactors = FALSE
   )
 
@@ -104,7 +104,7 @@ test_that("tune_orsf() returns a compact grid and refit_best yields a fitted mod
   )
 
   expect_s3_class(res, "tuned_surv")
-  expect_true(all(c("n_tree", "mtry", "min_events") %in% names(res)))
+  expect_true(all(c("n_tree", "mtry", "split_min_events") %in% names(res)))
   expect_true(all(c("cindex", "ibs") %in% names(res)))
   expect_true(nrow(res) >= 1)
 
