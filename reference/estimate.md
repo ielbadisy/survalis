@@ -91,8 +91,8 @@ estimate(
 
 ## Value
 
-A `survalis_estimate` object with `estimand`, `estimate`, `conf.low`,
-`conf.high`, `conf`, `treatment`, `levels`, `tau`, `R`, `refit`, `boot`
+A `survalis_estimate` object with `estimand`, `estimate`, `conf_low`,
+`conf_high`, `conf`, `treatment`, `levels`, `tau`, `R`, `refit`, `boot`
 (replicate estimates) and `curves` (counterfactual mean survival for
 each arm on `times`).
 

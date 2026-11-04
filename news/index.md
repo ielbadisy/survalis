@@ -71,6 +71,16 @@
   `evaluate(S, y = Surv(time, status))` scores a survival matrix
   produced anywhere.
 
+- [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) also
+  works on a
+  [`fit()`](https://elbadisyimad.com/survalis/reference/fit.md) result
+  (one row: `model`, `engine`, `formula`, `n`, `events`; it was an
+  error), and `as.data.frame(predict(...), format = "long")` gives one
+  row per observation and time (`id`, `time`, `value`). The
+  [`estimate()`](https://elbadisyimad.com/survalis/reference/estimate.md)
+  result and its summary name the interval bounds `conf_low` and
+  `conf_high` (were `conf.low` and `conf.high`).
+
 - [`tune()`](https://elbadisyimad.com/survalis/reference/tune.md) works
   for any learner when you supply `grid`: configurations are scored on
   shared splits under any resampling spec. Learners listed by
@@ -90,6 +100,19 @@
   The `"survsvm"` and `"glmnet"` tuners also take a data frame grid row
   by row instead of crossing its columns.
 
+- [`tune()`](https://elbadisyimad.com/survalis/reference/tune.md) with a
+  built-in default grid returned no configurations for the `"glmnet"`,
+  `"bart"`, `"blackboost"`, `"bnnsurv"`, `"cforest"`, `"flexsurvreg"`
+  and `"orsf"` learners, and refitted the model with none of the tuned
+  parameters, so `compare(tune = TRUE)` silently compared default fits.
+  Every built-in tuner now returns its scored grid and the refit uses
+  the best configuration. A configuration that fails now gives a warning
+  naming the learner and its parameter values and is left out; if every
+  configuration fails,
+  [`tune()`](https://elbadisyimad.com/survalis/reference/tune.md) stops.
+  Before, failed configurations were dropped without a word, or one
+  failure aborted the whole search.
+
 - [`interpret()`](https://elbadisyimad.com/survalis/reference/interpret.md)
   gains `method = "roc"` (time-dependent ROC curve) and `method = "dca"`
   (decision curve), both at one `eval_time`.
@@ -97,12 +120,24 @@
 - [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) works
   on every
   [`interpret()`](https://elbadisyimad.com/survalis/reference/interpret.md)
-  result. It failed for `"survcluster"`, `"roc"`, `"dca"` and
-  `"tree_surrogate"` (“cannot coerce class … to a data.frame”).
-  `"survcluster"` gives one row per observation and time (`id`,
-  `cluster`, `medoid`, `time`, `surv`), `"roc"` and `"dca"` the curve
-  with its `eval_time`, and `"tree_surrogate"` one row per time and
-  feature (`splits`, `r_squared`).
+  result and returns plain column names. It failed for `"survcluster"`,
+  `"roc"`, `"dca"` and `"tree_surrogate"` (“cannot coerce class … to a
+  data.frame”), and for `"pdp"`, `"ice"`, `"ale"` and `"calibration"` it
+  pasted the parts of the result side by side, recycling the shorter
+  ones, under names such as `results.time` or
+  `integrated.integrated_surv`. Now `"pdp"` and `"ice"` give one row per
+  feature value, observation and time (`feature`, `feature_value`, `id`,
+  `time`, `surv`, `type`), `"ale"` one row per feature value and time
+  (`feature`, `feature_value`, `time`, `ale`), `"calibration"` the
+  calibration table with its `eval_time`, `"survcluster"` one row per
+  observation and time (`id`, `cluster`, `medoid`, `time`, `surv`),
+  `"roc"` and `"dca"` the curve with its `eval_time`, and
+  `"tree_surrogate"` one row per time and feature (`splits`,
+  `r_squared`). For `"pdp"` and `"ale"`,
+  `as.data.frame(x, what = "integrated")` returns the curve integrated
+  over time (`feature`, `feature_value`, `integrated`).
+  [`print()`](https://rdrr.io/r/base/print.html) shows the first rows of
+  this data frame instead of the raw result list.
 
 - [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/list_survlearners.md)
   now returns `learner` and `tunable` only, and
@@ -116,10 +151,25 @@
   `spec = list(...)`. Extra arguments now give an error instead of a
   warning.
 
+- Fewer silent failures.
+  [`estimate()`](https://elbadisyimad.com/survalis/reference/estimate.md)
+  warns with the number of failed bootstrap replicates and the first
+  error (and stops if all fail) instead of quietly building the interval
+  from the rest.
+  [`fit()`](https://elbadisyimad.com/survalis/reference/fit.md) reports
+  why it could not read a formula. The survival super learner gives the
+  error when it drops a base learner. The `blackboost` and `cforest`
+  learners no longer hide engine warnings; `cforest` caps `mtry` at the
+  number of predictors itself, as ‘party’ would.
+
 - The `stpm2` learner is removed: `fit_stpm2()` and `predict_stpm2()`
   are gone and ‘rstpm2’ is no longer a dependency. Use `fit_rpsurv()` /
   `fit(model = "rpsurv")`, which fits the same Royston-Parmar model on
   the hazard, odds, or probit scale and adds nonlinear effects (`nle`).
+
+- The `orsf` tuner passed its `min_events` grid column to ‘aorsf’ as
+  `n_split`, the number of candidate cut points, not the minimum number
+  of events. The column is now `split_min_events` and sets that minimum.
 
 - The `survsvm` learner now has its own engine and no longer depends on
   ‘survivalsvm’. Its “quadprog” path called
@@ -141,6 +191,12 @@
   `diff.meth` are ignored. The default `gamma.mu` is now 0.1 and the
   `tune_survsvm()` grid is `c(0.01, 0.1, 1)`, matched to the new loss
   scale. The fitted object’s `engine` is now `"survalis"`.
+
+- The `rsf` learner failed with “formula is incorrectly specified” for a
+  [`survival::Surv()`](https://rdrr.io/pkg/survival/man/Surv.html)
+  outcome, so the survival super learner dropped it. The `rsf`, `orsf`,
+  `blackboost`, `bnnsurv` and `flexsurvreg` model objects also recorded
+  the wrong `time` and `status` column names.
 
 - The `bnnsurv` learner (bagged k-nearest-neighbour Kaplan-Meier) now
   has its own engine and no longer depends on ‘bnnSurvival’, which is
@@ -165,6 +221,14 @@
   claimed R 4.1, but ‘fastgbm’ up to 0.6.1 needed R 4.5.0 and ‘rms’
   (imported through ‘pec’) needs R 4.4.0, so installation failed on
   older R.
+
+- Fitting no longer floods the console with warnings. The `glmnet`
+  learner passes `cox.ties = "breslow"`, its current default, so
+  ‘glmnet’ 5.0 does not warn on every fit (this gave most of the
+  warnings in a tuning or comparison run). The `rpsurv` learner muffles
+  the “standard errors unavailable” warning of ‘rpsurv’ 0.8.1, since
+  survalis uses only the predictions. `flexsurvreg` predictions at a
+  single time no longer warn about an unknown `.pred` column.
 
 - The `survdnn` learner is removed, and with it the ‘survdnn’ and
   ‘torch’ dependencies. ‘torch’ needs a separate LibTorch download that

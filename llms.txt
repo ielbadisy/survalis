@@ -689,7 +689,9 @@ your own, goes in `model`.
   : Interpret a fitted survival learner
 - [`estimate()`](https://elbadisyimad.com/survalis/reference/estimate.md)
   : Standardised causal-style contrast for a binary treatment
-- [`as.data.frame(`*`<survalis_eval>`*`)`](https://elbadisyimad.com/survalis/reference/survalis-tidiers.md)
+- [`as.data.frame(`*`<survmat>`*`)`](https://elbadisyimad.com/survalis/reference/survalis-tidiers.md)
+  [`as.data.frame(`*`<survalis_fit>`*`)`](https://elbadisyimad.com/survalis/reference/survalis-tidiers.md)
+  [`as.data.frame(`*`<survalis_eval>`*`)`](https://elbadisyimad.com/survalis/reference/survalis-tidiers.md)
   [`as.data.frame(`*`<survalis_tune>`*`)`](https://elbadisyimad.com/survalis/reference/survalis-tidiers.md)
   [`as.data.frame(`*`<survalis_compare>`*`)`](https://elbadisyimad.com/survalis/reference/survalis-tidiers.md)
   [`as.data.frame(`*`<survalis_estimate>`*`)`](https://elbadisyimad.com/survalis/reference/survalis-tidiers.md)

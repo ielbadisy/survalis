@@ -63,7 +63,13 @@ observation and time: `id` (row of `newdata`), `cluster`, `medoid`
 `surv`. For `"roc"` and `"dca"` it is the curve with an `eval_time`
 column (and `auc` for `"roc"`); for `"tree_surrogate"` one row per time
 and feature with the number of `splits` on it and the tree's
-`r_squared`.
+`r_squared`. For `"pdp"` / `"ice"` it is one row per curve point
+(`feature`, `feature_value`, `id` (`NA` on PDP rows), `time`, `surv`,
+`type`), for `"ale"` one row per feature value and time (`feature`,
+`feature_value`, `time`, `ale`), and for `"calibration"` the binned
+table with its `eval_time`. For `"pdp"` and `"ale"`,
+`as.data.frame(x, what = "integrated")` returns the curve integrated
+over time instead (`feature`, `feature_value`, `integrated`).
 
 ## See also
 
@@ -82,23 +88,16 @@ interpret(m, "pdp", feature = "karno", times = c(90, 180))
 #>   feature: karno 
 #>   grid: 2 times in [90, 180]
 #>   $result:
-#>       results.karno results..id results.time results.surv_prob results.type
-#> ice.1      10.00000           1           90         0.1884062          ice
-#> ice.2      14.68421           1           90         0.1884062          ice
-#> ice.3      19.36842           1           90         0.1875603          ice
-#> ice.4      24.05263           1           90         0.1875603          ice
-#> ice.5      28.73684           1           90         0.2404616          ice
-#>       pdp_integrated.karno pdp_integrated.integrated_surv
-#> ice.1             10.00000                       16.31214
-#> ice.2             14.68421                       16.31214
-#> ice.3             19.36842                       16.17007
-#> ice.4             24.05263                       16.17007
-#> ice.5             28.73684                       17.21113
+#>   feature feature_value id time      surv type
+#> 1   karno      10.00000  1   90 0.1884062  ice
+#> 2   karno      14.68421  1   90 0.1884062  ice
+#> 3   karno      19.36842  1   90 0.1875603  ice
+#> 4   karno      24.05263  1   90 0.1875603  ice
+#> 5   karno      28.73684  1   90 0.2404616  ice
 interpret(m, "varimp", times = c(90, 180))
 #> <survalis_interpret> method = varimp  |  model = ranger
 #>   grid: 2 times in [90, 180]
 #>   $result:
-#> # basetable: 5 x 5
 #>    feature importance importance_05 importance_95 scaled_importance
 #> 1    karno     0.1408       0.11545       0.17390         100.00000
 #> 2 celltype     0.0672       0.05490       0.08305          47.72727

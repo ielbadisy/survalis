@@ -109,7 +109,13 @@ observation and time: <code>id</code> (row of <code>newdata</code>), <code>clust
 for the cluster's medoid curve), <code>time</code> and predicted survival <code>surv</code>.
 For <code>"roc"</code> and <code>"dca"</code> it is the curve with an <code>eval_time</code> column (and
 <code>auc</code> for <code>"roc"</code>); for <code>"tree_surrogate"</code> one row per time and feature
-with the number of <code>splits</code> on it and the tree's <code>r_squared</code>.</p>
+with the number of <code>splits</code> on it and the tree's <code>r_squared</code>. For
+<code>"pdp"</code> / <code>"ice"</code> it is one row per curve point (<code>feature</code>,
+<code>feature_value</code>, <code>id</code> (<code>NA</code> on PDP rows), <code>time</code>, <code>surv</code>, <code>type</code>), for
+<code>"ale"</code> one row per feature value and time (<code>feature</code>, <code>feature_value</code>,
+<code>time</code>, <code>ale</code>), and for <code>"calibration"</code> the binned table with its
+<code>eval_time</code>. For <code>"pdp"</code> and <code>"ale"</code>, <code>as.data.frame(x, what = "integrated")</code> returns the curve integrated over time instead (<code>feature</code>,
+<code>feature_value</code>, <code>integrated</code>).</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -126,23 +132,16 @@ calibration and <code>metrics = "auc"</code> summarises the ROC curve.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   feature: karno </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   grid: 2 times in [90, 180]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   $result:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       results.karno results..id results.time results.surv_prob results.type</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ice.1      10.00000           1           90         0.1884062          ice</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ice.2      14.68421           1           90         0.1884062          ice</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ice.3      19.36842           1           90         0.1875603          ice</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ice.4      24.05263           1           90         0.1875603          ice</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ice.5      28.73684           1           90         0.2404616          ice</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       pdp_integrated.karno pdp_integrated.integrated_surv</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ice.1             10.00000                       16.31214</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ice.2             14.68421                       16.31214</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ice.3             19.36842                       16.17007</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ice.4             24.05263                       16.17007</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ice.5             28.73684                       17.21113</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   feature feature_value id time      surv type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   karno      10.00000  1   90 0.1884062  ice</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   karno      14.68421  1   90 0.1884062  ice</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   karno      19.36842  1   90 0.1875603  ice</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   karno      24.05263  1   90 0.1875603  ice</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5   karno      28.73684  1   90 0.2404616  ice</span>
 <span class="r-in"><span><span class="fu">interpret</span><span class="op">(</span><span class="va">m</span>, <span class="st">"varimp"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">180</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;survalis_interpret&gt; method = varimp  |  model = ranger</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   grid: 2 times in [90, 180]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   $result:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # basetable: 5 x 5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    feature importance importance_05 importance_95 scaled_importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1    karno     0.1408       0.11545       0.17390         100.00000</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2 celltype     0.0672       0.05490       0.08305          47.72727</span>

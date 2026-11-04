@@ -68,7 +68,7 @@ model* – faster, but narrower than it should be.
 ``` r
 
 summary(est)
-#>    estimand tau  estimate  conf.low conf.high model
+#>    estimand tau  estimate  conf_low conf_high model
 #> 1 RMST_diff 300 -14.39048 -37.90613  7.868977 coxph
 ```
 

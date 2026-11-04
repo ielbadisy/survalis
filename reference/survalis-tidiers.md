@@ -7,6 +7,12 @@ downstream plotting or reporting:
 ## Usage
 
 ``` r
+# S3 method for class 'survmat'
+as.data.frame(x, ..., format = c("wide", "long"))
+
+# S3 method for class 'survalis_fit'
+as.data.frame(x, ...)
+
 # S3 method for class 'survalis_eval'
 as.data.frame(x, ...)
 
@@ -30,11 +36,23 @@ as.data.frame(x, ...)
 
   Ignored.
 
+- format:
+
+  For `survmat` only: `"wide"` (default) or `"long"`.
+
 ## Value
 
 A data frame.
 
 ## Details
+
+- `survalis_fit` – a one-row model summary (`model`, `engine`,
+  `formula`, `n`, `events`).
+
+- `survmat` (from [`predict()`](https://rdrr.io/r/stats/predict.html)) –
+  by default the wide prediction matrix with one `"t=<time>"` column per
+  evaluation time; `format = "long"` returns one row per observation and
+  time (`id`, `time`, `value`).
 
 - `survalis_eval` – the per-split metric values (`id`, `metric`,
   `value`).
@@ -45,4 +63,4 @@ A data frame.
   `metric`, `mean`, `se`).
 
 - `survalis_estimate` – a one-row summary (`estimand`, `tau`,
-  `estimate`, `conf.low`, `conf.high`, `model`).
+  `estimate`, `conf_low`, `conf_high`, `model`).
