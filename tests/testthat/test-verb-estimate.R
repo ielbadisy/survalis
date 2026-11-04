@@ -12,7 +12,7 @@ test_that("estimate() returns a survalis_estimate with a bootstrap CI", {
   expect_s3_class(e, "survalis_estimate")
   expect_equal(e$estimand, "RMST_diff")
   expect_identical(e$levels, sort(unique(veteran$trt)))
-  expect_true(e$conf.low <= e$estimate && e$estimate <= e$conf.high)
+  expect_true(e$conf_low <= e$estimate && e$estimate <= e$conf_high)
   expect_equal(nrow(e$curves), length(e$curves$time))
   expect_output(print(e), "RMST difference at tau = 300")
 })
@@ -45,4 +45,13 @@ test_that("estimate(refit = TRUE) refits per replicate", {
   expect_true(e$refit)
   expect_length(e$boot, 20L)
   expect_s3_class(plot(e), "ggplot")
+})
+
+test_that("as.data.frame() of an estimate has plain column names", {
+  skip_verb()
+  e <- estimate(f, veteran, "coxph", estimand = "RMST_diff", treatment = "trt",
+                tau = 300, R = 5, refit = FALSE, seed = 1)
+  d <- as.data.frame(e)
+  expect_false(any(grepl("[.=]", names(d))))
+  expect_true(all(c("estimate", "conf_low", "conf_high") %in% names(d)))
 })

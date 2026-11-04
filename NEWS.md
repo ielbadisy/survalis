@@ -43,6 +43,13 @@
   (external or temporal validation), and `evaluate(S, y = Surv(time, status))`
   scores a survival matrix produced anywhere.
 
+* `as.data.frame()` also works on a `fit()` result (one row: `model`,
+  `engine`, `formula`, `n`, `events`; it was an error), and
+  `as.data.frame(predict(...), format = "long")` gives one row per
+  observation and time (`id`, `time`, `value`). The `estimate()` result and
+  its summary name the interval bounds `conf_low` and `conf_high` (were
+  `conf.low` and `conf.high`).
+
 * `tune()` works for any learner when you supply `grid`: configurations are
   scored on shared splits under any resampling spec. Learners listed by
   `list_survlearners(has_tune = TRUE)` keep their built-in default grids.

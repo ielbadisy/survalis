@@ -22,6 +22,11 @@ test_that("fit() returns a survalis_fit that keeps the mlsurv_model contract", {
   expect_identical(m$status, "status")
   expect_true(is.list(m$spec))
   expect_output(print(m), "survalis_fit.*coxph")
+
+  d <- as.data.frame(m)
+  expect_named(d, c("model", "engine", "formula", "n", "events"))
+  expect_identical(d$n, nrow(veteran))
+  expect_equal(d$events, sum(veteran$status))
 })
 
 test_that("fit() rejects engine arguments outside spec", {

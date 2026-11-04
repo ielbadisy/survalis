@@ -56,7 +56,7 @@ evaluation time for the survival estimands.}
 }
 \value{
 A \code{survalis_estimate} object with \code{estimand}, \code{estimate},
-\code{conf.low}, \code{conf.high}, \code{conf}, \code{treatment}, \code{levels}, \code{tau}, \code{R},
+\code{conf_low}, \code{conf_high}, \code{conf}, \code{treatment}, \code{levels}, \code{tau}, \code{R},
 \code{refit}, \code{boot} (replicate estimates) and \code{curves} (counterfactual mean
 survival for each arm on \code{times}).
 }

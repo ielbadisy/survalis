@@ -41,7 +41,7 @@
 #' @param ... Unused.
 #'
 #' @return A `survalis_estimate` object with `estimand`, `estimate`,
-#'   `conf.low`, `conf.high`, `conf`, `treatment`, `levels`, `tau`, `R`,
+#'   `conf_low`, `conf_high`, `conf`, `treatment`, `levels`, `tau`, `R`,
 #'   `refit`, `boot` (replicate estimates) and `curves` (counterfactual mean
 #'   survival for each arm on `times`).
 #'
@@ -134,7 +134,7 @@ estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio
   ci <- unname(stats::quantile(boot, c(a, 1 - a), na.rm = TRUE))
 
   structure(list(
-    estimand = estimand, estimate = point, conf.low = ci[1], conf.high = ci[2],
+    estimand = estimand, estimate = point, conf_low = ci[1], conf_high = ci[2],
     conf = conf, treatment = treatment, levels = c(lo, hi), tau = tau,
     R = R, refit = isTRUE(refit), model = lrn$id, boot = boot,
     curves = data.frame(time = times, surv_treated = point_curves$S1bar,
@@ -149,7 +149,7 @@ print.survalis_estimate <- function(x, ...) {
   cat(sprintf("<survalis_estimate> %s at tau = %s  (model: %s)\n", lab, format(x$tau), x$model))
   cat(sprintf("  treatment: %s  (%s vs %s)\n", x$treatment, x$levels[2], x$levels[1]))
   cat(sprintf("  estimate: %.4f   %.0f%% CI [%.4f, %.4f]   (%d bootstrap%s)\n",
-              x$estimate, 100 * x$conf, x$conf.low, x$conf.high, x$R,
+              x$estimate, 100 * x$conf, x$conf_low, x$conf_high, x$R,
               if (x$refit) ", refit" else ", model fixed"))
   cat("  plug-in G-formula; causal reading needs exchangeability, positivity,\n",
       "  consistency, no interference and a correct outcome model.\n", sep = "")
@@ -159,8 +159,8 @@ print.survalis_estimate <- function(x, ...) {
 #' @export
 summary.survalis_estimate <- function(object, ...) {
   data.frame(estimand = object$estimand, tau = object$tau,
-             estimate = object$estimate, conf.low = object$conf.low,
-             conf.high = object$conf.high, model = object$model)
+             estimate = object$estimate, conf_low = object$conf_low,
+             conf_high = object$conf_high, model = object$model)
 }
 
 #' @export

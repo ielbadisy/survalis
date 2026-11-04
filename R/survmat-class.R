@@ -112,13 +112,19 @@ print.survmat <- function(x, n = 6L, ...) {
   invisible(x)
 }
 
+#' @rdname survalis-tidiers
 #' @export
-#' @noRd
-as.data.frame.survmat <- function(x, ...) {
+as.data.frame.survmat <- function(x, ..., format = c("wide", "long")) {
+  format <- match.arg(format)
+  tt <- attr(x, "times")
   body <- unclass(x)
   attr(body, "times") <- NULL
   attr(body, "quantity") <- NULL
-  as.data.frame(body, ...)
+  if (format == "wide") return(as.data.frame(body, ...))
+  n <- nrow(body)
+  data.frame(id = rep(seq_len(n), times = length(tt)),
+             time = rep(tt, each = n),
+             value = as.vector(body))
 }
 
 #' @export

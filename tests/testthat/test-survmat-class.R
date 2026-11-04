@@ -49,3 +49,11 @@ test_that("as.data.frame.survmat drops class and attributes", {
   expect_null(attr(d, "times"))
   expect_identical(names(d), c("t=1", "t=2"))
 })
+
+test_that("as.data.frame.survmat has a long form with plain names", {
+  s <- new_survmat(matrix(c(0.9, 0.7, 0.8, 0.6), 2, 2), times = c(1, 2))
+  d <- as.data.frame(s, format = "long")
+  expect_named(d, c("id", "time", "value"))
+  expect_identical(nrow(d), 4L)
+  expect_equal(d$value[d$id == 2 & d$time == 2], 0.6)
+})

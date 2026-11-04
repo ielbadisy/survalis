@@ -3,6 +3,7 @@
 S3method(as.data.frame,survalis_compare)
 S3method(as.data.frame,survalis_estimate)
 S3method(as.data.frame,survalis_eval)
+S3method(as.data.frame,survalis_fit)
 S3method(as.data.frame,survalis_interpret)
 S3method(as.data.frame,survalis_tune)
 S3method(as.data.frame,survmat)
