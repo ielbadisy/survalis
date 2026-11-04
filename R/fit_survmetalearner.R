@@ -105,16 +105,20 @@ fit_survmetalearner <- function(base_preds = NULL, time = NULL, status = NULL, t
     base_preds <- list()
     for (l in learners) {
       oof <- matrix(NA_real_, nrow = n, ncol = length(times))
-      ok <- TRUE
+      err <- NULL
       for (k in seq_len(folds)) {
         tr <- data[fold_id != k, , drop = FALSE]
         te <- data[fold_id == k, , drop = FALSE]
-        p <- tryCatch(pred_one(l, fit_one(l, tr), te), error = function(e) NULL)
-        if (is.null(p)) { ok <- FALSE; break }
+        p <- tryCatch(pred_one(l, fit_one(l, tr), te), error = function(e) {
+          err <<- conditionMessage(e)
+          NULL
+        })
+        if (is.null(p)) break
         oof[fold_id == k, ] <- p
       }
-      if (ok) base_preds[[l]] <- oof
-      else warning("survmetalearner: base learner '", l, "' failed in cross-fitting and was dropped.", call. = FALSE)
+      if (is.null(err)) base_preds[[l]] <- oof
+      else warning("survmetalearner: base learner '", l, "' failed in cross-fitting ",
+                   "and was dropped: ", err, call. = FALSE)
     }
     if (!length(base_preds)) stop("survmetalearner: every base learner failed.", call. = FALSE)
     base_models <- lapply(setNames(names(base_preds), names(base_preds)), function(l) fit_one(l, data))

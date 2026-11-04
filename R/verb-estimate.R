@@ -122,13 +122,28 @@ estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio
   point <- contrast_of(point_curves$S1bar, point_curves$S0bar)
 
   n <- nrow(data)
+  first_error <- NULL
   boot <- vapply(seq_len(R), function(r) {
     idx <- sample.int(n, n, replace = TRUE)
     cc <- tryCatch(gcomp(data[idx, , drop = FALSE], do_fit = isTRUE(refit)),
-                   error = function(e) NULL)
+                   error = function(e) {
+                     if (is.null(first_error)) first_error <<- conditionMessage(e)
+                     NULL
+                   })
     if (is.null(cc)) return(NA_real_)
     contrast_of(cc$S1bar, cc$S0bar)
   }, numeric(1))
+  n_fail <- sum(is.na(boot))
+  if (n_fail == R) {
+    stop("estimate(): all ", R, " bootstrap replicates failed for learner '",
+         lrn$id, "'. First error: ", .null_default(first_error, "NA estimate"),
+         call. = FALSE)
+  }
+  if (n_fail > 0L) {
+    warning("estimate(): ", n_fail, " of ", R, " bootstrap replicates failed for ",
+            "learner '", lrn$id, "' and were left out of the interval. First error: ",
+            .null_default(first_error, "NA estimate"), call. = FALSE)
+  }
 
   a <- (1 - conf) / 2
   ci <- unname(stats::quantile(boot, c(a, 1 - a), na.rm = TRUE))

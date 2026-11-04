@@ -49,10 +49,11 @@ fit <- function(formula, data, model, spec = list(), seed = NULL, ...) {
   if (!inherits(formula, "formula")) {
     stop("`formula` must be a formula.", call. = FALSE)
   }
-  parsed <- tryCatch(.parse_surv_formula(formula, data), error = function(e) NULL)
-  if (is.null(parsed)) {
-    stop("survalis::fit() requires a Surv() outcome on the left-hand side.\n",
-         "For non-survival outcomes use funcml::fit().", call. = FALSE)
+  parsed <- tryCatch(.parse_surv_formula(formula, data), error = function(e) e)
+  if (inherits(parsed, "error")) {
+    stop("survalis::fit() could not read the formula: ", conditionMessage(parsed), "\n",
+         "It needs a Surv(time, status) outcome on the left-hand side; ",
+         "for non-survival outcomes use funcml::fit().", call. = FALSE)
   }
 
   lrn <- .resolve_learner(model)

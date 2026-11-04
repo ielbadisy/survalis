@@ -60,7 +60,7 @@ fit_blackboost <- function(formula, data, weights = NULL, mstop = 100, nu = 0.1,
     maxdepth = maxdepth
   )
 
-  model <- suppressMessages(suppressWarnings({
+  model <- suppressMessages({
     if (!is.null(weights)) {
       mboost::blackboost(
         formula = formula,
@@ -79,7 +79,7 @@ fit_blackboost <- function(formula, data, weights = NULL, mstop = 100, nu = 0.1,
         tree_controls = tree_control
       )
     }
-  }))
+  })
 
   structure(
     list(

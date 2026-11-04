@@ -103,6 +103,14 @@
 * `fit()` no longer accepts engine arguments through `...`; pass them in
   `spec = list(...)`. Extra arguments now give an error instead of a warning.
 
+* Fewer silent failures. `estimate()` warns with the number of failed
+  bootstrap replicates and the first error (and stops if all fail) instead of
+  quietly building the interval from the rest. `fit()` reports why it could
+  not read a formula. The survival super learner gives the error when it
+  drops a base learner. The `blackboost` and `cforest` learners no longer
+  hide engine warnings; `cforest` caps `mtry` at the number of predictors
+  itself, as 'party' would.
+
 * The `stpm2` learner is removed: `fit_stpm2()` and `predict_stpm2()` are
   gone and 'rstpm2' is no longer a dependency. Use `fit_rpsurv()` /
   `fit(model = "rpsurv")`, which fits the same Royston-Parmar model on the

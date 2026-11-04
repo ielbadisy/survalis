@@ -13,7 +13,7 @@
 #'   exceeded for a split to be performed (default = `0`).
 #' @param ntree Integer, number of trees to grow (default = `500`).
 #' @param mtry Integer, number of variables randomly selected at each node
-#'   (default = `5`).
+#'   (default = `5`, capped at the number of predictors).
 #' @param replace Logical, whether sampling of cases is with replacement
 #'   (default = `TRUE`).
 #' @param fraction Proportion of samples to draw if `replace = FALSE`
@@ -48,20 +48,23 @@ fit_cforest <- function(formula, data,
                         ...) {
   stopifnot(requireNamespace("party", quietly = TRUE))
 
-  model <- suppressWarnings(
-    party::cforest(
-      formula = formula,
-      data = data,
-      controls = party::cforest_control(
-        teststat = teststat,
-        testtype = testtype,
-        mincriterion = mincriterion,
-        ntree = ntree,
-        mtry = mtry,
-        replace = replace,
-        fraction = fraction,
-        ...
-      )
+  # party caps mtry at the number of inputs with a warning on every tree
+  # set; cap it here once so tuning grids shared across data sets stay quiet.
+  n_inputs <- length(attr(stats::terms(formula, data = data), "term.labels"))
+  mtry <- min(mtry, max(1L, n_inputs))
+
+  model <- party::cforest(
+    formula = formula,
+    data = data,
+    controls = party::cforest_control(
+      teststat = teststat,
+      testtype = testtype,
+      mincriterion = mincriterion,
+      ntree = ntree,
+      mtry = mtry,
+      replace = replace,
+      fraction = fraction,
+      ...
     )
   )
 
@@ -117,9 +120,9 @@ predict_cforest <- function(object, newdata, times, ...) {
   newdata <- as.data.frame(newdata)
 
   # get survival predictions from cforest
-  survlist <- suppressMessages(suppressWarnings(
+  survlist <- suppressMessages(
     predict(object$model, newdata = newdata, type = "prob")
-  ))
+  )
 
   # interpolate at requested times
   survmat <- .rows_by_times(sapply(survlist, function(sfit) {

@@ -8,7 +8,7 @@ skip_verb <- function() {
 
 test_that("fit() validates the outcome and the model id", {
   skip_verb()
-  expect_error(fit(time ~ age, veteran, "coxph"), "Surv\\(\\) outcome")
+  expect_error(fit(time ~ age, veteran, "coxph"), "Surv\\(time, status\\) outcome")
   expect_error(fit(f, veteran, "not_a_learner"), "Unknown model")
 })
 
