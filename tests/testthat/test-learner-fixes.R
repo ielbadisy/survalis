@@ -100,9 +100,12 @@ test_that("tune() reports a clear error when every configuration fails", {
   bad_grid <- expand.grid(nrounds = 10, max_depth = 2, eta = 0.1,
                           aft_loss_distribution = "extreme", aft_loss_distribution_scale = 1,
                           objective = "not_an_objective", stringsAsFactors = FALSE)
-  expect_error(
-    tune(vet_form, d, "xgboost", grid = bad_grid, resampling = cv(v = 3, seed = 1), metric = "ibs"),
-    "All 1 tuning configurations of 'xgboost' failed"
+  expect_warning(
+    expect_error(
+      tune(vet_form, d, "xgboost", grid = bad_grid, resampling = cv(v = 3, seed = 1), metric = "ibs"),
+      "All 1 tuning configurations of 'xgboost' failed"
+    ),
+    "Tuning 'xgboost' .* failed: Unsupported objective"
   )
 })
 

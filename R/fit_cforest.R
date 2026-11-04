@@ -218,7 +218,7 @@ tune_cforest <- function(formula, data, times,
       list(ntree = ntree, mtry = mtry, mincriterion = mincriterion, fraction = fraction),
       summary
     )
-  })
+  }, learner = "cforest")
 
   maximize <- .metric_maximize(metrics[1])
   results <- .arrange_by_metric_dt(results, metrics[1], maximize)

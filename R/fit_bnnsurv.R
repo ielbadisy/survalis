@@ -434,7 +434,7 @@ tune_bnnsurv <- function(formula, data, times,
         num_base_learners = num_base_learners,
         sample_fraction = sample_fraction
       )
-    }, error = function(e) NULL)
+    }, error = function(e) .tune_config_failed("bnnsurv", params, e))
 
     if (is.null(cv_result)) {
       return(do.call(data.frame, c(params, list(failed = TRUE), stringsAsFactors = FALSE)))
@@ -442,7 +442,7 @@ tune_bnnsurv <- function(formula, data, times,
 
     summary <- cv_summary(cv_result)
     .wide_metric_row(c(params, list(failed = FALSE)), summary)
-  })
+  }, learner = "bnnsurv")
 
   results <- results[!results$failed, , drop = FALSE]
 

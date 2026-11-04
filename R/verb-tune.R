@@ -85,28 +85,40 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
   if ("ncores" %in% tf) args$ncores <- ncores
   if (!is.null(grid)) args$param_grid <- grid
   dots <- list(...)
-  if (length(dots) && "..." %in% tf) args <- c(args, dots)
+  if (!"..." %in% tf) dots <- list()
+  if (length(dots)) args <- c(args, dots)
 
-  if ("refit_best" %in% tf) {
-    args$refit_best <- TRUE
-    best_model <- do.call(tuner, args)
-    results <- as.data.frame(attr(best_model, "tuning_results"))
-  } else {
-    results <- as.data.frame(do.call(tuner, args))
-    if ("failed" %in% names(results) && all(as.logical(results$failed))) {
-      stop("All ", nrow(results), " tuning configurations of ", sQuote(model),
+  # Ask the tuner for its scored grid only and refit here: several tuners
+  # return just the refit model (without the grid) when refit_best = TRUE.
+  if ("refit_best" %in% tf) args$refit_best <- FALSE
+  results <- do.call(tuner, args)
+  results <- if (is.null(results)) data.frame() else as.data.frame(results)
+  class(results) <- "data.frame"
+  if (!nrow(results)) {
+    stop("Tuning ", sQuote(lrn$id), " returned no results: every configuration ",
+         "failed during cross-validation. Fit one configuration with fit() to ",
+         "see the underlying error.", call. = FALSE)
+  }
+  if ("failed" %in% names(results)) {
+    failed <- as.logical(results$failed)
+    if (all(failed)) {
+      stop("All ", nrow(results), " tuning configurations of ", sQuote(lrn$id),
            " failed during cross-validation. Fit one configuration with fit() ",
            "to see the underlying error.", call. = FALSE)
     }
-    if ("failed" %in% names(results)) {
-      keep <- !as.logical(results$failed)
-      if (any(keep)) results <- results[keep, , drop = FALSE]
-    }
-    results <- as.data.frame(.arrange_by_metric_dt(results, metric, .metric_maximize(metric)))
-    param_cols0 <- setdiff(names(results), c(names(results)[.is_metric(names(results))], "failed"))
-    spec0 <- as.list(results[1, param_cols0, drop = FALSE])
-    best_model <- do.call(lrn$fit, c(list(formula = formula, data = data), spec0))
+    # the tuner has already warned about each failed configuration
+    results <- results[!failed, setdiff(names(results), "failed"), drop = FALSE]
   }
+  if (!metric %in% names(results)) {
+    stop("The tuner of ", sQuote(lrn$id), " did not report ", sQuote(metric), ".",
+         call. = FALSE)
+  }
+  results <- as.data.frame(.arrange_by_metric_dt(results, metric, .metric_maximize(metric)))
+  class(results) <- "data.frame"
+  rownames(results) <- NULL
+  param_cols0 <- setdiff(names(results), names(results)[.is_metric(names(results))])
+  spec0 <- as.list(results[1, param_cols0, drop = FALSE])
+  best_model <- do.call(lrn$fit, c(list(formula = formula, data = data), spec0, dots))
 
   metric_cols <- names(results)[.is_metric(names(results))]
   param_cols <- setdiff(names(results), c(metric_cols, "failed"))
@@ -135,7 +147,7 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
     spec <- c(as.list(grid[i, , drop = FALSE]), fixed)
     per <- tryCatch(.evaluate_splits(splits, formula, data, model, spec, times,
                                      metric, parsed, ncores),
-                    error = function(e) NULL)
+                    error = function(e) .tune_config_failed(lrn$id, grid[i, , drop = FALSE], e))
     if (is.null(per)) NA_real_ else mean(per$value, na.rm = TRUE)
   }, numeric(1))
   if (all(is.na(vals))) {

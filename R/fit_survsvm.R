@@ -339,7 +339,7 @@ tune_survsvm <- function(formula, data, times,
               call. = FALSE)
       NULL
     })
-  })
+  }, learner = "survsvm")
 
   if (is.null(results) || nrow(results) == 0) {
     warning("All tuning combinations failed.")

@@ -287,7 +287,7 @@ tune_bart <- function(formula, data, times,
 
     summary <- cv_summary(cv_results)
     .wide_metric_row(list(K = K, ntree = ntree, power = power, base = base), summary)
-  })
+  }, learner = "bart")
 
   maximize <- .metric_maximize(metrics[1])
   results <- .arrange_by_metric_dt(results, metrics[1], maximize)

@@ -234,7 +234,7 @@ tune_coxboost <- function(formula, data, times,
           criterion = criterion,
           stepsize.factor = stepsize.factor
         )
-      }, error = function(e) NULL)
+      }, error = function(e) .tune_config_failed("coxboost", params, e))
 
       if (is.null(cv_results)) {
         return(do.call(data.frame, c(params, list(failed = TRUE), stringsAsFactors = FALSE)))
@@ -242,7 +242,8 @@ tune_coxboost <- function(formula, data, times,
 
       smry <- cv_summary(cv_results)[, c("metric", "mean")]
       .wide_metric_row(c(params, list(failed = FALSE)), smry)
-    }
+    },
+    learner = "coxboost"
   )
 
   primary <- metrics[1]

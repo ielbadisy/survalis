@@ -1,7 +1,13 @@
-.pmap_rbind_dt <- function(grid, f) {
+# Applies `f` to each grid row. With `learner` set (the tuners), a
+# configuration that errors is dropped with an informative warning instead of
+# aborting the whole search.
+.pmap_rbind_dt <- function(grid, f, learner = NULL) {
   grid <- as.data.frame(grid)
   results <- lapply(seq_len(nrow(grid)), function(i) {
-    do.call(f, as.list(grid[i, , drop = FALSE]))
+    row <- grid[i, , drop = FALSE]
+    if (is.null(learner)) return(do.call(f, as.list(row)))
+    tryCatch(do.call(f, as.list(row)),
+             error = function(e) .tune_config_failed(learner, row, e))
   })
   .rbind_fill_dt(results)
 }
@@ -31,6 +37,15 @@
 
 .complete_cases_df <- function(data, vars) {
   data[stats::complete.cases(data[, vars, drop = FALSE]), , drop = FALSE]
+}
+
+.tune_config_failed <- function(learner, params, e) {
+  cfg <- paste(names(params),
+               vapply(params, function(v) paste(format(v), collapse = ","), ""),
+               sep = " = ", collapse = ", ")
+  warning("Tuning '", learner, "' (", cfg, ") failed: ", conditionMessage(e),
+          call. = FALSE)
+  NULL
 }
 
 .wide_metric_row <- function(params, cv_summary_dt) {

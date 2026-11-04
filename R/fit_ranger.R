@@ -204,7 +204,7 @@ tune_ranger <- function(formula, data, times,
 
     summary <- cv_summary(cv_results)
     .wide_metric_row(list(num.trees = num.trees, mtry = mtry, min.node.size = min.node.size), summary)
-  })
+  }, learner = "ranger")
 
   maximize <- .metric_maximize(metrics[1])
   res <- .arrange_by_metric_dt(res, metrics[1], maximize)

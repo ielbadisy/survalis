@@ -65,6 +65,16 @@
   `"glmnet"` tuners also take a data frame grid row by row instead of crossing
   its columns.
 
+* `tune()` with a built-in default grid returned no configurations for the
+  `"glmnet"`, `"bart"`, `"blackboost"`, `"bnnsurv"`, `"cforest"`,
+  `"flexsurvreg"` and `"orsf"` learners, and refitted the model with none of
+  the tuned parameters, so `compare(tune = TRUE)` silently compared default
+  fits. Every built-in tuner now returns its scored grid and the refit uses
+  the best configuration. A configuration that fails now gives a warning
+  naming the learner and its parameter values and is left out; if every
+  configuration fails, `tune()` stops. Before, failed configurations were
+  dropped without a word, or one failure aborted the whole search.
+
 * `interpret()` gains `method = "roc"` (time-dependent ROC curve) and
   `method = "dca"` (decision curve), both at one `eval_time`.
 

@@ -90,3 +90,26 @@ test_that("partial grids work for every learner with a built-in tuner", {
     expect_named(t$fit$spec, names(grids[[id]]), info = id)
   }
 })
+
+test_that("tune() with a built-in grid returns scored configurations and a populated spec", {
+  skip_verb()
+  testthat::skip_if_not_installed("glmnet")
+  t <- tune(f, veteran, "glmnet", times = c(90, 180),
+            resampling = cv(3, seed = 1), metric = "ibs")
+  expect_gt(nrow(t$results), 1L)
+  expect_true("ibs" %in% names(t$results))
+  expect_false(any(grepl("[.=]", setdiff(names(t$results), c("num.trees", "min.node.size")))))
+  expect_true(length(t$fit$spec) > 0L)
+})
+
+test_that("tune() warns about each failing configuration and names the learner", {
+  skip_verb()
+  testthat::skip_if_not_installed("rpart")
+  g <- data.frame(minsplit = 20, cp = 0.01, maxdepth = c(3, 99))
+  expect_warning(
+    t <- tune(f, veteran, "rpart", grid = g, times = c(90, 180),
+              resampling = cv(2, seed = 1), metric = "ibs"),
+    "Tuning 'rpart' \\(.*maxdepth = 99.*\\) failed"
+  )
+  expect_equal(nrow(t$results), 1L)
+})

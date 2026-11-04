@@ -303,7 +303,7 @@ tune_xgboost <- function(formula, data, times,
           max_depth = max_depth,
           eta       = eta
         )
-      }, error = function(e) NULL)
+      }, error = function(e) .tune_config_failed("xgboost", params, e))
 
       if (is.null(cv_results)) {
         return(do.call(data.frame, c(params, list(failed = TRUE), stringsAsFactors = FALSE)))
@@ -311,7 +311,8 @@ tune_xgboost <- function(formula, data, times,
 
       smry <- cv_summary(cv_results)[, c("metric", "mean")]
       .wide_metric_row(c(params, list(failed = FALSE)), smry)
-    }
+    },
+    learner = "xgboost"
   )
 
   primary <- metrics[1]
