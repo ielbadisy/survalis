@@ -22,9 +22,7 @@ Description: A modular toolkit for interpretable survival machine learning
   <doi:10.1001/jama.1982.03320430047030>, Graf et al. (1999)
   <doi:10.1002/(SICI)1097-0258(19990915/30)18:17/18%3C2529::AID-SIM274%3E3.0.CO;2-5>,
   Friedman (2001) <doi:10.1214/aos/1013203451>, Apley and Zhu (2020)
-  <doi:10.1111/rssb.12377>, and Lundberg and Lee (2017)
-  <doi:10.48550/arXiv.1705.07874>,
-  and other related methods for survival modeling, prediction, and
+  <doi:10.1111/rssb.12377>, and other related methods for survival modeling, prediction, and
   interpretation. Clustering of individualized survival curves is described
   in El Badisy (2026) <doi:10.1093/bioadv/vbag218>.
 License: MIT + file LICENSE
