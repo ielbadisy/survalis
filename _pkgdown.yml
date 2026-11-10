@@ -46,6 +46,11 @@ reference:
   contents:
   - dwscore
 
+- title: Plots
+  desc: Kaplan-Meier, cumulative incidence and model-adjusted curves with a number-at-risk table.
+  contents:
+  - kmplot
+
 - title: Lookups
   desc: Valid ids for `model`, `metrics` and `method`.
   contents:
