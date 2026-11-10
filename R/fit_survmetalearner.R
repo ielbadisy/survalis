@@ -4,7 +4,8 @@
 #' Learns nonnegative, time‑specific stacking weights over a set of base survival
 #' learners by solving a nonnegative least squares (NNLS) problem at each
 #' requested time \eqn{t^{*}}. For each \eqn{t^{*}}, the target is the indicator
-#' \eqn{Y = I(T > t^{*})}; the features are the base learners' predicted survival
+#' \eqn{Y = I(T > t^{*})}, restricted to subjects whose status at \eqn{t^{*}} is
+#' known and weighted by inverse probability of censoring weights; the features are the base learners' predicted survival
 #' probabilities \eqn{S_\ell(t^{*} \mid x)}. Weights are constrained to be
 #' nonnegative and are normalized to sum to 1 per time point.
 #'
@@ -37,7 +38,10 @@
 #' For each \code{t} in \code{times}, this function fits
 #' \deqn{\min_{w \ge 0} \\mid Y - S w \|_2^2 \quad \text{s.t.} \ \sum_j w_j = 1}
 #' where \eqn{Y = I(T > t)} and \eqn{S} is the matrix of base survival
-#' probabilities at \eqn{t}. The NNLS solution from \pkg{nnls} is renormalized
+#' probabilities at \eqn{t}. Only subjects with \eqn{T > t} or an observed event
+#' by \eqn{t} enter, each weighted by \eqn{1 / G(\min(T, t)-)} with \eqn{G} the
+#' reverse Kaplan-Meier estimate of the censoring distribution; the weights enter
+#' the NNLS fit by \eqn{\sqrt{w}} row scaling. The NNLS solution from \pkg{nnls} is renormalized
 #' to sum to 1 (if the solution is all zeros, weights remain \code{NA} for that time).
 #'
 #' @return An object of class \code{c("mlsurv_model","survmetalearner")} with elements:
@@ -50,8 +54,7 @@
 #'   \item{learner}{The string \code{"survmetalearner"} (for \code{predict_*} dispatch).}
 #' }
 #'
-#' @seealso \code{predict_survmetalearner}, \code{plot_survmetalearner_weights},
-#'   \code{cv_survmetalearner}
+#' @seealso \code{predict_survmetalearner}
 #'
 #' @examples
 #' form <- Surv(time, status) ~ age + karno + trt
@@ -83,7 +86,7 @@ fit_survmetalearner <- function(base_preds = NULL, time = NULL, status = NULL, t
   stopifnot(is.data.frame(data))
 
   if (is.null(base_preds)) {
-    # Formula-and-data interface (as used by benchmark() and compare()): fit the base
+    # Formula-and-data interface (as used by evaluate() and compare()): fit the base
     # learners, and build the out-of-fold predictions that the stacking weights are
     # estimated from, so that the weights do not reward over-fitted base learners.
     stopifnot(!is.null(formula))
@@ -134,11 +137,22 @@ fit_survmetalearner <- function(base_preds = NULL, time = NULL, status = NULL, t
   weight_matrix <- matrix(NA_real_, nrow = length(learners), ncol = T,
                           dimnames = list(learners, paste0("t=", times)))
 
+  # Reverse Kaplan-Meier of censoring, left limit G(u-) = P(C >= u).
+  cens_km <- survival::survfit(survival::Surv(time, 1 - status) ~ 1)
+  G_left <- function(u) c(1, cens_km$surv)[findInterval(u, cens_km$time, left.open = TRUE) + 1L]
+
   for (j in seq_along(times)) {
     t_star <- times[j]
-    Y <- as.integer(time > t_star)
+    # Keep subjects whose status at t* is known (still at risk, or event by t*), and
+    # weight them by IPCW 1 / G(min(T, t*)-).
+    G <- G_left(pmin(time, t_star))
+    keep <- (time > t_star | status == 1) & G > 0
     X <- sapply(base_preds, function(S) S[, j])
-    fit <- nnls::nnls(as.matrix(X), Y)
+    X <- matrix(X, ncol = length(base_preds))
+    keep <- keep & stats::complete.cases(X)
+    Y <- as.numeric(time[keep] > t_star)
+    sw <- sqrt(1 / G[keep])
+    fit <- nnls::nnls(X[keep, , drop = FALSE] * sw, Y * sw)
     w <- coef(fit); w <- w / sum(w)
     weight_matrix[, j] <- w
   }
@@ -177,7 +191,7 @@ fit_survmetalearner <- function(base_preds = NULL, time = NULL, status = NULL, t
 #' @return A data frame with one row per observation and one column per requested
 #'   time (columns named \code{"t=<time>"}), containing stacked survival probabilities.
 #'
-#' @seealso \code{fit_survmetalearner}, \code{plot_survmetalearner_weights}
+#' @seealso \code{fit_survmetalearner}
 #'
 #' @examples
 #' form <- Surv(time, status) ~ age + karno + trt
@@ -235,232 +249,4 @@ predict_survmetalearner <- function(model, newdata, times) {
   }
 
   .finalize_survmat(survmat, times = times)
-}
-
-#' Plot Time‑Varying Stacking Weights
-#'
-#' Visualizes the learned nonnegative NNLS stacking weights \eqn{w_\ell(t)} over time
-#' for each base learner.
-#'
-#' @param model A \code{"survmetalearner"} object from \code{fit_survmetalearner}.
-#' @param title Plot title. If missing, an automatically generated title is
-#'   used. Pass \code{NULL} to omit the title entirely (e.g., for journals
-#'   requiring caption-only figures).
-#'
-#' @return A \pkg{ggplot2} object showing weight trajectories (one line per learner).
-#'
-#' @examples
-#' form <- Surv(time, status) ~ age + karno + trt
-#' times <- c(80, 160)
-#' mod_cox <- fit_coxph(form, data = veteran)
-#' mod_rpart <- fit_rpart(form, data = veteran)
-#' base_models <- list(coxph = mod_cox, rpart = mod_rpart)
-#' base_preds <- list(
-#'   coxph = predict_coxph(mod_cox, newdata = veteran, times = times),
-#'   rpart = predict_rpart(mod_rpart, newdata = veteran, times = times)
-#' )
-#' meta_model <- fit_survmetalearner(
-#'   base_preds = base_preds,
-#'   time = veteran$time,
-#'   status = veteran$status,
-#'   times = times,
-#'   base_models = base_models,
-#'   formula = form,
-#'   data = veteran
-#' )
-#' plot_survmetalearner_weights(meta_model)
-#' @noRd
-
-plot_survmetalearner_weights <- function(model, title) {
-  stopifnot(inherits(model, "survmetalearner"))
-  if (missing(title)) title <- "NNLS stacking weights over time"
-
-  W <- as.data.frame(model$weights)
-  W$learner <- rownames(model$weights)
-
-  W_long <- basetable::tolong(
-    W, cols = setdiff(names(W), "learner"),
-    names = "time", values = "weight", idcols = "learner"
-  )
-  W_long$time <- as.numeric(sub("t=", "", W_long$time))
-
-  p <- ggplot(W_long, aes(x = time, y = weight, color = learner)) +
-    geom_line(linewidth = 1.2) +
-    scale_color_survalis() +
-    labs(x = "Time", y = "Weight") +
-    theme_survalis()
-  if (!is.null(title)) p <- p + labs(title = title)
-  p
-}
-
-#' Cross‑Validate a Stacked Survival Meta‑Learner
-#'
-#' Performs v‑fold cross‑validation for the NNLS stacking meta‑learner over
-#' a fixed set of base learners and their predictions. On each fold, stacking
-#' weights are learned on the analysis set and evaluated on the assessment set.
-#'
-#' @param formula A survival formula \code{Surv(time, status) ~ predictors}.
-#' @param data A data frame containing all variables referenced in \code{formula}.
-#' @param times Numeric vector of evaluation times for stacking and scoring.
-#' @param base_models A named list of fitted base learner models (used to predict
-#'   on assessment folds and for the final refit on full data).
-#' @param base_preds A named list of \emph{training‑set} prediction matrices
-#'   (rows align with \code{data}, columns align with \code{times}); names must
-#'   match \code{base_models}.
-#' @param folds Integer; number of CV folds (default \code{5}).
-#' @param metrics Character vector of metrics to compute (default \code{c("cindex","ibs")}).
-#'   Supported: \code{"cindex"}, \code{"brier"} (single time), \code{"ibs"},
-#'   \code{"iae"}, \code{"ise"}, \code{"ece"} (single time).
-#' @param seed Integer random seed (default \code{123}).
-#' @param verbose Logical; if \code{TRUE}, prints fold progress (default \code{TRUE}).
-#'
-#' @details
-#' For each fold: (1) subset \code{base_preds} to the analysis indices;
-#' (2) learn time‑specific NNLS weights with \code{fit_survmetalearner};
-#'
-#' (3) predict stacked survival on the assessment set with \code{predict_survmetalearner};
-#' (4) compute requested metrics. After CV, a final meta‑learner is fit on the full data.
-#'
-#' @return An object of class \code{"cv_survmetalearner_result"} with components:
-#' \describe{
-#'   \item{model}{Final \code{"survmetalearner"} fit on all data.}
-#'   \item{cv_results}{Per‑fold metric values (tibble).}
-#'   \item{summary}{Fold‑aggregated mean and sd by metric (tibble).}
-#'   \item{folds, metrics}{CV settings.}
-#' }
-#'
-#' @seealso \code{fit_survmetalearner}, \code{predict_survmetalearner},
-#'   \code{plot_survmetalearner_weights}
-#'
-#' @examples
-#' \donttest{
-#' form <- Surv(time, status) ~ age + karno + trt
-#' times <- c(80, 160)
-#' mod_cox <- fit_coxph(form, data = veteran)
-#' mod_rpart <- fit_rpart(form, data = veteran)
-#' base_models <- list(coxph = mod_cox, rpart = mod_rpart)
-#' base_preds  <- list(
-#'   coxph = predict_coxph(mod_cox, veteran, times),
-#'   rpart = predict_rpart(mod_rpart, veteran, times)
-#' )
-#'
-#' cv_res <- cv_survmetalearner(
-#'   formula = form, data = veteran, times = times,
-#'   base_models = base_models, base_preds = base_preds,
-#'   folds = 2, metrics = c("cindex", "ibs"), seed = 1, verbose = FALSE
-#' )
-#'
-#' cv_res$summary
-#' plot_survmetalearner_weights(cv_res$model)
-#' }
-#' @noRd
-
-cv_survmetalearner <- function(formula, data, times,
-                           base_models, base_preds,
-                           folds = 5,
-                           metrics = c("cindex", "ibs"),
-                           seed = 123, verbose = TRUE) {
-  stopifnot(is.list(base_models), is.list(base_preds))
-  stopifnot(inherits(formula, "formula"), is.data.frame(data))
-
-  # Convert all base_preds to matrices (if needed)
-  base_preds <- lapply(base_preds, function(x) {
-    if (!is.matrix(x)) as.matrix(x) else x
-  })
-
-  # Validate shape
-  n_obs <- nrow(data)
-  for (learner in names(base_preds)) {
-    if (nrow(base_preds[[learner]]) != n_obs) {
-      stop(sprintf("Number of rows in base_preds[['%s']] does not match data.", learner))
-    }
-  }
-
-  set.seed(seed)
-  rsplits <- rsample::vfold_cv(data, v = folds)
-
-  results <- .map_rbind_dt(seq_along(rsplits$splits), function(i) {
-    split <- rsplits$splits[[i]]
-    train <- rsample::analysis(split)
-    test  <- rsample::assessment(split)
-
-    if (verbose) cat("Processing fold", i, "...\n")
-
-    # subset base_preds for training rows
-    idx_train <- as.integer(rownames(data)) %in% as.integer(rownames(train))
-    base_preds_train <- lapply(base_preds, function(mat) mat[idx_train, , drop = FALSE])
-
-    # extract time/status from formula
-    parsed_formula <- .parse_surv_formula(formula, train)
-    time_col <- parsed_formula$time_col
-    status_col <- parsed_formula$status_col
-
-    if (parsed_formula$recode_status) {
-      status_vector <- as.integer(train[[status_col]] == parsed_formula$event_value)
-    } else {
-      status_vector <- train[[status_col]]
-    }
-
-    # fit survmetalearner on training fold
-    meta_fit <- fit_survmetalearner(
-      base_preds = base_preds_train,
-      time = train[[time_col]],
-      status = status_vector,
-      times = times,
-      base_models = base_models,
-      formula = formula,
-      data = train
-    )
-
-    # predict on test
-    preds_test <- predict_survmetalearner(meta_fit, newdata = test, times = times)
-
-    # extract test survival object
-    time_test <- test[[time_col]]
-    status_test <- if (parsed_formula$recode_status) {
-      as.integer(test[[status_col]] == parsed_formula$event_value)
-    } else {
-      test[[status_col]]
-    }
-    surv_test <- survival::Surv(time_test, status_test)
-
-    # score metrics
-    scored <- .score_metrics(surv_test, preds_test, times, metrics)
-    data.frame(fold = i, metric = scored$metric, value = scored$value, stringsAsFactors = FALSE)
-  })
-
-  # Fit final survmetalearner on full data
-  parsed_formula <- .parse_surv_formula(formula, data)
-  time_col <- parsed_formula$time_col
-  status_col <- parsed_formula$status_col
-
-  if (parsed_formula$recode_status) {
-    status_vector <- as.integer(data[[status_col]] == parsed_formula$event_value)
-  } else {
-    status_vector <- data[[status_col]]
-  }
-
-  meta_model <- fit_survmetalearner(
-    base_preds = base_preds,
-    time = data[[time_col]],
-    status = status_vector,
-    times = times,
-    base_models = base_models,
-    formula = formula,
-    data = data
-  )
-
-  mean_tbl <- basetable::aggregate(results, by = "metric", value = "value", fun = "mean")
-  names(mean_tbl)[names(mean_tbl) == "value"] <- "mean"
-  sd_tbl <- basetable::aggregate(results, by = "metric", value = "value", fun = "sd")
-  names(sd_tbl)[names(sd_tbl) == "value"] <- "sd"
-  summary_tbl <- basetable::merge(mean_tbl, sd_tbl, by = "metric", sort = TRUE)
-
-  structure(list(
-    model = meta_model,
-    cv_results = results,
-    summary = summary_tbl,
-    folds = folds,
-    metrics = metrics
-  ), class = "cv_survmetalearner_result")
 }

@@ -39,6 +39,8 @@ fit_rpsurv <- function(formula, data, df = 4, knots = NULL, tve = NULL,
                        tve.df = 3, scale = c("hazard", "odds", "normal"), ...) {
   stopifnot(requireNamespace("rpsurv", quietly = TRUE))
   scale <- match.arg(scale)
+  # expand `.` against `data` (the outcome columns are excluded)
+  formula <- stats::formula(stats::terms(formula, data = data))
 
   # survalis only uses the point predictions, never the standard errors, so
   # rpsurv's "standard errors unavailable" warning (raised on every fit by

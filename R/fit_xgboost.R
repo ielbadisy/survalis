@@ -29,12 +29,17 @@
 #'   \item{time, status}{Names of the survival time and event variables.}
 #'   \item{objective}{Objective used.}
 #'   \item{dist, scale}{AFT distribution and scale (populated even if Cox is used).}
-#'   \item{terms}{Preserved \code{terms} for consistent prediction design matrices.}
+#'   \item{terms}{Response-free \code{terms} (with any \code{.} expanded).}
+#'   \item{design}{Training terms, factor levels, contrasts and design columns,
+#'     reused so prediction uses the exact same encoding as training.}
 #' }
 #'
 #' @details
 #' Design contract: returns a named list with engine metadata and preserves
-#' \code{terms(formula)} so prediction uses the exact same encoding as training.
+#' the training design encoding, so \code{newdata} with a subset of factor
+#' levels or without the outcome columns is encoded identically. For
+#' \code{"survival:aft"}, \code{base_score} is set to the geometric mean of
+#' the observed times (the AFT margin is on the log-time scale).
 #'
 #' @seealso `predict_xgboost()`, `tune_xgboost()`
 #'
@@ -59,9 +64,9 @@ fit_xgboost <- function(formula, data,
                         eta = 0.3) {
   stopifnot(requireNamespace("xgboost", quietly = TRUE))
 
-  mf <- model.frame(formula, data)
-  y <- model.response(mf)
-  x <- model.matrix(formula, data = mf)[, -1, drop = FALSE]  # remove intercept
+  design <- .survalis_design_fit(formula, data)
+  y <- design$y
+  x <- design$x
 
   y_time <- y[, "time"]
   y_event <- y[, "status"] == 1
@@ -74,7 +79,8 @@ fit_xgboost <- function(formula, data,
     xgboost::setinfo(dmat, "label_lower_bound", y_lower)
     xgboost::setinfo(dmat, "label_upper_bound", y_upper)
   } else if (objective == "survival:cox") {
-    xgboost::setinfo(dmat, "label", y_time)
+    # xgboost's Cox objective encodes right-censored times as negative labels
+    xgboost::setinfo(dmat, "label", ifelse(y_event, y_time, -y_time))
   } else {
     stop("Unsupported objective.")
   }
@@ -88,6 +94,13 @@ fit_xgboost <- function(formula, data,
     eta = eta,
     eval_metric = "cox-nloglik"
   )
+  if (objective == "survival:aft") {
+    # The AFT margin is log(time) and base_score is on the time scale; the
+    # xgboost default (0.5) starts every fit near log(0.5), far from the data.
+    # Start from the geometric mean observed time instead. For survival:cox
+    # base_score is a hazard ratio and xgboost's own estimate is kept.
+    params$base_score <- exp(mean(log(y_time)))
+  }
 
   model <- xgboost::xgb.train(
     params = params,
@@ -106,7 +119,13 @@ fit_xgboost <- function(formula, data,
     objective = objective,
     dist = aft_loss_distribution,
     scale = aft_loss_distribution_scale,
-    terms = terms(formula)
+    terms = design$terms,
+    design = design[c("terms", "xlevels", "x_contrasts", "x_cols")],
+    # for survival:cox, the training margin and outcome give the Breslow baseline
+    lp_train = if (objective == "survival:cox")
+      predict(model, newdata = x, outputmargin = TRUE) else NULL,
+    y_train = if (objective == "survival:cox")
+      survival::Surv(y_time, as.integer(y_event)) else NULL
   ), class = "mlsurv_model", engine = "xgboost")
 }
 
@@ -136,9 +155,9 @@ fit_xgboost <- function(formula, data,
 #'   \item Extreme (Gumbel): \eqn{S(t) = \exp\{-\exp(q)\}}
 #'   \item Logistic: \eqn{S(t) = 1/(1 + \exp(q))}
 #' }
-#' Note: If the model was trained with \code{objective = "survival:cox"}, survival
-#' probabilities are still computed using the supplied AFT distribution/scale
-#' stored in the object; interpret with caution.
+#' If the model was trained with \code{objective = "survival:cox"}, the margin
+#' is a log hazard ratio and survival curves use a Breslow baseline hazard
+#' estimated from the training margins.
 #'
 #' @seealso `fit_xgboost()`, `tune_xgboost()`
 #'
@@ -156,13 +175,18 @@ predict_xgboost <- function(object, newdata, times = NULL) {
   stopifnot(object$learner == "xgboost")
   stopifnot(requireNamespace("xgboost", quietly = TRUE))
 
-  mf <- model.frame(object$terms, newdata)
-  x_new <- model.matrix(object$terms, data = mf)[, -1, drop = FALSE]
+  x_new <- .survalis_design_new(object$design, newdata)
 
   preds <- predict(object$model, newdata = x_new, outputmargin = TRUE)
 
   if (is.null(times)) {
     return(preds)  # return linear predictor
+  }
+
+  if (identical(object$objective, "survival:cox")) {
+    # the margin is a log hazard ratio: pair it with a Breslow baseline
+    return(.predict_cox_from_lp(lp_train = object$lp_train, lp_new = preds,
+                                y_train = object$y_train, times = times))
   }
 
   log_times <- outer(rep(1, length(preds)), log(times))

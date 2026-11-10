@@ -45,6 +45,8 @@
 fit_selectcox <- function(formula, data, rule = "aic") {
   stopifnot(requireNamespace("pec", quietly = TRUE))
 
+  # expand `.` against `data` (the outcome columns are excluded)
+  formula <- stats::formula(stats::terms(formula, data = data))
   model <- pec::selectCox(formula = formula, data = data, rule = rule)
 
   structure(list(
@@ -52,7 +54,8 @@ fit_selectcox <- function(formula, data, rule = "aic") {
     learner = "selectcox",
     formula = formula,
     data = data,
-    rule = rule
+    rule = rule,
+    max_time = max(stats::model.response(stats::model.frame(formula, data))[, 1])
   ), class = "mlsurv_model", engine = "selectCox")
   }
 
@@ -75,6 +78,9 @@ fit_selectcox <- function(formula, data, rule = "aic") {
 #' @details
 #' Internally calls \code{pec::predictSurvProb(object$model, newdata, times)}
 #' and renames columns to the standard `t=...` convention used by `survalis`.
+#' Requested times beyond the last training time are evaluated at that time
+#' (survival carried forward), so the output keeps one column per requested
+#' time instead of \code{NA}.
 #'
 #' @seealso `fit_selectcox()`, `tune_selectcox()`
 #'
@@ -95,8 +101,17 @@ predict_selectcox <- function(object, newdata, times) {
 
   stopifnot(requireNamespace("pec", quietly = TRUE))
 
-  pred <- pec::predictSurvProb(object$model, newdata = newdata, times = times)
-  .finalize_survmat(as.matrix(pred), times = times)
+  # pec returns NA beyond the last training time; predict at the clamped times
+  # (survival is carried forward) and map back to one column per request.
+  max_time <- object$max_time
+  if (is.null(max_time)) {
+    max_time <- max(object$data[[all.vars(object$formula[[2]])[1]]], na.rm = TRUE)
+  }
+  eval_times <- pmin(as.numeric(times), max_time)
+  uniq <- sort(unique(eval_times))
+  pred <- as.matrix(pec::predictSurvProb(object$model, newdata = newdata, times = uniq))
+  pred <- pred[, match(eval_times, uniq), drop = FALSE]
+  .finalize_survmat(pred, times = times)
 
   }
 

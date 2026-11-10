@@ -59,13 +59,17 @@ fit_rsf <- function(formula, data,
     rf_formula[[2]] <- lhs
   }
 
-  model <- randomForestSRC::rfsrc(
-    formula = rf_formula,
-    data = data,
-    ntree = ntree,
-    mtry = mtry,
-    nodesize = nodesize,
-    ...
+  # rfsrc() draws its own seed when `seed` is NULL, so set.seed() would not
+  # control it. Draw a (negative, as rfsrc requires) seed from R's RNG instead.
+  dots <- list(...)
+  if (is.null(dots$seed)) {
+    dots$seed <- -sample.int(.Machine$integer.max, 1L)
+  }
+
+  model <- do.call(
+    randomForestSRC::rfsrc,
+    c(list(formula = rf_formula, data = data, ntree = ntree,
+           mtry = mtry, nodesize = nodesize), dots)
   )
 
   structure(list(
@@ -97,9 +101,9 @@ fit_rsf <- function(formula, data,
 #' numeric values in \[0, 1].
 #'
 #' @details
-#' If `times` is provided, the function aligns predictions by selecting, for each
-#' requested time, the closest available time from the RSF prediction object's
-#' `time.interest` grid (nearest-neighbor matching).
+#' If `times` is provided, the survival curve on the RSF prediction object's
+#' `time.interest` grid is read as a right-continuous step function at each
+#' requested time, with survival equal to 1 before the first grid time.
 #'
 #' @seealso `fit_rsf()`, \code{predict.rfsrc}
 #'
@@ -127,14 +131,14 @@ predict_rsf <- function(object, newdata, times = NULL, ...) {
   surv_mat <- pred$survival
   time_points <- pred$time.interest
 
-  # interpolation to align predictions to `times`
-  if (!is.null(times)) {
-    idx <- sapply(times, function(t) which.min(abs(time_points - t)))
-    survmat <- surv_mat[, idx, drop = FALSE]
-    .finalize_survmat(survmat, times = times)
-    } else {
-    .finalize_survmat(survmat, times = time_points)
-    }
+  if (is.null(dim(surv_mat))) surv_mat <- matrix(surv_mat, nrow = 1)
+
+  # step lookup on the rfsrc time grid, with S(t) = 1 before the first time
+  if (is.null(times)) times <- time_points
+  survmat <- .step_surv(surv_mat, time_points, times)
+  # rfsrc's multithreaded sums vary in the last bits between runs; round them
+  # away so tied predictions stay tied and rank metrics are reproducible
+  .finalize_survmat(round(survmat, 12), times = times)
 }
 
 

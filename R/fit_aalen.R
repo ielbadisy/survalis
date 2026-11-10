@@ -32,7 +32,12 @@
 fit_aalen <- function(formula, data, max.time = NULL, n.sim = 0, resample.iid = 1) {
   stopifnot(requireNamespace("timereg", quietly = TRUE))
 
+  # expand `.` against `data` (the outcome columns are excluded)
+  formula <- stats::formula(stats::terms(formula, data = data))
   time_status <- all.vars(formula[[2]]) # c(time, status)
+  # training factor levels, so predict_aalen() encodes newdata carrying only a
+  # subset of the levels (or character columns) with the training dummies
+  xlevels <- .aalen_xlevels(formula, data)
 
   # timereg::aalen() silently returns an all-zero fit when the design matrix is badly scaled
   # (for example a covariate near 1000 next to a 0/1 covariate): the predicted survival is then
@@ -55,8 +60,25 @@ fit_aalen <- function(formula, data, max.time = NULL, n.sim = 0, resample.iid = 
     data    = data,
     time    = time_status[1],
     status  = time_status[2],
-    scaling = scaling
+    scaling = scaling,
+    xlevels = xlevels
   ), class = "mlsurv_model")
+}
+
+.aalen_xlevels <- function(formula, data) {
+  vars <- intersect(all.vars(formula[[3]]), names(data))
+  xlev <- lapply(data[vars], function(v) {
+    if (is.factor(v)) levels(v) else if (is.character(v)) sort(unique(v[!is.na(v)])) else NULL
+  })
+  xlev[!vapply(xlev, is.null, logical(1))]
+}
+
+.aalen_relevel <- function(df, xlevels) {
+  df <- as.data.frame(df)
+  for (v in intersect(names(xlevels), names(df))) {
+    df[[v]] <- factor(as.character(df[[v]]), levels = xlevels[[v]])
+  }
+  df
 }
 
 .aalen_scaling <- function(formula, data, time_status) {
@@ -101,7 +123,7 @@ predict_aalen <- function(object, newdata, times) {
 
   pred <- timereg::predict.aalen(
     object$model,
-    newdata = .aalen_scale(newdata, object$scaling),
+    newdata = .aalen_scale(.aalen_relevel(newdata, object$xlevels), object$scaling),
     times   = times
   )
 

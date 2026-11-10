@@ -73,7 +73,8 @@ fit_ranger <- function(formula, data, ...) {
 #'
 #' @details
 #' Predictions are obtained from \code{predict.ranger} and
-#' survival curves are interpolated to match the requested \code{times}.
+#' survival curves are read as step functions at the requested \code{times},
+#' with survival equal to 1 before the first unique death time.
 #'
 #' @return A \code{data.frame} with one row per observation in \code{newdata}
 #' and one column per time point (columns named \code{"t=<time>"}).
@@ -108,14 +109,8 @@ predict_ranger <- function(object, newdata, times) {
   if (is.null(pred)) stop("Prediction returned NULL survival matrix.")
   if (is.null(dim(pred))) pred <- matrix(pred, nrow = 1)
 
-  survmat <- matrix(NA_real_, nrow = nrow(pred), ncol = length(times))
-  for (i in seq_len(nrow(pred))) {
-    y <- pred[i, ]
-    survmat[i, ] <- stats::approx(
-      x = model_times, y = y, xout = times,
-      method = "linear", rule = 2, ties = "ordered"
-    )$y
-  }
+  # step lookup on the unique death times, with S(t) = 1 before the first one
+  survmat <- .step_surv(pred, model_times, times)
 
   .finalize_survmat(survmat, times = times)
 }

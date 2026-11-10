@@ -90,6 +90,13 @@ predict_fastgbm <- function(object, newdata, times) {
     stop("predict_fastgbm() needs objective = 'pexp'; refit with fit_fastgbm(..., objective = 'pexp').")
   }
 
+  newdata <- as.data.frame(newdata)
+  parsed <- .parse_surv_formula(object$formula, object$data)
+  # The engine rebuilds the model frame from the formula, so the outcome columns
+  # must exist; add dummies when newdata carries predictors only.
+  for (col in c(parsed$time_col, parsed$status_col)) {
+    if (!col %in% names(newdata)) newdata[[col]] <- 1
+  }
   pred <- stats::predict(object$model, newdata = newdata, type = "survival", times = times)
   if (is.null(dim(pred))) pred <- matrix(pred, nrow = 1)
   .finalize_survmat(pred, times = times)

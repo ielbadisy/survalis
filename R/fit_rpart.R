@@ -80,8 +80,8 @@ fit_rpart <- function(formula, data,
 #' Predict Survival Probabilities from an `rpart` Survival Tree
 #'
 #' Predicts survival probabilities at specified time points from a fitted
-#' `rpart` survival tree model, assuming an exponential survival distribution
-#' within each terminal node.
+#' `rpart` survival tree model, using the Kaplan-Meier curve of the training
+#' observations in each terminal node.
 #'
 #' @param object An `"mlsurv_model"` object created by `fit_rpart()`.
 #' @param newdata A `data.frame` containing the predictor variables for prediction.
@@ -92,10 +92,10 @@ fit_rpart <- function(formula, data,
 #' per requested time point, containing predicted survival probabilities.
 #'
 #' @details
-#' Predictions are based on converting the predicted mean survival times from the
-#' survival tree into survival probabilities under an exponential assumption:
-#' \deqn{S(t) = \exp(-t / \hat{\mu})}
-#' where \eqn{\hat{\mu}} is the predicted mean survival time from the terminal node.
+#' Each new observation is dropped down the tree to its terminal node. The
+#' predicted survival curve is the Kaplan-Meier estimate computed from the
+#' training observations in that node, read as a step function with
+#' \eqn{S(t) = 1} before the first event time in the node.
 #'
 #' @examples
 #'
@@ -115,16 +115,37 @@ predict_rpart <- function(object, newdata, times, ...) {
   stopifnot(requireNamespace("partykit", quietly = TRUE))
 
   model_party <- partykit::as.party(object$model)
+  leaf_km <- .rpart_leaf_km(model_party)
 
-  # predict expected survival times from the tree
-  predicted_times <- stats::predict(model_party, newdata = newdata, type = "response")
+  # map each new observation to its terminal node
+  newdata <- as.data.frame(newdata)
+  nodes <- as.character(stats::predict(model_party, newdata = newdata, type = "node"))
 
-  # convert predicted survival times to survival probabilities using exponential assumption
-  survmat <- sapply(times, function(t) {
-    exp(-t / predicted_times)
-  })
+  # Kaplan-Meier curve of the training observations in each terminal node,
+  # read as a right-continuous step function with S(t) = 1 before the first
+  # event time
+  survmat <- matrix(NA_real_, nrow = nrow(newdata), ncol = length(times))
+  for (nd in unique(nodes)) {
+    km <- leaf_km[[nd]]
+    idx <- which(nodes == nd)
+    row <- .step_surv(matrix(km$surv, nrow = 1), km$time, times)
+    survmat[idx, ] <- matrix(row, nrow = length(idx), ncol = length(times),
+                             byrow = TRUE)
+  }
 
   .finalize_survmat(survmat, times = times)
+}
+
+# Per-terminal-node Kaplan-Meier curves from the training data of a party tree
+.rpart_leaf_km <- function(model_party) {
+  fitted_nodes <- model_party$fitted[["(fitted)"]]
+  y <- model_party$fitted[["(response)"]]
+  y <- as.matrix(y)
+  split_idx <- split(seq_along(fitted_nodes), fitted_nodes)
+  lapply(split_idx, function(i) {
+    km <- survival::survfit(survival::Surv(y[i, 1], y[i, 2]) ~ 1)
+    list(time = km$time, surv = km$surv)
+  })
 }
 
 #' Tune a Survival Tree Model (`rpart`) via Cross-Validation

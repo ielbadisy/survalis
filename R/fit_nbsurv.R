@@ -77,6 +77,19 @@ predict_nbsurv <- function(object, newdata, times) {
   }
   stopifnot(requireNamespace("nbsurv", quietly = TRUE))
 
-  pred <- stats::predict(object$model, newdata = newdata, times = times, type = "survival")
+  newdata <- as.data.frame(newdata)
+  # nbsurv's batch predict recycles dnorm() arguments across rows and gives
+  # wrong results for multi-row newdata, so predict one row at a time.
+  # The engine returns columns in sorted time order whatever the input order,
+  # so query sorted unique times and map back to the requested order.
+  utimes <- sort(unique(as.numeric(times)))
+  map <- match(as.numeric(times), utimes)
+  rows <- lapply(seq_len(nrow(newdata)), function(i) {
+    p <- stats::predict(object$model, newdata = newdata[i, , drop = FALSE],
+                        times = utimes, type = "survival")
+    as.numeric(as.matrix(p)[1, ])[map]
+  })
+  pred <- do.call(rbind, rows)
+  if (is.null(pred)) pred <- matrix(numeric(0), nrow = 0, ncol = length(times))
   .finalize_survmat(pred, times = times)
 }

@@ -1,17 +1,18 @@
 #' Fit a Bayesian Additive Regression Trees (BART) Survival Model
 #'
-#' Fits a right‐censored survival model using \pkg{BART}'s
+#' Fits a right-censored survival model using \pkg{BART}'s
 #' \code{\link[BART]{surv.bart}} and returns an `mlsurv_model` compatible with
 #' the \pkg{survalis} pipeline.
 #'
 #' @param formula A survival formula of the form \code{Surv(time, status) ~ predictors}.
-#'   Only right‐censored responses are supported.
+#'   Only right-censored responses are supported.
 #' @param data A \code{data.frame} containing variables referenced in \code{formula}.
-#' @param K Integer; number of internal time grid intervals used by the BART
-#'   survival engine (default \code{3}). Larger values yield a finer internal
-#'   evaluation grid.
-#' @param ... Further args to BART::surv.bart
-
+#' @param K Integer; number of internal time grid points (quantiles of the
+#'   observed times) used by the BART survival engine (default \code{10}).
+#'   Larger values yield a finer internal evaluation grid at a higher cost.
+#' @param ... Further arguments passed to \code{BART::surv.bart}, such as
+#'   \code{ntree}, \code{ndpost}, \code{nskip}, \code{mc.cores} or
+#'   \code{seed}.
 #'
 #' @details
 #' The response must be of class \code{Surv(..., type = "right")}. The fitted
@@ -44,7 +45,7 @@
 #' @noRd
 
 
-fit_bart <- function(formula, data, K = 3, ...) {
+fit_bart <- function(formula, data, K = 10, ...) {
 
   stopifnot(requireNamespace("BART", quietly = TRUE))
 
@@ -65,12 +66,14 @@ fit_bart <- function(formula, data, K = 3, ...) {
   # silence verbose output
   invisible(
     capture.output({
-      bart_fit <- BART::surv.bart(
-        x.train = x,
-        times = time_vec,
-        delta = status_vec,
-        K = K,
-        printevery = 1
+      engine_args <- utils::modifyList(
+        list(printevery = 1000L),
+        list(...)
+      )
+      bart_fit <- do.call(
+        BART::surv.bart,
+        c(list(x.train = x, times = time_vec, delta = status_vec, K = K),
+          engine_args)
       )
     })
   )
@@ -106,8 +109,9 @@ fit_bart <- function(formula, data, K = 3, ...) {
 #'
 #' @details
 #' The BART engine predicts survival on its internal grid \code{object$eval_times}.
-#' Requested \code{times} are aligned to that grid by nearest‐neighbor matching,
-#' returning one survival estimate per requested time.
+#' The curve is read as a right-continuous step function at the requested
+#' \code{times}, with survival equal to 1 before the first grid time and held
+#' constant beyond the last.
 #'
 #' @return A base \code{data.frame} with one row per observation in \code{newdata}
 #' and columns named \code{"t=<time>"} (character), containing survival
@@ -198,16 +202,14 @@ predict_bart <- function(object, newdata, times) {
     stop("Unexpected prediction shape returned by BART.")
   }
 
-  # align internal BART times to requested times via nearest neighbor match
-  mapped_times <- sapply(times, function(t) which.min(abs(eval_times - t)))
-  survmat <- prob_matrix[, mapped_times, drop = FALSE]
+  # step lookup on the BART time grid, with S(t) = 1 before the first time
+  survmat <- .step_surv(prob_matrix, eval_times, times)
   .finalize_survmat(survmat, times = times)
-
 }
 
 #' Tune BART Survival Hyperparameters (Cross-Validation)
 #'
-#' Cross-validates BART survival models over a user‐supplied grid and selects the
+#' Cross-validates BART survival models over a user-supplied grid and selects the
 #' best configuration by the primary metric. Optionally refits the best model on
 #' the full dataset.
 #'
@@ -218,7 +220,7 @@ predict_bart <- function(object, newdata, times) {
 #'   hyperparameters (e.g., \code{K}, \code{ntree}, \code{power}, \code{base}).
 #' @param metrics Character vector of evaluation metrics (default \code{c("cindex","ibs")}).
 #'   The first entry is used as the primary selection metric.
-#' @param folds Integer; number of cross‐validation folds (default \code{5}).
+#' @param folds Integer; number of cross-validation folds (default \code{5}).
 #' @param seed Integer random seed for reproducibility (default \code{123}).
 #' @param ncores Integer number of CPU cores passed to \code{cv_survlearner}
 #'   for fold evaluation (default \code{1}).

@@ -34,3 +34,17 @@ test_that("predict_fastgbm() rejects a non-pexp objective", {
   mod <- fit_fastgbm(Surv(time, status) ~ age, veteran, objective = "cox", ntrees = 20)
   expect_error(predict_fastgbm(mod, veteran[1:2, ], times = 90), "objective = 'pexp'")
 })
+
+test_that("predict_fastgbm() works without outcome columns and for one row", {
+  testthat::skip_on_cran()
+  testthat::skip_if_not_installed("fastgbm")
+
+  mod <- fit_fastgbm(Surv(time, status) ~ age + karno + trt, veteran, ntrees = 30)
+  tt <- c(200, 10, 100)
+  b <- as.matrix(predict_fastgbm(mod, veteran, times = tt))
+  expect_identical(colnames(b), paste0("t=", tt))
+  nd <- veteran[1:5, c("age", "karno", "trt")]
+  expect_equal(unname(as.matrix(predict_fastgbm(mod, nd, times = tt))), unname(b[1:5, ]))
+  one <- as.matrix(predict_fastgbm(mod, nd[1, , drop = FALSE], times = tt))
+  expect_equal(unname(one[1, ]), unname(b[1, ]))
+})

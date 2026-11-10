@@ -64,7 +64,8 @@ test_that("predict_bart() returns well-formed survival probabilities and a prope
   )
 
   A <- as.matrix(pred_align)
-  expect_true(max(abs(A[, 1] - A[, 2]), na.rm = TRUE) < 1e-6)
+  # step lookup: S(t) = 1 before the first grid time, constant beyond the last
+  expect_true(all(abs(A[, 1] - 1) < 1e-12))
   expect_true(max(abs(A[, 3] - A[, 4]), na.rm = TRUE) < 1e-6)
   expect_true(max(abs(A[, 5] - A[, 6]), na.rm = TRUE) < 1e-6)
 

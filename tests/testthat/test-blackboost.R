@@ -46,3 +46,23 @@ test_that("tune_blackboost() returns a minimal grid with metrics and refit_best 
   expect_identical(best_mod$learner, "blackboost")
   expect_true(inherits(best_mod$model, "mboost"))
 })
+
+test_that("predict_blackboost() handles one row, no outcome columns and unsorted times", {
+  skip_on_cran()
+  skip_if_not_installed("mboost")
+  skip_if_not_installed("partykit")
+
+  df <- survival::veteran
+  mod <- fit_blackboost(Surv(time, status) ~ age + karno + trt, data = df)
+  tt <- c(200, 10, 100, 5000)
+  b <- as.matrix(predict_blackboost(mod, df, times = tt))
+  expect_identical(colnames(b), paste0("t=", tt))
+  one <- as.matrix(predict_blackboost(mod, df[1, ], times = tt))
+  expect_equal(dim(one), c(1L, 4L))
+  expect_equal(unname(one[1, ]), unname(b[1, ]))
+  nd <- df[1:5, c("age", "karno", "trt")]
+  expect_equal(unname(as.matrix(predict_blackboost(mod, nd, times = tt))), unname(b[1:5, ]))
+  # beyond the last event time survival is carried forward per observation
+  far <- as.matrix(predict_blackboost(mod, df[1:3, ], times = c(999, 5000)))
+  expect_equal(far[, 1], far[, 2])
+})

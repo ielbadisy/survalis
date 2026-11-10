@@ -108,10 +108,9 @@ fit_blackboost <- function(formula, data, weights = NULL, mstop = 100, nu = 0.1,
 #'
 #' @details
 #' Predictions use \code{mboost::survFit()} to obtain a step function
-#' \(S(t)\) per observation. If any requested \code{times} exceed the model's
-#' maximum time, the last survival value is carried forward (right-constant).
-#' Values are then matched to \code{times} using stepwise (piecewise-constant)
-#' interpolation.
+#' \(S(t)\) per observation, evaluated at \code{times} as a step function
+#' (survival 1 before the first event time, last value carried forward beyond
+#' the last one).
 #'
 #' @return A base `data.frame` with one row per observation in \code{newdata} and
 #' columns named \code{"t=<time>"} (character), containing survival probabilities
@@ -132,35 +131,16 @@ predict_blackboost <- function(object, newdata, times, ...) {
 
   stopifnot(requireNamespace("mboost", quietly = TRUE))
 
-  surv_fit <- mboost::survFit(object$model, newdata = newdata)
+  newdata <- as.data.frame(newdata)
+  n_new <- nrow(newdata)
+  # mboost::survFit() fails on a single row: duplicate it and keep the first result.
+  nd <- if (n_new == 1L) newdata[c(1L, 1L), , drop = FALSE] else newdata
+  surv_fit <- mboost::survFit(object$model, newdata = nd)
 
-  sf_time <- surv_fit$time
-  sf_surv <- surv_fit$surv  # rows = time, cols = obs
-
-  # if max(eval times) > max(sf_time), pad with last survival value
-  if (max(times) > max(sf_time)) {
-    last_time <- max(sf_time)
-    extra_times <- sort(setdiff(times, sf_time))
-    extra_times <- extra_times[extra_times > last_time]
-
-    if (length(extra_times) > 0) {
-      pad_vals <- matrix(
-        rep(tail(sf_surv, 1), each = length(extra_times)),
-        nrow = length(extra_times), byrow = TRUE
-      )
-      sf_time <- c(sf_time, extra_times)
-      sf_surv <- rbind(sf_surv, pad_vals)
-    }
-  }
-
-  # add boundaries to support interpolation
-  sf_time_ext <- c(-Inf, sf_time)
-  sf_surv_ext <- rbind(1, sf_surv)
-
-  # interpolate at requested times (constant survival interpolation)
-  idx <- findInterval(times, sf_time_ext)
-  survmat <- sf_surv_ext[idx, , drop = FALSE]
-  survmat <- t(survmat)
+  # surv_fit$surv: rows = time, cols = obs. Step lookup with S = 1 before the first
+  # grid time and right-constant beyond the last one.
+  S <- t(as.matrix(surv_fit$surv))
+  survmat <- .step_surv(S, surv_fit$time, times)[seq_len(n_new), , drop = FALSE]
   .finalize_survmat(survmat, times = times)
 }
 

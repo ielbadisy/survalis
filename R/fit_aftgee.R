@@ -44,6 +44,10 @@
 fit_aftgee <- function(formula, data, corstr = "independence") {
   stopifnot(requireNamespace("aftgee", quietly = TRUE))
 
+  # expand `.` and record the training encoding (terms, factor levels,
+  # contrasts, columns) so predict_aftgee() rebuilds the same design matrix
+  design <- .survalis_design_fit(formula, data, intercept = TRUE)
+  formula <- design$formula
 
   model <- aftgee::aftgee(
     formula = formula,
@@ -56,7 +60,8 @@ fit_aftgee <- function(formula, data, corstr = "independence") {
     model = model,
     learner = "aftgee",
     formula = formula,
-    data = data
+    data = data,
+    design = design[c("terms", "xlevels", "x_contrasts", "x_cols")]
   ), class = "mlsurv_model", engine = "aftgee")
 }
 
@@ -100,7 +105,14 @@ predict_aftgee <- function(object, newdata, times = NULL) {
   stopifnot(requireNamespace("aftgee", quietly = TRUE))
 
   beta <- object$model$coef.res
-  X <- model.matrix(delete.response(terms(object$formula)), newdata)
+  if (!is.null(object$design)) {
+    X <- .survalis_design_new(object$design, newdata)
+    if (!is.null(names(beta)) && all(names(beta) %in% colnames(X))) {
+      X <- X[, names(beta), drop = FALSE]
+    }
+  } else {
+    X <- model.matrix(delete.response(terms(object$formula)), newdata)
+  }
   log_time_pred <- as.numeric(X %*% beta)
 
   if (is.null(times)) {

@@ -40,8 +40,9 @@
 fit_glmnet <- function(formula, data, alpha = 1, ...) {
   stopifnot(requireNamespace("glmnet", quietly = TRUE))
 
-  x <- .glmnet_pad(model.matrix(formula, data = data)[, -1, drop = FALSE])
-  y <- survival::Surv(data[[all.vars(formula)[1]]], data[[all.vars(formula)[2]]])
+  design <- .survalis_design_fit(formula, data)
+  x <- .glmnet_pad(design$x)
+  y <- design$y
 
   dots <- list(...)
   # glmnet >= 5.0 warns on every Cox fit unless the tie method is given; keep
@@ -57,8 +58,11 @@ fit_glmnet <- function(formula, data, alpha = 1, ...) {
     learner = "glmnet",
     formula = formula,
     data = data,
+    x_train = x,
+    y_train = y,
     time = all.vars(formula)[1],
-    status = all.vars(formula)[2]
+    status = all.vars(formula)[2],
+    design = design[c("terms", "xlevels", "x_contrasts", "x_cols")]
   ), class = "mlsurv_model", engine = "glmnet")
 }
 
@@ -116,9 +120,9 @@ predict_glmnet <- function(object, newdata, times, ...) {
 
   stopifnot(requireNamespace("glmnet", quietly = TRUE))
 
-  x_new   <- .glmnet_pad(model.matrix(object$formula, newdata)[, -1, drop = FALSE])
-  x_train <- .glmnet_pad(model.matrix(object$formula, object$data)[, -1, drop = FALSE])
-  y_train <- survival::Surv(object$data[[object$time]], object$data[[object$status]])
+  x_new   <- .glmnet_pad(.survalis_design_new(object$design, newdata))
+  x_train <- object$x_train
+  y_train <- object$y_train
 
   # predict linear predictors
   lp_train <- predict(object$model, newx = x_train, s = "lambda.min", type = "link")[, 1]
@@ -241,4 +245,43 @@ tune_glmnet <- function(formula, data, times,
 # predictor is padded with a constant zero column, which glmnet ignores.
 .glmnet_pad <- function(x) {
   if (ncol(x) < 2L) cbind(x, .pad = 0) else x
+}
+
+# Shared design-matrix helpers for matrix-based learners (glmnet, coxboost,
+# xgboost, aftgee). `.survalis_design_fit()` expands a `.` in the formula
+# against `data`, builds the training design matrix (no intercept) and records
+# the response-free terms, factor levels and contrasts. `.survalis_design_new()`
+# rebuilds the design matrix for any `newdata` with that same encoding, so
+# newdata carrying a subset of the training levels (one row, a CV test fold,
+# a character column) or no outcome columns still yields the training columns
+# in the training order.
+.survalis_design_fit <- function(formula, data, intercept = FALSE) {
+  tt <- stats::terms(formula, data = data)
+  mf <- stats::model.frame(tt, data)
+  x <- stats::model.matrix(tt, mf)
+  x_contrasts <- attr(x, "contrasts")
+  if (!intercept) {
+    x <- x[, colnames(x) != "(Intercept)", drop = FALSE]
+  }
+  list(
+    x = x,
+    y = stats::model.response(mf),
+    formula = stats::formula(tt),
+    terms = stats::delete.response(tt),
+    xlevels = stats::.getXlevels(tt, mf),
+    x_contrasts = x_contrasts,
+    x_cols = colnames(x)
+  )
+}
+
+.survalis_design_new <- function(spec, newdata) {
+  mf <- stats::model.frame(spec$terms, newdata, xlev = spec$xlevels,
+                           na.action = stats::na.pass)
+  x <- stats::model.matrix(spec$terms, mf, contrasts.arg = spec$x_contrasts)
+  missing_cols <- setdiff(spec$x_cols, colnames(x))
+  if (length(missing_cols)) {
+    x <- cbind(x, matrix(0, nrow(x), length(missing_cols),
+                         dimnames = list(NULL, missing_cols)))
+  }
+  x[, spec$x_cols, drop = FALSE]
 }

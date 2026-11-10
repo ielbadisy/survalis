@@ -24,12 +24,15 @@
 #'   \item{learner}{\code{"coxboost"}.}
 #'   \item{formula, data}{Original inputs.}
 #'   \item{time, status}{Names of the survival time and event variables.}
-#'   \item{terms}{Preserved \code{terms} for consistent prediction design matrices.}
+#'   \item{terms}{Response-free \code{terms} (with any \code{.} expanded).}
+#'   \item{design}{Training terms, factor levels, contrasts and design columns,
+#'     reused so prediction uses the exact same encoding as training.}
 #' }
 #'
 #' @details
 #' Design contract: returns a named list with engine metadata and preserves
-#' \code{terms(formula)} so prediction uses the exact same encoding as training.
+#' the training design encoding, so \code{newdata} with a subset of factor
+#' levels or without the outcome columns is encoded identically.
 #'
 #' @seealso `predict_coxboost()`, `tune_coxboost()`
 #'
@@ -52,9 +55,9 @@ fit_coxboost <- function(formula, data,
                          stepsize.factor = 1) {
   stopifnot(requireNamespace("CoxBoost", quietly = TRUE))
 
-  mf <- model.frame(formula, data)
-  y <- model.response(mf)
-  x <- model.matrix(formula, data = mf)[, -1, drop = FALSE]  # remove intercept
+  design <- .survalis_design_fit(formula, data)
+  y <- design$y
+  x <- design$x
 
   y_time <- y[, "time"]
   y_status <- as.integer(y[, "status"] == 1)
@@ -80,7 +83,8 @@ fit_coxboost <- function(formula, data,
     data = data,
     time = all.vars(formula)[1],
     status = all.vars(formula)[2],
-    terms = terms(formula)
+    terms = design$terms,
+    design = design[c("terms", "xlevels", "x_contrasts", "x_cols")]
   ), class = "mlsurv_model", engine = "coxboost")
 }
 
@@ -118,8 +122,7 @@ predict_coxboost <- function(object, newdata, times = NULL) {
   stopifnot(object$learner == "coxboost")
   stopifnot(requireNamespace("CoxBoost", quietly = TRUE))
 
-  mf <- model.frame(object$terms, newdata)
-  x_new <- model.matrix(object$terms, data = mf)[, -1, drop = FALSE]
+  x_new <- .survalis_design_new(object$design, newdata)
 
   if (is.null(times)) {
     lp <- predict(object$model, newdata = x_new, type = "lp")

@@ -96,7 +96,8 @@ fit_cforest <- function(formula, data,
 #'   in `newdata` and one column per requested time point (named `"t=<time>"`).
 #'
 #' @details Survival curves are extracted from the fitted `cforest` model and
-#'   linearly interpolated to the requested time points.
+#'   read as step functions at the requested time points, with survival equal
+#'   to 1 before the first time in each curve.
 #'
 #' @examplesIf requireNamespace("party", quietly = TRUE)
 #' mod <- fit_cforest(Surv(time, status) ~ age + celltype + karno, data = veteran)
@@ -124,7 +125,7 @@ predict_cforest <- function(object, newdata, times, ...) {
     predict(object$model, newdata = newdata, type = "prob")
   )
 
-  # interpolate at requested times
+  # read each curve at the requested times
   survmat <- .rows_by_times(sapply(survlist, function(sfit) {
     s_time <- sfit$time
     s_surv <- sfit$surv
@@ -133,7 +134,8 @@ predict_cforest <- function(object, newdata, times, ...) {
       return(rep(NA, length(times)))
     }
 
-    approx(x = s_time, y = s_surv, xout = times, method = "linear", rule = 2)$y
+    # Kaplan-Meier step lookup, with S(t) = 1 before the first time
+    as.numeric(.step_surv(matrix(s_surv, nrow = 1), s_time, times))
   }))
 
   .finalize_survmat(survmat, times = times)

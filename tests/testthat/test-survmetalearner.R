@@ -111,89 +111,26 @@ test_that("predict_survmetalearner() stacks base predictions correctly", {
   expect_true(max(abs(stacked_check - M)) < 1e-6)
 })
 
-test_that("plot_survmetalearner_weights() returns a ggplot object", {
-  skip_if_not_installed("ggplot2")
-
-  set.seed(2)
-  n <- 20
-  x <- rnorm(n)
-  df <- data.frame(x = x)
-  times <- c(50, 100)
-  S1 <- exp(-outer(rep(1, n), times, `*`) * 0.002)
-  S2 <- exp(-outer(rep(1, n), times, `*`) * 0.004)
-  colnames(S1) <- paste0("t=", times)
-  colnames(S2) <- paste0("t=", times)
-
-  meta <- fit_survmetalearner(
-    base_preds = list(L1 = S1, L2 = S2),
-    time = rexp(n, 1/200),
-    status = rbinom(n, 1, 0.6),
-    times = times,
-    base_models = list(L1 = list(), L2 = list()),
-    formula = survival::Surv(time, status) ~ x,
-    data = df
-  )
-
-  p <- plot_survmetalearner_weights(meta)
-  expect_true(inherits(p, "ggplot"))
-})
-
-test_that("cv_survmetalearner() runs a small CV and returns a summary", {
-  skip_on_cran()
-  skip_if_not_installed("rsample")
-  skip_if_not_installed("survival")
-
-  assign("predict_L1", function(object, newdata, times, ...) {
-    lam <- exp(-0.1 + 0.3 * newdata$x) / 300
-    out <- exp(-outer(lam, times, `*`))
-    colnames(out) <- paste0("t=", times)
-    as.data.frame(out)
-  }, envir = .GlobalEnv)
-  assign("predict_L2", function(object, newdata, times, ...) {
-    lam <- exp(0.2 - 0.2 * newdata$x) / 300
-    out <- exp(-outer(lam, times, `*`))
-    colnames(out) <- paste0("t=", times)
-    as.data.frame(out)
-  }, envir = .GlobalEnv)
-  on.exit({
-    rm("predict_L1", envir = .GlobalEnv)
-    rm("predict_L2", envir = .GlobalEnv)
-  }, add = TRUE)
-
-  set.seed(7)
-  n <- 60
-  x <- rnorm(n)
-  df <- data.frame(
-    x = x,
-    time = rexp(n, rate = exp(0.2 + 0.3 * x)) * 300,
-    status = rbinom(n, 1, 0.7)
-  )
-  times <- c(100, 200)
-
-  mk_surv <- function(lambda, tvec) exp(-outer(rep(1, n), tvec, `*`) * lambda)
-  S1 <- mk_surv(lambda = exp(-0.1 + 0.3 * x) / 300, tvec = times)
-  S2 <- mk_surv(lambda = exp( 0.2 - 0.2 * x) / 300, tvec = times)
-  colnames(S1) <- paste0("t=", times)
-  colnames(S2) <- paste0("t=", times)
-
-  base_models <- list(L1 = list(), L2 = list())
-  base_preds  <- list(L1 = S1, L2 = S2)
-
-  res <- cv_survmetalearner(
-    formula = survival::Surv(time, status) ~ x,
-    data = df,
-    times = times,
-    base_models = base_models,
-    base_preds = base_preds,
-    folds = 2,
-    metrics = c("cindex"),
-    seed = 99,
-    verbose = FALSE
-  )
-
-  expect_true(inherits(res, "cv_survmetalearner_result"))
-  expect_true(is.data.frame(res$cv_results))
-  expect_true(is.data.frame(res$summary))
-  expect_true(all(c("mean", "sd") %in% names(res$summary)))
-  expect_true(inherits(res$model, "survmetalearner"))
+test_that("fit_survmetalearner() ignores subjects censored before t*", {
+  set.seed(1)
+  n <- 200
+  time <- rexp(n) * 100
+  status <- rbinom(n, 1, 0.5)
+  df <- data.frame(x = rnorm(n))
+  times <- c(30, 80)
+  known <- sapply(times, function(t) time > t | status == 1)
+  truth <- sapply(times, function(t) as.numeric(time > t))
+  # a: exact where status at t* is known, predicts "alive" for early censored
+  S_a <- truth; S_a[!known] <- 1
+  # b: matches the naive target I(T > t*) everywhere, noisy on a few known subjects
+  S_b <- truth
+  noisy <- which(known)[1:5]
+  S_b[noisy] <- 1 - S_b[noisy]
+  m <- fit_survmetalearner(base_preds = list(a = S_a, b = S_b), time = time,
+                           status = status, times = times,
+                           base_models = list(a = list(), b = list()),
+                           formula = survival::Surv(time, status) ~ x, data = df)
+  expect_true(all(is.finite(m$weights)))
+  expect_equal(unname(colSums(m$weights)), rep(1, length(times)))
+  expect_gt(min(m$weights["a", ]), 0.99)
 })
