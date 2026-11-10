@@ -45,7 +45,6 @@ jobs:
           extra-packages: |
             any::rcmdcheck
             any::functionals
-            github::ielbadisy/fastgbm
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
