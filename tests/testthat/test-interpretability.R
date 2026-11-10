@@ -115,7 +115,8 @@ test_that("interpretability helpers satisfy core numeric invariants", {
   ale <- compute_ale(mod, df, feature = "age", times = times, grid.size = 5)
   ale_mat <- as.matrix(ale$ale[, -1, drop = FALSE])
   expect_true(all(is.finite(ale_mat)))
-  expect_true(all(abs(colMeans(ale_mat)) < 1e-8))
+  # a Cox model is monotone in age, so its ALE curve is monotone too
+  expect_true(all(apply(ale_mat, 2, function(v) all(diff(v) >= -1e-12) || all(diff(v) <= 1e-12))))
 
   surrogate_pen <- compute_surrogate(
     mod, df[1, , drop = FALSE], df,

@@ -72,9 +72,7 @@ compute_tree_surrogate <- function(model, data, times, minsplit = 10, cp = 0.01)
       y <- preds[[col_match]]
     }
 
-    # Exclude common survival columns
-    exclude_vars <- c("time", "status", "event")
-    covariates <- setdiff(names(data), exclude_vars)
+    covariates <- .model_features(model, names(data))
     dat <- cbind(data[, covariates, drop = FALSE], surv_prob = y)
 
     # Fit surrogate tree

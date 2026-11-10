@@ -67,20 +67,30 @@ compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
   n_times <- length(times)
   ale_mat <- matrix(0, nrow = K + 1, ncol = n_times)
 
-  for (i in seq_len(K)) {
-    data_lower <- newdata
-    data_upper <- newdata
-    data_lower[[feature]] <- grid[i]
-    data_upper[[feature]] <- grid[i + 1]
+  if (K < 1L) stop("`", feature, "` has a single value; ALE needs at least two.",
+                   call. = FALSE)
 
-    pred_lower <- predict_function(model, data_lower, times = times)
-    pred_upper <- predict_function(model, data_upper, times = times)
+  # Apley and Zhu (2020): move only the observations that fall in bin i from
+  # its lower to its upper edge, average those local differences, accumulate
+  # over bins, and centre so the effect averages to zero over the data.
+  x <- newdata[[feature]]
+  keep <- !is.na(x)
+  bin <- cut(x[keep], breaks = grid, include.lowest = TRUE, labels = FALSE)
+  rows <- which(keep)
+  lo <- newdata[rows, , drop = FALSE]
+  hi <- lo
+  lo[[feature]] <- grid[bin]
+  hi[[feature]] <- grid[bin + 1L]
+  diffs <- as.matrix(predict_function(model, hi, times = times)) -
+    as.matrix(predict_function(model, lo, times = times))
+  nk <- tabulate(bin, K)
+  local <- rowsum(diffs, factor(bin, levels = seq_len(K))) / pmax(nk, 1L)
+  ale_mat <- rbind(0, matrix(apply(local, 2L, cumsum), nrow = K, ncol = n_times))
+  # centre with the bin-count weights, using the mid-bin value of each bin
+  mids <- (ale_mat[-1, , drop = FALSE] + ale_mat[-(K + 1L), , drop = FALSE]) / 2
+  ale_mat_centered <- sweep(ale_mat, 2L, colSums(nk * mids) / sum(nk))
+  dimnames(ale_mat_centered) <- NULL
 
-    delta <- colMeans(pred_upper - pred_lower, na.rm = TRUE)
-    ale_mat[i + 1, ] <- ale_mat[i, ] + delta
-  }
-
-  ale_mat_centered <- scale(ale_mat, scale = FALSE)
   ale_df <- data.frame(feature_value = grid, ale_mat_centered)
   colnames(ale_df)[-1] <- paste0("t=", times)
 

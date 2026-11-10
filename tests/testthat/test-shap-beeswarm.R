@@ -7,7 +7,8 @@ test_that("compute_shap_matrix returns one time-integrated phi per observation/f
                             times = c(50, 100, 200), sample.size = 5)
 
   expect_true(all(c("observation", "feature", "phi", "raw_value") %in% colnames(sm)))
-  expect_equal(nrow(sm), 6 * length(setdiff(colnames(veteran[1:6, ]), c("time", "status", "event"))))
+  # one row per observation and model predictor (age, karno, diagtime)
+  expect_equal(nrow(sm), 6 * 3)
   expect_true(all(is.finite(sm$phi)))
 })
 

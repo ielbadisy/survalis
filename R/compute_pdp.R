@@ -204,8 +204,9 @@ plot_pdp <- function(pdp_ice_output, feature,
 
     ice_data <- results[results$type == "ice", , drop = FALSE]
     ice_integrated <- basetable::applyby(ice_data, by = c(".id", feature), bind = TRUE, fun = function(d) {
+      d <- d[order(d$time), , drop = FALSE]
       out <- d[1, c(".id", feature), drop = FALSE]
-      out$integrated_surv <- sum((head(d$surv_prob, -1) + tail(d$surv_prob, -1)) / 2 * diff(head(d$time, -1)))
+      out$integrated_surv <- sum((head(d$surv_prob, -1) + tail(d$surv_prob, -1)) / 2 * diff(d$time))
       out$time_n <- nrow(d)
       out
     })

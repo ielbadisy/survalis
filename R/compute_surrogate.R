@@ -89,11 +89,11 @@ compute_surrogate <- function(model, newdata, baseline_data,
   requireNamespace("gower")
 
   # exclude time/status and user-specified vars
-  response_vars <- all.vars(model$formula)[1:2]
-  exclude_vars <- unique(c(response_vars, exclude))
-  features <- setdiff(colnames(baseline_data), exclude_vars)
+  features <- setdiff(.model_features(model, colnames(baseline_data)), exclude)
 
-  idx_time <- which.min(abs(times - target_time))
+  # predict at the target time itself, not at the nearest requested time
+  times <- sort(unique(c(times, target_time)))
+  idx_time <- match(target_time, times)
 
   # predict survival probs at target time
   baseline_preds <- predict_function(model, baseline_data, times = times)

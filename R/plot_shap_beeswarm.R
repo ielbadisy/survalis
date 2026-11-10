@@ -1,8 +1,7 @@
 #' Time-Integrated SHAP Values for a Set of Observations
 #'
 #' Computes \code{compute_shap} for every row of \code{newdata} and,
-#' instead of averaging across observations (as the internal
-#' \code{compute_shap_mean()} helper does), keeps one time-integrated SHAP
+#' instead of averaging across observations, keeps one time-integrated SHAP
 #' value per (observation, feature) pair together with each observation's raw
 #' feature value -- the input needed for \code{plot_shap_beeswarm}.
 #'
@@ -54,7 +53,7 @@
 compute_shap_matrix <- function(model, newdata, baseline_data, times, sample.size = 100, features = NULL) {
   stopifnot(nrow(newdata) >= 1)
   feature_names <- if (is.null(features)) {
-    setdiff(colnames(newdata), c(model$time, model$status))
+    .model_features(model, colnames(newdata))
   } else {
     features
   }
@@ -74,7 +73,8 @@ compute_shap_matrix <- function(model, newdata, baseline_data, times, sample.siz
       observation = i,
       feature = phi_df$feature,
       phi = phi_df$phi,
-      raw_value = suppressWarnings(as.numeric(newdata[i, phi_df$feature])),
+      raw_value = vapply(phi_df$feature, function(f)
+        suppressWarnings(as.numeric(newdata[[f]][i])), numeric(1), USE.NAMES = FALSE),
       stringsAsFactors = FALSE
     )
   })

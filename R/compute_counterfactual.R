@@ -69,7 +69,7 @@ compute_counterfactual <- function(model, newdata, times, target_time,
     }
   }
 
-  feature_names <- setdiff(colnames(newdata), c(model$time, model$status))
+  feature_names <- .model_features(model, colnames(newdata))
 
   if (!is.null(features_to_change)) {
     feature_names <- intersect(feature_names, features_to_change)
@@ -79,7 +79,9 @@ compute_counterfactual <- function(model, newdata, times, target_time,
     stop("No valid features to change.")
   }
 
-  idx_time <- which.min(abs(times - target_time))
+  # predict at the target time itself, not at the nearest requested time
+  times <- sort(unique(c(times, target_time)))
+  idx_time <- match(target_time, times)
 
   surv_orig <- pred_fun(model, newdata, times = times)
   if (is.null(dim(surv_orig))) surv_orig <- matrix(surv_orig, nrow = 1)

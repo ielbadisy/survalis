@@ -60,12 +60,12 @@ interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..
   entry <- disp[[method]]
 
   if (is.null(data)) data <- fit$data
+  data <- .complete_cases_df(data, all.vars(fit$formula))
   if (is.null(newdata)) newdata <- data
 
   parsed <- attr(fit, "surv_parsed")
   if (is.null(parsed)) parsed <- .parse_surv_formula(fit$formula, fit$data)
-  status <- fit$data[[parsed$status_col]]
-  status <- if (isTRUE(parsed$recode_status)) as.integer(status == parsed$event_value) else as.integer(status != 0)
+  status <- .recode_status_vec(parsed, fit$data)
   times <- .resolve_times(times, fit$data[[parsed$time_col]], status)
 
   dots <- list(...)
@@ -86,6 +86,13 @@ interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..
       stop("interpret(method = \"", method, "\") requires `", nm, "`.", call. = FALSE)
     }
     dots[[nm]]
+  }
+  one_row <- function(newdata, method) {
+    if (nrow(newdata) != 1L) {
+      stop("interpret(method = \"", method, "\") explains a single observation: ",
+           "pass `newdata` with one row (got ", nrow(newdata), ").", call. = FALSE)
+    }
+    newdata
   }
   drop_known <- function(dots, nms) dots[setdiff(names(dots), nms)]
   one_time <- function(dots, times, method) {
@@ -136,7 +143,7 @@ interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..
         dots$method <- dots$shap_method
         dots$shap_method <- NULL
       }
-      do.call(compute_shap, c(list(model = fit, newdata = newdata[1, , drop = FALSE],
+      do.call(compute_shap, c(list(model = fit, newdata = one_row(newdata, "shap"),
         baseline_data = data, times = times), dots))
     }),
     shap_matrix = list(plot = "plot_shap_beeswarm", run = function(fit, newdata, data, times, dots) {
@@ -154,12 +161,12 @@ interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..
     }),
     counterfactual = list(plot = "plot_counterfactual", run = function(fit, newdata, data, times, dots) {
       tt <- need(dots, "target_time", "counterfactual")
-      do.call(compute_counterfactual, c(list(model = fit, newdata = newdata,
+      do.call(compute_counterfactual, c(list(model = fit, newdata = one_row(newdata, "counterfactual"),
         times = times, target_time = tt), drop_known(dots, "target_time")))
     }),
     surrogate = list(plot = "plot_surrogate", run = function(fit, newdata, data, times, dots) {
       tt <- need(dots, "target_time", "surrogate")
-      do.call(compute_surrogate, c(list(model = fit, newdata = newdata,
+      do.call(compute_surrogate, c(list(model = fit, newdata = one_row(newdata, "surrogate"),
         baseline_data = data, times = times, target_time = tt),
         drop_known(dots, "target_time")))
     }),
@@ -168,9 +175,14 @@ interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..
     }),
     calibration = list(plot = "plot_calibration", run = function(fit, newdata, data, times, dots) {
       et <- one_time(dots, times, "calibration")
-      do.call(compute_calibration, c(list(model = fit, data = data,
-        time = fit$time, status = fit$status, eval_time = et),
-        drop_known(dots, "eval_time")))
+      # observed outcome of the rows being assessed (`newdata`, by default the
+      # training data), with the event recoded as in the formula
+      parsed <- .null_default(attr(fit, "surv_parsed"),
+                              .parse_surv_formula(fit$formula, fit$data))
+      nd <- .complete_cases_df(newdata, all.vars(fit$formula))
+      do.call(compute_calibration, c(list(model = fit, data = nd,
+        time = nd[[parsed$time_col]], status = .recode_status_vec(parsed, nd),
+        eval_time = et), drop_known(dots, "eval_time")))
     }),
     roc = list(plot = "plot_roc", run = function(fit, newdata, data, times, dots) {
       et <- one_time(dots, times, "roc")

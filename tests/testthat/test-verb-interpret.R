@@ -167,7 +167,7 @@ test_that("every interpret() method prints and has a tidy data frame form", {
     pdp = list(feature = "karno", times = tt),
     ice = list(feature = "karno", times = tt),
     ale = list(feature = "age", times = tt),
-    shap = list(times = tt),
+    shap = list(newdata = one, times = tt),
     shap_matrix = list(newdata = veteran[1:4, ], times = tt),
     varimp = list(times = tt),
     permute = list(times = tt),
@@ -190,7 +190,7 @@ test_that("every interpret() method prints and has a tidy data frame form", {
     expect_false(anyDuplicated(names(d)) > 0, info = meth)
     expect_output(print(r), "\\$result:")
   }
-  r <- interpret(m, "shap", times = tt)
+  r <- interpret(m, "shap", newdata = one, times = tt)
   expect_error(as.data.frame(r, what = "integrated"), "applies to")
   r$method <- "unknown"
   r$result <- list(a = 1:2, b = 1:3)

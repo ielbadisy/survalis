@@ -28,7 +28,14 @@
 #' @details
 #' For each feature, rows are permuted \code{n_repetitions} times, predictions are recomputed,
 #' and the chosen metric is compared to the baseline (unpermuted) value. The
-#' \code{scaled_importance} rescales values to sum to 100%.
+#' model itself is not refitted or changed. With \code{"delta"}, the importance
+#' is the loss in performance, signed so that a positive value always means
+#' that permuting the feature made the predictions worse (for a metric to
+#' maximise, such as \code{"cindex"}, it is baseline minus permuted). The
+#' \code{scaled_importance} divides by the largest absolute importance and
+#' multiplies by 100, keeping the sign. With \code{"mean"}, \code{importance}
+#' is the mean permuted metric and \code{scaled_importance} the signed percent
+#' loss relative to the baseline.
 #'
 #' @examples
 #' \donttest{
@@ -77,37 +84,36 @@ compute_varimp <- function(model, times,
     data <- data[sample(seq_len(nrow(data)), subset), , drop = FALSE]
   }
 
-  # Parse formula for time/status
-  parsed_formula <- .parse_surv_formula(formula, data)
-  time_col <- parsed_formula$time_col
-  status_col <- parsed_formula$status_col
-
-  if (parsed_formula$recode_status) {
-    status_vector <- as.integer(data[[status_col]] == parsed_formula$event_value)
-  } else {
-    status_vector <- data[[status_col]]
+  # Score the fixed model on (permuted copies of) the data. The model object
+  # is never changed, so learners that keep training quantities (for example
+  # the Breslow baseline of a Cox model) are not affected by the permutation.
+  .check_metrics(metric, times)
+  parsed <- .parse_surv_formula(formula, data)
+  data <- .complete_cases_df(data, all.vars(formula))
+  y <- survival::Surv(data[[parsed$time_col]], .recode_status_vec(parsed, data))
+  pred_fun <- .predict_fun(model)
+  score <- function(nd) {
+    p <- .finalize_survmat(pred_fun(model, newdata = nd, times = times), times = times)
+    .score_metrics(y, p, times, metric)$value
   }
+  original_loss <- score(data)
+  # positive = worse after permutation, whatever the metric's direction
+  sgn <- if (.metric_maximize(metric)) -1 else 1
 
-  # Compute baseline loss (single metric requested, so a single row/value)
-  model$data <- data  # ensure correct data
-  original_loss <- score_survmodel(model, times = times, metrics = metric)$value
-
-  exclude_vars <- c(time_col, status_col)
-  covariates <- setdiff(names(data), exclude_vars)
+  covariates <- .model_features(model, names(data))
   if (!is.null(seed)) set.seed(seed)
 
   per_feature <- lapply(covariates, function(v) {
     scores <- replicate(n_repetitions, {
       data_perm <- data
       data_perm[[v]] <- sample(data_perm[[v]])
-      model$data <- data_perm  # inject permuted data
-      score_survmodel(model, times = times, metrics = metric)$value
+      score(data_perm)
     })
 
     # values used for the point estimate are the same used for the 5/95
     # percentile band and for the raw per-repetition boxplot data, so the
     # displayed uncertainty is always about the quantity actually plotted
-    values <- if (importance_type == "delta") scores - original_loss else scores
+    values <- if (importance_type == "delta") sgn * (scores - original_loss) else scores
 
     imp <- switch(importance_type,
                   "mean" = mean(scores),
@@ -129,14 +135,13 @@ compute_varimp <- function(model, times,
   result <- .rbind_fill_dt(lapply(per_feature, `[[`, "summary"))
   raw_scores <- .rbind_fill_dt(lapply(per_feature, `[[`, "raw"))
 
+  denom <- max(abs(result$importance), na.rm = TRUE)
   result$scaled_importance <- switch(importance_type,
-                                     "mean"  = 100 * (result$importance - original_loss) / original_loss,
-                                     "delta" = 100 * abs(result$importance) / max(abs(result$importance), na.rm = TRUE)
-  )
+    "mean"  = 100 * sgn * (result$importance - original_loss) / original_loss,
+    "delta" = 100 * result$importance / denom)
   raw_scores$scaled_value <- switch(importance_type,
-                                    "mean"  = 100 * (raw_scores$value - original_loss) / original_loss,
-                                    "delta" = 100 * abs(raw_scores$value) / max(abs(result$importance), na.rm = TRUE)
-  )
+    "mean"  = 100 * sgn * (raw_scores$value - original_loss) / original_loss,
+    "delta" = 100 * raw_scores$value / denom)
 
   result <- .arrange_by_metric_dt(result, "scaled_importance", maximize = TRUE)
   attr(result, "raw_scores") <- raw_scores

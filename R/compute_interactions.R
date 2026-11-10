@@ -19,18 +19,24 @@
 #'     \item \code{"heatmap"} -- pairwise feature interaction matrix at \code{target_time};
 #'     \item \code{"time"} -- per-feature interaction strength across \code{times}.
 #'   }
-#' @param grid.size Integer; number of random grid values / replicates used for Monte Carlo
-#'   marginalization (default 30).
+#' @param grid.size Integer; number of observations sampled from \code{data}
+#'   at which the partial dependence functions are evaluated, and over which
+#'   they are averaged (default 30). The cost grows with its square.
 #' @param batch.size Reserved for future batching support (currently unused).
 #'
 #' @details
-#' For a target time \eqn{t^{*}}, let \eqn{f(x)} be the predicted survival probability.
-#' For feature \eqn{j}, we approximate a decomposition:
-#' \deqn{ f(x) \approx f_j(x_j) + f_{-j}(x_{-j}) }
-#' by Monte Carlo marginalization over subsets of features using random sampling from the
-#' empirical distribution in \code{data}. The reported interaction strength is:
-#' \deqn{ H_j(t^{*}) = \sqrt{ \frac{\sum ( f(x) - \{ \tilde f_j(x_j) + \tilde f_{-j}(x_{-j}) \})^2 }{ \sum f(x)^2 } } , }
-#' clipped to \[0, 1]. Pairwise heatmaps are computed analogously for \eqn{(j, k)}.
+#' For a target time \eqn{t^{*}}, let \eqn{f(x)} be the predicted survival
+#' probability, and let \eqn{PD_S} be the partial dependence function of the
+#' features in \eqn{S}, each centred to mean zero over the sampled observations
+#' \eqn{x^{(1)}, \dots, x^{(m)}} (\eqn{m} = \code{grid.size}), which also
+#' serve as the marginalizing sample. Following Friedman and Popescu (2008),
+#' the one-way statistic of feature \eqn{j} is
+#' \deqn{ H_j^2 = \frac{\sum_i \{ f(x^{(i)}) - PD_j(x^{(i)}_j) - PD_{-j}(x^{(i)}_{-j}) \}^2}{\sum_i f(x^{(i)})^2}, }
+#' with \eqn{f} centred too, and the pairwise statistic is
+#' \deqn{ H_{jk}^2 = \frac{\sum_i \{ PD_{jk}(x^{(i)}_j, x^{(i)}_k) - PD_j(x^{(i)}_j) - PD_k(x^{(i)}_k) \}^2}{\sum_i PD_{jk}(x^{(i)}_j, x^{(i)}_k)^2}. }
+#' Both are 0 when the model is additive in the features involved. The
+#' reported value is \eqn{H} (not clipped), and is \code{NA} when the
+#' prediction does not vary.
 #'
 #' Larger values indicate stronger non-additivity (interaction) involving the feature(s).
 #' The \code{"time"} mode repeats the computation across all \code{times} to show dynamics.
@@ -73,136 +79,62 @@ compute_interactions <- function(model, data, times,
 
   if (type != "time" && is.null(target_time)) stop("target_time must be specified for type = '1way' or 'heatmap'")
   if (is.null(features)) {
-    features <- setdiff(colnames(data), c(model$time, model$status))
+    features <- .model_features(model, colnames(data))
   }
 
   predict_function <- .predict_fun(model)
-  idx_time <- function(t) which.min(abs(times - t))
+  eval_times <- if (type == "time") times else target_time
+  m <- min(as.integer(grid.size), nrow(data))
+  rows <- data[sample.int(nrow(data), m), , drop = FALSE]
+  pred <- function(nd) {
+    as.matrix(.finalize_survmat(predict_function(model, nd, eval_times), eval_times))
+  }
+  ctr <- function(M) sweep(M, 2L, colMeans(M))
+  # Partial dependence of the features in S at each sampled row (m x times),
+  # averaging over the sampled rows for every other feature, centred.
+  ii <- rep(seq_len(m), times = m)   # row supplying the S values
+  kk <- rep(seq_len(m), each = m)    # row supplying everything else
+  pd <- function(S) {
+    big <- rows[kk, , drop = FALSE]
+    for (s in S) big[[s]] <- rows[[s]][ii]
+    ctr(rowsum(pred(big), ii) / m)
+  }
+  hstat <- function(num, den) {
+    out <- sqrt(colSums(num^2) / colSums(den^2))
+    out[!is.finite(out)] <- NA_real_
+    out
+  }
+  full <- ctr(pred(rows))
 
-  if (type == "1way") {
-    res <- lapply(features, function(feature) {
-      grid <- unique(data[[feature]])
-      grid <- sort(sample(grid, min(length(grid), grid.size)))
-      rows <- data[sample(1:nrow(data), grid.size), , drop = FALSE]
-
-      full <- predict_function(model, rows, times)[, idx_time(target_time)]
-
-      marg_j <- rowMeans(replicate(grid.size, {
-        rows[[feature]] <- sample(grid, nrow(rows), replace = TRUE)
-        predict_function(model, rows, times)[, idx_time(target_time)]
-      }))
-
-      marg_rest <- rowMeans(replicate(grid.size, {
-        others <- setdiff(features, feature)
-        for (f in others) rows[[f]] <- sample(unique(data[[f]]), nrow(rows), replace = TRUE)
-        predict_function(model, rows, times)[, idx_time(target_time)]
-      }))
-
-      h <- sqrt(sum((full - (marg_j + marg_rest))^2) / sum(full^2))
-      h <- pmin(h, 1)
-      data.frame(feature = feature, interaction = h)
-    })
-    return(basetable::rbindfill(res, fill = TRUE))
+  if (type %in% c("1way", "time")) {
+    H <- vapply(features, function(f) {
+      hstat(full - pd(f) - pd(setdiff(features, f)), full)
+    }, numeric(length(eval_times)))
+    H <- matrix(H, nrow = length(eval_times))
+    if (type == "1way") {
+      return(data.frame(feature = features, interaction = H[1, ]))
+    }
+    return(data.frame(feature = rep(features, each = length(eval_times)),
+                      time = rep(eval_times, length(features)),
+                      interaction = as.vector(H)))
   }
 
-  if (type == "heatmap") {
-    pairs <- t(combn(features, 2))
-    res <- lapply(seq_len(nrow(pairs)), function(i) {
-      f1 <- pairs[i, 1]; f2 <- pairs[i, 2]
-      grid1 <- sort(sample(unique(data[[f1]]), min(length(unique(data[[f1]])), grid.size)))
-      grid2 <- sort(sample(unique(data[[f2]]), min(length(unique(data[[f2]])), grid.size)))
-      rows <- data[sample(1:nrow(data), grid.size), , drop = FALSE]
-
-      full <- predict_function(model, rows, times)[, idx_time(target_time)]
-
-      m1 <- rowMeans(replicate(grid.size, {
-        rows[[f1]] <- sample(grid1, nrow(rows), replace = TRUE)
-        predict_function(model, rows, times)[, idx_time(target_time)]
-      }))
-      m2 <- rowMeans(replicate(grid.size, {
-        rows[[f2]] <- sample(grid2, nrow(rows), replace = TRUE)
-        predict_function(model, rows, times)[, idx_time(target_time)]
-      }))
-
-      h <- sqrt(sum((full - (m1 + m2))^2) / sum(full^2))
-      data.frame(feature1 = f1, feature2 = f2, interaction = h)
-    })
-
-    df <- basetable::rbindfill(res, fill = TRUE)
-    df_sym <- basetable::rbindfill(list(
-      df,
-      data.frame(feature1 = df$feature2, feature2 = df$feature1, interaction = df$interaction),
-      data.frame(feature1 = features, feature2 = features, interaction = 0)
-    ), fill = TRUE)
-    return(df_sym)
-  }
-
-  if (type == "time") {
-    res <- lapply(times, function(t) {
-      lapply(features, function(f) {
-        grid <- unique(data[[f]])
-        grid <- sort(sample(grid, min(length(grid), grid.size)))
-        rows <- data[sample(1:nrow(data), grid.size), , drop = FALSE]
-
-        full <- predict_function(model, rows, times)[, idx_time(t)]
-
-        marg_j <- rowMeans(replicate(grid.size, {
-          rows[[f]] <- sample(grid, nrow(rows), replace = TRUE)
-          predict_function(model, rows, times)[, idx_time(t)]
-        }))
-
-        marg_rest <- rowMeans(replicate(grid.size, {
-          others <- setdiff(features, f)
-          for (k in others) rows[[k]] <- sample(unique(data[[k]]), nrow(rows), replace = TRUE)
-          predict_function(model, rows, times)[, idx_time(t)]
-        }))
-
-        h <- sqrt(sum((full - (marg_j + marg_rest))^2) / sum(full^2))
-        h <- pmin(h, 1)
-        data.frame(feature = f, time = t, interaction = h)
-      })
-    })
-
-    return(basetable::rbindfill(unlist(res, recursive = FALSE), fill = TRUE))
-  }
+  pd1 <- lapply(stats::setNames(features, features), pd)
+  pairs <- t(utils::combn(features, 2))
+  h <- vapply(seq_len(nrow(pairs)), function(i) {
+    f1 <- pairs[i, 1]; f2 <- pairs[i, 2]
+    pd12 <- pd(c(f1, f2))
+    hstat(pd12 - pd1[[f1]] - pd1[[f2]], pd12)[1]
+  }, numeric(1))
+  df <- data.frame(feature1 = pairs[, 1], feature2 = pairs[, 2], interaction = h)
+  basetable::rbindfill(list(
+    df,
+    data.frame(feature1 = df$feature2, feature2 = df$feature1, interaction = df$interaction),
+    data.frame(feature1 = features, feature2 = features, interaction = 0)
+  ), fill = TRUE)
 }
 
 
-#' Plot Interaction Strengths for Survival Models
-#'
-#' Visualizes interaction outputs from \code{compute_interactions} as
-#' (i) a ranked bar chart for one-way interactions, (ii) a pairwise heatmap,
-#' or (iii) time-varying interaction trajectories.
-#'
-#' @param object A data frame returned by \code{compute_interactions()} whose
-#'   columns match the requested \code{type}.
-#' @param type One of \code{"1way"}, \code{"heatmap"}, or \code{"time"}.
-#' @param title Plot title. If missing, an automatically generated title is
-#'   used (none for \code{"1way"}). Pass \code{NULL} to omit the title
-#'   entirely (e.g., for journals requiring caption-only figures).
-#'
-#' @details
-#' \strong{1way}: Bars rank features by Friedman-H interaction strength at the target time.  
-#' \strong{heatmap}: Tiles show pairwise interaction magnitudes (symmetric).  
-#' \strong{time}: Lines show interaction strength vs. time for each feature.
-#'
-#' @return A \pkg{ggplot2} object.
-#'
-#' @examples
-#' mod <- fit_coxph(Surv(time, status) ~ age + karno + trt, data = veteran)
-#' times <- c(80, 160)
-#' ia <- compute_interactions(
-#'   model = mod,
-#'   data = veteran,
-#'   times = times,
-#'   target_time = 80,
-#'   features = c("age", "karno"),
-#'   type = "1way",
-#'   grid.size = 6
-#' )
-#' plot_interactions(ia, type = "1way")
-#'
-#' @noRd
 
 plot_interactions <- function(object, type = c("1way", "heatmap", "time"), title) {
   type <- match.arg(type)

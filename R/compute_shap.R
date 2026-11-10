@@ -15,8 +15,8 @@
 #' @param sample.size Integer, number of random feature orderings to sample per
 #'   time (default \code{100}).
 #' @param features Optional character vector of covariate names to explain. If
-#'   \code{NULL} (default), inferred as \code{setdiff(colnames(newdata),
-#'   c(model$time, model$status))}, consistent with \code{compute_interactions}.
+#'   \code{NULL} (default), the model's predictors (the right-hand side of its
+#'   formula) that are columns of \code{newdata}.
 #' @param aggregate Logical; if \code{TRUE}, aggregate contributions across
 #'   \code{times} into a single value per feature (see \code{method}).
 #' @param method Character; aggregation method if \code{aggregate=TRUE}:
@@ -81,56 +81,39 @@ stop("`model` must come from fit().", call. = FALSE)
 
 predict_function <- .predict_fun(model)
 feature_names <- if (is.null(features)) {
-  setdiff(colnames(newdata), c(model$time, model$status))
+  .model_features(model, colnames(newdata))
 } else {
   features
 }
 n_features <- length(feature_names)
-all_results <- list()
+times <- sort(times)
 
-for (current_time in times) {
-shapley_values <- replicate(sample.size, {
-order_features <- sample(feature_names)
-baseline_sample <- baseline_data[sample(nrow(baseline_data), 1), , drop = FALSE]
-instance_with <- newdata
-instance_without <- newdata
-contributions <- numeric(n_features)
-
-for (k in seq_len(n_features)) {
-feature_k <- order_features[k]
-if (k < n_features) {
-future_features <- order_features[(k + 1):n_features]
-instance_with[future_features] <- baseline_sample[future_features]
+# Permutation estimator (Strumbelj and Kononenko 2014). For each draw, take a
+# random feature order and a random baseline row z, and walk from z to the
+# explained row x by switching the features to their x value one at a time in
+# that order. Each switch is credited to the feature switched, so in every draw
+# the contributions sum to f(x) - f(z). All rows are predicted in one call.
+p1 <- n_features + 1L
+zi <- sample.int(nrow(baseline_data), sample.size, replace = TRUE)
+walk <- baseline_data[rep(zi, each = p1), , drop = FALSE]
+step <- rep(seq_len(p1) - 1L, sample.size)          # 0 = z, ..., p = x
+pos <- t(replicate(sample.size, sample.int(n_features)))  # position of each feature
+if (n_features == 1L) pos <- matrix(pos, ncol = 1L)
+colnames(pos) <- feature_names
+draw <- rep(seq_len(sample.size), each = p1)
+for (j in feature_names) {
+  on <- step >= pos[draw, j]
+  walk[[j]][on] <- newdata[[j]]
 }
+P <- as.matrix(.finalize_survmat(predict_function(model, walk, times), times))
+gain <- P[-seq(1L, nrow(P), by = p1), , drop = FALSE] -
+  P[-seq(p1, nrow(P), by = p1), , drop = FALSE]     # one row per (draw, step)
+credited <- as.vector(apply(pos, 1L, function(r) feature_names[order(r)]))
+phi <- rowsum(gain, factor(credited, levels = feature_names)) / sample.size
 
-instance_without <- instance_with
-instance_without[feature_k] <- baseline_sample[[feature_k]]
-
-pred_with <- predict_function(model, instance_with, times)
-pred_without <- predict_function(model, instance_without, times)
-
-idx_time <- which.min(abs(times - current_time))
-pred_with <- if (is.vector(pred_with)) pred_with[idx_time] else pred_with[, idx_time]
-pred_without <- if (is.vector(pred_without)) pred_without[idx_time] else pred_without[, idx_time]
-
-idx_feature <- which(feature_names == feature_k)
-contributions[idx_feature] <- contributions[idx_feature] + (pred_with - pred_without)
-}
-
-contributions
-}, simplify = TRUE)
-
-shapley_df <- as.data.frame(t(shapley_values))
-colnames(shapley_df) <- feature_names
-mean_phi <- colMeans(shapley_df)
-
-result_df <- data.frame(
-feature = feature_names,
-phi = as.numeric(mean_phi),
-time = current_time
-)
-all_results[[as.character(current_time)]] <- result_df
-}
+all_results <- lapply(seq_along(times), function(k) {
+  data.frame(feature = feature_names, phi = as.numeric(phi[, k]), time = times[k])
+})
 
 final_result <- basetable::rbindfill(unname(all_results), fill = TRUE)
 

@@ -88,9 +88,15 @@ compute_calibration <- function(model, data, time, status,
   }
 
   # bin predictions
-  bins <- cut(pred_surv,
-              breaks = quantile(pred_surv, probs = seq(0, 1, length.out = n_bins + 1), na.rm = TRUE),
-              include.lowest = TRUE, labels = FALSE)
+  # Quantile bins; learners with few distinct predictions (a tree) give tied
+  # quantiles, so keep the distinct breaks, or one bin per distinct value.
+  br <- unique(stats::quantile(pred_surv, probs = seq(0, 1, length.out = n_bins + 1),
+                               na.rm = TRUE, names = FALSE))
+  bins <- if (length(br) >= 3L) {
+    cut(pred_surv, breaks = br, include.lowest = TRUE, labels = FALSE)
+  } else {
+    match(pred_surv, sort(unique(pred_surv)))
+  }
   df <- data.frame(pred_surv = pred_surv, time = time, status = status, bin = bins)
 
   # calibration table
@@ -120,9 +126,10 @@ compute_calibration <- function(model, data, time, status,
         observed_surv = if (length(surv_summary$surv) == 0) NA else surv_summary$surv
       )
     })
-    out <- basetable::orderrows(out, by = "bin")
-    out$observed_surv
+    # a resample can miss a bin: align on the bin id
+    out$observed_surv[match(calibration_table$bin, out$bin)]
   }, simplify = "matrix")
+  if (!is.matrix(boot_results)) boot_results <- matrix(boot_results, nrow = 1)
 
   boot_ci <- apply(boot_results, 1, function(x) quantile(x, probs = c(0.025, 0.975), na.rm = TRUE))
   calibration_table$lower_ci <- boot_ci[1, ]
