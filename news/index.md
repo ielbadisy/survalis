@@ -33,6 +33,17 @@
   maps each one to its verb. `screen_fdr()` is removed; use the
   `"selectcox"` or `"glmnet"` learners for variable selection.
 
+- Table operations inside survalis (reshaping, grouped summaries, row
+  binding, sorting and merging) now use ‘basetable’ instead of base R.
+  Result tables stored in fitted objects
+  ([`evaluate()`](https://elbadisyimad.com/survalis/reference/evaluate.md),
+  [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md),
+  [`interpret()`](https://elbadisyimad.com/survalis/reference/interpret.md),
+  [`estimate()`](https://elbadisyimad.com/survalis/reference/estimate.md))
+  are basetable objects;
+  [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) on a
+  survalis result still returns a plain `data.frame`.
+
 - New decision-weighted scores
   ([`dwscore()`](https://elbadisyimad.com/survalis/reference/dwscore.md)):
   the loss of the rule “act if predicted risk exceeds c”, averaged over
