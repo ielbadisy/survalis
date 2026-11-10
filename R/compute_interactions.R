@@ -102,7 +102,7 @@ compute_interactions <- function(model, data, times,
       h <- pmin(h, 1)
       data.frame(feature = feature, interaction = h)
     })
-    return(do.call(rbind, res))
+    return(basetable::rbindfill(res, fill = TRUE))
   }
 
   if (type == "heatmap") {
@@ -128,12 +128,12 @@ compute_interactions <- function(model, data, times,
       data.frame(feature1 = f1, feature2 = f2, interaction = h)
     })
 
-    df <- do.call(rbind, res)
-    df_sym <- rbind(
+    df <- basetable::rbindfill(res, fill = TRUE)
+    df_sym <- basetable::rbindfill(list(
       df,
       data.frame(feature1 = df$feature2, feature2 = df$feature1, interaction = df$interaction),
       data.frame(feature1 = features, feature2 = features, interaction = 0)
-    )
+    ), fill = TRUE)
     return(df_sym)
   }
 
@@ -163,7 +163,7 @@ compute_interactions <- function(model, data, times,
       })
     })
 
-    return(do.call(rbind, unlist(res, recursive = FALSE)))
+    return(basetable::rbindfill(unlist(res, recursive = FALSE), fill = TRUE))
   }
 }
 

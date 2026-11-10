@@ -181,10 +181,10 @@ summary.survalis_estimate <- function(object, ...) {
 #' @export
 plot.survalis_estimate <- function(x, title, ...) {
   df <- x$curves
-  long <- rbind(
+  long <- basetable::rbindfill(list(
     data.frame(time = df$time, surv = df$surv_treated, arm = paste0(x$treatment, " = ", x$levels[2])),
     data.frame(time = df$time, surv = df$surv_control, arm = paste0(x$treatment, " = ", x$levels[1]))
-  )
+  ), fill = TRUE)
   if (missing(title)) {
     title <- sprintf("Counterfactual mean survival (%s)", x$treatment)
   }

@@ -137,15 +137,8 @@ plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), s
 
   if (which == "per_time") {
     df <- ale_result$ale
-    df_long <- reshape(
-      df,
-      varying = names(df)[-1],
-      v.names = "ale",
-      timevar = "time",
-      times = names(df)[-1],
-      idvar = "feature_value",
-      direction = "long"
-    )
+    df_long <- basetable::tolong(df, cols = names(df)[-1], names = "time",
+                                 values = "ale", idcols = "feature_value")
     df_long$time <- gsub("t=", "", df_long$time)
     if (missing(title)) title <- paste("ALE curves for", feature)
 

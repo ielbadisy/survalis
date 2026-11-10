@@ -87,37 +87,29 @@ compute_pdp <- function(model, data, feature, times,
   results_list <- list()
 
   if (method %in% c("ice", "pdp+ice")) {
-    ice_long <- reshape(surv_df,
-                        varying = paste0("t=", times),
-                        v.names = "surv_prob",
-                        timevar = "time",
-                        times = times,
-                        idvar = c(".id", feature),
-                        direction = "long")
+    ice_long <- basetable::tolong(surv_df, cols = paste0("t=", times),
+                                  names = "time", values = "surv_prob",
+                                  idcols = c(feature, ".id"))
+    ice_long$time <- times[match(ice_long$time, paste0("t=", times))]
     ice_long$type <- "ice"
     rownames(ice_long) <- NULL
     results_list$ice <- ice_long
   }
 
   if (method %in% c("pdp", "pdp+ice")) {
-    means <- aggregate(surv_df[, paste0("t=", times), drop = FALSE],
-                       by = list(surv_df[[feature]]),
-                       FUN = mean)
-    colnames(means)[1] <- feature
-    pdp_long <- reshape(means,
-                        varying = paste0("t=", times),
-                        v.names = "surv_prob",
-                        timevar = "time",
-                        times = times,
-                        idvar = feature,
-                        direction = "long")
+    means <- basetable::aggregate(surv_df, by = feature,
+                                  value = paste0("t=", times), fun = mean)
+    pdp_long <- basetable::tolong(means, cols = paste0("t=", times),
+                                  names = "time", values = "surv_prob",
+                                  idcols = feature)
+    pdp_long$time <- times[match(pdp_long$time, paste0("t=", times))]
     pdp_long$type <- "pdp"
-    pdp_long$.id <- NA
+    pdp_long$.id <- NA_integer_
     rownames(pdp_long) <- NULL
     results_list$pdp <- pdp_long
   }
 
-  final_result <- do.call(rbind, results_list)
+  final_result <- basetable::rbindfill(unname(results_list), fill = TRUE)
   final_result$time <- as.numeric(as.character(final_result$time))
 
   pdp_integrated <- NULL
@@ -128,14 +120,15 @@ compute_pdp <- function(model, data, feature, times,
       sum((head(y, -1) + tail(y, -1)) / 2 * diff(x))
     }
 
-    split_pdp <- split(final_result[final_result$type == "pdp", ], final_result[final_result$type == "pdp", feature])
-    pdp_integrated <- do.call(rbind, lapply(split_pdp, function(df) {
+    pdp_rows <- final_result[final_result$type == "pdp", , drop = FALSE]
+    pdp_integrated <- basetable::applyby(pdp_rows, by = feature, bind = TRUE, id = NULL, fun = function(df) {
       int_surv <- integrate_fun(df$time, df$surv_prob)
       f_val <- unique(df[[feature]])
       out <- data.frame(integrated_surv = int_surv, stringsAsFactors = FALSE)
       out[[feature]] <- f_val
       out
-    }))
+    })
+    pdp_integrated <- basetable::orderrows(pdp_integrated, by = feature)
     rownames(pdp_integrated) <- NULL
     pdp_integrated <- pdp_integrated[, c(feature, "integrated_surv")]
   }

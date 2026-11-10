@@ -218,7 +218,7 @@ as.data.frame.survalis_interpret <- function(x, row.names = NULL, optional = FAL
     class(res) <- "data.frame"
     return(res)
   }
-  switch(x$method,
+  out <- switch(x$method,
     pdp = ,
     ice = .pdp_long(res),
     ale = .ale_long(res, x$feature),
@@ -230,6 +230,8 @@ as.data.frame.survalis_interpret <- function(x, row.names = NULL, optional = FAL
     stop("No data frame form for interpret(method = \"", x$method, "\").",
          call. = FALSE)
   )
+  class(out) <- "data.frame"
+  out
 }
 
 #' Long format of a pdp / ice result: one row per curve point
@@ -304,7 +306,7 @@ as.data.frame.survalis_interpret <- function(x, row.names = NULL, optional = FAL
     data.frame(time = r$time, feature = names(sc), splits = as.integer(sc),
                r_squared = r$r_squared, stringsAsFactors = FALSE)
   })
-  out <- do.call(rbind, parts)
+  out <- basetable::rbindfill(parts, fill = TRUE)
   rownames(out) <- NULL
   out
 }

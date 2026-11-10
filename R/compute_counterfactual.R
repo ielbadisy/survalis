@@ -157,7 +157,7 @@ compute_counterfactual <- function(model, newdata, times, target_time,
     )
   }
 
-  final_result <- do.call(rbind, results)
+  final_result <- basetable::rbindfill(results, fill = TRUE)
   rownames(final_result) <- NULL
   return(final_result)
 }
@@ -225,7 +225,7 @@ plot_counterfactual <- function(counterfactual_df,
     }
   }
 
-  plot_df <- plot_df[order(plot_df[[metric]], decreasing = TRUE), , drop = FALSE]
+  plot_df <- basetable::orderrows(plot_df, by = metric, decreasing = TRUE)
   if (!is.null(top_n)) {
     top_n <- as.integer(top_n)
     if (!is.finite(top_n) || top_n < 1) {

@@ -86,12 +86,12 @@ roc_survmat <- function(object, predicted, t_star) {
 
   thresholds <- sort(unique(risk_score))
 
-  curve <- do.call(rbind, lapply(thresholds, function(c_) {
+  curve <- basetable::rbindfill(lapply(thresholds, function(c_) {
     sens <- sum(case_weights[risk_cases >= c_]) / w_total
     spec <- sum(risk_controls < c_) / n_controls
     data.frame(threshold = c_, sensitivity = sens, specificity = spec)
-  }))
-  curve <- curve[order(curve$threshold), , drop = FALSE]
+  }), fill = TRUE)
+  curve <- basetable::orderrows(curve, by = "threshold")
   rownames(curve) <- NULL
 
   fpr <- 1 - curve$specificity

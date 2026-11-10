@@ -717,8 +717,8 @@ cv_summary <- function(cv_results, digits = 3) {
   names(sd_tbl)[names(sd_tbl) == "value"] <- "sd"
   n_tbl <- basetable::count(df, by = "metric", sort = FALSE)
 
-  out <- merge(mean_tbl, sd_tbl, by = "metric")
-  out <- merge(out, n_tbl, by = "metric")
+  out <- basetable::merge(mean_tbl, sd_tbl, by = "metric", sort = TRUE)
+  out <- basetable::merge(out, n_tbl, by = "metric", sort = TRUE)
   out$se <- out$sd / sqrt(out$n)
   out$lower <- out$mean - 1.96 * out$se
   out$upper <- out$mean + 1.96 * out$se

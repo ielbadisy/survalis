@@ -143,7 +143,7 @@ evaluate.matrix <- function(object, y, times = NULL,
     lapply(splits, one)
   }
   .abort_on_worker_error(parts)
-  do.call(rbind, parts)
+  basetable::rbindfill(unname(parts), fill = TRUE)
 }
 
 #' @keywords internal

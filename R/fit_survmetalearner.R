@@ -454,7 +454,7 @@ cv_survmetalearner <- function(formula, data, times,
   names(mean_tbl)[names(mean_tbl) == "value"] <- "mean"
   sd_tbl <- basetable::aggregate(results, by = "metric", value = "value", fun = "sd")
   names(sd_tbl)[names(sd_tbl) == "value"] <- "sd"
-  summary_tbl <- merge(mean_tbl, sd_tbl, by = "metric")
+  summary_tbl <- basetable::merge(mean_tbl, sd_tbl, by = "metric", sort = TRUE)
 
   structure(list(
     model = meta_model,

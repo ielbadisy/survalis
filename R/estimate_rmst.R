@@ -189,11 +189,11 @@ estimate_rmst <- function(model, data, tau, times, trt_col = NULL,
 #' @noRd
 plot_rmst <- function(model, data, tau_seq, times, trt_col = NULL,
                             R = 100, conf = 0.95, seed = NULL, title) {
-  curve <- do.call(rbind, lapply(tau_seq, function(tau) {
+  curve <- basetable::rbindfill(lapply(tau_seq, function(tau) {
     est <- estimate_rmst(model, data = data, tau = tau, times = times,
                          trt_col = trt_col, R = R, conf = conf, seed = seed)
     data.frame(tau = tau, estimate = est$estimate, lo = est$lo, hi = est$hi)
-  }))
+  }), fill = TRUE)
 
   if (missing(title)) {
     title <- if (is.null(trt_col)) {

@@ -103,23 +103,24 @@ compute_calibration <- function(model, data, time, status,
       observed_surv = if (length(surv_summary$surv) == 0) NA else surv_summary$surv
     )
   }
-  calibration_table <- do.call(rbind, lapply(split(df, df$bin), .calibration_bin_row))
-  calibration_table <- calibration_table[order(calibration_table$bin), , drop = FALSE]
+  calibration_table <- basetable::applyby(df, by = "bin", fun = .calibration_bin_row,
+                                          bind = TRUE, id = NULL)
+  calibration_table <- basetable::orderrows(calibration_table, by = "bin")
   row.names(calibration_table) <- NULL
 
   # bootstrap CIs
   boot_results <- replicate(n_boot, {
     idx <- sample(seq_len(nrow(df)), replace = TRUE)
     df_boot <- df[idx, ]
-    out <- do.call(rbind, lapply(split(df_boot, df_boot$bin), function(d) {
+    out <- basetable::applyby(df_boot, by = "bin", bind = TRUE, id = NULL, fun = function(d) {
       surv_fit <- survfit(Surv(time, status) ~ 1, data = d)
       surv_summary <- summary(surv_fit, times = eval_time, extend = TRUE)
       data.frame(
         bin = d$bin[1],
         observed_surv = if (length(surv_summary$surv) == 0) NA else surv_summary$surv
       )
-    }))
-    out <- out[order(out$bin), , drop = FALSE]
+    })
+    out <- basetable::orderrows(out, by = "bin")
     out$observed_surv
   }, simplify = "matrix")
 

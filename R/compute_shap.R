@@ -132,7 +132,7 @@ time = current_time
 all_results[[as.character(current_time)]] <- result_df
 }
 
-final_result <- do.call(rbind, all_results)
+final_result <- basetable::rbindfill(unname(all_results), fill = TRUE)
 
 if (aggregate) {
 phi_long <- final_result[c("feature", "time", "phi")]
@@ -233,7 +233,7 @@ if (missing(title)) {
   )
 }
 
-shapley_result <- shapley_result[order(shapley_result$phi), ]
+shapley_result <- basetable::orderrows(shapley_result, by = "phi")
 shapley_result$feature <- factor(shapley_result$feature, levels = shapley_result$feature)
 shapley_result$direction <- ifelse(shapley_result$phi >= 0, "Positive", "Negative")
 

@@ -665,8 +665,8 @@ summarise_benchmark <- function(benchmark_results, digits = 3) {
   names(sd_tbl)[names(sd_tbl) == "value"] <- "sd"
   n_tbl <- basetable::count(df, by = by_cols, sort = FALSE)
 
-  out <- merge(mean_tbl, sd_tbl, by = by_cols)
-  out <- merge(out, n_tbl, by = by_cols)
+  out <- basetable::merge(mean_tbl, sd_tbl, by = by_cols, sort = TRUE)
+  out <- basetable::merge(out, n_tbl, by = by_cols, sort = TRUE)
   out$se <- out$sd / sqrt(out$n)
   out$lower <- out$mean - 1.96 * out$se
   out$upper <- out$mean + 1.96 * out$se
@@ -755,7 +755,7 @@ summarize_benchmark_results <- function(results, digits = 3) {
   names(mean_tbl)[names(mean_tbl) == "value"] <- "mean"
   sd_tbl <- basetable::aggregate(df, by = by_cols, value = "value", fun = "sd", na.rm = TRUE)
   names(sd_tbl)[names(sd_tbl) == "value"] <- "sd"
-  summarised <- merge(mean_tbl, sd_tbl, by = by_cols)
+  summarised <- basetable::merge(mean_tbl, sd_tbl, by = by_cols, sort = TRUE)
   summarised$summary <- sprintf("%.*f  %.*f", digits, summarised$mean, digits, summarised$sd)
 
   out <- basetable::towide(

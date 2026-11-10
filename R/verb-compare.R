@@ -74,14 +74,18 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
     d$model <- lab
     per[[lab]] <- d
   }
-  per <- do.call(rbind, per)
+  per <- basetable::rbindfill(unname(per), fill = TRUE)
 
-  agg <- stats::aggregate(value ~ model + metric, data = per,
-                          FUN = function(v) c(mean = mean(v), se = stats::sd(v) / sqrt(length(v))))
-  leaderboard <- data.frame(
-    model = agg$model, metric = agg$metric,
-    mean = round(agg$value[, "mean"], 4), se = round(agg$value[, "se"], 4)
-  )
+  mean_tbl <- basetable::aggregate(per, by = c("model", "metric"), value = "value", fun = mean)
+  se_tbl <- basetable::aggregate(per, by = c("model", "metric"), value = "value",
+                                 fun = function(v) stats::sd(v) / sqrt(length(v)))
+  names(mean_tbl)[names(mean_tbl) == "value"] <- "mean"
+  names(se_tbl)[names(se_tbl) == "value"] <- "se"
+  leaderboard <- basetable::merge(mean_tbl, se_tbl, by = c("model", "metric"))
+  leaderboard <- basetable::orderrows(leaderboard, by = c("metric", "model"))
+  leaderboard$mean <- round(leaderboard$mean, 4)
+  leaderboard$se <- round(leaderboard$se, 4)
+  rownames(leaderboard) <- NULL
 
   structure(
     list(leaderboard = leaderboard, per_split = per, times = times,
@@ -119,8 +123,8 @@ print.survalis_compare <- function(x, ...) {
 
 #' @export
 summary.survalis_compare <- function(object, ...) {
-  stats::reshape(object$leaderboard[, c("model", "metric", "mean")],
-                 idvar = "model", timevar = "metric", direction = "wide")
+  basetable::towide(object$leaderboard[, c("model", "metric", "mean")],
+                    names = "metric", values = "mean", idcols = "model")
 }
 
 #' @export

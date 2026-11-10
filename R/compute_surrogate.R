@@ -177,7 +177,9 @@ compute_surrogate <- function(model, newdata, baseline_data,
     target_time = target_time  # added for plotting title
   )
 
-  result <- result[order(-abs(result$effect)), ]
+  result$.abs_effect <- abs(result$effect)
+  result <- basetable::orderrows(result, by = ".abs_effect", decreasing = TRUE)
+  result$.abs_effect <- NULL
   rownames(result) <- NULL
   result
 }

@@ -165,9 +165,11 @@ plot_tree_surrogate <- function(tree_surrogate, type = c("tree", "importance"), 
       sc <- res$split_count
       data.frame(feature = names(sc), count = as.integer(sc), time = res$time)
     })
-    all_importance <- do.call(rbind, importances)
-    avg_importance <- aggregate(count ~ feature, data = all_importance, FUN = sum)
-    avg_importance <- avg_importance[order(-avg_importance$count), ][1:min(top_n, nrow(avg_importance)), ]
+    all_importance <- basetable::rbindfill(importances, fill = TRUE)
+    avg_importance <- basetable::aggregate(all_importance, by = "feature",
+                                           value = "count", fun = sum)
+    avg_importance <- basetable::orderrows(avg_importance, by = "count", decreasing = TRUE)
+    avg_importance <- avg_importance[seq_len(min(top_n, nrow(avg_importance))), , drop = FALSE]
 
     if (missing(title)) title <- "Top Features by Split Count (All Times)"
     p <- ggplot2::ggplot(avg_importance, ggplot2::aes(x = reorder(feature, count), y = count)) +

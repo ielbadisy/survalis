@@ -79,7 +79,7 @@ compute_shap_matrix <- function(model, newdata, baseline_data, times, sample.siz
     )
   })
 
-  out <- do.call(rbind, rows)
+  out <- basetable::rbindfill(rows, fill = TRUE)
   rownames(out) <- NULL
   out
 }
