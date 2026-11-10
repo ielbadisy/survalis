@@ -479,7 +479,6 @@ varimp_res <- interpret(
   )
 
 as.data.frame(varimp_res)
-#> # basetable: 6 x 5
 #>    feature importance importance_05 importance_95 scaled_importance
 #> 1    karno     0.0638        0.0448        0.0782        100.000000
 #> 2 celltype     0.0446        0.0384        0.0546         69.905956
