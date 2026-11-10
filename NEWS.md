@@ -15,6 +15,12 @@
   `vignette("from-1.0")` maps each one to its verb. `screen_fdr()` is removed;
   use the `"selectcox"` or `"glmnet"` learners for variable selection.
 
+* Table operations inside survalis (reshaping, grouped summaries, row
+  binding, sorting and merging) now use 'basetable' instead of base R.
+  Result tables stored in fitted objects (`evaluate()`, `compare()`,
+  `interpret()`, `estimate()`) are basetable objects; `as.data.frame()` on a
+  survalis result still returns a plain `data.frame`.
+
 * New decision-weighted scores (`dwscore()`): the loss of the rule "act if
   predicted risk exceeds c", averaged over risk thresholds c with a stated
   weight (threshold range, SurvAcc, Brier, logarithmic or Beta), with IPCW for

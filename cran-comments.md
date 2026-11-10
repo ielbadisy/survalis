@@ -23,7 +23,8 @@ Main changes (see NEWS.md for the full list):
 * Removed dependencies 'rstpm2' (the `stpm2` learner is replaced by
   `rpsurv`) and 'data.table' (replaced by 'basetable'). New dependencies,
   all on CRAN: 'basetable', 'unsurv', 'tvrmst', 'fastgbm', 'densemlp',
-  'rpsurv', 'nbsurv'.
+  'rpsurv', 'nbsurv'. Internal table operations (reshaping, grouped
+  summaries, row binding, sorting) now use 'basetable'.
 * survalis no longer registers a `plot.formula()` method that overrode
   `graphics::plot.formula()`.
 * `Depends: R (>= 4.4.0)` and `fastgbm (>= 0.7.0)`: the earlier R (>= 4.1)
