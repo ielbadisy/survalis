@@ -1,5 +1,115 @@
 # Changelog
 
+## survalis 2.2.0
+
+- Removed functions that the verbs replace: `benchmark()`,
+  `benchmark_default_survlearners()`, `benchmark_tuned_survlearners()`,
+  `summarise_benchmark()`, `summarize_benchmark_results()`,
+  `best_survlearner()` and `plot_benchmark()` (use
+  [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md)),
+  `estimate_rmst()` and `plot_rmst()` (use
+  [`estimate()`](https://elbadisyimad.com/survalis/reference/estimate.md)),
+  `cv_survmetalearner()` (use `evaluate(model = "survmetalearner")`),
+  `plot_survmetalearner_weights()`, `compute_shap_mean()` (use
+  `interpret(method = "shap")`), `plot_survcurve()` (use
+  [`kmplot()`](https://elbadisyimad.com/survalis/reference/kmplot.md))
+  and `screen_fdr()` (use the `"selectcox"` or `"glmnet"` learners).
+
+- New
+  [`kmplot()`](https://elbadisyimad.com/survalis/reference/kmplot.md):
+  Kaplan-Meier curves in a publication style, with censoring marks, an
+  optional log-rank p-value, optional confidence bands and a
+  number-at-risk table coloured by group. `type` draws the survival
+  function, the risk function (one minus survival), the cumulative
+  hazard, or the log(-log) survival against log time for checking
+  proportional hazards. A factor status gives the Aalen-Johansen
+  cumulative incidence of the chosen `event` under competing risks. A
+  fitted `model` adds its curves, dashed: the mean prediction within
+  each group (`model.curve = "predicted"`, a calibration check) or
+  covariate-adjusted curves by G-computation
+  (`model.curve = "adjusted"`). Panels combine with ‘patchwork’
+  operators. survalis now requires ‘ggplot2’ 3.5.0 or later.
+
+### Bug fixes
+
+These change results; rerun analyses made with earlier versions.
+
+- Outcome handling:
+  [`Surv()`](https://rdrr.io/pkg/survival/man/Surv.html) arguments must
+  now be column names. A computed time or status
+  (`Surv(time / 365, status)`) was silently read from the raw column and
+  is now an error. A 1/2 or logical status (as in
+  [`survival::lung`](https://rdrr.io/pkg/survival/man/lung.html)) and a
+  `status == k` recoding now reach every learner and metric as a 0/1
+  event. [`fit()`](https://elbadisyimad.com/survalis/reference/fit.md)
+  drops incomplete rows once, and `~ .` works in
+  [`fit()`](https://elbadisyimad.com/survalis/reference/fit.md),
+  [`predict()`](https://rdrr.io/r/stats/predict.html),
+  [`estimate()`](https://elbadisyimad.com/survalis/reference/estimate.md)
+  and the explanation methods.
+
+- Metrics: the C-index now equals
+  [`survival::concordance()`](https://rdrr.io/pkg/survival/man/concordance.html),
+  and the AUC weights cases by the censoring survival just before their
+  event time, as in ‘timeROC’. The IBS no longer depends on the order of
+  `times`; IAE and ISE integrate over the evaluation window only. Metric
+  values are stored at full precision (rounding happens only when
+  printing), the standard error counts only non-missing splits, and
+  unknown metric names, or single-time metrics given several times, are
+  rejected before any model is fitted.
+
+- Resampling: each split gets its own seed, so
+  [`evaluate()`](https://elbadisyimad.com/survalis/reference/evaluate.md),
+  [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md)
+  and [`tune()`](https://elbadisyimad.com/survalis/reference/tune.md)
+  give the same values on repeated runs and whatever `ncores` is.
+  [`tune()`](https://elbadisyimad.com/survalis/reference/tune.md) keeps
+  engine arguments passed in `...` in the best spec and rejects an
+  argument that is both tuned and fixed.
+
+- Cox-type predictions: `"coxph"` now uses
+  [`survival::survfit()`](https://rdrr.io/pkg/survival/man/survfit.html),
+  and the penalized Cox learners use a Breslow baseline on the training
+  linear predictor. The earlier baseline was too large when the mean
+  linear predictor was far from 0.
+
+- Explanations: `interpret(method = "shap")` uses a permutation
+  estimator whose values add up to the prediction gap; `"ale"` follows
+  Apley and Zhu (2020), using only the observations inside each bin;
+  `"interactions"` computes the centred Friedman-Popescu H statistic;
+  `"varimp"` scores the fixed model on permuted data and reports a
+  positive importance when permuting a feature makes predictions worse,
+  whatever the metric’s direction. Calibration uses `newdata` when given
+  and handles tied predictions. `"shap"`, `"counterfactual"` and
+  `"surrogate"` require a one-row `newdata`, and the explanation methods
+  use only the model’s own predictors.
+
+- Learners:
+
+  - Tree, forest and network learners (`"rsf"`, `"ranger"`, `"cforest"`,
+    `"bart"`, `"blackboost"`, `"densemlp"`) read their curves as step
+    functions, equal to 1 before the first time.
+  - `"rpart"` uses the Kaplan-Meier curve of each leaf.
+  - `"nbsurv"` predicts each row on its own, avoiding an engine bug in
+    batch prediction.
+  - `"rsf"` follows [`set.seed()`](https://rdrr.io/r/base/Random.html).
+  - `"survmetalearner"` stacks on subjects with known status at each
+    landmark, with censoring weights.
+  - `"xgboost"` with `objective = "survival:cox"` codes censored times
+    as xgboost expects and uses a Breslow baseline. With
+    `"survival:aft"` it starts from the geometric mean time.
+  - `"bart"` passes `...` to
+    [`BART::surv.bart()`](https://rdrr.io/pkg/BART/man/surv.bart.html).
+  - `"selectcox"` carries survival forward past the last follow-up.
+  - The design-matrix learners (`"glmnet"`, `"coxboost"`, `"xgboost"`,
+    `"aalen"`, `"aftgee"`) keep the training factor levels, so a single
+    row or a test fold missing a level is coded correctly, and `newdata`
+    no longer needs the outcome columns.
+
+- `kmplot(model = )` accepts a model fitted on a rescaled time (days
+  versus years) and warns when the model does not use the grouping
+  variable.
+
 ## survalis 2.0.0
 
 - survalis is now built around seven verbs:
@@ -22,16 +132,13 @@
   [`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/list_interpretability_methods.md)),
   [`Surv()`](https://rdrr.io/pkg/survival/man/Surv.html) and the
   `veteran` data. The granular layer is no longer exported: `fit_*()`,
-  `predict_*()`, `tune_*()`, `cv_survlearner()`, `cv_survmetalearner()`,
-  `cv_summary()`, `cv_plot()`, `score_survmodel()`, `benchmark*()`,
-  `summarise_benchmark()`, `summarize_benchmark_results()`,
-  `best_survlearner()`, `compute_*()`, `plot_*()`, the `*_survmat()`
-  metrics, `brier()`, `survmat_to_*()`, `estimate_rmst()`,
-  `default_times()`, `list_tunable_survlearners()`, `theme_survalis()`
-  and the colour scales.
+  `predict_*()`, `tune_*()`, `cv_survlearner()`, `cv_summary()`,
+  `cv_plot()`, `score_survmodel()`, `compute_*()`, `plot_*()`, the
+  `*_survmat()` metrics, `brier()`, `survmat_to_*()`, `default_times()`,
+  `list_tunable_survlearners()`, `theme_survalis()` and the colour
+  scales.
   [`vignette("from-1.0")`](https://elbadisyimad.com/survalis/articles/from-1.0.md)
-  maps each one to its verb. `screen_fdr()` is removed; use the
-  `"selectcox"` or `"glmnet"` learners for variable selection.
+  maps each one to its verb.
 
 - Table operations inside survalis (reshaping, grouped summaries, row
   binding, sorting and merging) now use ‘basetable’ instead of base R.

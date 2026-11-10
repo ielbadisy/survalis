@@ -92,11 +92,11 @@ cmp
 #> <survalis_resampling> 3-fold CV, strata = status
 #> 
 #>   cindex (higher is better):
-#>    * coxph            0.7277  (se 0.0226)
-#>      ranger           0.6607  (se 0.0206)
+#>    * coxph            0.7282  (se 0.0229)
+#>      ranger           0.6617  (se 0.0300)
 #> 
 #>   ibs (lower is better):
-#>    * coxph            0.1497  (se 0.0070)
-#>      ranger           0.1613  (se 0.0049)
+#>    * coxph            0.1496  (se 0.0071)
+#>      ranger           0.1609  (se 0.0046)
 plot(cmp)
 ```

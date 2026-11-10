@@ -83,14 +83,19 @@ every result has a
 | `compute_survcluster()` + `plot_survcluster()` | `interpret(m, "survcluster", K = ...)` |
 | `estimate_rmst(m, data, tau, times, trt_col = "trt")` + `plot_rmst()` | `estimate(f, data, "<model>", treatment = "trt", tau = ...)` |
 
+### Kaplan-Meier curves
+
+`plot_survcurve(f, data)` becomes `kmplot(f, data)`, which draws
+Kaplan-Meier survival curves, or risk curves with `type = "risk"`, over
+a number-at-risk table.
+
 ### Removed without a replacement
 
 - `screen_fdr()`: use the `"selectcox"` or `"glmnet"` learners, which
   select variables while fitting.
-- `plot_survcurve()`, `theme_survalis()`, `scale_color_survalis()` and
+- `theme_survalis()`, `scale_color_survalis()` and
   `scale_fill_survalis()`: survalis plots still use this style
-  internally; for Kaplan-Meier figures use a dedicated package such as
-  ‘ggsurvfit’.
+  internally.
 
 ## Side by side
 
@@ -128,8 +133,8 @@ evaluate(Surv(time, status) ~ age + karno, veteran, model = expo,
 #> <survalis_eval> model = exponential
 #> <survalis_resampling> 3-fold CV, strata = status, seed = 1
 #>   grid: 2 times in [90, 180]
-#>   cindex  0.7070  (sd 0.0420, 95% [0.6590, 0.7540], n = 3)
-#>   ibs     0.1800  (sd 0.0100, 95% [0.1690, 0.1920], n = 3)
+#>   cindex  0.7077  (sd 0.0436, 95% [0.6583, 0.7570], n = 3)
+#>   ibs     0.1801  (sd 0.0100, 95% [0.1688, 0.1914], n = 3)
 ```
 
 ## Other changes on purpose

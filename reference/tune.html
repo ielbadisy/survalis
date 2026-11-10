@@ -17,7 +17,7 @@ survalis_fit."><meta property="og:image" content="https://elbadisyimad.com/surva
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -144,7 +144,7 @@ configuration), <code>results</code> (the scored grid), <code>best</code> (one-r
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;survalis_tune&gt; model = ranger  |  optimise ibs over 4 configs</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;survalis_resampling&gt; 3-fold CV, strata = status</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   best: num.trees = 100, mtry = 2, min.node.size = 15</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ibs at best: 0.2010</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ibs at best: 0.2016</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">tuned</span>, <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="op">]</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">180</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;survmat&gt; survival  |  3 obs x 2 times  [90, 180]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           t=90     t=180</span>

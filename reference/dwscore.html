@@ -17,7 +17,7 @@ restricts model comparison to the decisions clinicians actually make."><meta pro
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -160,11 +160,11 @@ those losses lie on the scale of an average regret per decision.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2  180 range(0.05,0.2) 0.01463964</span>
 <span class="r-in"><span><span class="fu">dwscore</span><span class="op">(</span><span class="va">S</span>, <span class="va">y</span>, weight <span class="op">=</span> <span class="st">"brier"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   time weight       loss</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1   90  brier 0.17687881</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   90  brier 0.17983192</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2  180  brier 0.09568638</span>
 <span class="r-in"><span><span class="fu">dwscore</span><span class="op">(</span><span class="va">S</span>, <span class="va">y</span>, weight <span class="op">=</span> <span class="st">"range"</span>, thresholds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.10</span>, <span class="fl">0.30</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   time         weight       loss</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1   90 range(0.1,0.3) 0.05470029</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   90 range(0.1,0.3) 0.05502598</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2  180 range(0.1,0.3) 0.02342342</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># the same scores inside the verbs (single time)</span></span></span>
@@ -173,9 +173,9 @@ those losses lie on the scale of an average regret per decision.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;survalis_eval&gt; model = supplied predictions</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   scored once on 37 subjects (no resampling)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   grid: 1 times in [180, 180]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   brier           0.0960</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   survacc         0.8980</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   range:0.05-0.20 0.0150</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   brier           0.0957</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   survacc         0.8976</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   range:0.05-0.20 0.0146</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

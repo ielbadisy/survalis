@@ -44,7 +44,7 @@ est <- estimate(
 est
 #> <survalis_estimate> RMST difference at tau = 300  (model: coxph)
 #>   treatment: trt  (2 vs 1)
-#>   estimate: -14.3905   95% CI [-37.9061, 7.8690]   (100 bootstrap, refit)
+#>   estimate: -14.6732   95% CI [-38.4702, 7.7335]   (100 bootstrap, refit)
 #>   plug-in G-formula; causal reading needs exchangeability, positivity,
 #>   consistency, no interference and a correct outcome model.
 ```
@@ -69,7 +69,7 @@ model* – faster, but narrower than it should be.
 
 summary(est)
 #>    estimand tau  estimate  conf_low conf_high model
-#> 1 RMST_diff 300 -14.39048 -37.90613  7.868977 coxph
+#> 1 RMST_diff 300 -14.67316 -38.47022  7.733488 coxph
 ```
 
 ## Assumptions

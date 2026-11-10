@@ -720,6 +720,14 @@ Decision-weighted scores over stated risk thresholds.
 - [`dwscore()`](https://elbadisyimad.com/survalis/reference/dwscore.md)
   : Decision-weighted scores for survival predictions
 
+## Plots
+
+Kaplan-Meier, cumulative incidence and model-adjusted curves with a
+number-at-risk table.
+
+- [`kmplot()`](https://elbadisyimad.com/survalis/reference/kmplot.md) :
+  Kaplan-Meier curves with a number-at-risk table
+
 ## Lookups
 
 Valid ids for `model`, `metrics` and `method`.

@@ -134,8 +134,8 @@ evaluate(m, times = c(90, 180, 365), resampling = cv(3))
 #> <survalis_eval> model = ranger
 #> <survalis_resampling> 3-fold CV, strata = status
 #>   grid: 3 times in [90, 365]
-#>   cindex  0.6410  (sd 0.0790, 95% [0.5520, 0.7300], n = 3)
-#>   ibs     0.1780  (sd 0.0160, 95% [0.1600, 0.1960], n = 3)
+#>   cindex  0.6114  (sd 0.0399, 95% [0.5662, 0.6566], n = 3)
+#>   ibs     0.1797  (sd 0.0150, 95% [0.1626, 0.1967], n = 3)
 
 # train / test split
 idx <- seq_len(100)
@@ -144,8 +144,8 @@ evaluate(m_tr, newdata = veteran[-idx, ], times = c(90, 180))
 #> <survalis_eval> model = coxph
 #>   scored once on 37 subjects (no resampling)
 #>   grid: 2 times in [90, 180]
-#>   cindex  0.7540
-#>   ibs     0.1770
+#>   cindex  0.7554
+#>   ibs     0.1798
 
 # predictions from anywhere
 S <- predict(m_tr, veteran[-idx, ], times = c(90, 180))
@@ -153,6 +153,6 @@ evaluate(S, y = Surv(veteran$time[-idx], veteran$status[-idx]))
 #> <survalis_eval> model = supplied predictions
 #>   scored once on 37 subjects (no resampling)
 #>   grid: 2 times in [90, 180]
-#>   cindex  0.7540
-#>   ibs     0.1770
+#>   cindex  0.7554
+#>   ibs     0.1798
 ```

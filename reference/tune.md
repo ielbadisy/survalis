@@ -90,7 +90,7 @@ tuned
 #> <survalis_tune> model = ranger  |  optimise ibs over 4 configs
 #> <survalis_resampling> 3-fold CV, strata = status
 #>   best: num.trees = 100, mtry = 2, min.node.size = 15
-#>   ibs at best: 0.2010
+#>   ibs at best: 0.2016
 predict(tuned, veteran[1:3, ], times = c(90, 180))
 #> <survmat> survival  |  3 obs x 2 times  [90, 180]
 #>           t=90     t=180

@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -351,6 +351,14 @@ pair</td>
 </table>
 </div>
 <div class="section level3">
+<h3 id="kaplan-meier-curves">Kaplan-Meier curves<a class="anchor" aria-label="anchor" href="#kaplan-meier-curves"></a>
+</h3>
+<p><code>plot_survcurve(f, data)</code> becomes
+<code>kmplot(f, data)</code>, which draws Kaplan-Meier survival curves,
+or risk curves with <code>type = "risk"</code>, over a number-at-risk
+table.</p>
+</div>
+<div class="section level3">
 <h3 id="removed-without-a-replacement">Removed without a replacement<a class="anchor" aria-label="anchor" href="#removed-without-a-replacement"></a>
 </h3>
 <ul>
@@ -359,11 +367,9 @@ pair</td>
 <code>"glmnet"</code> learners, which select variables while
 fitting.</li>
 <li>
-<code>plot_survcurve()</code>, <code>theme_survalis()</code>,
-<code>scale_color_survalis()</code> and
-<code>scale_fill_survalis()</code>: survalis plots still use this style
-internally; for Kaplan-Meier figures use a dedicated package such as
-‘ggsurvfit’.</li>
+<code>theme_survalis()</code>, <code>scale_color_survalis()</code>
+and <code>scale_fill_survalis()</code>: survalis plots still use this
+style internally.</li>
 </ul>
 </div>
 </div>
@@ -400,8 +406,8 @@ row per subject and one column per time:</p>
 <span><span class="co">#&gt; &lt;survalis_eval&gt; model = exponential</span></span>
 <span><span class="co">#&gt; &lt;survalis_resampling&gt; 3-fold CV, strata = status, seed = 1</span></span>
 <span><span class="co">#&gt;   grid: 2 times in [90, 180]</span></span>
-<span><span class="co">#&gt;   cindex  0.7070  (sd 0.0420, 95% [0.6590, 0.7540], n = 3)</span></span>
-<span><span class="co">#&gt;   ibs     0.1800  (sd 0.0100, 95% [0.1690, 0.1920], n = 3)</span></span></code></pre></div>
+<span><span class="co">#&gt;   cindex  0.7077  (sd 0.0436, 95% [0.6583, 0.7570], n = 3)</span></span>
+<span><span class="co">#&gt;   ibs     0.1801  (sd 0.0100, 95% [0.1688, 0.1914], n = 3)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="other-changes-on-purpose">Other changes on purpose<a class="anchor" aria-label="anchor" href="#other-changes-on-purpose"></a>

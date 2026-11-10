@@ -113,11 +113,11 @@ dwscore(S, y)
 #> 2  180 range(0.05,0.2) 0.01463964
 dwscore(S, y, weight = "brier")
 #>   time weight       loss
-#> 1   90  brier 0.17687881
+#> 1   90  brier 0.17983192
 #> 2  180  brier 0.09568638
 dwscore(S, y, weight = "range", thresholds = c(0.10, 0.30))
 #>   time         weight       loss
-#> 1   90 range(0.1,0.3) 0.05470029
+#> 1   90 range(0.1,0.3) 0.05502598
 #> 2  180 range(0.1,0.3) 0.02342342
 
 # the same scores inside the verbs (single time)
@@ -126,7 +126,7 @@ evaluate(S180, y = y, metrics = c("brier", "survacc", "range:0.05-0.20"))
 #> <survalis_eval> model = supplied predictions
 #>   scored once on 37 subjects (no resampling)
 #>   grid: 1 times in [180, 180]
-#>   brier           0.0960
-#>   survacc         0.8980
-#>   range:0.05-0.20 0.0150
+#>   brier           0.0957
+#>   survacc         0.8976
+#>   range:0.05-0.20 0.0146
 ```

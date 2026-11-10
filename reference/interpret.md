@@ -89,20 +89,18 @@ interpret(m, "pdp", feature = "karno", times = c(90, 180))
 #>   grid: 2 times in [90, 180]
 #>   $result:
 #>   feature feature_value id time      surv type
-#> 1   karno      10.00000  1   90 0.1884062  ice
-#> 2   karno      14.68421  1   90 0.1884062  ice
-#> 3   karno      19.36842  1   90 0.1875603  ice
-#> 4   karno      24.05263  1   90 0.1875603  ice
-#> 5   karno      28.73684  1   90 0.2404616  ice
+#> 1   karno      10.00000  1   90 0.2099627  ice
+#> 2   karno      14.68421  1   90 0.2099627  ice
+#> 3   karno      19.36842  1   90 0.2077350  ice
+#> 4   karno      24.05263  1   90 0.2077350  ice
+#> 5   karno      28.73684  1   90 0.2572695  ice
 interpret(m, "varimp", times = c(90, 180))
 #> <survalis_interpret> method = varimp  |  model = ranger
 #>   grid: 2 times in [90, 180]
 #>   $result:
 #>    feature importance importance_05 importance_95 scaled_importance
-#> 1    karno     0.1408       0.11545       0.17390         100.00000
-#> 2 celltype     0.0672       0.05490       0.08305          47.72727
-#> 3      age     0.0439       0.03280       0.05395          31.17898
-#> 4      trt     0.0000       0.00000       0.00000           0.00000
-#> 5 diagtime     0.0000       0.00000       0.00000           0.00000
+#> 1    karno 0.13143405    0.10691343    0.16289422         100.00000
+#> 2 celltype 0.07373054    0.05816584    0.08608992          56.09699
+#> 3      age 0.03967214    0.02949784    0.04692894          30.18406
 plot(interpret(m, "roc", eval_time = 180))
 ```

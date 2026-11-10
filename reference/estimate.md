@@ -121,7 +121,7 @@ est <- estimate(Surv(time, status) ~ age + karno + celltype, veteran,
 est
 #> <survalis_estimate> RMST difference at tau = 300  (model: coxph)
 #>   treatment: trt  (2 vs 1)
-#>   estimate: -14.3905   95% CI [-40.6135, 7.8719]   (50 bootstrap, refit)
+#>   estimate: -14.6732   95% CI [-41.0580, 7.8212]   (50 bootstrap, refit)
 #>   plug-in G-formula; causal reading needs exchangeability, positivity,
 #>   consistency, no interference and a correct outcome model.
 ```
