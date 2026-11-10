@@ -81,13 +81,18 @@ explanation in `method`, the output scale in `type`, and every result has a
 | `compute_survcluster()` + `plot_survcluster()` | `interpret(m, "survcluster", K = ...)` |
 | `estimate_rmst(m, data, tau, times, trt_col = "trt")` + `plot_rmst()` | `estimate(f, data, "<model>", treatment = "trt", tau = ...)` |
 
+### Kaplan-Meier curves
+
+`plot_survcurve(f, data)` becomes `kmplot(f, data)`, which draws Kaplan-Meier
+survival curves, or risk curves with `type = "risk"`, over a number-at-risk
+table.
+
 ### Removed without a replacement
 
 * `screen_fdr()`: use the `"selectcox"` or `"glmnet"` learners, which select
   variables while fitting.
-* `plot_survcurve()`, `theme_survalis()`, `scale_color_survalis()` and
-  `scale_fill_survalis()`: survalis plots still use this style internally; for
-  Kaplan-Meier figures use a dedicated package such as 'ggsurvfit'.
+* `theme_survalis()`, `scale_color_survalis()` and `scale_fill_survalis()`:
+  survalis plots still use this style internally.
 
 ## Side by side
 

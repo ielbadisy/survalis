@@ -14,7 +14,7 @@
 #' A Consistent ggplot2 Theme for survalis Figures
 #'
 #' A clean, minimal theme shared across \pkg{survalis} plotting functions
-#' (\code{plot_pdp}, \code{plot_benchmark}, \code{cv_plot},
+#' (\code{plot_pdp}, \code{cv_plot},
 #' and others), so figures produced by the package look like one consistent
 #' system rather than each using an independent ad-hoc style.
 #'
