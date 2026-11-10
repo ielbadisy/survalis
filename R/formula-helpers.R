@@ -30,18 +30,38 @@
     stop("Formula must begin with a Surv(...) outcome.")
   }
 
-  time_col <- as.character(outcome[[2]])
+  if (length(outcome) != 3L) {
+    stop("The outcome must be Surv(time, status) with exactly two arguments.",
+         call. = FALSE)
+  }
+  time_expr <- outcome[[2]]
   status_expr <- outcome[[3]]
 
   if (is.call(status_expr) && identical(status_expr[[1]], as.name("=="))) {
-    status_col <- as.character(status_expr[[2]])
+    status_sym <- status_expr[[2]]
     event_value <- eval(status_expr[[3]], envir = data, enclos = parent.frame())
     recode_status <- TRUE
   } else {
-    status_col <- as.character(status_expr)
+    status_sym <- status_expr
     event_value <- 1
     recode_status <- FALSE
   }
+
+  # The learners read the outcome columns from `data` by name, so a computed
+  # time or status (e.g. Surv(time / 365.25, status)) would silently use the
+  # raw column. Ask for a plain column instead.
+  for (s in list(time_expr, status_sym)) {
+    if (!is.name(s)) {
+      stop("Surv() arguments must be column names, not expressions (got `",
+           deparse(s), "`). Compute it as a column first, e.g. ",
+           "data$years <- data$time / 365.25.", call. = FALSE)
+    }
+    if (!as.character(s) %in% names(data)) {
+      stop("Column `", as.character(s), "` is not in `data`.", call. = FALSE)
+    }
+  }
+  time_col <- as.character(time_expr)
+  status_col <- as.character(status_sym)
 
   list(
     time_col = time_col,
@@ -49,4 +69,20 @@
     event_value = event_value,
     recode_status = recode_status
   )
+}
+
+## Predictors of a fitted model, in formula order, restricted to `cols` (the
+## columns of the data being explained). The explanation methods use this so
+## that they never perturb or report the outcome or columns the model did not
+## use. A `.` on the right-hand side stands for every non-outcome column.
+#' @keywords internal
+#' @noRd
+.model_features <- function(model, cols) {
+  f <- model$formula
+  parsed <- .parse_surv_formula(f, model$data)
+  outcome <- c(parsed$time_col, parsed$status_col)
+  v <- all.vars(f[[3]])
+  if ("." %in% v) v <- union(setdiff(v, "."), names(model$data))
+  v <- setdiff(v, outcome)
+  v[v %in% cols]
 }

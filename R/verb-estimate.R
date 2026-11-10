@@ -69,6 +69,8 @@ estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio
 
 
   parsed <- .parse_surv_formula(formula, data)
+  # expand a `.` so the confounder list below is explicit
+  formula <- stats::formula(stats::terms(formula, data = data))
   data <- .complete_cases_df(data, unique(c(all.vars(formula), treatment)))
 
   lv <- sort(unique(data[[treatment]]))
@@ -82,9 +84,7 @@ estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio
   } else treatment
   work_formula <- stats::as.formula(paste(lhs, "~", rhs))
 
-  status <- if (isTRUE(parsed$recode_status)) {
-    as.integer(data[[parsed$status_col]] == parsed$event_value)
-  } else as.integer(data[[parsed$status_col]] != 0)
+  status <- .recode_status_vec(parsed, data)
   times <- .resolve_times(times, data[[parsed$time_col]], status)
   if (max(times) < tau) {
     stop("`times` must reach `tau` (max(times) = ", max(times), " < ", tau, ").", call. = FALSE)

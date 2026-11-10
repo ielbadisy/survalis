@@ -29,11 +29,13 @@
              nrow(newdata), " rows and ", length(times), " columns (one per time).",
              call. = FALSE)
       }
-      colnames(out) <- paste0("t=", times)
-      out
+      # same clamping and monotone repair as the built-in learners, so every
+      # verb scores the same values
+      as.matrix(.finalize_survmat(out, times = times))
     }
     fit_fun <- function(formula, data, ...) {
-      raw <- user_fit(formula, data, ...)
+      s <- .std_outcome(formula, data)
+      raw <- user_fit(formula = s$formula, data = s$data, ...)
       structure(list(model = raw, learner = id, formula = formula, data = data,
                      predict_fun = pred_fun),
                 class = "mlsurv_model")
@@ -49,11 +51,26 @@
          "or a custom learner list(fit = , predict = ).", call. = FALSE)
   }
   ns <- asNamespace("survalis")
+  engine_fit <- get(paste0("fit_", model), envir = ns)
+  engine_tune <- get0(paste0("tune_", model), envir = ns, inherits = FALSE)
   list(id = model,
-       fit = get(paste0("fit_", model), envir = ns),
+       fit = function(formula, data, ...) {
+         s <- .std_outcome(formula, data)
+         engine_fit(formula = s$formula, data = s$data, ...)
+       },
        predict = get(paste0("predict_", model), envir = ns),
-       tune = get0(paste0("tune_", model), envir = ns, inherits = FALSE),
+       tune = engine_tune,
        custom = FALSE, def = model)
+}
+
+# The learners read the outcome columns by name and differ in how they treat
+# a 1/2 or logical status, or ignore a `status == k` recoding. Hand every
+# learner the same outcome: a 0/1 event column and a plain Surv(time, status).
+.std_outcome <- function(formula, data) {
+  parsed <- .parse_surv_formula(formula, data)
+  data[[parsed$status_col]] <- .recode_status_vec(parsed, data)
+  formula[[2]][[3]] <- as.name(parsed$status_col)
+  list(formula = formula, data = data)
 }
 
 # Prediction function for a fitted model object (built-in or custom).

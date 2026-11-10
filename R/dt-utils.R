@@ -38,6 +38,9 @@
 }
 
 .complete_cases_df <- function(data, vars) {
+  # a `.` in the formula stands for every column
+  if ("." %in% vars) vars <- names(data)
+  vars <- intersect(vars, names(data))
   data[stats::complete.cases(data[, vars, drop = FALSE]), , drop = FALSE]
 }
 

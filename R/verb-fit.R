@@ -65,6 +65,12 @@ fit <- function(formula, data, model, spec = list(), seed = NULL, ...) {
          paste(sQuote(names(dots)), collapse = ", "), ".", call. = FALSE)
   }
 
+  # Rows with a missing outcome or predictor are dropped once, here, so the
+  # stored data, the printed counts and every later verb see the rows the
+  # model was fitted on.
+  data <- .complete_cases_df(data, all.vars(formula))
+  if (!nrow(data)) stop("No complete rows for the variables in `formula`.", call. = FALSE)
+
   if (!is.null(seed)) set.seed(as.integer(seed))
 
   mlobj <- do.call(lrn$fit, c(list(formula = formula, data = data), spec))
@@ -85,7 +91,7 @@ fit <- function(formula, data, model, spec = list(), seed = NULL, ...) {
   if (!is.list(mlobj)) stop("fit_", model_id, "() did not return a model object.", call. = FALSE)
   mlobj$learner  <- .null_default(mlobj$learner, model_id)
   mlobj$formula  <- formula
-  if (is.null(mlobj$data)) mlobj$data <- data
+  mlobj$data     <- data
   mlobj$time     <- parsed$time_col
   mlobj$status   <- parsed$status_col
   mlobj$model_id <- model_id
@@ -102,8 +108,7 @@ fit <- function(formula, data, model, spec = list(), seed = NULL, ...) {
 .fit_status_vector <- function(fit) {
   parsed <- attr(fit, "surv_parsed")
   if (is.null(parsed)) parsed <- .parse_surv_formula(fit$formula, fit$data)
-  s <- fit$data[[parsed$status_col]]
-  if (isTRUE(parsed$recode_status)) as.integer(s == parsed$event_value) else as.integer(s != 0)
+  .recode_status_vec(parsed, fit$data)
 }
 
 #' @export

@@ -49,7 +49,8 @@ predict.survalis_fit <- function(object, newdata = NULL, times = NULL,
 
   if (is.null(newdata)) newdata <- object$data
 
-  mv <- tryCatch(all.vars(stats::delete.response(stats::terms(object$formula))),
+  mv <- tryCatch(all.vars(stats::delete.response(stats::terms(object$formula,
+                                                              data = object$data))),
                  error = function(e) character(0))
   mv <- intersect(mv, names(newdata))
   if (length(mv)) {
