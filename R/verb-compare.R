@@ -53,6 +53,7 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
   data <- .complete_cases_df(data, all.vars(formula))
   status <- .recode_status_vec(parsed, data)
   times <- .resolve_times(times, data[[parsed$time_col]], status)
+  .check_metrics(metrics, times)
 
   splits <- .make_splits(resampling, data, parsed$status_col)
   tunable <- list_survlearners(has_tune = TRUE)$learner
@@ -83,8 +84,6 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
   names(se_tbl)[names(se_tbl) == "value"] <- "se"
   leaderboard <- basetable::merge(mean_tbl, se_tbl, by = c("model", "metric"))
   leaderboard <- basetable::orderrows(leaderboard, by = c("metric", "model"))
-  leaderboard$mean <- round(leaderboard$mean, 4)
-  leaderboard$se <- round(leaderboard$se, 4)
   rownames(leaderboard) <- NULL
 
   structure(

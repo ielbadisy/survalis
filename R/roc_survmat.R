@@ -68,11 +68,9 @@ roc_survmat <- function(object, predicted, t_star) {
   }
 
   km_fit <- survival::survfit(survival::Surv(time, 1 - status) ~ 1)
-  eval_times <- sort(unique(c(t_star, time[cases])))
-  G_all <- summary(km_fit, times = eval_times, extend = TRUE)$surv
-  names(G_all) <- as.character(eval_times)
-
-  G_case <- G_all[as.character(time[cases])]
+  # cases weighted by G(T_i-), as in auc_survmat() and timeROC
+  idx <- findInterval(time[cases], km_fit$time, left.open = TRUE)
+  G_case <- ifelse(idx > 0, km_fit$surv[pmax(idx, 1L)], 1)
   valid_cases <- which(is.finite(G_case) & G_case > 0)
   if (!length(valid_cases)) stop("ROC curve is undefined because censoring weights are not available.")
 
@@ -94,9 +92,11 @@ roc_survmat <- function(object, predicted, t_star) {
   curve <- basetable::orderrows(curve, by = "threshold")
   rownames(curve) <- NULL
 
-  fpr <- 1 - curve$specificity
-  ord <- order(fpr)
-  auc_val <- abs(pracma::trapz(fpr[ord], curve$sensitivity[ord]))
+  # close the curve at (0, 0) and (1, 1) so the area covers the full range
+  fpr <- c(0, 1 - curve$specificity, 1)
+  tpr <- c(0, curve$sensitivity, 1)
+  ord <- order(fpr, tpr)
+  auc_val <- pracma::trapz(fpr[ord], tpr[ord])
 
   out <- list(curve = curve, auc = auc_val, t_star = t_star)
   class(out) <- "roc_survmat"

@@ -71,6 +71,24 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
   data <- .complete_cases_df(data, all.vars(formula))
   status <- .recode_status_vec(parsed, data)
   times <- .resolve_times(times, data[[parsed$time_col]], status)
+  .check_metrics(metric, times)
+
+  tuned_names <- if (!is.null(grid)) names(grid) else if (builtin) .builtin_grid_names(lrn$tune)
+  clash <- intersect(names(list(...)), tuned_names)
+  if (length(clash)) {
+    stop("Argument(s) ", paste(sQuote(clash), collapse = ", "), " are both tuned ",
+         "in the grid and fixed in `...`; drop one of them.", call. = FALSE)
+  }
+
+  # The built-in tuners run one plain v-fold split. For repeated or
+  # differently stratified CV, search their default grid on shared splits.
+  if (builtin && (.null_default(resampling$params$repeats, 1L) > 1L ||
+                  !identical(resampling$params$strata, "status"))) {
+    if (is.null(grid)) {
+      grid <- eval(formals(lrn$tune)$param_grid, envir = environment(lrn$tune))
+    }
+    builtin <- FALSE
+  }
 
   if (!builtin) {
     return(.tune_grid(formula, data, model, lrn, grid, times, resampling, metric,
@@ -79,7 +97,8 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
 
   tuner <- lrn$tune
   tf <- names(formals(tuner))
-  args <- list(formula = formula, data = data, times = times,
+  std <- .std_outcome(formula, data)
+  args <- list(formula = std$formula, data = std$data, times = times,
                metrics = metric, folds = resampling$params$v,
                seed = .null_default(resampling$params$seed, 123L))
   if ("ncores" %in% tf) args$ncores <- ncores
@@ -123,7 +142,8 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
   metric_cols <- names(results)[.is_metric(names(results))]
   param_cols <- setdiff(names(results), c(metric_cols, "failed"))
   best_row <- results[1, , drop = FALSE]
-  spec <- as.list(best_row[, param_cols, drop = FALSE])
+  # keep the fixed engine arguments, so fit$spec reproduces the best model
+  spec <- c(as.list(best_row[, param_cols, drop = FALSE]), dots)
 
   fit_obj <- .as_survalis_fit(best_model, model_id = lrn$id, spec = spec,
                               formula = formula, data = data, parsed = parsed)

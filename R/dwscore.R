@@ -193,3 +193,25 @@ dwscore <- function(object, y, times = NULL,
 .is_metric <- function(metric) {
   metric %in% list_metrics()$metric | grepl("^range:", metric)
 }
+
+## Validate metric ids against the time grid before any model is fitted, so a
+## bad request fails at once rather than after a full resampling run.
+#' @keywords internal
+#' @noRd
+.check_metrics <- function(metrics, times) {
+  bad <- metrics[!.is_metric(metrics)]
+  if (length(bad)) {
+    stop("Unknown metric(s): ", paste(sQuote(bad), collapse = ", "),
+         ". See list_metrics().", call. = FALSE)
+  }
+  for (m in metrics[grepl("^range:", metrics)]) .parse_range_metric(m)
+  single <- metrics[metrics %in% c("brier", "ece", "survacc") |
+                      grepl("^range:", metrics)]
+  if (length(single) && length(times) != 1L) {
+    stop("Metric(s) ", paste(sQuote(single), collapse = ", "),
+         " need a single evaluation time, but `times` has ", length(times),
+         " values. Use `times = t` or drop them; \"auc\" and \"cindex\" use ",
+         "max(times).", call. = FALSE)
+  }
+  invisible(TRUE)
+}

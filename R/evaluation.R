@@ -42,36 +42,19 @@ cindex_survmat <- function(object, predicted, t_star = NULL) {
     surv_prob <- if (is.matrix(predicted)) predicted[, ncol(predicted)] else predicted[[ncol(predicted)]]
   }
 
+  # Harrell's C on the risk 1 - S(t). Pairs tied on risk count 1/2; pairs of
+  # events tied in time are not comparable; an event tied in time with a
+  # censored subject is comparable (the censored subject was still at risk).
+  # This is the definition of survival::concordance(), which also runs in
+  # O(n log n).
   risk_score <- 1 - surv_prob
-  permissible <- 0
-  concord <- 0
-  par_concord <- 0
-  n <- length(time)
-
-  for (i in 1:(n - 1)) {
-    for (j in (i + 1):n) {
-      if ((time[i] < time[j] & status[i] == 0) | (time[j] < time[i] & status[j] == 0)) next
-      if (time[i] == time[j] & status[i] == 0 & status[j] == 0) next
-      permissible <- permissible + 1
-      if (time[i] != time[j]) {
-        if ((time[i] < time[j] & risk_score[i] > risk_score[j]) |
-            (time[j] < time[i] & risk_score[j] > risk_score[i])) {
-          concord <- concord + 1
-        } else if (risk_score[i] == risk_score[j]) {
-          par_concord <- par_concord + 0.5
-        }
-      } else {
-        if (status[i] + status[j] > 0) {
-          if (risk_score[i] == risk_score[j]) concord <- concord + 1
-          else par_concord <- par_concord + 0.5
-        }
-      }
-    }
-  }
-
-  C_index <- (concord + par_concord) / permissible
+  ok <- is.finite(time) & !is.na(status) & is.finite(risk_score)
+  if (!any(status[ok] == 1)) return(stats::setNames(NA_real_, "C index"))
+  cc <- survival::concordance(survival::Surv(time[ok], status[ok]) ~ risk_score[ok],
+                              reverse = TRUE)
+  C_index <- unname(cc$concordance)
   names(C_index) <- "C index"
-  return(round(C_index, 6))
+  return(C_index)
 }
 
 #' Time-Dependent AUC from a Survival-Probability Matrix
@@ -137,13 +120,12 @@ auc_survmat <- function(object, predicted, t_star = NULL) {
     return(stats::setNames(NA_real_, "auc"))
   }
 
+  # IPCW with the marginal Kaplan-Meier of the censoring distribution:
+  # cases are weighted by G(T_i-), controls by G(t), as in timeROC.
   km_fit <- survival::survfit(survival::Surv(time, 1 - status) ~ 1)
-  eval_times <- sort(unique(c(t_star, time[cases])))
-  G_all <- summary(km_fit, times = eval_times, extend = TRUE)$surv
-  names(G_all) <- as.character(eval_times)
-
-  Gt <- G_all[as.character(t_star)]
-  G_case <- G_all[as.character(time[cases])]
+  Gt <- summary(km_fit, times = t_star, extend = TRUE)$surv
+  idx <- findInterval(time[cases], km_fit$time, left.open = TRUE)
+  G_case <- ifelse(idx > 0, km_fit$surv[pmax(idx, 1L)], 1)
   valid_cases <- which(is.finite(G_case) & G_case > 0)
 
   if (!length(valid_cases) || !is.finite(Gt) || Gt <= 0) {
@@ -163,7 +145,7 @@ auc_survmat <- function(object, predicted, t_star = NULL) {
     (length(controls) * sum(case_weights))
 
   names(auc_value) <- "auc"
-  round(auc_value, 6)
+  auc_value
 }
 
 #' Time-Dependent ROC/AUC Curve from a Survival-Probability Matrix
@@ -248,7 +230,7 @@ brier <- function(object, pre_sp, t_star) {
     return(NA_real_)
   }
   names(bs_value) <- "brier"
-  round(bs_value, 6)
+  bs_value
 }
 
 #' Integrated Brier Score (Discrete Integration)
@@ -273,23 +255,46 @@ brier <- function(object, pre_sp, t_star) {
 #' ibs_survmat(y, sp_matrix = sp, times = times)
 #' @noRd
 
+## Columns named "t=<time>" (as predict() returns them, in increasing time)
+## are matched to `times` by name, so the order of `times` does not matter.
+#' @keywords internal
+#' @noRd
+.align_survmat <- function(sp_matrix, times) {
+  cn <- colnames(sp_matrix)
+  if (is.null(cn) || !all(grepl("^t=", cn))) return(sp_matrix)
+  ct <- suppressWarnings(as.numeric(sub("^t=", "", cn)))
+  idx <- match(times, ct)
+  if (anyNA(idx)) {
+    idx <- vapply(times, function(t) {
+      j <- which(abs(ct - t) <= 1e-8 * max(1, abs(t)))
+      if (length(j)) j[1] else NA_integer_
+    }, integer(1))
+  }
+  if (anyNA(idx)) return(sp_matrix)
+  sp_matrix[, idx, drop = FALSE]
+}
+
 ibs_survmat <- function(object, sp_matrix, times) {
+  sp_matrix <- .align_survmat(sp_matrix, times)
   if (!inherits(object, "Surv")) stop("object must be a survival object")
   if (length(times) != ncol(sp_matrix)) stop("Length of times must match sp_matrix columns")
   if (length(times) == 1) {
     return(brier(object, pre_sp = sp_matrix[, 1], t_star = times[1]))
   }
 
-  times <- sort(times)
+  o <- order(times)
+  times <- times[o]
+  sp_matrix <- sp_matrix[, o, drop = FALSE]
   brier_vec <- vapply(seq_along(times), function(i) {
     brier(object, pre_sp = sp_matrix[, i], t_star = times[i])
   }, numeric(1))
+  if (anyNA(brier_vec)) return(c(ibs = NA_real_))
 
   dt <- diff(times)
   integral <- sum(brier_vec[-length(brier_vec)] * dt)
   ibs_value <- integral / (max(times) - min(times))
   names(ibs_value) <- "ibs"
-  return(round(ibs_value, 6))
+  return(ibs_value)
 }
 
 #' Integrated Absolute Error Against Kaplan-Meier
@@ -316,22 +321,26 @@ ibs_survmat <- function(object, sp_matrix, times) {
 #' @noRd
 
 iae_survmat <- function(object, sp_matrix, times) {
+  sp_matrix <- .align_survmat(sp_matrix, times)
   if (!inherits(object, "Surv")) stop("object must be a survival object")
   if (length(times) != ncol(sp_matrix)) stop("Length of times must match sp_matrix columns")
 
-  mean_pred_surv <- colMeans(sp_matrix)
+  o <- order(times)
+  times <- times[o]
+  mean_pred_surv <- colMeans(sp_matrix)[o]
   km_fit <- survfit(object ~ 1)
-  km_data <- data.frame(time = km_fit$time, surv = km_fit$surv)
-  km_data <- km_data[km_fit$n.event > 0, , drop = FALSE]
-
-  pred_at_km <- approx(x = times, y = mean_pred_surv, xout = km_data$time,
-                       method = "constant", rule = 2)$y
-
-  dt <- diff(km_data$time)
-  t_IAE <- abs(km_data$surv - pred_at_km)
-  iae <- sum(t_IAE[-length(t_IAE)] * dt)
+  ## Integrate over [min(times), max(times)] only: both curves are step
+  ## functions, so evaluate them on the union of the evaluation times and the
+  ## Kaplan-Meier jump times inside that window.
+  jumps <- km_fit$time[km_fit$n.event > 0]
+  g <- sort(unique(c(times, jumps[jumps > min(times) & jumps < max(times)])))
+  if (length(g) < 2L) return(c(iae = NA_real_))
+  km_g <- summary(km_fit, times = g, extend = TRUE)$surv
+  p_g <- approx(x = times, y = mean_pred_surv, xout = g,
+                method = "constant", rule = 2)$y
+  iae <- sum((abs(km_g - p_g))[-length(g)] * diff(g))
   names(iae) <- "iae"
-  return(round(iae, 4))
+  return(iae)
 }
 
 #' Integrated Squared Error Against Kaplan-Meier
@@ -358,22 +367,26 @@ iae_survmat <- function(object, sp_matrix, times) {
 #' @noRd
 
 ise_survmat <- function(object, sp_matrix, times) {
+  sp_matrix <- .align_survmat(sp_matrix, times)
   if (!inherits(object, "Surv")) stop("object must be a survival object")
   if (length(times) != ncol(sp_matrix)) stop("Length of times must match sp_matrix columns")
 
-  mean_pred_surv <- colMeans(sp_matrix)
+  o <- order(times)
+  times <- times[o]
+  mean_pred_surv <- colMeans(sp_matrix)[o]
   km_fit <- survfit(object ~ 1)
-  km_data <- data.frame(time = km_fit$time, surv = km_fit$surv)
-  km_data <- km_data[km_fit$n.event > 0, , drop = FALSE]
-
-  pred_at_km <- approx(x = times, y = mean_pred_surv, xout = km_data$time,
-                       method = "constant", rule = 2)$y
-
-  dt <- diff(km_data$time)
-  t_ISE <- (km_data$surv - pred_at_km)^2
-  ise <- sum(t_ISE[-length(t_ISE)] * dt)
+  ## Integrate over [min(times), max(times)] only: both curves are step
+  ## functions, so evaluate them on the union of the evaluation times and the
+  ## Kaplan-Meier jump times inside that window.
+  jumps <- km_fit$time[km_fit$n.event > 0]
+  g <- sort(unique(c(times, jumps[jumps > min(times) & jumps < max(times)])))
+  if (length(g) < 2L) return(c(ise = NA_real_))
+  km_g <- summary(km_fit, times = g, extend = TRUE)$surv
+  p_g <- approx(x = times, y = mean_pred_surv, xout = g,
+                method = "constant", rule = 2)$y
+  ise <- sum(((km_g - p_g)^2)[-length(g)] * diff(g))
   names(ise) <- "ise"
-  return(round(ise, 4))
+  return(ise)
 }
 
 
@@ -514,10 +527,10 @@ ece <- (mean(diff_p))^(1 / p)
 }
 
 names(ece) <- "ece"
-round(ece, 6)
+ece
 }
 
-.score_metrics <- function(surv_obj, pred, times, metrics, digits = 3) {
+.score_metrics <- function(surv_obj, pred, times, metrics, digits = NULL) {
   values <- vapply(metrics, function(m) {
     th <- .parse_range_metric(m)
     if (!is.null(th) || m == "survacc") {
@@ -545,7 +558,7 @@ round(ece, 6)
     ))
   }, numeric(1))
 
-  data.frame(metric = metrics, value = round(values, digits), stringsAsFactors = FALSE)
+  data.frame(metric = metrics, value = if (is.null(digits)) values else round(values, digits), stringsAsFactors = FALSE)
 }
 
 
@@ -661,17 +674,8 @@ pred  <- pred_fun(model, newdata = test, times = times)
 pred  <- .finalize_survmat(pred, times = times)
 
 parsed_formula <- .parse_surv_formula(formula, test)
-time_col <- parsed_formula$time_col
-status_col <- parsed_formula$status_col
-event_value <- parsed_formula$event_value
-
-if (parsed_formula$recode_status) {
-status_vector <- as.integer(test[[status_col]] == event_value)
-} else {
-status_vector <- test[[status_col]]
-}
-
-surv_obj <- survival::Surv(time = test[[time_col]], event = status_vector)
+surv_obj <- survival::Surv(time = test[[parsed_formula$time_col]],
+                           event = .recode_status_vec(parsed_formula, test))
 
 scored <- .score_metrics(surv_obj, pred, times, metrics)
 data.frame(
@@ -694,8 +698,9 @@ data.frame(
 #' for each metric returned by \code{cv_survlearner}.
 #'
 #' @param cv_results A tibble/data frame as returned by \code{cv_survlearner()}.
-#' @param digits Integer number of decimal places for \code{mean}, \code{sd},
-#'   \code{se}, \code{lower}, \code{upper} (default \code{3}).
+#' @param digits Optional number of decimal places for \code{mean}, \code{sd},
+#'   \code{se}, \code{lower}, \code{upper}. \code{NULL} (default) keeps full
+#'   precision, so that tuners and leaderboards do not rank on rounded values.
 #'
 #' @return A data.frame with columns: \code{metric}, \code{mean}, \code{sd}, \code{n},
 #'   \code{se}, \code{lower}, \code{upper}.
@@ -709,21 +714,25 @@ data.frame(
 #' @keywords internal
 #' @noRd
 
-cv_summary <- function(cv_results, digits = 3) {
+cv_summary <- function(cv_results, digits = NULL) {
   df <- as.data.frame(cv_results)
   mean_tbl <- basetable::aggregate(df, by = "metric", value = "value", fun = "mean", na.rm = TRUE)
   names(mean_tbl)[names(mean_tbl) == "value"] <- "mean"
   sd_tbl <- basetable::aggregate(df, by = "metric", value = "value", fun = "sd", na.rm = TRUE)
   names(sd_tbl)[names(sd_tbl) == "value"] <- "sd"
-  n_tbl <- basetable::count(df, by = "metric", sort = FALSE)
+  df$.ok <- as.integer(!is.na(df$value))
+  n_tbl <- basetable::aggregate(df, by = "metric", value = ".ok", fun = "sum")
+  names(n_tbl)[names(n_tbl) == ".ok"] <- "n"
 
   out <- basetable::merge(mean_tbl, sd_tbl, by = "metric", sort = TRUE)
   out <- basetable::merge(out, n_tbl, by = "metric", sort = TRUE)
   out$se <- out$sd / sqrt(out$n)
   out$lower <- out$mean - 1.96 * out$se
   out$upper <- out$mean + 1.96 * out$se
-  for (col in c("mean", "sd", "se", "lower", "upper")) {
-    out[[col]] <- round(out[[col]], digits)
+  if (!is.null(digits)) {
+    for (col in c("mean", "sd", "se", "lower", "upper")) {
+      out[[col]] <- round(out[[col]], digits)
+    }
   }
   out
 }
@@ -815,28 +824,11 @@ score_survmodel <- function(model, times, metrics = c("cindex", "ibs", "brier", 
 
   if (is.null(learner)) stop("Model object must have a 'learner' field.")
 
-  # get prediction function
-  pred_fun_name <- paste0("predict_", learner)
-  if (!exists(pred_fun_name, mode = "function")) {
-    stop("Prediction function not found: ", pred_fun_name)
-  }
-  pred_fun <- get(pred_fun_name, mode = "function")
-  sp_matrix <- pred_fun(model, newdata = data, times = times)
-  sp_matrix <- .finalize_survmat(sp_matrix, times = times)
-
-  # extract Surv object
-  parsed_formula <- .parse_surv_formula(formula, data)
-  time_col <- parsed_formula$time_col
-  status_col <- parsed_formula$status_col
-  event_value <- parsed_formula$event_value
-
-  if (parsed_formula$recode_status) {
-    status_vector <- as.integer(data[[status_col]] == event_value)
-  } else {
-    status_vector <- data[[status_col]]
-  }
-
-  surv_obj <- survival::Surv(time = data[[time_col]], event = status_vector)
+  pred_fun <- .predict_fun(model)
+  data <- .complete_cases_df(data, all.vars(formula))
+  sp_matrix <- .finalize_survmat(pred_fun(model, newdata = data, times = times), times = times)
+  parsed <- .parse_surv_formula(formula, data)
+  surv_obj <- survival::Surv(data[[parsed$time_col]], .recode_status_vec(parsed, data))
 
   # score each metric
   .score_metrics(surv_obj, sp_matrix, times, metrics)

@@ -69,10 +69,10 @@ test_that("survmetalearner runs from a formula and data", {
   expect_false(anyNA(p))
   p1 <- as.matrix(predict_survmetalearner(mod, d[1:8, ], 120))
   expect_equal(dim(p1), c(8L, 1L))
-  # and it runs through benchmark()
-  res <- benchmark(formula = vet_form, data = d, learners = "survmetalearner", times = tm,
-                   metrics = c("cindex", "ibs"), tune = FALSE, folds = 3, ncores = 1,
-                   suppress_errors = FALSE)
+  # and it runs through evaluate()
+  res <- as.data.frame(evaluate(vet_form, d, model = "survmetalearner", times = tm,
+                                resampling = cv(3, seed = 1),
+                                metrics = c("cindex", "ibs")))
   expect_gt(nrow(res), 0L)
   expect_false(anyNA(res$value))
 })
@@ -132,8 +132,8 @@ test_that("compare() reports the real error when a metric fails on parallel work
             metrics = c("cindex", "brier"), ncores = nc),
     error = function(e) conditionMessage(e)
   )
-  expect_match(msg(1), "single time point")
-  expect_match(msg(2), "single time point")
+  expect_match(msg(1), "single evaluation time")
+  expect_match(msg(2), "single evaluation time")
   expect_false(grepl("object 'value' not found", msg(2), fixed = TRUE))
 })
 

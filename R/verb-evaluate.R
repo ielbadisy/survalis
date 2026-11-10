@@ -69,6 +69,7 @@ evaluate.survalis_fit <- function(object, newdata = NULL, times = NULL,
            paste(sQuote(need), collapse = ", "), ".", call. = FALSE)
     }
     newdata <- .complete_cases_df(newdata, all.vars(object$formula))
+    if (!is.null(times)) .check_metrics(metrics, times)
     S <- predict(object, newdata = newdata, times = times)
     y <- survival::Surv(newdata[[parsed$time_col]], .recode_status_vec(parsed, newdata))
     out <- evaluate.matrix(S, y = y, times = attr(S, "times"), metrics = metrics)
@@ -98,6 +99,7 @@ evaluate.matrix <- function(object, y, times = NULL,
   if (!inherits(y, "Surv")) stop("`y` must be a Surv() object.", call. = FALSE)
   inp <- .survmat_input(object, NROW(y), times)
   P <- inp$S; times <- inp$times
+  .check_metrics(metrics, times)
   colnames(P) <- paste0("t=", times)
   sc <- .score_metrics(y, as.data.frame(P), times, metrics)
   per <- data.frame(id = "supplied", metric = sc$metric, value = sc$value,
@@ -115,7 +117,9 @@ evaluate.matrix <- function(object, y, times = NULL,
 #' @keywords internal
 .recode_status_vec <- function(parsed, df) {
   s <- df[[parsed$status_col]]
-  if (isTRUE(parsed$recode_status)) as.integer(s == parsed$event_value) else as.integer(s != 0)
+  if (isTRUE(parsed$recode_status)) return(as.integer(s == parsed$event_value))
+  # survival's own coding rules: 0/1, 1/2 (1 = censored), or logical
+  as.integer(survival::Surv(df[[parsed$time_col]], s)[, 2])
 }
 
 #' Shared split-loop used by evaluate() and compare()
@@ -126,7 +130,11 @@ evaluate.matrix <- function(object, y, times = NULL,
   fit_fun  <- lrn$fit
   pred_fun <- lrn$predict
 
-  one <- function(sp) {
+  # One seed per split, drawn from the caller's RNG stream, so stochastic
+  # learners give the same results with any `ncores`.
+  seeds <- sample.int(.Machine$integer.max, length(splits))
+  one <- function(sp, seed) {
+    set.seed(seed)
     tr <- data[sp$analysis, , drop = FALSE]
     te <- data[sp$assessment, , drop = FALSE]
     m  <- do.call(fit_fun, c(list(formula = formula, data = tr), spec))
@@ -138,9 +146,10 @@ evaluate.matrix <- function(object, y, times = NULL,
   }
 
   parts <- if (ncores > 1) {
-    functionals::fmapn(list(sp = splits), function(sp) one(sp), ncores = ncores, pb = FALSE)
+    functionals::fmapn(list(sp = splits, seed = seeds), function(sp, seed) one(sp, seed),
+                       ncores = ncores, pb = FALSE)
   } else {
-    lapply(splits, one)
+    Map(one, splits, seeds)
   }
   .abort_on_worker_error(parts)
   basetable::rbindfill(unname(parts), fill = TRUE)
@@ -154,6 +163,7 @@ evaluate.matrix <- function(object, y, times = NULL,
   data <- .complete_cases_df(data, all.vars(formula))
   status <- .recode_status_vec(parsed, data)
   times <- .resolve_times(times, data[[parsed$time_col]], status)
+  .check_metrics(metrics, times)
 
   splits <- .make_splits(resampling, data, parsed$status_col)
   per <- .evaluate_splits(splits, formula, data, model, as.list(spec), times,

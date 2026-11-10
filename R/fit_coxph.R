@@ -80,9 +80,10 @@ predict_coxph <- function(object, newdata, times) {
 
   if (!is.null(object$learner) && object$learner != "coxph") {warning("Object passed to predict_coxph() may not come from fit_coxph().")}
 
-  lp_train <- stats::predict(object$model, newdata = object$data, type = "lp")
-  lp_new <- stats::predict(object$model, newdata = newdata, type = "lp")
-  y_train <- survival::Surv(object$data[[object$time]], object$data[[object$status]])
-
-  .predict_cox_from_lp(lp_train = lp_train, lp_new = lp_new, y_train = y_train, times = times)
+  # survival's own curves (Efron ties, consistent centring), read as a
+  # right-continuous step function at the requested times
+  sf <- survival::survfit(object$model, newdata = newdata, se.fit = FALSE)
+  S <- rbind(1, matrix(sf$surv, nrow = length(sf$time)))
+  S <- t(S[findInterval(times, sf$time) + 1L, , drop = FALSE])
+  .finalize_survmat(S, times = times)
 }

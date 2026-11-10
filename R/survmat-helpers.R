@@ -140,12 +140,19 @@
 #' @return A standardized survival-probability data.frame.
 #' @keywords internal
 .predict_cox_from_lp <- function(lp_train, lp_new, y_train, times) {
-  base_haz <- survival::basehaz(survival::coxph(y_train ~ lp_train), centered = FALSE)
+  # Breslow baseline cumulative hazard for the given linear predictor (its
+  # coefficient is fixed at 1, so shrunken penalized predictors keep their
+  # scale), read as a right-continuous step function. The baseline belongs to
+  # the same scale as lp_train, so lp_new must be on that scale too.
+  tm <- as.numeric(y_train[, 1])
+  st <- as.numeric(y_train[, 2])
+  w <- exp(as.numeric(lp_train))
+  ut <- sort(unique(tm[st == 1]))
+  dH <- vapply(ut, function(s) sum(st[tm == s]) / sum(w[tm >= s]), numeric(1))
+  H0 <- c(0, cumsum(dH))[findInterval(times, ut) + 1L]
 
-  survmat <- vapply(times, function(t) {
-    H0_t <- stats::approx(base_haz$time, base_haz$hazard, xout = t, rule = 2)$y
-    exp(-H0_t * exp(lp_new))
-  }, numeric(length(lp_new)))
+  survmat <- vapply(H0, function(H0_t) exp(-H0_t * exp(lp_new)),
+                    numeric(length(lp_new)))
 
   if (is.vector(survmat)) {
     survmat <- matrix(survmat, ncol = length(times))
@@ -506,4 +513,17 @@ plot_survmat <- function(S,
     stop(msg, call. = FALSE)
   }
   invisible(parts)
+}
+
+## Read a step survival curve at new times. `S` holds the curves on the grid
+## `grid` (rows = observations, columns = grid times, `grid` increasing);
+## S(t) is the value at the last grid time <= t, and 1 before the first one.
+#' @keywords internal
+#' @noRd
+.step_surv <- function(S, grid, times) {
+  S <- as.matrix(S)
+  o <- order(grid)
+  grid <- grid[o]
+  S <- cbind(1, S[, o, drop = FALSE])
+  S[, findInterval(times, grid) + 1L, drop = FALSE]
 }

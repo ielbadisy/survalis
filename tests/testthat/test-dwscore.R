@@ -29,7 +29,7 @@ test_that("dwscore returns one loss per time", {
   expect_true(all(out$loss >= 0))
   # the "brier" metric and dwscore(weight = "brier") are one estimator
   b <- vapply(1:2, function(k) unname(brier(y, S[, k], c(60, 120)[k])), 0)
-  expect_equal(b, round(out$loss, 6))
+  expect_equal(b, out$loss)
 })
 
 test_that("decision-weighted loss equals weighted area under the IPCW net benefit curve", {
@@ -65,7 +65,7 @@ test_that("survacc and range ids work in evaluate, compare and tune", {
   y <- Surv(veteran$time, veteran$status)
   ev <- evaluate(S, y = y, metrics = c("survacc", "range:0.05-0.20"))
   d <- dwscore(S, y, weight = "survacc")$loss
-  expect_equal(ev$summary$mean[1], round(1 - d, 3))
+  expect_equal(ev$summary$mean[1], 1 - d)
   expect_true(ev$summary$mean[2] >= 0)
   expect_error(evaluate(S, y = y, metrics = "range:0.3-0.1"), "lower < upper")
 
