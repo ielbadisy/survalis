@@ -35,16 +35,22 @@ as.data.frame.survalis_fit <- function(x, ...) {
 
 #' @rdname survalis-tidiers
 #' @export
-as.data.frame.survalis_eval <- function(x, ...) x$per_split
+as.data.frame.survalis_eval <- function(x, ...) .plain_df(x$per_split)
 
 #' @rdname survalis-tidiers
 #' @export
-as.data.frame.survalis_tune <- function(x, ...) x$results
+as.data.frame.survalis_tune <- function(x, ...) .plain_df(x$results)
 
 #' @rdname survalis-tidiers
 #' @export
-as.data.frame.survalis_compare <- function(x, ...) x$leaderboard
+as.data.frame.survalis_compare <- function(x, ...) .plain_df(x$leaderboard)
 
 #' @rdname survalis-tidiers
 #' @export
-as.data.frame.survalis_estimate <- function(x, ...) summary(x)
+as.data.frame.survalis_estimate <- function(x, ...) .plain_df(summary(x))
+
+# as.data.frame() methods return a plain data.frame, whatever the stored class.
+.plain_df <- function(x) {
+  if (is.data.frame(x)) class(x) <- "data.frame"
+  x
+}
