@@ -1,16 +1,17 @@
-## Update from 1.0.0 to 2.0.0
+## Update from 1.0.0 to 2.2.0
 
 Main changes (see NEWS.md for the full list):
 
 * A seven-verb interface (`fit()`, `predict()`, `evaluate()`, `tune()`,
   `compare()`, `interpret()`, `estimate()`) on top of the existing learners.
-  The exported API shrinks from 108 to 15 functions: the granular `fit_*()`,
+  The exported API shrinks from 108 to 16 functions: the granular `fit_*()`,
   `predict_*()`, `compute_*()`, `plot_*()` and metric helpers are now
   internal, mapped to their verb in `vignette("from-1.0")`. survalis has no
   reverse dependencies on CRAN.
 * New learners: `rpsurv`, `nbsurv`, `fastgbm`, `densemlp`. New
-  decision-weighted scores (`dwscore()`) and `interpret()` methods `"roc"`,
-  `"dca"` and `"survcluster"`.
+  decision-weighted scores (`dwscore()`), Kaplan-Meier, cumulative
+  incidence and model-adjusted curves (`kmplot()`), and `interpret()` methods `"roc"`, `"dca"` and
+  `"survcluster"`.
 * Removed dependencies: 'torch' and 'survdnn' (the `survdnn` learner is
   removed, replaced by `densemlp`) and 'bnnSurvival', which is unmaintained;
   the `bnnsurv` learner now has its own engine. 'bnnSurvival' predicted
