@@ -1,3 +1,27 @@
+# survalis 2.3.0
+
+* Exported names are glued lowercase, like the verbs: `listlearners()`,
+  `listmetrics()`, `listmethods()` and `groupcv()` replace
+  `list_survlearners()`, `list_metrics()`, `list_interpretability_methods()`
+  and `group_cv()`. The old names still work with a deprecation warning and
+  will be removed in the next release.
+
+## Bug fixes
+
+* `coxph` predicts with `strata()` in the formula (one curve per row).
+* `aftgee` fits training data with missing covariates; its default
+  prediction times come from the training data.
+* `ranger` passes `case.weights` to the engine.
+* `blackboost` keeps mboost's unrestricted tree tests; trees were stopped
+  early by a Bonferroni test.
+* `survsvm` stores the correct outcome column names.
+* `densemlp` reads its exact time grid; large times were rounded to four
+  digits.
+* `survmetalearner` uses equal weights when NNLS returns all zeros instead
+  of producing NaN.
+* `plot()` of a tuning result draws one line per value of the second tuned
+  parameter instead of joining all configurations.
+
 # survalis 2.2.2
 
 * `"aftgee"` predictions now use the semiparametric baseline of the AFT
