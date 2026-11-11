@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,13 @@
       <small>Source: <a href="https://github.com/ielbadisy/survalis/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.2.2" id="survalis-222">survalis 2.2.2<a class="anchor" aria-label="anchor" href="#survalis-222"></a></h2>
+<ul><li>
+<code>"aftgee"</code> predictions now use the semiparametric baseline of the AFT model: the Kaplan-Meier estimate of the censored residuals log(T) - x’beta, read at log(t) - x’beta. They previously assumed a log-normal error with scale fixed at 1, which miscalibrated survival: on the Rotterdam breast cancer data, mean predicted 5-year survival fell from 0.47 to 0.44 against a Kaplan-Meier estimate of 0.44.</li>
+<li>
+<code>"bart"</code> predictions between the learner’s coarse time-grid points are now interpolated on the log-survival scale, as for <code>"densemlp"</code> in 2.2.1, instead of holding the value from the start of the interval.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.2.1" id="survalis-221">survalis 2.2.1<a class="anchor" aria-label="anchor" href="#survalis-221"></a></h2>
 <ul><li>
