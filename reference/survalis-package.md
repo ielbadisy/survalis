@@ -40,14 +40,14 @@ The recommended interface, consistent with the funcml package:
 Resampling is described by
 [`cv()`](https://elbadisyimad.com/survalis/reference/resampling.md),
 [`holdout()`](https://elbadisyimad.com/survalis/reference/resampling.md),
-[`group_cv()`](https://elbadisyimad.com/survalis/reference/resampling.md)
+[`groupcv()`](https://elbadisyimad.com/survalis/reference/resampling.md)
 and
 [`bootstrap()`](https://elbadisyimad.com/survalis/reference/resampling.md).
 Discover components with
-[`list_survlearners()`](https://elbadisyimad.com/survalis/reference/list_survlearners.md),
-[`list_metrics()`](https://elbadisyimad.com/survalis/reference/list_metrics.md)
+[`listlearners()`](https://elbadisyimad.com/survalis/reference/listlearners.md),
+[`listmetrics()`](https://elbadisyimad.com/survalis/reference/listmetrics.md)
 and
-[`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/list_interpretability_methods.md).
+[`listmethods()`](https://elbadisyimad.com/survalis/reference/listmethods.md).
 Custom learners plug into every verb as
 `model = list(fit = , predict = )`; see
 [`fit()`](https://elbadisyimad.com/survalis/reference/fit.md).

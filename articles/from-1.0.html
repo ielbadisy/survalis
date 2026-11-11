@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -86,10 +86,10 @@
 <code><a href="../reference/fit.html">fit()</a></code>, <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>, <code><a href="../reference/evaluate.html">evaluate()</a></code>,
 <code><a href="../reference/tune.html">tune()</a></code>, <code><a href="../reference/compare.html">compare()</a></code>, <code><a href="../reference/interpret.html">interpret()</a></code>
 and <code><a href="../reference/estimate.html">estimate()</a></code>. Around them sit the resampling specs
-(<code><a href="../reference/resampling.html">cv()</a></code>, <code><a href="../reference/resampling.html">holdout()</a></code>, <code><a href="../reference/resampling.html">group_cv()</a></code>,
+(<code><a href="../reference/resampling.html">cv()</a></code>, <code><a href="../reference/resampling.html">holdout()</a></code>, <code><a href="../reference/resampling.html">groupcv()</a></code>,
 <code><a href="../reference/resampling.html">bootstrap()</a></code>) and three lookups that give the valid ids
-(<code><a href="../reference/list_survlearners.html">list_survlearners()</a></code>, <code><a href="../reference/list_metrics.html">list_metrics()</a></code>,
-<code><a href="../reference/list_interpretability_methods.html">list_interpretability_methods()</a></code>).</p>
+(<code><a href="../reference/listlearners.html">listlearners()</a></code>, <code><a href="../reference/listmetrics.html">listmetrics()</a></code>,
+<code><a href="../reference/listmethods.html">listmethods()</a></code>).</p>
 <p>The 1.x per-learner functions (<code>fit_ranger()</code>,
 <code>predict_ranger()</code>, <code>tune_ranger()</code>, …) and the
 helper families (<code>cv_*()</code>, <code>benchmark*()</code>,
@@ -230,7 +230,7 @@ pair</td>
 </tr>
 <tr class="even">
 <td><code>list_tunable_survlearners()</code></td>
-<td><code>list_survlearners(has_tune = TRUE)</code></td>
+<td><code>listlearners(has_tune = TRUE)</code></td>
 </tr>
 <tr class="odd">
 <td><code>benchmark(f, data, learners, times)</code></td>
@@ -425,7 +425,7 @@ and recorded on the result (<code>res$times</code>), so a run is
 reproducible.</li>
 <li>
 <strong>Resampling is an object</strong> (<code><a href="../reference/resampling.html">cv()</a></code>,
-<code><a href="../reference/resampling.html">holdout()</a></code>, <code><a href="../reference/resampling.html">group_cv()</a></code>,
+<code><a href="../reference/resampling.html">holdout()</a></code>, <code><a href="../reference/resampling.html">groupcv()</a></code>,
 <code><a href="../reference/resampling.html">bootstrap()</a></code>) instead of a bare <code>folds</code> integer,
 and <code><a href="../reference/compare.html">compare()</a></code> evaluates every model on the <em>same</em>
 splits.</li>

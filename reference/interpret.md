@@ -2,7 +2,7 @@
 
 A single entry point to the package's model-agnostic explanation and
 diagnostic methods.
-[`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/list_interpretability_methods.md)
+[`listmethods()`](https://elbadisyimad.com/survalis/reference/listmethods.md)
 lists the `method` ids with a one-line description of each.
 
 ## Usage

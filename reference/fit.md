@@ -30,8 +30,8 @@ fit(formula, data, model, spec = list(), seed = NULL, ...)
 
 - model:
 
-  A learner id from `list_survlearners()$learner` (for example
-  `"coxph"`, `"ranger"`, `"densemlp"`), or a custom learner: a list with
+  A learner id from `listlearners()$learner` (for example `"coxph"`,
+  `"ranger"`, `"densemlp"`), or a custom learner: a list with
   `fit = function(formula, data, ...)` returning any fitted object and
   `predict = function(object, newdata, times)` returning an
   `nrow(newdata) x length(times)` matrix of survival probabilities. An
@@ -66,7 +66,7 @@ An object of class `c("survalis_fit", "mlsurv_model")` with elements
 [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md),
 [`interpret()`](https://elbadisyimad.com/survalis/reference/interpret.md),
 [`estimate()`](https://elbadisyimad.com/survalis/reference/estimate.md),
-[`list_survlearners()`](https://elbadisyimad.com/survalis/reference/list_survlearners.md)
+[`listlearners()`](https://elbadisyimad.com/survalis/reference/listlearners.md)
 
 ## Examples
 

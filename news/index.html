@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,29 @@
       <small>Source: <a href="https://github.com/ielbadisy/survalis/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.3.0" id="survalis-230">survalis 2.3.0<a class="anchor" aria-label="anchor" href="#survalis-230"></a></h2>
+<ul><li>Exported names are glued lowercase, like the verbs: <code><a href="../reference/listlearners.html">listlearners()</a></code>, <code><a href="../reference/listmetrics.html">listmetrics()</a></code>, <code><a href="../reference/listmethods.html">listmethods()</a></code> and <code><a href="../reference/resampling.html">groupcv()</a></code> replace <code><a href="../reference/survalis-deprecated.html">list_survlearners()</a></code>, <code><a href="../reference/survalis-deprecated.html">list_metrics()</a></code>, <code><a href="../reference/survalis-deprecated.html">list_interpretability_methods()</a></code> and <code><a href="../reference/survalis-deprecated.html">group_cv()</a></code>. The old names still work with a deprecation warning and will be removed in the next release.</li>
+</ul><div class="section level3">
+<h3 id="bug-fixes-2-3-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-2-3-0"></a></h3>
+<ul><li>
+<code>coxph</code> predicts with <code>strata()</code> in the formula (one curve per row).</li>
+<li>
+<code>aftgee</code> fits training data with missing covariates; its default prediction times come from the training data.</li>
+<li>
+<code>ranger</code> passes <code>case.weights</code> to the engine.</li>
+<li>
+<code>blackboost</code> keeps mboost’s unrestricted tree tests; trees were stopped early by a Bonferroni test.</li>
+<li>
+<code>survsvm</code> stores the correct outcome column names.</li>
+<li>
+<code>densemlp</code> reads its exact time grid; large times were rounded to four digits.</li>
+<li>
+<code>survmetalearner</code> uses equal weights when NNLS returns all zeros instead of producing NaN.</li>
+<li>
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> of a tuning result draws one line per value of the second tuned parameter instead of joining all configurations.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.2.2" id="survalis-222">survalis 2.2.2<a class="anchor" aria-label="anchor" href="#survalis-222"></a></h2>
 <ul><li>
@@ -92,7 +115,7 @@
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.0.0" id="survalis-200">survalis 2.0.0<a class="anchor" aria-label="anchor" href="#survalis-200"></a></h2>
-<ul><li><p>survalis is now built around seven verbs: <code><a href="../reference/fit.html">fit()</a></code>, <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>, <code><a href="../reference/evaluate.html">evaluate()</a></code>, <code><a href="../reference/tune.html">tune()</a></code>, <code><a href="../reference/compare.html">compare()</a></code>, <code><a href="../reference/interpret.html">interpret()</a></code> and <code><a href="../reference/estimate.html">estimate()</a></code>. The exported API is these verbs plus the resampling specs (<code><a href="../reference/resampling.html">cv()</a></code>, <code><a href="../reference/resampling.html">holdout()</a></code>, <code><a href="../reference/resampling.html">group_cv()</a></code>, <code><a href="../reference/resampling.html">bootstrap()</a></code>), the lookups (<code><a href="../reference/list_survlearners.html">list_survlearners()</a></code>, <code><a href="../reference/list_metrics.html">list_metrics()</a></code>, <code><a href="../reference/list_interpretability_methods.html">list_interpretability_methods()</a></code>), <code><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv()</a></code> and the <code>veteran</code> data. The granular layer is no longer exported: <code>fit_*()</code>, <code>predict_*()</code>, <code>tune_*()</code>, <code>cv_survlearner()</code>, <code>cv_summary()</code>, <code>cv_plot()</code>, <code>score_survmodel()</code>, <code>compute_*()</code>, <code>plot_*()</code>, the <code>*_survmat()</code> metrics, <code>brier()</code>, <code>survmat_to_*()</code>, <code>default_times()</code>, <code>list_tunable_survlearners()</code>, <code>theme_survalis()</code> and the colour scales. <code><a href="../articles/from-1.0.html">vignette("from-1.0")</a></code> maps each one to its verb.</p></li>
+<ul><li><p>survalis is now built around seven verbs: <code><a href="../reference/fit.html">fit()</a></code>, <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>, <code><a href="../reference/evaluate.html">evaluate()</a></code>, <code><a href="../reference/tune.html">tune()</a></code>, <code><a href="../reference/compare.html">compare()</a></code>, <code><a href="../reference/interpret.html">interpret()</a></code> and <code><a href="../reference/estimate.html">estimate()</a></code>. The exported API is these verbs plus the resampling specs (<code><a href="../reference/resampling.html">cv()</a></code>, <code><a href="../reference/resampling.html">holdout()</a></code>, <code><a href="../reference/survalis-deprecated.html">group_cv()</a></code>, <code><a href="../reference/resampling.html">bootstrap()</a></code>), the lookups (<code><a href="../reference/survalis-deprecated.html">list_survlearners()</a></code>, <code><a href="../reference/survalis-deprecated.html">list_metrics()</a></code>, <code><a href="../reference/survalis-deprecated.html">list_interpretability_methods()</a></code>), <code><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv()</a></code> and the <code>veteran</code> data. The granular layer is no longer exported: <code>fit_*()</code>, <code>predict_*()</code>, <code>tune_*()</code>, <code>cv_survlearner()</code>, <code>cv_summary()</code>, <code>cv_plot()</code>, <code>score_survmodel()</code>, <code>compute_*()</code>, <code>plot_*()</code>, the <code>*_survmat()</code> metrics, <code>brier()</code>, <code>survmat_to_*()</code>, <code>default_times()</code>, <code>list_tunable_survlearners()</code>, <code>theme_survalis()</code> and the colour scales. <code><a href="../articles/from-1.0.html">vignette("from-1.0")</a></code> maps each one to its verb.</p></li>
 <li><p>Table operations inside survalis (reshaping, grouped summaries, row binding, sorting and merging) now use ‘basetable’ instead of base R. Result tables stored in fitted objects (<code><a href="../reference/evaluate.html">evaluate()</a></code>, <code><a href="../reference/compare.html">compare()</a></code>, <code><a href="../reference/interpret.html">interpret()</a></code>, <code><a href="../reference/estimate.html">estimate()</a></code>) are basetable objects; <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> on a survalis result still returns a plain <code>data.frame</code>.</p></li>
 <li><p>New decision-weighted scores (<code><a href="../reference/dwscore.html">dwscore()</a></code>): the loss of the rule “act if predicted risk exceeds c”, averaged over risk thresholds c with a stated weight (threshold range, SurvAcc, Brier, logarithmic or Beta), with IPCW for censoring. Each score is a weighted area under the net benefit curve. The metric ids <code>"survacc"</code> and <code>"range:&lt;lower&gt;-&lt;upper&gt;"</code> (for example <code>"range:0.05-0.20"</code>) work in <code><a href="../reference/evaluate.html">evaluate()</a></code>, <code><a href="../reference/compare.html">compare()</a></code> and <code><a href="../reference/tune.html">tune()</a></code>.</p></li>
 <li><p>The <code>"brier"</code> and <code>"ibs"</code> metrics now use the same censoring weights as <code><a href="../reference/dwscore.html">dwscore()</a></code> and the usual IPCW Brier score (Graf et al. 1999): events at or before <code>t</code> are weighted by <code>1 / G(T-)</code>. Values can change in the fourth decimal.</p></li>
@@ -105,7 +128,7 @@
 <li><p><code><a href="../reference/tune.html">tune()</a></code> with a built-in default grid returned no configurations for the <code>"glmnet"</code>, <code>"bart"</code>, <code>"blackboost"</code>, <code>"bnnsurv"</code>, <code>"cforest"</code>, <code>"flexsurvreg"</code> and <code>"orsf"</code> learners, and refitted the model with none of the tuned parameters, so <code>compare(tune = TRUE)</code> silently compared default fits. Every built-in tuner now returns its scored grid and the refit uses the best configuration. A configuration that fails now gives a warning naming the learner and its parameter values and is left out; if every configuration fails, <code><a href="../reference/tune.html">tune()</a></code> stops. Before, failed configurations were dropped without a word, or one failure aborted the whole search.</p></li>
 <li><p><code><a href="../reference/interpret.html">interpret()</a></code> gains <code>method = "roc"</code> (time-dependent ROC curve) and <code>method = "dca"</code> (decision curve), both at one <code>eval_time</code>.</p></li>
 <li><p><code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> works on every <code><a href="../reference/interpret.html">interpret()</a></code> result and returns plain column names. It failed for <code>"survcluster"</code>, <code>"roc"</code>, <code>"dca"</code> and <code>"tree_surrogate"</code> (“cannot coerce class … to a data.frame”), and for <code>"pdp"</code>, <code>"ice"</code>, <code>"ale"</code> and <code>"calibration"</code> it pasted the parts of the result side by side, recycling the shorter ones, under names such as <code>results.time</code> or <code>integrated.integrated_surv</code>. Now <code>"pdp"</code> and <code>"ice"</code> give one row per feature value, observation and time (<code>feature</code>, <code>feature_value</code>, <code>id</code>, <code>time</code>, <code>surv</code>, <code>type</code>), <code>"ale"</code> one row per feature value and time (<code>feature</code>, <code>feature_value</code>, <code>time</code>, <code>ale</code>), <code>"calibration"</code> the calibration table with its <code>eval_time</code>, <code>"survcluster"</code> one row per observation and time (<code>id</code>, <code>cluster</code>, <code>medoid</code>, <code>time</code>, <code>surv</code>), <code>"roc"</code> and <code>"dca"</code> the curve with its <code>eval_time</code>, and <code>"tree_surrogate"</code> one row per time and feature (<code>splits</code>, <code>r_squared</code>). For <code>"pdp"</code> and <code>"ale"</code>, <code>as.data.frame(x, what = "integrated")</code> returns the curve integrated over time (<code>feature</code>, <code>feature_value</code>, <code>integrated</code>). <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> shows the first rows of this data frame instead of the raw result list.</p></li>
-<li><p><code><a href="../reference/list_survlearners.html">list_survlearners()</a></code> now returns <code>learner</code> and <code>tunable</code> only, and <code><a href="../reference/list_interpretability_methods.html">list_interpretability_methods()</a></code> returns the <code><a href="../reference/interpret.html">interpret()</a></code> method ids with a one-line summary.</p></li>
+<li><p><code><a href="../reference/survalis-deprecated.html">list_survlearners()</a></code> now returns <code>learner</code> and <code>tunable</code> only, and <code><a href="../reference/survalis-deprecated.html">list_interpretability_methods()</a></code> returns the <code><a href="../reference/interpret.html">interpret()</a></code> method ids with a one-line summary.</p></li>
 <li><p><code><a href="../reference/fit.html">fit()</a></code> no longer accepts engine arguments through <code>...</code>; pass them in <code>spec = list(...)</code>. Extra arguments now give an error instead of a warning.</p></li>
 <li><p>Fewer silent failures. <code><a href="../reference/estimate.html">estimate()</a></code> warns with the number of failed bootstrap replicates and the first error (and stops if all fail) instead of quietly building the interval from the rest. <code><a href="../reference/fit.html">fit()</a></code> reports why it could not read a formula. The survival super learner gives the error when it drops a base learner. The <code>blackboost</code> and <code>cforest</code> learners no longer hide engine warnings; <code>cforest</code> caps <code>mtry</code> at the number of predictors itself, as ‘party’ would.</p></li>
 <li><p>The <code>stpm2</code> learner is removed: <code>fit_stpm2()</code> and <code>predict_stpm2()</code> are gone and ‘rstpm2’ is no longer a dependency. Use <code>fit_rpsurv()</code> / <code>fit(model = "rpsurv")</code>, which fits the same Royston-Parmar model on the hazard, odds, or probit scale and adds nonlinear effects (<code>nle</code>).</p></li>
@@ -157,11 +180,11 @@
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.5.0" id="survalis-150">survalis 1.5.0<a class="anchor" aria-label="anchor" href="#survalis-150"></a></h2>
-<ul><li>New learner: <code>nbsurv</code> (conditional naive Bayes survival model, via the <code>nbsurv</code> package). <code>fit_nbsurv()</code>/<code>predict_nbsurv()</code> added (no tuner). Registered in <code><a href="../reference/list_survlearners.html">list_survlearners()</a></code>; 24 learners total.</li>
+<ul><li>New learner: <code>nbsurv</code> (conditional naive Bayes survival model, via the <code>nbsurv</code> package). <code>fit_nbsurv()</code>/<code>predict_nbsurv()</code> added (no tuner). Registered in <code><a href="../reference/survalis-deprecated.html">list_survlearners()</a></code>; 24 learners total.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.4.0" id="survalis-140">survalis 1.4.0<a class="anchor" aria-label="anchor" href="#survalis-140"></a></h2>
-<ul><li>New learner: <code>rpsurv</code> (Royston-Parmar flexible parametric survival, via the <code>rpsurv</code> package). <code>fit_rpsurv()</code>/<code>predict_rpsurv()</code> added (no tuner), restricted cubic splines with optional time-varying covariate effects (<code>tve</code>) and a choice of <code>scale</code> (hazard/odds/normal). Registered in <code><a href="../reference/list_survlearners.html">list_survlearners()</a></code>; 23 learners total.</li>
+<ul><li>New learner: <code>rpsurv</code> (Royston-Parmar flexible parametric survival, via the <code>rpsurv</code> package). <code>fit_rpsurv()</code>/<code>predict_rpsurv()</code> added (no tuner), restricted cubic splines with optional time-varying covariate effects (<code>tve</code>) and a choice of <code>scale</code> (hazard/odds/normal). Registered in <code><a href="../reference/survalis-deprecated.html">list_survlearners()</a></code>; 23 learners total.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.3.0" id="survalis-130">survalis 1.3.0<a class="anchor" aria-label="anchor" href="#survalis-130"></a></h2>
@@ -190,7 +213,7 @@
 <code>survmat</code> prediction contract: an <code>n x length(times)</code> numeric matrix carrying its grid in the <code>"times"</code> attribute (<code>"t=&lt;time&gt;"</code> column names kept for display and the legacy metric helpers) and the predicted quantity in <code>"quantity"</code>. Missing predictions and non-increasing grids are rejected.</li>
 <li>
 <code>default_times()</code>: a recorded, data-dependent evaluation grid used whenever <code>times</code> is omitted, so runs stay reproducible.</li>
-<li>Resampling constructors <code><a href="../reference/resampling.html">cv()</a></code> (with <code>repeats</code>), <code><a href="../reference/resampling.html">holdout()</a></code>, <code><a href="../reference/resampling.html">group_cv()</a></code>, <code><a href="../reference/resampling.html">bootstrap()</a></code>; reuse one spec across models for paired comparisons.</li>
+<li>Resampling constructors <code><a href="../reference/resampling.html">cv()</a></code> (with <code>repeats</code>), <code><a href="../reference/resampling.html">holdout()</a></code>, <code><a href="../reference/survalis-deprecated.html">group_cv()</a></code>, <code><a href="../reference/resampling.html">bootstrap()</a></code>; reuse one spec across models for paired comparisons.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="new-learners-1-3-0">New learners<a class="anchor" aria-label="anchor" href="#new-learners-1-3-0"></a></h3>
@@ -198,7 +221,7 @@
 <code>fastgbm</code> (CRAN): histogram gradient boosting, piecewise-exponential objective by default so survival curves are available at arbitrary times.</li>
 <li>
 <code>densemlp</code> (CRAN): native-C++ MLP (no <code>torch</code>), IPCW-Brier discrete-time loss by default, predictions interpolated onto the requested times.</li>
-<li>Both registered in <code><a href="../reference/list_survlearners.html">list_survlearners()</a></code>; 22 learners total.</li>
+<li>Both registered in <code><a href="../reference/survalis-deprecated.html">list_survlearners()</a></code>; 22 learners total.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="deprecations-1-3-0">Deprecations<a class="anchor" aria-label="anchor" href="#deprecations-1-3-0"></a></h3>
@@ -207,7 +230,7 @@
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.2.0" id="survalis-120">survalis 1.2.0<a class="anchor" aria-label="anchor" href="#survalis-120"></a></h2>
-<ul><li>Added <code>compute_survcluster()</code> and <code>plot_survcluster()</code>: unsupervised clustering of predicted individualized survival curves via <code><a href="https://rdrr.io/pkg/unsurv/man/unsurv.html" class="external-link">unsurv::unsurv()</a></code> (PAM on a weighted curve representation), registered in <code><a href="../reference/list_interpretability_methods.html">list_interpretability_methods()</a></code>. Added <code>unsurv</code> to <code>Imports</code> and its paper’s citation (El Badisy 2026, <code>&lt;doi:10.1093/bioadv/vbag218&gt;</code>) to <code>Description</code>.</li>
+<ul><li>Added <code>compute_survcluster()</code> and <code>plot_survcluster()</code>: unsupervised clustering of predicted individualized survival curves via <code><a href="https://rdrr.io/pkg/unsurv/man/unsurv.html" class="external-link">unsurv::unsurv()</a></code> (PAM on a weighted curve representation), registered in <code><a href="../reference/survalis-deprecated.html">list_interpretability_methods()</a></code>. Added <code>unsurv</code> to <code>Imports</code> and its paper’s citation (El Badisy 2026, <code>&lt;doi:10.1093/bioadv/vbag218&gt;</code>) to <code>Description</code>.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.1.0" id="survalis-110">survalis 1.1.0<a class="anchor" aria-label="anchor" href="#survalis-110"></a></h2>
@@ -218,7 +241,7 @@
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.0" id="survalis-100">survalis 1.0.0<a class="anchor" aria-label="anchor" href="#survalis-100"></a></h2><p class="text-muted">CRAN release: 2026-08-22</p>
-<ul><li>Added <code>CoxBoost</code> as a new survival learner: <code>fit_coxboost()</code>, <code>predict_coxboost()</code>, and <code>tune_coxboost()</code>, wrapping the <code>CoxBoost</code> package’s likelihood-based componentwise boosting for the Cox partial likelihood. Registered in <code><a href="../reference/list_survlearners.html">list_survlearners()</a></code> and usable directly through <code>benchmark()</code>.</li>
+<ul><li>Added <code>CoxBoost</code> as a new survival learner: <code>fit_coxboost()</code>, <code>predict_coxboost()</code>, and <code>tune_coxboost()</code>, wrapping the <code>CoxBoost</code> package’s likelihood-based componentwise boosting for the Cox partial likelihood. Registered in <code><a href="../reference/survalis-deprecated.html">list_survlearners()</a></code> and usable directly through <code>benchmark()</code>.</li>
 <li>Wrapped <code>tune_glmnet()</code>’s example in <code>\donttest{}</code> (per CRAN win-builder pretest feedback: it exceeded the 5s/10s example runtime limit on Debian/Windows).</li>
 </ul></div>
     <div class="section level2">
@@ -272,7 +295,7 @@
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.27" id="survalis-0727">survalis 0.7.27<a class="anchor" aria-label="anchor" href="#survalis-0727"></a></h2>
-<ul><li>Migrated <code><a href="../reference/list_survlearners.html">list_survlearners()</a></code>, <code><a href="../reference/list_interpretability_methods.html">list_interpretability_methods()</a></code>, and <code><a href="../reference/list_metrics.html">list_metrics()</a></code> from <code><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble::tibble()</a></code> to <code><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table::data.table()</a></code> (cosmetic descriptive tables, no behavior change).</li>
+<ul><li>Migrated <code><a href="../reference/survalis-deprecated.html">list_survlearners()</a></code>, <code><a href="../reference/survalis-deprecated.html">list_interpretability_methods()</a></code>, and <code><a href="../reference/survalis-deprecated.html">list_metrics()</a></code> from <code><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble::tibble()</a></code> to <code><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table::data.table()</a></code> (cosmetic descriptive tables, no behavior change).</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.26" id="survalis-0726">survalis 0.7.26<a class="anchor" aria-label="anchor" href="#survalis-0726"></a></h2>

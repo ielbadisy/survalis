@@ -27,12 +27,13 @@
 <url><loc>https://elbadisyimad.com/survalis/reference/index.html</loc></url>
 <url><loc>https://elbadisyimad.com/survalis/reference/interpret.html</loc></url>
 <url><loc>https://elbadisyimad.com/survalis/reference/kmplot.html</loc></url>
-<url><loc>https://elbadisyimad.com/survalis/reference/list_interpretability_methods.html</loc></url>
-<url><loc>https://elbadisyimad.com/survalis/reference/list_metrics.html</loc></url>
-<url><loc>https://elbadisyimad.com/survalis/reference/list_survlearners.html</loc></url>
+<url><loc>https://elbadisyimad.com/survalis/reference/listlearners.html</loc></url>
+<url><loc>https://elbadisyimad.com/survalis/reference/listmethods.html</loc></url>
+<url><loc>https://elbadisyimad.com/survalis/reference/listmetrics.html</loc></url>
 <url><loc>https://elbadisyimad.com/survalis/reference/predict.survalis_fit.html</loc></url>
 <url><loc>https://elbadisyimad.com/survalis/reference/reexports.html</loc></url>
 <url><loc>https://elbadisyimad.com/survalis/reference/resampling.html</loc></url>
+<url><loc>https://elbadisyimad.com/survalis/reference/survalis-deprecated.html</loc></url>
 <url><loc>https://elbadisyimad.com/survalis/reference/survalis-package.html</loc></url>
 <url><loc>https://elbadisyimad.com/survalis/reference/survalis-tidiers.html</loc></url>
 <url><loc>https://elbadisyimad.com/survalis/reference/survmat.html</loc></url>

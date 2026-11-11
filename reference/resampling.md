@@ -13,7 +13,7 @@ cv(v = 5, repeats = 1, strata = "status", seed = NULL)
 
 holdout(prop = 0.75, strata = "status", seed = NULL)
 
-group_cv(group, v = 5, seed = NULL)
+groupcv(group, v = 5, seed = NULL)
 
 bootstrap(times = 25, seed = NULL)
 ```
@@ -48,7 +48,7 @@ bootstrap(times = 25, seed = NULL)
 - group:
 
   Column name whose distinct values define the groups held out together
-  in `group_cv()`.
+  in `groupcv()`.
 
 - times:
 
@@ -65,7 +65,7 @@ An object of class `survalis_resampling`.
 
 - `holdout()` – a single stratified train/test split.
 
-- `group_cv()` – k-fold cross-validation where whole groups (e.g.
+- `groupcv()` – k-fold cross-validation where whole groups (e.g.
   centres, subjects with repeated rows) are held out together.
 
 - `bootstrap()` – resampling with replacement; the out-of-bag rows form

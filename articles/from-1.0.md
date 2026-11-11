@@ -12,12 +12,12 @@ and
 Around them sit the resampling specs
 ([`cv()`](https://elbadisyimad.com/survalis/reference/resampling.md),
 [`holdout()`](https://elbadisyimad.com/survalis/reference/resampling.md),
-[`group_cv()`](https://elbadisyimad.com/survalis/reference/resampling.md),
+[`groupcv()`](https://elbadisyimad.com/survalis/reference/resampling.md),
 [`bootstrap()`](https://elbadisyimad.com/survalis/reference/resampling.md))
 and three lookups that give the valid ids
-([`list_survlearners()`](https://elbadisyimad.com/survalis/reference/list_survlearners.md),
-[`list_metrics()`](https://elbadisyimad.com/survalis/reference/list_metrics.md),
-[`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/list_interpretability_methods.md)).
+([`listlearners()`](https://elbadisyimad.com/survalis/reference/listlearners.md),
+[`listmetrics()`](https://elbadisyimad.com/survalis/reference/listmetrics.md),
+[`listmethods()`](https://elbadisyimad.com/survalis/reference/listmethods.md)).
 
 The 1.x per-learner functions (`fit_ranger()`, `predict_ranger()`,
 `tune_ranger()`, …) and the helper families (`cv_*()`, `benchmark*()`,
@@ -60,7 +60,7 @@ every result has a
 | 1.x | 2.0 |
 |----|----|
 | `tune_ranger(f, data, times, param_grid, refit_best = TRUE)` | `tune(f, data, "ranger", grid = param_grid, times = ...)` |
-| `list_tunable_survlearners()` | `list_survlearners(has_tune = TRUE)` |
+| `list_tunable_survlearners()` | `listlearners(has_tune = TRUE)` |
 | `benchmark(f, data, learners, times)` | `compare(f, data, models = learners, times = ...)` |
 | `benchmark_default_survlearners(...)` | `compare(...)` |
 | `benchmark_tuned_survlearners(...)` | `compare(..., tune = TRUE)` |
@@ -148,7 +148,7 @@ evaluate(Surv(time, status) ~ age + karno, veteran, model = expo,
 - **Resampling is an object**
   ([`cv()`](https://elbadisyimad.com/survalis/reference/resampling.md),
   [`holdout()`](https://elbadisyimad.com/survalis/reference/resampling.md),
-  [`group_cv()`](https://elbadisyimad.com/survalis/reference/resampling.md),
+  [`groupcv()`](https://elbadisyimad.com/survalis/reference/resampling.md),
   [`bootstrap()`](https://elbadisyimad.com/survalis/reference/resampling.md))
   instead of a bare `folds` integer, and
   [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md)

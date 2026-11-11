@@ -41,7 +41,7 @@ estimate(
 
 - model:
 
-  A learner id (`list_survlearners()$learner`) or a custom learner (see
+  A learner id (`listlearners()$learner`) or a custom learner (see
   [`fit()`](https://elbadisyimad.com/survalis/reference/fit.md)).
 
 - estimand:

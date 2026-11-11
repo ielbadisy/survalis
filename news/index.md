@@ -1,5 +1,39 @@
 # Changelog
 
+## survalis 2.3.0
+
+- Exported names are glued lowercase, like the verbs:
+  [`listlearners()`](https://elbadisyimad.com/survalis/reference/listlearners.md),
+  [`listmetrics()`](https://elbadisyimad.com/survalis/reference/listmetrics.md),
+  [`listmethods()`](https://elbadisyimad.com/survalis/reference/listmethods.md)
+  and
+  [`groupcv()`](https://elbadisyimad.com/survalis/reference/resampling.md)
+  replace
+  [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md),
+  [`list_metrics()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md),
+  [`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md)
+  and
+  [`group_cv()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md).
+  The old names still work with a deprecation warning and will be
+  removed in the next release.
+
+### Bug fixes
+
+- `coxph` predicts with `strata()` in the formula (one curve per row).
+- `aftgee` fits training data with missing covariates; its default
+  prediction times come from the training data.
+- `ranger` passes `case.weights` to the engine.
+- `blackboost` keeps mboost’s unrestricted tree tests; trees were
+  stopped early by a Bonferroni test.
+- `survsvm` stores the correct outcome column names.
+- `densemlp` reads its exact time grid; large times were rounded to four
+  digits.
+- `survmetalearner` uses equal weights when NNLS returns all zeros
+  instead of producing NaN.
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of a tuning
+  result draws one line per value of the second tuned parameter instead
+  of joining all configurations.
+
 ## survalis 2.2.2
 
 - `"aftgee"` predictions now use the semiparametric baseline of the AFT
@@ -146,12 +180,12 @@ These change results; rerun analyses made with earlier versions.
   The exported API is these verbs plus the resampling specs
   ([`cv()`](https://elbadisyimad.com/survalis/reference/resampling.md),
   [`holdout()`](https://elbadisyimad.com/survalis/reference/resampling.md),
-  [`group_cv()`](https://elbadisyimad.com/survalis/reference/resampling.md),
+  [`group_cv()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md),
   [`bootstrap()`](https://elbadisyimad.com/survalis/reference/resampling.md)),
   the lookups
-  ([`list_survlearners()`](https://elbadisyimad.com/survalis/reference/list_survlearners.md),
-  [`list_metrics()`](https://elbadisyimad.com/survalis/reference/list_metrics.md),
-  [`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/list_interpretability_methods.md)),
+  ([`list_survlearners()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md),
+  [`list_metrics()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md),
+  [`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md)),
   [`Surv()`](https://rdrr.io/pkg/survival/man/Surv.html) and the
   `veteran` data. The granular layer is no longer exported: `fit_*()`,
   `predict_*()`, `tune_*()`, `cv_survlearner()`, `cv_summary()`,
@@ -279,9 +313,9 @@ These change results; rerun analyses made with earlier versions.
   [`print()`](https://rdrr.io/r/base/print.html) shows the first rows of
   this data frame instead of the raw result list.
 
-- [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/list_survlearners.md)
+- [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md)
   now returns `learner` and `tunable` only, and
-  [`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/list_interpretability_methods.md)
+  [`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md)
   returns the
   [`interpret()`](https://elbadisyimad.com/survalis/reference/interpret.md)
   method ids with a one-line summary.
@@ -517,7 +551,7 @@ datasets.
 - New learner: `nbsurv` (conditional naive Bayes survival model, via the
   `nbsurv` package). `fit_nbsurv()`/`predict_nbsurv()` added (no tuner).
   Registered in
-  [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/list_survlearners.md);
+  [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md);
   24 learners total.
 
 ## survalis 1.4.0
@@ -527,7 +561,7 @@ datasets.
   tuner), restricted cubic splines with optional time-varying covariate
   effects (`tve`) and a choice of `scale` (hazard/odds/normal).
   Registered in
-  [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/list_survlearners.md);
+  [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md);
   23 learners total.
 
 ## survalis 1.3.0
@@ -570,7 +604,7 @@ datasets.
   [`cv()`](https://elbadisyimad.com/survalis/reference/resampling.md)
   (with `repeats`),
   [`holdout()`](https://elbadisyimad.com/survalis/reference/resampling.md),
-  [`group_cv()`](https://elbadisyimad.com/survalis/reference/resampling.md),
+  [`group_cv()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md),
   [`bootstrap()`](https://elbadisyimad.com/survalis/reference/resampling.md);
   reuse one spec across models for paired comparisons.
 
@@ -583,7 +617,7 @@ datasets.
   discrete-time loss by default, predictions interpolated onto the
   requested times.
 - Both registered in
-  [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/list_survlearners.md);
+  [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md);
   22 learners total.
 
 ### Deprecations
@@ -601,7 +635,7 @@ datasets.
   clustering of predicted individualized survival curves via
   [`unsurv::unsurv()`](https://rdrr.io/pkg/unsurv/man/unsurv.html) (PAM
   on a weighted curve representation), registered in
-  [`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/list_interpretability_methods.md).
+  [`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md).
   Added `unsurv` to `Imports` and its paper’s citation (El Badisy 2026,
   `<doi:10.1093/bioadv/vbag218>`) to `Description`.
 
@@ -638,7 +672,7 @@ CRAN release: 2026-08-22
   `predict_coxboost()`, and `tune_coxboost()`, wrapping the `CoxBoost`
   package’s likelihood-based componentwise boosting for the Cox partial
   likelihood. Registered in
-  [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/list_survlearners.md)
+  [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md)
   and usable directly through `benchmark()`.
 - Wrapped `tune_glmnet()`’s example in `\donttest{}` (per CRAN
   win-builder pretest feedback: it exceeded the 5s/10s example runtime
@@ -764,10 +798,10 @@ CRAN release: 2026-08-22
 ## survalis 0.7.27
 
 - Migrated
-  [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/list_survlearners.md),
-  [`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/list_interpretability_methods.md),
+  [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md),
+  [`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md),
   and
-  [`list_metrics()`](https://elbadisyimad.com/survalis/reference/list_metrics.md)
+  [`list_metrics()`](https://elbadisyimad.com/survalis/reference/survalis-deprecated.md)
   from
   [`tibble::tibble()`](https://tibble.tidyverse.org/reference/tibble.html)
   to

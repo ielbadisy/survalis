@@ -41,7 +41,7 @@ for example by another package.
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -155,12 +155,12 @@ names of the form <code>"t=&lt;time&gt;"</code>.</p></dd>
 
 
 <dt id="arg-resampling">resampling<a class="anchor" aria-label="anchor" href="#arg-resampling"></a></dt>
-<dd><p>A resampling spec from <code><a href="resampling.html">cv()</a></code>, <code><a href="resampling.html">holdout()</a></code>, <code><a href="resampling.html">group_cv()</a></code> or
+<dd><p>A resampling spec from <code><a href="resampling.html">cv()</a></code>, <code><a href="resampling.html">holdout()</a></code>, <code><a href="resampling.html">groupcv()</a></code> or
 <code><a href="resampling.html">bootstrap()</a></code> (default <code><a href="resampling.html">cv()</a></code>).</p></dd>
 
 
 <dt id="arg-metrics">metrics<a class="anchor" aria-label="anchor" href="#arg-metrics"></a></dt>
-<dd><p>Character vector from <code>list_metrics()$metric</code>. <code>"brier"</code>,
+<dd><p>Character vector from <code>listmetrics()$metric</code>. <code>"brier"</code>,
 <code>"ece"</code>, <code>"survacc"</code> and range scores such as <code>"range:0.05-0.20"</code> require
 a single <code>times</code> value (see <code><a href="dwscore.html">dwscore()</a></code>).</p></dd>
 
@@ -175,7 +175,7 @@ a single <code>times</code> value (see <code><a href="dwscore.html">dwscore()</a
 
 <dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
 <dd><p>When <code>object</code> is a formula: a learner id
-(<code>list_survlearners()$learner</code>) or a custom learner (see <code><a href="fit.html">fit()</a></code>).</p></dd>
+(<code>listlearners()$learner</code>) or a custom learner (see <code><a href="fit.html">fit()</a></code>).</p></dd>
 
 
 <dt id="arg-spec">spec<a class="anchor" aria-label="anchor" href="#arg-spec"></a></dt>

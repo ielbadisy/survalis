@@ -1,8 +1,8 @@
 # Tune a survival learner over a hyperparameter grid
 
 Grid search over resampling folds. Learners listed by
-`list_survlearners(has_tune = TRUE)` have a built-in default grid; any
-other learner, including a custom one (see
+`listlearners(has_tune = TRUE)` have a built-in default grid; any other
+learner, including a custom one (see
 [`fit()`](https://elbadisyimad.com/survalis/reference/fit.md)), is tuned
 over the `grid` you supply, with every configuration scored on the same
 splits. The best configuration is refit on the full data and returned as
@@ -36,7 +36,7 @@ tune(
 
 - model:
 
-  A learner id (`list_survlearners()$learner`) or a custom learner.
+  A learner id (`listlearners()$learner`) or a custom learner.
 
 - grid:
 

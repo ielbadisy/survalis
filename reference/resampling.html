@@ -13,7 +13,7 @@ models to obtain paired comparisons (identical folds via a shared seed)."><meta 
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,7 +64,7 @@ models to obtain paired comparisons (identical folds via a shared <code>seed</co
 <span></span>
 <span><span class="fu">holdout</span><span class="op">(</span>prop <span class="op">=</span> <span class="fl">0.75</span>, strata <span class="op">=</span> <span class="st">"status"</span>, seed <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">group_cv</span><span class="op">(</span><span class="va">group</span>, v <span class="op">=</span> <span class="fl">5</span>, seed <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span><span class="fu">groupcv</span><span class="op">(</span><span class="va">group</span>, v <span class="op">=</span> <span class="fl">5</span>, seed <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">bootstrap</span><span class="op">(</span>times <span class="op">=</span> <span class="fl">25</span>, seed <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -100,7 +100,7 @@ for paired resampling.</p></dd>
 
 <dt id="arg-group">group<a class="anchor" aria-label="anchor" href="#arg-group"></a></dt>
 <dd><p>Column name whose distinct values define the groups held out
-together in <code>group_cv()</code>.</p></dd>
+together in <code>groupcv()</code>.</p></dd>
 
 
 <dt id="arg-times">times<a class="anchor" aria-label="anchor" href="#arg-times"></a></dt>
@@ -117,7 +117,7 @@ together in <code>group_cv()</code>.</p></dd>
 <ul><li><p><code>cv()</code> – k-fold cross-validation, optionally repeated, stratified on the
 event indicator by default.</p></li>
 <li><p><code>holdout()</code> – a single stratified train/test split.</p></li>
-<li><p><code>group_cv()</code> – k-fold cross-validation where whole groups (e.g. centres,
+<li><p><code>groupcv()</code> – k-fold cross-validation where whole groups (e.g. centres,
 subjects with repeated rows) are held out together.</p></li>
 <li><p><code>bootstrap()</code> – resampling with replacement; the out-of-bag rows form the
 assessment set (Efron-Tibshirani style, suitable for <code>.632</code> reporting).</p></li>

@@ -58,7 +58,7 @@ compare(
 
 - metrics:
 
-  Character vector from `list_metrics()$metric`.
+  Character vector from `listmetrics()$metric`.
 
 - tune:
 

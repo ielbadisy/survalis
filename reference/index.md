@@ -41,7 +41,7 @@ Split schemes used by
 
 - [`cv()`](https://elbadisyimad.com/survalis/reference/resampling.md)
   [`holdout()`](https://elbadisyimad.com/survalis/reference/resampling.md)
-  [`group_cv()`](https://elbadisyimad.com/survalis/reference/resampling.md)
+  [`groupcv()`](https://elbadisyimad.com/survalis/reference/resampling.md)
   [`bootstrap()`](https://elbadisyimad.com/survalis/reference/resampling.md)
   : Resampling specifications for evaluate(), tune() and compare()
 
@@ -64,11 +64,11 @@ number-at-risk table.
 
 Valid ids for `model`, `metrics` and `method`.
 
-- [`list_survlearners()`](https://elbadisyimad.com/survalis/reference/list_survlearners.md)
+- [`listlearners()`](https://elbadisyimad.com/survalis/reference/listlearners.md)
   : List the survival learners
-- [`list_metrics()`](https://elbadisyimad.com/survalis/reference/list_metrics.md)
+- [`listmetrics()`](https://elbadisyimad.com/survalis/reference/listmetrics.md)
   : List the evaluation metrics
-- [`list_interpretability_methods()`](https://elbadisyimad.com/survalis/reference/list_interpretability_methods.md)
+- [`listmethods()`](https://elbadisyimad.com/survalis/reference/listmethods.md)
   : List the interpretability methods
 
 ## Data and re-exports

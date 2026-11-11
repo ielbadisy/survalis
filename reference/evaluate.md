@@ -82,7 +82,7 @@ evaluate(object, y, times = NULL, metrics = c("cindex", "ibs"), ...)
   A resampling spec from
   [`cv()`](https://elbadisyimad.com/survalis/reference/resampling.md),
   [`holdout()`](https://elbadisyimad.com/survalis/reference/resampling.md),
-  [`group_cv()`](https://elbadisyimad.com/survalis/reference/resampling.md)
+  [`groupcv()`](https://elbadisyimad.com/survalis/reference/resampling.md)
   or
   [`bootstrap()`](https://elbadisyimad.com/survalis/reference/resampling.md)
   (default
@@ -90,7 +90,7 @@ evaluate(object, y, times = NULL, metrics = c("cindex", "ibs"), ...)
 
 - metrics:
 
-  Character vector from `list_metrics()$metric`. `"brier"`, `"ece"`,
+  Character vector from `listmetrics()$metric`. `"brier"`, `"ece"`,
   `"survacc"` and range scores such as `"range:0.05-0.20"` require a
   single `times` value (see
   [`dwscore()`](https://elbadisyimad.com/survalis/reference/dwscore.md)).
@@ -105,8 +105,8 @@ evaluate(object, y, times = NULL, metrics = c("cindex", "ibs"), ...)
 
 - model:
 
-  When `object` is a formula: a learner id
-  (`list_survlearners()$learner`) or a custom learner (see
+  When `object` is a formula: a learner id (`listlearners()$learner`) or
+  a custom learner (see
   [`fit()`](https://elbadisyimad.com/survalis/reference/fit.md)).
 
 - spec:
