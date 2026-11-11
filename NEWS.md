@@ -1,3 +1,12 @@
+# survalis 2.2.1
+
+* `"densemlp"` predictions between the learner's coarse time-grid points are
+  now interpolated on the log-survival scale (a constant hazard within each
+  bin) instead of holding the value from the start of the bin. With the
+  default 10 bins the old lookup overstated survival by up to one bin: on the
+  Rotterdam breast cancer data, mean predicted 5-year survival fell from
+  0.54 to 0.42 against a Kaplan-Meier estimate of 0.44.
+
 # survalis 2.2.0
 
 * Removed functions that the verbs replace: `benchmark()`,
