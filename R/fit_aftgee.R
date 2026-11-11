@@ -71,8 +71,10 @@ fit_aftgee <- function(formula, data, corstr = "independence") {
 # residuals e = log(T) - x'beta on the training data. This is the
 # semiparametric baseline of the AFT model (no distribution assumed).
 .aftgee_baseline <- function(object) {
-  y <- stats::model.response(stats::model.frame(object$formula, object$data))
-  lp <- .aftgee_lp(object, object$data)
+  # complete cases only, so the outcome and the linear predictor align
+  d <- object$data[stats::complete.cases(object$data[, all.vars(object$formula), drop = FALSE]), , drop = FALSE]
+  y <- stats::model.response(stats::model.frame(object$formula, d))
+  lp <- .aftgee_lp(object, d)
   ok <- is.finite(lp) & y[, 1] > 0
   km <- survival::survfit(survival::Surv(log(y[ok, 1]) - lp[ok], y[ok, 2]) ~ 1)
   list(resid = km$time, surv = km$surv)
@@ -133,7 +135,7 @@ predict_aftgee <- function(object, newdata, times = NULL) {
   log_time_pred <- .aftgee_lp(object, newdata)
 
   if (is.null(times)) {
-    t_max <- max(newdata[[all.vars(object$formula[[2]])[1]]], na.rm = TRUE)
+    t_max <- max(object$data[[all.vars(object$formula[[2]])[1]]], na.rm = TRUE)
     times <- seq(1, t_max, length.out = 20)
   }
 

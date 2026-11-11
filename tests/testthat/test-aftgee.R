@@ -116,3 +116,12 @@ test_that("predict_aftgee() uses the Kaplan-Meier baseline of the residuals", {
                  times = tt)$surv
   expect_lt(max(abs(colMeans(S) - km0)), 0.05)
 })
+
+test_that("fit_aftgee() works with missing covariates and default times use the training data", {
+  testthat::skip_if_not_installed("aftgee")
+  lung <- survival::lung
+  m <- fit_aftgee(survival::Surv(time, status) ~ age + ph.ecog, data = lung)
+  S <- as.matrix(predict_aftgee(m, lung[1:3, ], times = c(200, 400)))
+  expect_true(all(S >= 0 & S <= 1))
+  expect_equal(dim(predict_aftgee(m, lung[1:3, c("age", "ph.ecog")])), c(3L, 20L))
+})
