@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,11 @@
       <small>Source: <a href="https://github.com/ielbadisy/survalis/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.2.1" id="survalis-221">survalis 2.2.1<a class="anchor" aria-label="anchor" href="#survalis-221"></a></h2>
+<ul><li>
+<code>"densemlp"</code> predictions between the learner’s coarse time-grid points are now interpolated on the log-survival scale (a constant hazard within each bin) instead of holding the value from the start of the bin. With the default 10 bins the old lookup overstated survival by up to one bin: on the Rotterdam breast cancer data, mean predicted 5-year survival fell from 0.54 to 0.42 against a Kaplan-Meier estimate of 0.44.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.2.0" id="survalis-220">survalis 2.2.0<a class="anchor" aria-label="anchor" href="#survalis-220"></a></h2>
 <ul><li><p>Removed functions that the verbs replace: <code>benchmark()</code>, <code>benchmark_default_survlearners()</code>, <code>benchmark_tuned_survlearners()</code>, <code>summarise_benchmark()</code>, <code>summarize_benchmark_results()</code>, <code>best_survlearner()</code> and <code>plot_benchmark()</code> (use <code><a href="../reference/compare.html">compare()</a></code>), <code>estimate_rmst()</code> and <code>plot_rmst()</code> (use <code><a href="../reference/estimate.html">estimate()</a></code>), <code>cv_survmetalearner()</code> (use <code>evaluate(model = "survmetalearner")</code>), <code>plot_survmetalearner_weights()</code>, <code>compute_shap_mean()</code> (use <code>interpret(method = "shap")</code>), <code>plot_survcurve()</code> (use <code><a href="../reference/kmplot.html">kmplot()</a></code>) and <code>screen_fdr()</code> (use the <code>"selectcox"</code> or <code>"glmnet"</code> learners).</p></li>
