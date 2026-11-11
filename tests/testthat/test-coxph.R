@@ -77,3 +77,12 @@ test_that("predict_coxph() warns if learner field is not 'coxph'", {
     regexp = "may not come from fit_coxph"
   )
 })
+
+test_that("predict_coxph() handles strata() with one curve per row", {
+  lung <- survival::lung
+  m <- fit_coxph(survival::Surv(time, status) ~ age + strata(sex), data = lung)
+  S <- as.matrix(predict_coxph(m, lung[1:4, ], times = c(100, 300)))
+  ref <- summary(survival::survfit(m$model, newdata = lung[1, ]), times = c(100, 300))$surv
+  expect_equal(unname(S[1, ]), ref, tolerance = 1e-10)
+  expect_equal(dim(S), c(4L, 2L))
+})

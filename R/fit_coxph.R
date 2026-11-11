@@ -83,7 +83,16 @@ predict_coxph <- function(object, newdata, times) {
   # survival's own curves (Efron ties, consistent centring), read as a
   # right-continuous step function at the requested times
   sf <- survival::survfit(object$model, newdata = newdata, se.fit = FALSE)
-  S <- rbind(1, matrix(sf$surv, nrow = length(sf$time)))
-  S <- t(S[findInterval(times, sf$time) + 1L, , drop = FALSE])
+  step <- function(time, surv) c(1, surv)[findInterval(times, time) + 1L]
+  if (is.null(sf$strata)) {
+    S <- rbind(1, matrix(sf$surv, nrow = length(sf$time)))
+    S <- t(S[findInterval(times, sf$time) + 1L, , drop = FALSE])
+  } else {
+    # strata(): one curve per row, each on its own stratum's time axis
+    S <- t(vapply(seq_along(sf$strata), function(i) {
+      si <- sf[i]
+      step(si$time, si$surv)
+    }, numeric(length(times))))
+  }
   .finalize_survmat(S, times = times)
 }
