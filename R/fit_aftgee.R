@@ -56,20 +56,46 @@ fit_aftgee <- function(formula, data, corstr = "independence") {
     corstr = corstr
   )
 
-  structure(list(
+  out <- structure(list(
     model = model,
     learner = "aftgee",
     formula = formula,
     data = data,
     design = design[c("terms", "xlevels", "x_contrasts", "x_cols")]
   ), class = "mlsurv_model", engine = "aftgee")
+  out$baseline <- .aftgee_baseline(out)
+  out
+}
+
+# Kaplan-Meier estimate of the error distribution from the censored
+# residuals e = log(T) - x'beta on the training data. This is the
+# semiparametric baseline of the AFT model (no distribution assumed).
+.aftgee_baseline <- function(object) {
+  y <- stats::model.response(stats::model.frame(object$formula, object$data))
+  lp <- .aftgee_lp(object, object$data)
+  ok <- is.finite(lp) & y[, 1] > 0
+  km <- survival::survfit(survival::Surv(log(y[ok, 1]) - lp[ok], y[ok, 2]) ~ 1)
+  list(resid = km$time, surv = km$surv)
+}
+
+.aftgee_lp <- function(object, newdata) {
+  beta <- object$model$coef.res
+  if (!is.null(object$design)) {
+    X <- .survalis_design_new(object$design, newdata)
+    if (!is.null(names(beta)) && all(names(beta) %in% colnames(X))) {
+      X <- X[, names(beta), drop = FALSE]
+    }
+  } else {
+    X <- model.matrix(delete.response(terms(object$formula)), newdata)
+  }
+  as.numeric(X %*% beta)
 }
 
 
 #' Predict Survival Probabilities from an \code{aftgee} Model
 #'
 #' Computes survival probabilities \eqn{S(t \mid x)} at specified time points from a fitted
-#' AFT model using a log-normal approximation for the error distribution.
+#' semiparametric AFT model.
 #'
 #' @param object An \code{mlsurv_model} produced by \code{fit_aftgee}.
 #' @param newdata A data.frame of predictor values for prediction.
@@ -78,11 +104,11 @@ fit_aftgee <- function(formula, data, corstr = "independence") {
 #'   \code{object$data} is used.
 #'
 #' @details
-#' We use the approximation
-#' \deqn{S(t \mid x) \approx 1 - \Phi\!\left(\frac{\log t - x^\top \hat{\beta}}{\sigma}\right),}
-#' where \eqn{\Phi} is the standard normal CDF. Here we set \eqn{\sigma = 1} as a simple,
-#' distribution-agnostic proxy; this yields a monotone-in-time score useful for benchmarking.
-#' For production use, prefer a parametric AFT fit where \eqn{\sigma} is estimated.
+#' With \eqn{\log T = x^\top \beta + \epsilon} and \eqn{\hat S_0} the Kaplan-Meier
+#' estimate of the survival function of the censored training residuals
+#' \eqn{\log T_i - x_i^\top \hat\beta},
+#' \deqn{S(t \mid x) = \hat S_0(\log t - x^\top \hat{\beta}),}
+#' read as a step function (1 below the smallest residual, constant beyond the largest).
 #'
 #' @return A data.frame of survival probabilities with one row per \code{newdata} observation
 #'   and one column per requested time (\code{"t=<time>"}).
@@ -91,7 +117,7 @@ fit_aftgee <- function(formula, data, corstr = "independence") {
 #'   mod <- fit_aftgee(Surv(time, status) ~ trt + karno + age, data = veteran)
 #'   predict_aftgee(mod, newdata = veteran[1:5, ], times = c(20, 60, 120))
 #'
-#' @importFrom stats delete.response model.matrix terms pnorm
+#' @importFrom stats delete.response model.matrix terms
 #' @keywords internal
 #' @noRd
 
@@ -104,26 +130,22 @@ predict_aftgee <- function(object, newdata, times = NULL) {
 
   stopifnot(requireNamespace("aftgee", quietly = TRUE))
 
-  beta <- object$model$coef.res
-  if (!is.null(object$design)) {
-    X <- .survalis_design_new(object$design, newdata)
-    if (!is.null(names(beta)) && all(names(beta) %in% colnames(X))) {
-      X <- X[, names(beta), drop = FALSE]
-    }
-  } else {
-    X <- model.matrix(delete.response(terms(object$formula)), newdata)
-  }
-  log_time_pred <- as.numeric(X %*% beta)
+  log_time_pred <- .aftgee_lp(object, newdata)
 
   if (is.null(times)) {
     t_max <- max(newdata[[all.vars(object$formula[[2]])[1]]], na.rm = TRUE)
     times <- seq(1, t_max, length.out = 20)
   }
 
-  # approximate survival using lognormal-like assumption
-  survmat <- sapply(times, function(t) {
-    1 - pnorm((log(t) - log_time_pred))  # approximate S(t) from log-T model
-  })
+  # models fitted before the KM baseline was stored: rebuild it
+  base <- object$baseline
+  if (is.null(base)) base <- .aftgee_baseline(object)
+
+  survmat <- vapply(times, function(t) {
+    k <- findInterval(log(t) - log_time_pred, base$resid)
+    c(1, base$surv)[k + 1L]
+  }, numeric(length(log_time_pred)))
+  if (!is.matrix(survmat)) survmat <- matrix(survmat, ncol = length(times))
 
   .finalize_survmat(survmat, times = times)
 }

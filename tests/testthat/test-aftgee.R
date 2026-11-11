@@ -94,3 +94,25 @@ test_that("predict_aftgee() uses model matrix compatible with coef length", {
 
   expect_equal(ncol(X), length(beta), tolerance = 0)
 })
+
+test_that("predict_aftgee() uses the Kaplan-Meier baseline of the residuals", {
+  testthat::skip_on_cran()
+  testthat::skip_if_not_installed("aftgee")
+  df  <- survival::veteran
+  mod <- fit_aftgee(survival::Surv(time, status) ~ karno + age, data = df)
+  tt  <- c(30, 90, 180)
+  S   <- as.matrix(predict_aftgee(mod, newdata = df, times = tt))
+
+  ## S(t | x) = KM of the residuals, evaluated at log(t) - x'beta
+  lp <- drop(model.matrix(~ karno + age, df) %*% mod$model$coef.res)
+  km <- survival::survfit(survival::Surv(log(df$time) - lp, df$status) ~ 1)
+  ref <- vapply(tt, function(t) {
+    stats::stepfun(km$time, c(1, km$surv))(log(t) - lp)
+  }, numeric(nrow(df)))
+  expect_equal(unname(S), unname(ref), tolerance = 1e-12)
+
+  ## on the training data the average curve tracks the marginal KM
+  km0 <- summary(survival::survfit(survival::Surv(time, status) ~ 1, df),
+                 times = tt)$surv
+  expect_lt(max(abs(colMeans(S) - km0)), 0.05)
+})
