@@ -127,7 +127,7 @@ plot_shap_beeswarm <- function(shap_matrix, top_n = NULL, title) {
   })
   plot_df$feature <- factor(plot_df$feature, levels = ord)
 
-  if (missing(title)) title <- "SHAP beeswarm (time-integrated over prediction horizon)"
+  if (missing(title)) title <- "Time-integrated SHAP values"
 
   p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = phi, y = feature, colour = scaled_value)) +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray40") +
@@ -136,7 +136,7 @@ plot_shap_beeswarm <- function(shap_matrix, top_n = NULL, title) {
       low = .survalis_palette[3], high = .survalis_palette[2], na.value = "grey60",
       breaks = c(0, 1), labels = c("Low", "High"), name = "Feature value"
     ) +
-    ggplot2::labs(x = expression(Phi ~ "(time-integrated SHAP value)"), y = NULL) +
+    ggplot2::labs(x = "Time-integrated SHAP value", y = NULL) +
     theme_survalis() +
     ggplot2::theme(axis.text.y = ggplot2::element_text(hjust = 0))
   if (!is.null(title)) p <- p + ggplot2::labs(title = title)
