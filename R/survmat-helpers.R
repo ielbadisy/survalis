@@ -527,3 +527,22 @@ plot_survmat <- function(S,
   S <- cbind(1, S[, o, drop = FALSE])
   S[, findInterval(times, grid) + 1L, drop = FALSE]
 }
+
+## Read a discrete-time survival curve at new times by log-linear
+## interpolation between grid points (a constant hazard within each bin),
+## with S(0) = 1 and the last value held beyond the grid. Used for learners
+## that estimate survival on a few coarse bins, where a step lookup would
+## report the value at the start of the bin and overstate survival.
+#' @keywords internal
+#' @noRd
+.loglinear_surv <- function(S, grid, times) {
+  S <- as.matrix(S)
+  o <- order(grid)
+  g <- c(0, grid[o])
+  L <- log(pmax(cbind(1, S[, o, drop = FALSE]), 1e-12))
+  j <- pmin(findInterval(times, g), length(g) - 1L)
+  w <- pmin((times - g[j]) / (g[j + 1L] - g[j]), 1)
+  out <- L[, j, drop = FALSE] * rep(1 - w, each = nrow(L)) +
+    L[, j + 1L, drop = FALSE] * rep(w, each = nrow(L))
+  exp(out)
+}

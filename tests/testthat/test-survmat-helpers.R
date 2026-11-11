@@ -84,3 +84,13 @@ test_that("survmat_to_rmst() interpolates correctly for off-grid tau (regression
   # (no extrapolation past the observed curve).
   expect_equal(survmat_to_rmst(S, times, tau = 10), 3.75, tolerance = 1e-8)
 })
+
+test_that(".loglinear_surv interpolates log survival between grid points", {
+  S <- rbind(c(0.8, 0.4), c(0.9, 0.81))
+  out <- .loglinear_surv(S, grid = c(2, 4), times = c(0, 1, 2, 3, 4, 10))
+  expect_equal(out[, 1], c(1, 1))                      # S(0) = 1
+  expect_equal(out[, 2], sqrt(c(0.8, 0.9)))            # halfway to the 1st point
+  expect_equal(out[, 3], c(0.8, 0.9))                  # exact at grid points
+  expect_equal(out[, 4], sqrt(c(0.8 * 0.4, 0.9 * 0.81)))
+  expect_equal(out[, 6], c(0.4, 0.81))                 # held beyond the grid
+})

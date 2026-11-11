@@ -106,7 +106,8 @@ predict_densemlp <- function(object, newdata, times) {
     stop("Could not recover the densemlp discrete-time grid for the time lookup.")
   }
 
-  # step lookup on the discrete-time grid, with S(t) = 1 before the first point
-  out <- .step_surv(pred, grid, times)
+  # the grid is coarse (n_bins points): interpolate log S between grid points
+  # rather than holding the value from the start of the bin
+  out <- .loglinear_surv(pred, grid, times)
   .finalize_survmat(out, times = times)
 }
