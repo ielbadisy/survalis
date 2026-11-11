@@ -225,11 +225,24 @@ plot.survalis_tune <- function(x, title, ...) {
   varying <- param_cols[vapply(param_cols, function(c) length(unique(res[[c]])) > 1L, logical(1))]
   xcol <- if (length(varying)) varying[1] else param_cols[1]
   if (missing(title)) title <- sprintf("Tuning %s: %s vs %s", x$model, x$metric, xcol)
-  p <- ggplot2::ggplot(res, ggplot2::aes(x = .data[[xcol]], y = .data[[x$metric]])) +
-    ggplot2::geom_point(color = .survalis_palette[1]) +
-    ggplot2::geom_line(color = .survalis_palette[1], alpha = 0.5) +
-    ggplot2::labs(x = xcol, y = x$metric) +
-    theme_survalis()
+  if (length(varying) > 1L) {
+    # one line per value of the second varying parameter; the rest are pooled
+    gcol <- varying[2]
+    res[[gcol]] <- factor(res[[gcol]])
+    p <- ggplot2::ggplot(res, ggplot2::aes(x = .data[[xcol]], y = .data[[x$metric]],
+                                           colour = .data[[gcol]], group = .data[[gcol]])) +
+      ggplot2::geom_point() +
+      ggplot2::stat_summary(fun = mean, geom = "line") +
+      ggplot2::scale_colour_manual(values = rep(.survalis_palette, length.out = nlevels(res[[gcol]]))) +
+      ggplot2::labs(x = xcol, y = x$metric, colour = gcol) +
+      theme_survalis()
+  } else {
+    p <- ggplot2::ggplot(res, ggplot2::aes(x = .data[[xcol]], y = .data[[x$metric]])) +
+      ggplot2::geom_point(color = .survalis_palette[1]) +
+      ggplot2::geom_line(color = .survalis_palette[1], alpha = 0.5) +
+      ggplot2::labs(x = xcol, y = x$metric) +
+      theme_survalis()
+  }
   if (!is.null(title)) p <- p + ggplot2::labs(title = title)
   p
 }
