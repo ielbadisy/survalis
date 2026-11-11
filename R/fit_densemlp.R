@@ -5,8 +5,8 @@
 #' dependency) and returns an object compatible with the `mlsurv_model`
 #' interface. The IPCW integrated-Brier loss (`loss = "brier"`) is used by
 #' default so that a full survival-probability curve is available; predictions
-#' are read as a step function from the network's discrete-time grid at the
-#' requested evaluation times.
+#' are interpolated log-linearly (constant hazard within a bin) from the
+#' network's discrete-time grid at the requested evaluation times.
 #'
 #' @param formula A survival formula \code{Surv(time, status) ~ predictors}.
 #' @param data A \code{data.frame} containing the formula variables.
@@ -66,9 +66,9 @@ fit_densemlp <- function(formula, data, loss = c("brier", "cox"),
 #'
 #' Generates predicted survival probabilities at the requested \code{times} for a
 #' model fitted with \code{fit_densemlp} (\code{loss = "brier"}). The
-#' network returns survival on its own discrete-time grid; values are read as a
-#' right-continuous step function at \code{times}, with survival equal to 1
-#' before the first grid point and held constant beyond the last.
+#' network returns survival on its own discrete-time grid; log survival is
+#' interpolated linearly between grid points (from \eqn{S(0) = 1}) and held
+#' constant beyond the last.
 #'
 #' @param object An \code{"mlsurv_model"} from \code{fit_densemlp}.
 #' @param newdata A \code{data.frame} of predictors.
@@ -100,8 +100,11 @@ predict_densemlp <- function(object, newdata, times) {
   pred <- as.matrix(pred)
   if (is.null(dim(pred))) pred <- matrix(pred, nrow = 1)
 
-  grid <- suppressWarnings(as.numeric(sub("^t=", "", colnames(pred))))
-  if (anyNA(grid)) grid <- as.numeric(object$model$survival_breaks)
+  # exact breaks from the engine; the column names round them to 4 digits
+  grid <- as.numeric(object$model$survival_breaks)
+  if (length(grid) != ncol(pred)) {
+    grid <- suppressWarnings(as.numeric(sub("^t=", "", colnames(pred))))
+  }
   if (length(grid) != ncol(pred) || anyNA(grid)) {
     stop("Could not recover the densemlp discrete-time grid for the time lookup.")
   }

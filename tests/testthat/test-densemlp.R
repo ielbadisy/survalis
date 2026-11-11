@@ -47,3 +47,14 @@ test_that("predict_densemlp() interpolates between the coarse grid points", {
   expect_true(all(S <= raw[, 1] + 1e-12 & S >= raw[, 2] - 1e-12))
   expect_equal(S, sqrt(raw[, 1] * raw[, 2]), tolerance = 1e-8)
 })
+
+test_that("predict_densemlp() uses the exact engine breaks, not rounded column names", {
+  testthat::skip_if_not_installed("densemlp")
+  v <- survival::veteran
+  v$time <- v$time * 10.37
+  m <- fit_densemlp(survival::Surv(time, status) ~ age + karno, v)
+  br <- m$model$survival_breaks
+  S <- as.matrix(predict_densemlp(m, v[1:2, ], times = br[2]))
+  raw <- as.matrix(stats::predict(m$model, newdata = v[1:2, ], type = "survival"))
+  expect_equal(unname(S[, 1]), unname(raw[, 2]), tolerance = 1e-8)
+})
