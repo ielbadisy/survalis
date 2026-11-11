@@ -128,3 +128,8 @@ test_that("tune_survsvm() returns ranked results and refits the best model", {
   expect_s3_class(best, "mlsurv_model")
   expect_false(is.null(attr(best, "tuning_results")))
 })
+
+test_that("fit_survsvm() stores the outcome column names", {
+  s <- fit_survsvm(survival::Surv(time, status) ~ age + karno, survival::veteran)
+  expect_identical(c(s$time, s$status), c("time", "status"))
+})
