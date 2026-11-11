@@ -19,7 +19,7 @@ test_that("rpsurv plugs into the verb interface", {
   testthat::skip_on_cran()
   testthat::skip_if_not_installed("rpsurv")
 
-  expect_true("rpsurv" %in% list_survlearners()$learner)
+  expect_true("rpsurv" %in% listlearners()$learner)
   m <- fit(Surv(time, status) ~ age + karno + celltype, veteran, "rpsurv",
            spec = list(df = 3))
   expect_s3_class(m, "survalis_fit")

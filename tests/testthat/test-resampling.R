@@ -4,7 +4,7 @@ test_that("constructors validate and carry parameters", {
   expect_equal(cv(10, repeats = 2)$params$repeats, 2L)
   expect_error(cv(1), ">= 2")
   expect_error(holdout(prop = 1), "\\(0, 1\\)")
-  expect_error(group_cv(), "single column name")
+  expect_error(groupcv(), "single column name")
   expect_error(bootstrap(0), ">= 1")
 })
 

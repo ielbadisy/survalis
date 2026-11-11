@@ -38,7 +38,7 @@ reference:
   - resampling
   - holdout
   - cv
-  - group_cv
+  - groupcv
   - bootstrap
 
 - title: Scores
@@ -54,9 +54,9 @@ reference:
 - title: Lookups
   desc: Valid ids for `model`, `metrics` and `method`.
   contents:
-  - list_survlearners
-  - list_metrics
-  - list_interpretability_methods
+  - listlearners
+  - listmetrics
+  - listmethods
 
 - title: Data and re-exports
   contents:

@@ -4,7 +4,7 @@
 \alias{resampling}
 \alias{cv}
 \alias{holdout}
-\alias{group_cv}
+\alias{groupcv}
 \alias{bootstrap}
 \title{Resampling specifications for evaluate(), tune() and compare()}
 \usage{
@@ -12,7 +12,7 @@ cv(v = 5, repeats = 1, strata = "status", seed = NULL)
 
 holdout(prop = 0.75, strata = "status", seed = NULL)
 
-group_cv(group, v = 5, seed = NULL)
+groupcv(group, v = 5, seed = NULL)
 
 bootstrap(times = 25, seed = NULL)
 }
@@ -33,7 +33,7 @@ for paired resampling.}
 (default \code{0.75}).}
 
 \item{group}{Column name whose distinct values define the groups held out
-together in \code{group_cv()}.}
+together in \code{groupcv()}.}
 
 \item{times}{Integer number of bootstrap resamples (default \code{25}).}
 }
@@ -51,7 +51,7 @@ models to obtain paired comparisons (identical folds via a shared \code{seed}).
 \item \code{cv()} -- k-fold cross-validation, optionally repeated, stratified on the
 event indicator by default.
 \item \code{holdout()} -- a single stratified train/test split.
-\item \code{group_cv()} -- k-fold cross-validation where whole groups (e.g. centres,
+\item \code{groupcv()} -- k-fold cross-validation where whole groups (e.g. centres,
 subjects with repeated rows) are held out together.
 \item \code{bootstrap()} -- resampling with replacement; the out-of-bag rows form the
 assessment set (Efron-Tibshirani style, suitable for \code{.632} reporting).

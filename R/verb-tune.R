@@ -1,7 +1,7 @@
 #' Tune a survival learner over a hyperparameter grid
 #'
 #' Grid search over resampling folds. Learners listed by
-#' `list_survlearners(has_tune = TRUE)` have a built-in default grid; any other
+#' `listlearners(has_tune = TRUE)` have a built-in default grid; any other
 #' learner, including a custom one (see [fit()]), is tuned over the `grid` you
 #' supply, with every configuration scored on the same splits. The best
 #' configuration is refit on the full data and returned as a ready-to-use
@@ -9,7 +9,7 @@
 #'
 #' @param formula A survival formula.
 #' @param data A data frame.
-#' @param model A learner id (`list_survlearners()$learner`) or a custom
+#' @param model A learner id (`listlearners()$learner`) or a custom
 #'   learner.
 #' @param grid A data frame of hyperparameter combinations (one row per
 #'   configuration, for example from [expand.grid()]). `NULL` uses the learner's
@@ -42,10 +42,10 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
   lrn <- .resolve_learner(model)
   if (length(metric) != 1L) stop("`metric` must be a single value.", call. = FALSE)
   if (!.is_metric(metric)) {
-    stop("Unknown metric ", sQuote(metric), ". See list_metrics().", call. = FALSE)
+    stop("Unknown metric ", sQuote(metric), ". See listmetrics().", call. = FALSE)
   }
   if (!inherits(resampling, "survalis_resampling")) {
-    stop("`resampling` must come from cv(), holdout(), group_cv() or bootstrap().",
+    stop("`resampling` must come from cv(), holdout(), groupcv() or bootstrap().",
          call. = FALSE)
   }
   builtin <- !is.null(lrn$tune)

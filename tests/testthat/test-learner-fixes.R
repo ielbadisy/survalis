@@ -115,7 +115,7 @@ test_that("tune_survsvm() has a default grid", {
 
 test_that("removed learners (survdnn, stpm2) are gone", {
   for (id in c("survdnn", "stpm2")) {
-    expect_false(id %in% list_survlearners()$learner)
+    expect_false(id %in% listlearners()$learner)
     expect_false(exists(paste0("fit_", id), envir = asNamespace("survalis")))
     expect_error(fit(vet_form, survival::veteran, model = id), "Unknown model")
   }

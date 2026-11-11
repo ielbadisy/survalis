@@ -1,6 +1,6 @@
 # Central learner lookup used by every verb.
 #
-# `model` is either a built-in learner id (a string from list_survlearners())
+# `model` is either a built-in learner id (a string from listlearners())
 # or a custom learner: a list with `fit = function(formula, data, ...)` and
 # `predict = function(object, newdata, times)`, the latter returning an
 # n x length(times) matrix of survival probabilities. An optional `name`
@@ -44,10 +44,10 @@
                 custom = TRUE, def = model))
   }
 
-  known <- list_survlearners()$learner
+  known <- listlearners()$learner
   if (length(model) != 1L || !is.character(model) || !model %in% known) {
     lab <- if (is.character(model)) paste(model, collapse = ", ") else class(model)[1]
-    stop("Unknown model ", sQuote(lab), ". Use an id from list_survlearners() ",
+    stop("Unknown model ", sQuote(lab), ". Use an id from listlearners() ",
          "or a custom learner list(fit = , predict = ).", call. = FALSE)
   }
   ns <- asNamespace("survalis")

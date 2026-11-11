@@ -15,8 +15,8 @@ run <- requireNamespace("ranger", quietly = TRUE)
 survalis 2.0.0 exports seven verbs and nothing that duplicates them:
 `fit()`, `predict()`, `evaluate()`, `tune()`, `compare()`, `interpret()` and
 `estimate()`. Around them sit the resampling specs (`cv()`, `holdout()`,
-`group_cv()`, `bootstrap()`) and three lookups that give the valid ids
-(`list_survlearners()`, `list_metrics()`, `list_interpretability_methods()`).
+`groupcv()`, `bootstrap()`) and three lookups that give the valid ids
+(`listlearners()`, `listmetrics()`, `listmethods()`).
 
 The 1.x per-learner functions (`fit_ranger()`, `predict_ranger()`,
 `tune_ranger()`, ...) and the helper families (`cv_*()`, `benchmark*()`,
@@ -58,7 +58,7 @@ explanation in `method`, the output scale in `type`, and every result has a
 | 1.x | 2.0 |
 |---|---|
 | `tune_ranger(f, data, times, param_grid, refit_best = TRUE)` | `tune(f, data, "ranger", grid = param_grid, times = ...)` |
-| `list_tunable_survlearners()` | `list_survlearners(has_tune = TRUE)` |
+| `list_tunable_survlearners()` | `listlearners(has_tune = TRUE)` |
 | `benchmark(f, data, learners, times)` | `compare(f, data, models = learners, times = ...)` |
 | `benchmark_default_survlearners(...)` | `compare(...)` |
 | `benchmark_tuned_survlearners(...)` | `compare(..., tune = TRUE)` |
@@ -129,7 +129,7 @@ evaluate(Surv(time, status) ~ age + karno, veteran, model = expo,
 * **`times` is optional.** When omitted, a grid of up to 50 event-time
   quantiles (5th to 95th percentile) is used and recorded on the result
   (`res$times`), so a run is reproducible.
-* **Resampling is an object** (`cv()`, `holdout()`, `group_cv()`,
+* **Resampling is an object** (`cv()`, `holdout()`, `groupcv()`,
   `bootstrap()`) instead of a bare `folds` integer, and `compare()` evaluates
   every model on the *same* splits.
 * **Engine arguments go in `spec`,** not `...`.

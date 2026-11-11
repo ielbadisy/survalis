@@ -25,9 +25,9 @@ The recommended interface, consistent with the \pkg{funcml} package:
 \item{\code{\link[=estimate]{estimate()}}}{standardised binary-treatment contrast by
 G-computation.}
 }
-Resampling is described by \code{\link[=cv]{cv()}}, \code{\link[=holdout]{holdout()}}, \code{\link[=group_cv]{group_cv()}} and
-\code{\link[=bootstrap]{bootstrap()}}. Discover components with \code{\link[=list_survlearners]{list_survlearners()}},
-\code{\link[=list_metrics]{list_metrics()}} and \code{\link[=list_interpretability_methods]{list_interpretability_methods()}}.
+Resampling is described by \code{\link[=cv]{cv()}}, \code{\link[=holdout]{holdout()}}, \code{\link[=groupcv]{groupcv()}} and
+\code{\link[=bootstrap]{bootstrap()}}. Discover components with \code{\link[=listlearners]{listlearners()}},
+\code{\link[=listmetrics]{listmetrics()}} and \code{\link[=listmethods]{listmethods()}}.
 Custom learners plug into every verb as \code{model = list(fit = , predict = )};
 see \code{\link[=fit]{fit()}}.
 }

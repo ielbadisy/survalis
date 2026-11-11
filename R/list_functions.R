@@ -17,10 +17,10 @@
 #'   a built-in tuning grid exists).
 #'
 #' @examples
-#' list_survlearners()
-#' list_survlearners(has_tune = TRUE)
+#' listlearners()
+#' listlearners(has_tune = TRUE)
 #' @export
-list_survlearners <- function(has_tune = FALSE) {
+listlearners <- function(has_tune = FALSE) {
   ids <- c(
     "coxph", "aalen", "glmnet", "selectcox", "aftgee", "flexsurvreg", "bnnsurv",
     "rpart", "bart", "xgboost", "coxboost", "fastgbm", "ranger", "rsf", "cforest", "blackboost",
@@ -41,9 +41,9 @@ list_survlearners <- function(has_tune = FALSE) {
 #'
 #' @return A data frame with columns `method` and `summary`.
 #' @examples
-#' list_interpretability_methods()
+#' listmethods()
 #' @export
-list_interpretability_methods <- function() {
+listmethods <- function() {
   data.frame(
     method = c("pdp", "ice", "ale", "shap", "shap_matrix", "varimp", "permute",
                "interaction", "counterfactual", "surrogate", "tree_surrogate",
@@ -87,9 +87,9 @@ list_interpretability_methods <- function() {
 #'
 #' @return A data.frame with one row per metric.
 #' @examples
-#' list_metrics()
+#' listmetrics()
 #' @export
-list_metrics <- function() {
+listmetrics <- function() {
   data.frame(
     metric    = c("cindex", "auc", "brier", "ibs", "iae", "ise", "ece",
                   "survacc", "range:<lower>-<upper>"),

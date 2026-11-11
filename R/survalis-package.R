@@ -20,9 +20,9 @@
 #'   \item{[estimate()]}{standardised binary-treatment contrast by
 #'     G-computation.}
 #' }
-#' Resampling is described by [cv()], [holdout()], [group_cv()] and
-#' [bootstrap()]. Discover components with [list_survlearners()],
-#' [list_metrics()] and [list_interpretability_methods()].
+#' Resampling is described by [cv()], [holdout()], [groupcv()] and
+#' [bootstrap()]. Discover components with [listlearners()],
+#' [listmetrics()] and [listmethods()].
 #' Custom learners plug into every verb as `model = list(fit = , predict = )`;
 #' see [fit()].
 #'

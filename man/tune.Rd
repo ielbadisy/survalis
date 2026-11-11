@@ -21,7 +21,7 @@ tune(
 
 \item{data}{A data frame.}
 
-\item{model}{A learner id (\code{list_survlearners()$learner}) or a custom
+\item{model}{A learner id (\code{listlearners()$learner}) or a custom
 learner.}
 
 \item{grid}{A data frame of hyperparameter combinations (one row per
@@ -51,7 +51,7 @@ configuration), \code{results} (the scored grid), \code{best} (one-row best conf
 }
 \description{
 Grid search over resampling folds. Learners listed by
-\code{list_survlearners(has_tune = TRUE)} have a built-in default grid; any other
+\code{listlearners(has_tune = TRUE)} have a built-in default grid; any other
 learner, including a custom one (see \code{\link[=fit]{fit()}}), is tuned over the \code{grid} you
 supply, with every configuration scored on the same splits. The best
 configuration is refit on the full data and returned as a ready-to-use

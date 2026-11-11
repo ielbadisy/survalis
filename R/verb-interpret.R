@@ -1,7 +1,7 @@
 #' Interpret a fitted survival learner
 #'
 #' A single entry point to the package's model-agnostic explanation and
-#' diagnostic methods. `list_interpretability_methods()` lists the `method` ids
+#' diagnostic methods. `listmethods()` lists the `method` ids
 #' with a one-line description of each.
 #'
 #' @param fit A `survalis_fit` (from [fit()]), a `survalis_tune`, or a legacy

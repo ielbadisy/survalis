@@ -13,7 +13,7 @@
 #' @param times Evaluation grid; `NULL` picks up to 50 event-time quantiles (5th to 95th percentile).
 #' @param resampling A [resampling] spec (default `cv()`); the split set is drawn
 #'   once and reused for every model.
-#' @param metrics Character vector from `list_metrics()$metric`.
+#' @param metrics Character vector from `listmetrics()$metric`.
 #' @param tune Logical. When `TRUE`, each tunable model is tuned once on the full
 #'   data (its default grid) and the winning configuration is then evaluated on
 #'   the shared folds. This is not nested CV, so the tuned results are optimistic;
@@ -56,7 +56,7 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
   .check_metrics(metrics, times)
 
   splits <- .make_splits(resampling, data, parsed$status_col)
-  tunable <- list_survlearners(has_tune = TRUE)$learner
+  tunable <- listlearners(has_tune = TRUE)$learner
 
   per <- list()
   for (k in seq_along(models)) {
@@ -97,7 +97,7 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
 #' @keywords internal
 .metric_maximize <- function(metric) {
   if (grepl("^range:", metric)) return(FALSE)
-  m <- list_metrics()
+  m <- listmetrics()
   isTRUE(m$direction[match(metric, m$metric)] == "maximize")
 }
 

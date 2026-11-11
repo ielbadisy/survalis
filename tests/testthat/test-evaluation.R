@@ -47,7 +47,7 @@ test_that("auc_survmat works on simple data and is listed as a supported metric"
   auc_last <- auc_survmat(y, predicted = sp, t_star = NULL)
   expect_equal(unname(auc_last), unname(auc), tolerance = 1e-12)
 
-  metrics_tbl <- list_metrics()
+  metrics_tbl <- listmetrics()
   expect_true("auc" %in% metrics_tbl$metric)
   expect_identical(metrics_tbl$direction[metrics_tbl$metric == "auc"], "maximize")
 

@@ -20,7 +20,7 @@ test_that("fastgbm plugs into the verb interface", {
   testthat::skip_on_cran()
   testthat::skip_if_not_installed("fastgbm")
 
-  expect_true("fastgbm" %in% list_survlearners()$learner)
+  expect_true("fastgbm" %in% listlearners()$learner)
   m <- fit(Surv(time, status) ~ age + karno, veteran, "fastgbm",
            spec = list(ntrees = 40, pexp_bins = 8))
   expect_s3_class(m, "survalis_fit")

@@ -27,7 +27,7 @@ treatment-by-confounder interactions).}
 
 \item{data}{A data frame.}
 
-\item{model}{A learner id (\code{list_survlearners()$learner}) or a custom
+\item{model}{A learner id (\code{listlearners()$learner}) or a custom
 learner (see \code{\link[=fit]{fit()}}).}
 
 \item{estimand}{One of \code{"RMST_diff"} (default), \code{"RMST_ratio"},

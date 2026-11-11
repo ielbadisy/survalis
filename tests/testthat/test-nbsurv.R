@@ -19,7 +19,7 @@ test_that("nbsurv plugs into the verb interface", {
   testthat::skip_on_cran()
   testthat::skip_if_not_installed("nbsurv")
 
-  expect_true("nbsurv" %in% list_survlearners()$learner)
+  expect_true("nbsurv" %in% listlearners()$learner)
   m <- fit(Surv(time, status) ~ age + karno, veteran, "nbsurv")
   expect_s3_class(m, "survalis_fit")
   S <- predict(m, veteran[1:4, ], times = c(90, 180))

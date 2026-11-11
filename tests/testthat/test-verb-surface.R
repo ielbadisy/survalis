@@ -13,17 +13,20 @@ test_that("the exported surface is the seven verbs plus helpers, dwscore and kmp
   ex <- sort(getNamespaceExports("survalis"))
   expect_setequal(ex, c(
     "fit", "evaluate", "compare", "tune", "interpret", "estimate",
-    "cv", "holdout", "group_cv", "bootstrap",
+    "cv", "holdout", "groupcv", "bootstrap",
+    "listlearners", "listmetrics", "listmethods",
+    "dwscore", "kmplot", "Surv",
+    ## deprecated aliases, removed in the next release
     "list_survlearners", "list_metrics", "list_interpretability_methods",
-    "dwscore", "kmplot", "Surv"
+    "group_cv"
   ))
 })
 
-test_that("list_survlearners() returns ids and tunable flags", {
-  ls <- list_survlearners()
+test_that("listlearners() returns ids and tunable flags", {
+  ls <- listlearners()
   expect_named(ls, c("learner", "tunable"))
   expect_true("coxph" %in% ls$learner)
-  expect_true(all(list_survlearners(has_tune = TRUE)$tunable))
+  expect_true(all(listlearners(has_tune = TRUE)$tunable))
 })
 
 test_that("a custom learner works with fit() and predict()", {
@@ -122,4 +125,15 @@ test_that("interpret() draws ROC and decision curves", {
   d <- interpret(m, "dca", eval_time = 90, thresholds = seq(0.1, 0.9, 0.1))
   expect_s3_class(plot(d), "ggplot")
   expect_error(interpret(m, "roc", times = c(30, 90)), "single time")
+})
+
+test_that("underscore names are deprecated aliases of the glued names", {
+  expect_warning(a <- list_survlearners(), "listlearners")
+  expect_identical(a, listlearners())
+  expect_warning(b <- list_metrics(), "listmetrics")
+  expect_identical(b, listmetrics())
+  expect_warning(m <- list_interpretability_methods(), "listmethods")
+  expect_identical(m, listmethods())
+  expect_warning(g <- group_cv("id", v = 3), "groupcv")
+  expect_identical(g, groupcv("id", v = 3))
 })

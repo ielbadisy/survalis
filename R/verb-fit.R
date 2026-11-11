@@ -8,7 +8,7 @@
 #' @param formula A survival formula with a `Surv()` outcome on the left-hand
 #'   side, e.g. `Surv(time, status) ~ age + karno`.
 #' @param data A data frame containing the formula variables.
-#' @param model A learner id from `list_survlearners()$learner` (for example
+#' @param model A learner id from `listlearners()$learner` (for example
 #'   `"coxph"`, `"ranger"`, `"densemlp"`), or a custom learner: a list with
 #'   `fit = function(formula, data, ...)` returning any fitted object and
 #'   `predict = function(object, newdata, times)` returning an
@@ -26,7 +26,7 @@
 #'   `model_id`, and `spec`.
 #'
 #' @seealso [predict.survalis_fit()], [evaluate()], [tune()], [compare()],
-#'   [interpret()], [estimate()], [list_survlearners()]
+#'   [interpret()], [estimate()], [listlearners()]
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE)
 #' m <- fit(Surv(time, status) ~ age + karno + celltype, veteran,

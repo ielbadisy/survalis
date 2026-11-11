@@ -8,7 +8,7 @@
 #' * `cv()` -- k-fold cross-validation, optionally repeated, stratified on the
 #'   event indicator by default.
 #' * `holdout()` -- a single stratified train/test split.
-#' * `group_cv()` -- k-fold cross-validation where whole groups (e.g. centres,
+#' * `groupcv()` -- k-fold cross-validation where whole groups (e.g. centres,
 #'   subjects with repeated rows) are held out together.
 #' * `bootstrap()` -- resampling with replacement; the out-of-bag rows form the
 #'   assessment set (Efron-Tibshirani style, suitable for `.632` reporting).
@@ -22,7 +22,7 @@
 #' @param prop Proportion of rows assigned to the training set in `holdout()`
 #'   (default `0.75`).
 #' @param group Column name whose distinct values define the groups held out
-#'   together in `group_cv()`.
+#'   together in `groupcv()`.
 #' @param times Integer number of bootstrap resamples (default `25`).
 #' @param seed Optional integer seed. Set it (and keep it equal across models)
 #'   for paired resampling.
@@ -62,13 +62,13 @@ holdout <- function(prop = 0.75, strata = "status", seed = NULL) {
 
 #' @rdname resampling
 #' @export
-group_cv <- function(group, v = 5, seed = NULL) {
+groupcv <- function(group, v = 5, seed = NULL) {
   if (missing(group) || !is.character(group) || length(group) != 1L) {
     stop("`group` must be a single column name.", call. = FALSE)
   }
   v <- as.integer(v)
   if (v < 2L) stop("`v` must be >= 2.", call. = FALSE)
-  .new_resampling("group_cv", list(group = group, v = v, seed = seed))
+  .new_resampling("groupcv", list(group = group, v = v, seed = seed))
 }
 
 #' @rdname resampling
@@ -86,7 +86,7 @@ print.survalis_resampling <- function(x, ...) {
     cv = sprintf("%d-fold CV%s", p$v,
                  if (p$repeats > 1L) sprintf(" x %d repeats", p$repeats) else ""),
     holdout = sprintf("holdout (%.0f%% train)", 100 * p$prop),
-    group_cv = sprintf("%d-fold grouped CV on '%s'", p$v, p$group),
+    groupcv = sprintf("%d-fold grouped CV on '%s'", p$v, p$group),
     bootstrap = sprintf("bootstrap (%d resamples, OOB assessment)", p$times),
     x$type
   )
@@ -138,7 +138,7 @@ print.survalis_resampling <- function(x, ...) {
       }
       rsample::manual_rset(list(sp), ids = "holdout")
     },
-    group_cv = rsample::group_vfold_cv(data, group = !!rlang::sym(p$group), v = p$v),
+    groupcv = rsample::group_vfold_cv(data, group = !!rlang::sym(p$group), v = p$v),
     bootstrap = rsample::bootstraps(data, times = p$times),
     stop("Unknown resampling type: ", resampling$type)
   )

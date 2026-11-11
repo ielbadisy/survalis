@@ -18,7 +18,7 @@ test_that("densemlp interpolates onto arbitrary times and plugs into verbs", {
   testthat::skip_on_cran()
   testthat::skip_if_not_installed("densemlp")
 
-  expect_true("densemlp" %in% list_survlearners()$learner)
+  expect_true("densemlp" %in% listlearners()$learner)
   m <- fit(Surv(time, status) ~ age + karno, veteran, "densemlp",
            spec = list(n_bins = 8, epochs = 15))
   expect_s3_class(m, "survalis_fit")

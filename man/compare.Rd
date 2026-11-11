@@ -33,7 +33,7 @@ custom learners (see \code{\link[=fit]{fit()}}). List names, when given, label t
 \item{resampling}{A \link{resampling} spec (default \code{cv()}); the split set is drawn
 once and reused for every model.}
 
-\item{metrics}{Character vector from \code{list_metrics()$metric}.}
+\item{metrics}{Character vector from \code{listmetrics()$metric}.}
 
 \item{tune}{Logical. When \code{TRUE}, each tunable model is tuned once on the full
 data (its default grid) and the winning configuration is then evaluated on

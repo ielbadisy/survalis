@@ -49,7 +49,7 @@ with the number of \code{splits} on it and the tree's \code{r_squared}. For
 }
 \description{
 A single entry point to the package's model-agnostic explanation and
-diagnostic methods. \code{list_interpretability_methods()} lists the \code{method} ids
+diagnostic methods. \code{listmethods()} lists the \code{method} ids
 with a one-line description of each.
 }
 \examples{

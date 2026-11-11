@@ -16,7 +16,7 @@
 #'   numeric matrix of survival probabilities (rows = subjects, columns = times).
 #' @param data When `object` is a formula: the data frame.
 #' @param model When `object` is a formula: a learner id
-#'   (`list_survlearners()$learner`) or a custom learner (see [fit()]).
+#'   (`listlearners()$learner`) or a custom learner (see [fit()]).
 #' @param spec When `object` is a formula: engine arguments (named list).
 #' @param newdata When `object` is a `survalis_fit`: optional data frame with the
 #'   outcome columns. If given, the fit is scored on it once and `resampling` is
@@ -26,9 +26,9 @@
 #' @param times Evaluation grid. `NULL` picks a grid from the data quantiles and
 #'   records it; for a matrix, `NULL` reads the `"times"` attribute or column
 #'   names of the form `"t=<time>"`.
-#' @param resampling A resampling spec from [cv()], [holdout()], [group_cv()] or
+#' @param resampling A resampling spec from [cv()], [holdout()], [groupcv()] or
 #'   [bootstrap()] (default `cv()`).
-#' @param metrics Character vector from `list_metrics()$metric`. `"brier"`,
+#' @param metrics Character vector from `listmetrics()$metric`. `"brier"`,
 #'   `"ece"`, `"survacc"` and range scores such as `"range:0.05-0.20"` require
 #'   a single `times` value (see [dwscore()]).
 #' @param ncores Cores for the split loop (default `1`).

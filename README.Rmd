@@ -55,9 +55,9 @@ estimate(f, veteran, model = "ranger", treatment = "trt", tau = 365)
 
 `fit()`, `predict()`, `evaluate()`, `tune()`, `compare()`, `interpret()` and
 `estimate()` are the whole interface. Resampling is described by `cv()`,
-`holdout()`, `group_cv()` and `bootstrap()`, `dwscore()` scores a survival
-matrix directly, and `list_survlearners()`,
-`list_metrics()` and `list_interpretability_methods()` give the valid ids.
+`holdout()`, `groupcv()` and `bootstrap()`, `dwscore()` scores a survival
+matrix directly, and `listlearners()`,
+`listmetrics()` and `listmethods()` give the valid ids.
 Upgrading from 1.x? See `vignette("from-1.0", package = "survalis")`.
 
 
@@ -88,9 +88,9 @@ remotes::install_github("ielbadisy/survalis")
 
 ```{r}
 library(survalis)
-list_survlearners()               # ids for `model`
-list_metrics()                    # ids for `metrics`
-list_interpretability_methods()   # ids for `method` in interpret()
+listlearners()               # ids for `model`
+listmetrics()                    # ids for `metrics`
+listmethods()   # ids for `method` in interpret()
 ```
 
 

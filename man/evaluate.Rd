@@ -47,10 +47,10 @@ ignored.}
 records it; for a matrix, \code{NULL} reads the \code{"times"} attribute or column
 names of the form \code{"t=<time>"}.}
 
-\item{resampling}{A resampling spec from \code{\link[=cv]{cv()}}, \code{\link[=holdout]{holdout()}}, \code{\link[=group_cv]{group_cv()}} or
+\item{resampling}{A resampling spec from \code{\link[=cv]{cv()}}, \code{\link[=holdout]{holdout()}}, \code{\link[=groupcv]{groupcv()}} or
 \code{\link[=bootstrap]{bootstrap()}} (default \code{cv()}).}
 
-\item{metrics}{Character vector from \code{list_metrics()$metric}. \code{"brier"},
+\item{metrics}{Character vector from \code{listmetrics()$metric}. \code{"brier"},
 \code{"ece"}, \code{"survacc"} and range scores such as \code{"range:0.05-0.20"} require
 a single \code{times} value (see \code{\link[=dwscore]{dwscore()}}).}
 
@@ -59,7 +59,7 @@ a single \code{times} value (see \code{\link[=dwscore]{dwscore()}}).}
 \item{data}{When \code{object} is a formula: the data frame.}
 
 \item{model}{When \code{object} is a formula: a learner id
-(\code{list_survlearners()$learner}) or a custom learner (see \code{\link[=fit]{fit()}}).}
+(\code{listlearners()$learner}) or a custom learner (see \code{\link[=fit]{fit()}}).}
 
 \item{spec}{When \code{object} is a formula: engine arguments (named list).}
 

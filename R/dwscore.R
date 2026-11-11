@@ -191,7 +191,7 @@ dwscore <- function(object, y, times = NULL,
 #' @keywords internal
 #' @noRd
 .is_metric <- function(metric) {
-  metric %in% list_metrics()$metric | grepl("^range:", metric)
+  metric %in% listmetrics()$metric | grepl("^range:", metric)
 }
 
 ## Validate metric ids against the time grid before any model is fitted, so a
@@ -202,7 +202,7 @@ dwscore <- function(object, y, times = NULL,
   bad <- metrics[!.is_metric(metrics)]
   if (length(bad)) {
     stop("Unknown metric(s): ", paste(sQuote(bad), collapse = ", "),
-         ". See list_metrics().", call. = FALSE)
+         ". See listmetrics().", call. = FALSE)
   }
   for (m in metrics[grepl("^range:", metrics)]) .parse_range_metric(m)
   single <- metrics[metrics %in% c("brier", "ece", "survacc") |

@@ -54,7 +54,7 @@ test_that("core interpretability methods return expected structures", {
       names(counterfactual)
   ))
 
-  interp_methods <- list_interpretability_methods()
+  interp_methods <- listmethods()
   expect_true(all(c("counterfactual", "roc", "dca") %in% interp_methods$method))
   expect_identical(sort(interp_methods$method), sort(names(.interpret_dispatch())))
 })

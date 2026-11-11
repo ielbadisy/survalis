@@ -180,7 +180,7 @@ test_that("every interpret() method prints and has a tidy data frame form", {
     dca = list(eval_time = 90),
     survcluster = list(times = tt, K = 2, seed = 1)
   )
-  expect_setequal(names(args), list_interpretability_methods()$method)
+  expect_setequal(names(args), listmethods()$method)
   for (meth in names(args)) {
     r <- do.call(interpret, c(list(m, meth), args[[meth]]))
     d <- as.data.frame(r)

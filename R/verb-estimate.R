@@ -23,7 +23,7 @@
 #'   **confounders** (the treatment is added by the function, with
 #'   treatment-by-confounder interactions).
 #' @param data A data frame.
-#' @param model A learner id (`list_survlearners()$learner`) or a custom
+#' @param model A learner id (`listlearners()$learner`) or a custom
 #'   learner (see [fit()]).
 #' @param estimand One of `"RMST_diff"` (default), `"RMST_ratio"`,
 #'   `"survival_diff"`, `"survival_ratio"`.

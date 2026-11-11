@@ -12,7 +12,7 @@ side, e.g. \code{Surv(time, status) ~ age + karno}.}
 
 \item{data}{A data frame containing the formula variables.}
 
-\item{model}{A learner id from \code{list_survlearners()$learner} (for example
+\item{model}{A learner id from \code{listlearners()$learner} (for example
 \code{"coxph"}, \code{"ranger"}, \code{"densemlp"}), or a custom learner: a list with
 \verb{fit = function(formula, data, ...)} returning any fitted object and
 \verb{predict = function(object, newdata, times)} returning an
@@ -60,5 +60,5 @@ predict(m2, veteran[1:3, ], times = c(90, 180))
 }
 \seealso{
 \code{\link[=predict.survalis_fit]{predict.survalis_fit()}}, \code{\link[=evaluate]{evaluate()}}, \code{\link[=tune]{tune()}}, \code{\link[=compare]{compare()}},
-\code{\link[=interpret]{interpret()}}, \code{\link[=estimate]{estimate()}}, \code{\link[=list_survlearners]{list_survlearners()}}
+\code{\link[=interpret]{interpret()}}, \code{\link[=estimate]{estimate()}}, \code{\link[=listlearners]{listlearners()}}
 }
