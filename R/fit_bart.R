@@ -202,8 +202,10 @@ predict_bart <- function(object, newdata, times) {
     stop("Unexpected prediction shape returned by BART.")
   }
 
-  # step lookup on the BART time grid, with S(t) = 1 before the first time
-  survmat <- .step_surv(prob_matrix, eval_times, times)
+  # BART's discrete-time grid is coarse (K quantiles of the observed times),
+  # so read it with a constant hazard within each interval: log S is
+  # interpolated linearly from S(0) = 1, not held from the previous point
+  survmat <- .loglinear_surv(prob_matrix, eval_times, times)
   .finalize_survmat(survmat, times = times)
 }
 

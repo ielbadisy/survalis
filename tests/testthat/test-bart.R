@@ -64,8 +64,8 @@ test_that("predict_bart() returns well-formed survival probabilities and a prope
   )
 
   A <- as.matrix(pred_align)
-  # step lookup: S(t) = 1 before the first grid time, constant beyond the last
-  expect_true(all(abs(A[, 1] - 1) < 1e-12))
+  # constant hazard from S(0) = 1 to the first grid time, constant beyond the last
+  expect_equal(A[, 1], A[, 2]^(t_below / min(et)), tolerance = 1e-8)
   expect_true(max(abs(A[, 3] - A[, 4]), na.rm = TRUE) < 1e-6)
   expect_true(max(abs(A[, 5] - A[, 6]), na.rm = TRUE) < 1e-6)
 
@@ -99,4 +99,19 @@ test_that("predict_bart() warns on learner mismatch and errors on bad inputs", {
   expect_error(predict_bart(mod, newdata = bad_new, times = c(10, 30)))
 
   expect_error(predict_bart(mod, newdata = df[1:5, ], times = c("a", "b")))
+})
+
+test_that("predict_bart() interpolates between the coarse grid points", {
+  testthat::skip_on_cran()
+  testthat::skip_if_not_installed("BART")
+  m <- fit_bart(survival::Surv(time, status) ~ age + karno, data = veteran,
+                K = 3, ntree = 10, ndpost = 50, nskip = 20, seed = 1)
+  g <- m$eval_times
+  raw <- as.matrix(predict_bart(m, veteran[1:3, ], times = g[1:2]))
+  mid <- (g[1] + g[2]) / 2
+  S <- as.matrix(predict_bart(m, veteran[1:3, ], times = mid))[, 1]
+  ## geometric mean of the neighboring grid values (constant hazard), not
+  ## the value held from the earlier grid point
+  expect_equal(S, sqrt(raw[, 1] * raw[, 2]), tolerance = 1e-8)
+  expect_true(all(S < raw[, 1]))
 })
