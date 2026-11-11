@@ -127,3 +127,10 @@ test_that("tune_ranger() returns a compact grid and refit_best yields a fitted m
   expect_identical(attr(best_mod, "engine"), "ranger")
   expect_true(!is.null(best_mod$model))
 })
+test_that("fit_ranger() passes case weights to the engine", {
+  testthat::skip_if_not_installed("ranger")
+  lung <- survival::lung
+  m <- fit_ranger(survival::Surv(time, status) ~ age + sex, data = lung,
+                  case.weights = rep(1:2, length.out = nrow(lung)), num.trees = 20)
+  expect_equal(dim(predict_ranger(m, lung[1:2, ], times = 300)), c(2L, 1L))
+})

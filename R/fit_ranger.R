@@ -45,8 +45,7 @@ fit_ranger <- function(formula, data, ...) {
     formula = formula,
     data = data,
     ...,
-    respect.unordered.factors = "order",
-    case.weights = NULL
+    respect.unordered.factors = "order"
   )
 
   structure(
