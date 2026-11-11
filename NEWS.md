@@ -1,3 +1,15 @@
+# survalis 2.2.2
+
+* `"aftgee"` predictions now use the semiparametric baseline of the AFT
+  model: the Kaplan-Meier estimate of the censored residuals
+  log(T) - x'beta, read at log(t) - x'beta. They previously assumed a
+  log-normal error with scale fixed at 1, which miscalibrated survival: on
+  the Rotterdam breast cancer data, mean predicted 5-year survival fell from
+  0.47 to 0.44 against a Kaplan-Meier estimate of 0.44.
+* `"bart"` predictions between the learner's coarse time-grid points are now
+  interpolated on the log-survival scale, as for `"densemlp"` in 2.2.1,
+  instead of holding the value from the start of the interval.
+
 # survalis 2.2.1
 
 * `"densemlp"` predictions between the learner's coarse time-grid points are
