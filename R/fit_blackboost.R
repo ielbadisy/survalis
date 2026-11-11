@@ -54,7 +54,11 @@ fit_blackboost <- function(formula, data, weights = NULL, mstop = 100, nu = 0.1,
   family <- mboost::CoxPH()
 
   control <- mboost::boost_control(mstop = mstop, nu = nu, ...)
+  # keep mboost's base-learner tests (no Bonferroni stopping); set only the size limits
   tree_control <- partykit::ctree_control(
+    teststat = "quad",
+    testtype = "Teststatistic",
+    mincriterion = 0,
     minsplit = minsplit,
     minbucket = minbucket,
     maxdepth = maxdepth
@@ -104,7 +108,7 @@ fit_blackboost <- function(formula, data, weights = NULL, mstop = 100, nu = 0.1,
 #' @param newdata A `data.frame` of new observations for prediction.
 #' @param times Numeric vector of time points at which to compute survival
 #'   probabilities.
-#' @param ... Additional arguments forwarded to \code{mboost::survFit()}.
+#' @param ... Unused.
 #'
 #' @details
 #' Predictions use \code{mboost::survFit()} to obtain a step function
