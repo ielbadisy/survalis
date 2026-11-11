@@ -36,13 +36,13 @@
 #'
 #' @details
 #' For each \code{t} in \code{times}, this function fits
-#' \deqn{\min_{w \ge 0} \\mid Y - S w \|_2^2 \quad \text{s.t.} \ \sum_j w_j = 1}
+#' \deqn{\min_{w \ge 0} \| Y - S w \|_2^2}
 #' where \eqn{Y = I(T > t)} and \eqn{S} is the matrix of base survival
 #' probabilities at \eqn{t}. Only subjects with \eqn{T > t} or an observed event
 #' by \eqn{t} enter, each weighted by \eqn{1 / G(\min(T, t)-)} with \eqn{G} the
 #' reverse Kaplan-Meier estimate of the censoring distribution; the weights enter
 #' the NNLS fit by \eqn{\sqrt{w}} row scaling. The NNLS solution from \pkg{nnls} is renormalized
-#' to sum to 1 (if the solution is all zeros, weights remain \code{NA} for that time).
+#' to sum to 1 afterwards (if the solution is all zeros, equal weights are used).
 #'
 #' @return An object of class \code{c("mlsurv_model","survmetalearner")} with elements:
 #' \describe{
@@ -153,7 +153,9 @@ fit_survmetalearner <- function(base_preds = NULL, time = NULL, status = NULL, t
     Y <- as.numeric(time[keep] > t_star)
     sw <- sqrt(1 / G[keep])
     fit <- nnls::nnls(X[keep, , drop = FALSE] * sw, Y * sw)
-    w <- coef(fit); w <- w / sum(w)
+    w <- coef(fit)
+    # all-zero NNLS solution: fall back to equal weights rather than 0/0
+    w <- if (sum(w) > 0) w / sum(w) else rep(1 / length(w), length(w))
     weight_matrix[, j] <- w
   }
 
