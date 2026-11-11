@@ -87,9 +87,9 @@ fit_glmnet <- function(formula, data, alpha = 1, ...) {
 #' \enumerate{
 #'   \item Computing the linear predictors for training and new data at
 #'     \code{s = "lambda.min"}.
-#'   \item Fitting a Cox PH model on the training linear predictors to
-#'     estimate the baseline cumulative hazard.
-#'   \item Interpolating the baseline hazard at each \code{times} and
+#'   \item Estimating the Breslow baseline cumulative hazard from the
+#'     training linear predictors (coefficient fixed at 1).
+#'   \item Reading the baseline as a step function at each \code{times} and
 #'     transforming via \eqn{S(t \mid x) = \exp(-H_0(t) \exp(\eta))}.
 #' }
 #'

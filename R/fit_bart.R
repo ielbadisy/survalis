@@ -11,8 +11,9 @@
 #'   observed times) used by the BART survival engine (default \code{10}).
 #'   Larger values yield a finer internal evaluation grid at a higher cost.
 #' @param ... Further arguments passed to \code{BART::surv.bart}, such as
-#'   \code{ntree}, \code{ndpost}, \code{nskip}, \code{mc.cores} or
-#'   \code{seed}.
+#'   \code{ntree}, \code{ndpost} or \code{nskip}. Set the seed with
+#'   \code{set.seed()} (or \code{fit(seed = )}); \code{surv.bart} does not pass
+#'   its own \code{seed} on.
 #'
 #' @details
 #' The response must be of class \code{Surv(..., type = "right")}. The fitted

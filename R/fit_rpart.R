@@ -26,8 +26,8 @@
 #'
 #' @details
 #' This function fixes the `method = "exp"` argument to fit an exponential
-#' splitting survival tree, which models the hazard function assuming
-#' exponential survival within terminal nodes.
+#' splitting survival tree (exponential deviance splits). Predictions are the
+#' Kaplan-Meier curves of the training subjects in each terminal node.
 #'
 #' @references
 #' Therneau TM, Atkinson EJ. (2019). *An Introduction to Recursive Partitioning Using the RPART Routines*. Mayo Clinic.

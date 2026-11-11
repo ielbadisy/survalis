@@ -15,7 +15,7 @@
 #' The fitted object is stored along with metadata such as the
 #' learner name (\code{"coxph"}), original formula, data, and names
 #' of the time and status variables. The function requires the
-#' \pkg{survival} and \pkg{pec} packages.
+#' \pkg{survival} package.
 #'
 #' @return An object of class \code{"mlsurv_model"} containing:
 #' \itemize{
@@ -62,7 +62,8 @@ fit_coxph <- function(formula, data, ...) {
 #'   survival probabilities.
 #'
 #' @details
-#' Predictions are computed using \code{pec::predictSurvProb()}.
+#' Predictions are the \code{survival::survfit()} curves (Efron ties), read as
+#' right-continuous step functions; with \code{strata()} each row uses its stratum.
 #' The output is formatted as a data frame with one row per observation
 #' in \code{newdata} and one column per time point.
 #'
