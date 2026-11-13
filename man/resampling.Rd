@@ -24,7 +24,9 @@ with fresh random folds (default \code{1}).}
 
 \item{strata}{Column name to stratify on, or \code{NA} to disable stratification.
 The default sentinel \code{"status"} means "use the event-indicator column of the
-model formula", resolved by the caller.}
+model formula", whatever its name (for example \code{cens} in
+\code{Surv(time, cens) ~ .}). Any other name must be a column of the data;
+otherwise a warning is given and the resampling is not stratified.}
 
 \item{seed}{Optional integer seed. Set it (and keep it equal across models)
 for paired resampling.}

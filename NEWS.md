@@ -1,3 +1,13 @@
+# survalis 2.4.1
+
+* `cv()` and `holdout()`: a `strata` column that is not in the data now gives a
+  warning instead of being silently dropped (the resampling is then not
+  stratified). The default `strata = "status"` already stratifies on the event
+  column of the formula whatever its name (for example `cens`); the docs now
+  say so.
+* `listlearners()`: the docs now say that a learner with `tunable = FALSE`,
+  such as `"fastgbm"`, can still be tuned with `tune(grid = )`.
+
 # survalis 2.4.0
 
 * The deprecated underscore names are removed, with no wrappers:
