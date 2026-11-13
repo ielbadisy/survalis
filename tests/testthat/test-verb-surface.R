@@ -15,10 +15,7 @@ test_that("the exported surface is the seven verbs plus helpers, dwscore and kmp
     "fit", "evaluate", "compare", "tune", "interpret", "estimate",
     "cv", "holdout", "groupcv", "bootstrap",
     "listlearners", "listmetrics", "listmethods",
-    "dwscore", "kmplot", "Surv",
-    ## deprecated aliases, removed in the next release
-    "list_survlearners", "list_metrics", "list_interpretability_methods",
-    "group_cv"
+    "dwscore", "kmplot", "Surv"
   ))
 })
 
@@ -125,15 +122,4 @@ test_that("interpret() draws ROC and decision curves", {
   d <- interpret(m, "dca", eval_time = 90, thresholds = seq(0.1, 0.9, 0.1))
   expect_s3_class(plot(d), "ggplot")
   expect_error(interpret(m, "roc", times = c(30, 90)), "single time")
-})
-
-test_that("underscore names are deprecated aliases of the glued names", {
-  expect_warning(a <- list_survlearners(), "listlearners")
-  expect_identical(a, listlearners())
-  expect_warning(b <- list_metrics(), "listmetrics")
-  expect_identical(b, listmetrics())
-  expect_warning(m <- list_interpretability_methods(), "listmethods")
-  expect_identical(m, listmethods())
-  expect_warning(g <- group_cv("id", v = 3), "groupcv")
-  expect_identical(g, groupcv("id", v = 3))
 })

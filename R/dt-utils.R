@@ -24,7 +24,7 @@
 # coerces list-columns to NA instead of preserving them.
 .rbind_fill_dt <- function(results) {
   results <- Filter(Negate(is.null), results)
-  if (!length(results)) return(basetable::as_basetable(data.frame()))
+  if (!length(results)) return(basetable::asbasetable(data.frame()))
   results <- lapply(results, as.data.frame)
   all_cols <- unique(unlist(lapply(results, names)))
   results <- lapply(results, function(df) {
@@ -34,7 +34,7 @@
   })
   out <- do.call(rbind, results)
   rownames(out) <- NULL
-  basetable::as_basetable(out)
+  basetable::asbasetable(out)
 }
 
 .complete_cases_df <- function(data, vars) {
