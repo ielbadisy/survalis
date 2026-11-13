@@ -1,4 +1,4 @@
-## Update from 1.0.0 to 2.2.0
+## Update from 1.0.0 to 2.4.1
 
 Main changes (see NEWS.md for the full list):
 
@@ -8,6 +8,11 @@ Main changes (see NEWS.md for the full list):
   `predict_*()`, `compute_*()`, `plot_*()` and metric helpers are now
   internal, mapped to their verb in `vignette("from-1.0")`. survalis has no
   reverse dependencies on CRAN.
+* The remaining exported helpers are renamed to glued lowercase, like the
+  verbs: `list_survlearners()`, `list_metrics()`,
+  `list_interpretability_methods()` and `group_cv()` become `listlearners()`,
+  `listmetrics()`, `listmethods()` and `groupcv()`. The underscore names are
+  removed, with no wrappers; the old-to-new table is in NEWS.md (2.4.0).
 * New learners: `rpsurv`, `nbsurv`, `fastgbm`, `densemlp`. New
   decision-weighted scores (`dwscore()`), Kaplan-Meier, cumulative
   incidence and model-adjusted curves (`kmplot()`), and `interpret()` methods `"roc"`, `"dca"` and
@@ -23,7 +28,7 @@ Main changes (see NEWS.md for the full list):
   libraries.
 * Removed dependencies 'rstpm2' (the `stpm2` learner is replaced by
   `rpsurv`) and 'data.table' (replaced by 'basetable'). New dependencies,
-  all on CRAN: 'basetable', 'unsurv', 'tvrmst', 'fastgbm', 'densemlp',
+  all on CRAN: 'basetable' (>= 1.4.5), 'unsurv', 'tvrmst', 'fastgbm', 'densemlp',
   'rpsurv', 'nbsurv'. Internal table operations (reshaping, grouped
   summaries, row binding, sorting) now use 'basetable'.
 * survalis no longer registers a `plot.formula()` method that overrode
