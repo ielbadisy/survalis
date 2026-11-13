@@ -13,7 +13,7 @@ models to obtain paired comparisons (identical folds via a shared seed)."><meta 
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,7 +85,9 @@ with fresh random folds (default <code>1</code>).</p></dd>
 <dt id="arg-strata">strata<a class="anchor" aria-label="anchor" href="#arg-strata"></a></dt>
 <dd><p>Column name to stratify on, or <code>NA</code> to disable stratification.
 The default sentinel <code>"status"</code> means "use the event-indicator column of the
-model formula", resolved by the caller.</p></dd>
+model formula", whatever its name (for example <code>cens</code> in
+<code>Surv(time, cens) ~ .</code>). Any other name must be a column of the data;
+otherwise a warning is given and the resampling is not stratified.</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>

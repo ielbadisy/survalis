@@ -33,7 +33,9 @@ bootstrap(times = 25, seed = NULL)
 
   Column name to stratify on, or `NA` to disable stratification. The
   default sentinel `"status"` means "use the event-indicator column of
-  the model formula", resolved by the caller.
+  the model formula", whatever its name (for example `cens` in
+  `Surv(time, cens) ~ .`). Any other name must be a column of the data;
+  otherwise a warning is given and the resampling is not stratified.
 
 - seed:
 
