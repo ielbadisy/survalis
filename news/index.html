@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,11 @@
       <small>Source: <a href="https://github.com/ielbadisy/survalis/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.3.1" id="survalis-231">survalis 2.3.1<a class="anchor" aria-label="anchor" href="#survalis-231"></a></h2>
+<ul><li>
+<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>, <code><a href="../reference/evaluate.html">evaluate()</a></code> and the other verbs now accept <code>times = 0</code> (S(0) = 1) in the grid; <code>times</code> must be finite and non-negative. The rpsurv learner fills S(0) = 1 itself because it models log time.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.3.0" id="survalis-230">survalis 2.3.0<a class="anchor" aria-label="anchor" href="#survalis-230"></a></h2>
 <ul><li>Exported names are glued lowercase, like the verbs: <code><a href="../reference/listlearners.html">listlearners()</a></code>, <code><a href="../reference/listmetrics.html">listmetrics()</a></code>, <code><a href="../reference/listmethods.html">listmethods()</a></code> and <code><a href="../reference/resampling.html">groupcv()</a></code> replace <code><a href="../reference/survalis-deprecated.html">list_survlearners()</a></code>, <code><a href="../reference/survalis-deprecated.html">list_metrics()</a></code>, <code><a href="../reference/survalis-deprecated.html">list_interpretability_methods()</a></code> and <code><a href="../reference/survalis-deprecated.html">group_cv()</a></code>. The old names still work with a deprecation warning and will be removed in the next release.</li>

@@ -1,5 +1,13 @@
 # Changelog
 
+## survalis 2.3.1
+
+- [`predict()`](https://rdrr.io/r/stats/predict.html),
+  [`evaluate()`](https://elbadisyimad.com/survalis/reference/evaluate.md)
+  and the other verbs now accept `times = 0` (S(0) = 1) in the grid;
+  `times` must be finite and non-negative. The rpsurv learner fills S(0)
+  = 1 itself because it models log time.
+
 ## survalis 2.3.0
 
 - Exported names are glued lowercase, like the verbs:

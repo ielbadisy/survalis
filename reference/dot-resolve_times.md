@@ -24,4 +24,5 @@ Resolve a caller-supplied `times` argument against the default grid
 
 ## Value
 
-A validated numeric vector (strictly increasing, positive).
+A validated numeric vector (strictly increasing, non-negative; 0 is
+allowed).
