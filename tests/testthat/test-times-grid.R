@@ -21,7 +21,23 @@ test_that("default_times falls back when no events", {
 
 test_that(".resolve_times validates explicit input and defers otherwise", {
   expect_equal(.resolve_times(c(90, 30, 30), NULL), c(30, 90))
-  expect_error(.resolve_times(c(-1, 5), NULL), "finite and positive")
+  expect_error(.resolve_times(c(-1, 5), NULL), "finite and non-negative")
   g <- .resolve_times(NULL, veteran$time, veteran$status, n = 8)
   expect_lte(length(g), 8L)
+})
+
+test_that("a grid containing 0 is accepted and gives S(0) = 1", {
+  expect_equal(.resolve_times(c(100, 0, 50), NULL), c(0, 50, 100))
+  skip_on_cran()
+  skip_if_not_installed("survival")
+  skip_if_not_installed("pec")
+  f <- Surv(time, status) ~ age + karno
+  for (l in c("coxph", "ranger", "rpart", "rpsurv", "xgboost", "glmnet")) {
+    m <- fit(f, veteran, l)
+    S <- predict(m, veteran[1:4, ], times = c(0, 90, 180))
+    expect_equal(as.numeric(unclass(S)[, 1]), rep(1, 4), ignore_attr = TRUE)
+  }
+  ev <- evaluate(f, veteran, "coxph", times = c(0, 90, 180),
+                 resampling = cv(3, seed = 1))
+  expect_s3_class(ev, "survalis_eval")
 })

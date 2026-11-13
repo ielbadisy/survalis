@@ -54,13 +54,13 @@ default_times <- function(time, status = NULL, n = 50L, range = c(0.05, 0.95)) {
 #' @param times `NULL` or a numeric vector.
 #' @param time,status Passed to `default_times()` when `times` is `NULL`.
 #' @param n Grid size for the default.
-#' @return A validated numeric vector (strictly increasing, positive).
+#' @return A validated numeric vector (strictly increasing, non-negative; 0 is allowed).
 #' @keywords internal
 .resolve_times <- function(times, time, status = NULL, n = 50L) {
   if (is.null(times)) return(default_times(time, status, n = n))
   times <- sort(unique(as.numeric(times)))
-  if (any(!is.finite(times)) || any(times <= 0)) {
-    stop("`times` must be finite and positive.", call. = FALSE)
+  if (any(!is.finite(times)) || any(times < 0)) {
+    stop("`times` must be finite and non-negative.", call. = FALSE)
   }
   times
 }
