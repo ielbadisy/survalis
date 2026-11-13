@@ -14,7 +14,7 @@
 \item{n}{Grid size for the default.}
 }
 \value{
-A validated numeric vector (strictly increasing, positive).
+A validated numeric vector (strictly increasing, non-negative; 0 is allowed).
 }
 \description{
 Resolve a caller-supplied \code{times} argument against the default grid

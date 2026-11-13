@@ -116,7 +116,13 @@ predict_rpsurv <- function(object, newdata, times) {
     stats::model.matrix(stats::reformulate(object$cov_terms, intercept = FALSE), mf_new)
   )
 
-  long <- stats::predict(object$model, newdata = cov_expanded, times = times, type = "survival")
-  pred <- matrix(long$est, nrow = nrow(newdata), ncol = length(times), byrow = TRUE)
+  # rpsurv is defined on log time, so S(0) = 1 is filled in directly
+  pos <- times > 0
+  pred <- matrix(1, nrow = nrow(newdata), ncol = length(times))
+  if (any(pos)) {
+    long <- stats::predict(object$model, newdata = cov_expanded, times = times[pos],
+                           type = "survival")
+    pred[, pos] <- matrix(long$est, nrow = nrow(newdata), ncol = sum(pos), byrow = TRUE)
+  }
   .finalize_survmat(pred, times = times)
 }
