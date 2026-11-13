@@ -1,3 +1,16 @@
+# survalis 2.4.0
+
+* The deprecated underscore names are removed, with no wrappers:
+
+| Old | New |
+|---|---|
+| `list_survlearners()` | `listlearners()` |
+| `list_metrics()` | `listmetrics()` |
+| `list_interpretability_methods()` | `listmethods()` |
+| `group_cv()` | `groupcv()` |
+
+* Requires basetable (>= 1.4.5), which renamed `as_basetable()` to `asbasetable()`.
+
 # survalis 2.3.1
 
 * `predict()`, `evaluate()` and the other verbs now accept `times = 0` (S(0) = 1) in
