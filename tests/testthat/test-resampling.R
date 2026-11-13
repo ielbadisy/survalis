@@ -37,6 +37,25 @@ test_that(".make_splits handles repeats, holdout and bootstrap", {
 })
 
 test_that(".make_splits stratification falls back gracefully on unknown column", {
-  sp <- .make_splits(cv(3, strata = "nonexistent", seed = 1), veteran, status_col = "status")
+  expect_warning(sp <- .make_splits(cv(3, strata = "nonexistent", seed = 1), veteran,
+                                    status_col = "status"), "not stratified")
   expect_length(sp, 3L)
+})
+
+test_that("default strata uses the formula's event column, whatever its name", {
+  set.seed(2)
+  d <- data.frame(time = rexp(500), cens = rbinom(500, 1, 0.4), age = rnorm(500))
+  ps <- survalis:::.parse_surv_formula(Surv(time, cens) ~ age, d)
+  expect_silent(sp <- survalis:::.make_splits(cv(5, seed = 1), d, ps$status_col))
+  rates <- vapply(sp, function(s) mean(d$cens[s$assessment]), numeric(1))
+  expect_lt(diff(range(rates)), 0.02)
+})
+
+test_that("an unknown strata column warns instead of being silently skipped", {
+  d <- survival::veteran
+  expect_warning(survalis:::.make_splits(cv(3, strata = "nope", seed = 1), d, "status"),
+                 "not stratified")
+  expect_warning(survalis:::.make_splits(holdout(strata = "nope", seed = 1), d, "status"),
+                 "not stratified")
+  expect_silent(survalis:::.make_splits(cv(3, strata = NA, seed = 1), d, "status"))
 })

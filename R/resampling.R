@@ -18,7 +18,9 @@
 #'   with fresh random folds (default `1`).
 #' @param strata Column name to stratify on, or `NA` to disable stratification.
 #'   The default sentinel `"status"` means "use the event-indicator column of the
-#'   model formula", resolved by the caller.
+#'   model formula", whatever its name (for example `cens` in
+#'   `Surv(time, cens) ~ .`). Any other name must be a column of the data;
+#'   otherwise a warning is given and the resampling is not stratified.
 #' @param prop Proportion of rows assigned to the training set in `holdout()`
 #'   (default `0.75`).
 #' @param group Column name whose distinct values define the groups held out
@@ -113,7 +115,13 @@ print.survalis_resampling <- function(x, ...) {
   strata_col <- NULL
   if (!is.null(p$strata) && !is.na(p$strata)) {
     strata_col <- if (identical(p$strata, "status")) status_col else p$strata
-    if (!is.null(strata_col) && !strata_col %in% names(data)) strata_col <- NULL
+    if (!is.null(strata_col) && !strata_col %in% names(data)) {
+      warning("Stratification column ", sQuote(strata_col), " is not in the data; ",
+              "resampling is not stratified. Use `strata = \"status\"` (the default) ",
+              "to stratify on the event column of the formula, or `strata = NA`.",
+              call. = FALSE)
+      strata_col <- NULL
+    }
   }
 
   to_idx <- function(split) {
