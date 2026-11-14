@@ -1,3 +1,12 @@
+## Resubmission
+
+This resubmission fixes the incoming pre-test NOTE "Base packages in
+Suggests/Enhances imported in NAMESPACE": 'stats' and 'utils' moved from
+Suggests to Imports.
+
+The NOTE "Possibly misspelled words in DESCRIPTION: El, Badisy" is a false
+positive: it is the author's surname in a citation.
+
 ## Update from 1.0.0 to 2.4.1
 
 Main changes (see NEWS.md for the full list):

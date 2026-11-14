@@ -63,15 +63,15 @@ Imports:
     basetable (>= 1.4.5),
     glue,
     cli,
-    rlang
+    rlang,
+    stats,
+    utils
 Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown,
     roxygen2,
     covr,
-    stats,
-    utils,
     timeROC,
     patchwork,
     cluster
