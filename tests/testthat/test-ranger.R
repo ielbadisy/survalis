@@ -134,3 +134,28 @@ test_that("fit_ranger() passes case weights to the engine", {
                   case.weights = rep(1:2, length.out = nrow(lung)), num.trees = 20)
   expect_equal(dim(predict_ranger(m, lung[1:2, ], times = 300)), c(2L, 1L))
 })
+
+test_that("ranger and orsf accept transformed terms such as log1p() in the formula", {
+  skip_on_cran()
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("aorsf")
+  skip_if_not_installed("survival")
+
+  d <- stats::na.omit(survival::pbc[, c("time", "status", "age", "bili", "albumin")])
+  d$status <- as.integer(d$status == 2)
+  f <- survival::Surv(time, status) ~ age + log1p(bili) + albumin
+
+  for (eng in c("ranger", "orsf")) {
+    spec <- if (eng == "ranger") list(num.trees = 50, seed = 1) else list(n_tree = 20)
+    m <- fit(f, data = d, model = eng, spec = spec)
+    p <- predict(m, newdata = d[1:5, ], times = c(1000, 2000))
+    expect_equal(dim(as.matrix(p)), c(5L, 2L))
+    expect_true(all(as.matrix(p) >= 0 & as.matrix(p) <= 1))
+  }
+
+  set.seed(1)
+  ev <- evaluate(f, d, model = "ranger", spec = list(num.trees = 50),
+                 times = c(1000, 2000), metrics = "cindex",
+                 resampling = cv(3, seed = 1))
+  expect_true(is.finite(ev$summary$mean[ev$summary$metric == "cindex"]))
+})

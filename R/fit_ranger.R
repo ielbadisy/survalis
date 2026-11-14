@@ -39,11 +39,15 @@ fit_ranger <- function(formula, data, ...) {
 
   # respect.unordered.factors = "order" needs at least two levels in every factor: ranger orders the
   # levels by survival and stops ("invalid type (NULL) for variable 'smry$strata'") on a constant one.
-  formula <- .drop_constant_predictors(formula, data)
+  # transformed terms (log1p(x), I(x^2)) become plain columns, as ranger needs
+  derived <- .derive_predictors(formula, data)
+  fit_formula <- if (is.null(derived)) formula else derived$formula
+  fit_data <- if (is.null(derived)) data else .apply_derived(derived, data)
+  fit_formula <- .drop_constant_predictors(fit_formula, fit_data)
 
   model <- ranger::ranger(
-    formula = formula,
-    data = data,
+    formula = fit_formula,
+    data = fit_data,
     ...,
     respect.unordered.factors = "order"
   )
@@ -53,7 +57,8 @@ fit_ranger <- function(formula, data, ...) {
       model = model,
       learner = "ranger",
       formula = formula,
-      data = data
+      data = data,
+      derived = derived
     ),
     class = "mlsurv_model",
     engine = "ranger"
@@ -101,6 +106,7 @@ predict_ranger <- function(object, newdata, times) {
 
   stopifnot(requireNamespace("ranger", quietly = TRUE))
 
+  if (!is.null(object$derived)) newdata <- .apply_derived(object$derived, newdata, outcome = FALSE)
   pred_obj <- predict(object$model, data = newdata)
   pred <- pred_obj$survival
   model_times <- object$model$unique.death.times

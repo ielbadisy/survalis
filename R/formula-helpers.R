@@ -86,3 +86,46 @@
   v <- setdiff(v, outcome)
   v[v %in% cols]
 }
+
+## Engines such as ranger and aorsf only accept plain column names on the
+## right-hand side. When the formula has transformed terms (log1p(x), I(x^2),
+## factor(x)), these helpers evaluate each predictor expression into its own
+## column with a syntactic name, so the engine sees plain columns. The same
+## spec is applied to new data at prediction time. Returns NULL when every
+## predictor is already a plain column (nothing to do).
+#' @keywords internal
+#' @noRd
+.derive_predictors <- function(formula, data) {
+  tt <- stats::terms(formula, data = data)
+  vars <- as.list(attr(tt, "variables"))[-1L]
+  resp <- attr(tt, "response")
+  if (resp > 0L) vars <- vars[-resp]
+  if (!length(vars) || all(vapply(vars, is.name, logical(1)))) return(NULL)
+  labels <- vapply(vars, function(e) paste(deparse(e, width.cutoff = 500L), collapse = ""),
+                   character(1))
+  outcome <- all.vars(formula[[2L]])
+  nm <- make.names(c(outcome, labels), unique = TRUE)[-seq_along(outcome)]
+  spec <- list(exprs = vars, labels = labels, names = nm, outcome = outcome,
+               env = environment(formula))
+  spec$formula <- stats::reformulate(nm, response = formula[[2L]], env = environment(formula))
+  spec
+}
+
+#' @keywords internal
+#' @noRd
+.apply_derived <- function(spec, data, outcome = TRUE) {
+  cols <- lapply(seq_along(spec$exprs), function(j) {
+    v <- eval(spec$exprs[[j]], as.data.frame(data), spec$env)
+    if (!is.null(dim(v)) && NCOL(v) > 1L) {
+      stop("Predictor `", spec$labels[j], "` gives a matrix; this engine needs ",
+           "one column per term. Create the columns in the data first.", call. = FALSE)
+    }
+    if (!is.null(dim(v))) v <- as.vector(v)
+    v
+  })
+  names(cols) <- spec$names
+  out <- as.data.frame(cols, stringsAsFactors = FALSE, optional = TRUE)
+  keep <- intersect(spec$outcome, names(data))
+  if (outcome && length(keep)) out <- cbind(as.data.frame(data)[keep], out)
+  out
+}
