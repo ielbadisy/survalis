@@ -40,9 +40,11 @@
 fit_orsf <- function(formula, data, ...) {
   stopifnot(requireNamespace("aorsf", quietly = TRUE))
 
+  # transformed terms (log1p(x), I(x^2)) become plain columns, as aorsf needs
+  derived <- .derive_predictors(formula, data)
   model <- aorsf::orsf(
-    formula = formula,
-    data = data,
+    formula = if (is.null(derived)) formula else derived$formula,
+    data = if (is.null(derived)) data else .apply_derived(derived, data),
     na_action = "omit",
     ...
   )
@@ -53,6 +55,7 @@ fit_orsf <- function(formula, data, ...) {
 
     formula = formula,
     data = data,
+    derived = derived,
     time = all.vars(formula[[2]])[[1]],
     status = all.vars(formula[[2]])[[2]]
   ), class = "mlsurv_model", engine = "aorsf")
@@ -93,6 +96,7 @@ predict_orsf <- function(object, newdata, times, ...) {
   stopifnot(requireNamespace("aorsf", quietly = TRUE))
 
   newdata <- as.data.frame(newdata)
+  if (!is.null(object$derived)) newdata <- .apply_derived(object$derived, newdata, outcome = FALSE)
 
   survmat <- predict(
     object$model,
