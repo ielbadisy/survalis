@@ -13,7 +13,7 @@ estimate()) consume."><meta property="og:image" content="https://elbadisyimad.co
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -88,7 +88,9 @@ with every verb.</p></dd>
 
 <dt id="arg-spec">spec<a class="anchor" aria-label="anchor" href="#arg-spec"></a></dt>
 <dd><p>A named list of engine arguments forwarded to the learner's
-fitting routine (for example <code>list(num.trees = 500)</code> for <code>"ranger"</code>).</p></dd>
+fitting routine (for example <code>list(num.trees = 500)</code> for <code>"ranger"</code>, or
+<code>list(alpha = 0.5, s = "lambda.1se")</code> for <code>"glmnet"</code>, which predicts at
+<code>lambda.min</code> by default).</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>

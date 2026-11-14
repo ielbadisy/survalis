@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,11 @@
       <small>Source: <a href="https://github.com/ielbadisy/survalis/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.4.2" id="survalis-242">survalis 2.4.2<a class="anchor" aria-label="anchor" href="#survalis-242"></a></h2>
+<ul><li>The <code>"glmnet"</code> learner gains <code>s</code> (passed through <code>spec</code>): predict at <code>"lambda.min"</code> (default, as before), <code>"lambda.1se"</code> or a given penalty value.</li>
+<li>The <code>"ranger"</code> and <code>"orsf"</code> learners now accept transformed terms in the formula, such as <code>log1p(bili)</code> or <code>I(age^2)</code>; they failed before with an “illegal column names” error from the engine.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.4.1" id="survalis-241">survalis 2.4.1<a class="anchor" aria-label="anchor" href="#survalis-241"></a></h2>
 <ul><li>

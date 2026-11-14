@@ -41,7 +41,9 @@ fit(formula, data, model, spec = list(), seed = NULL, ...)
 - spec:
 
   A named list of engine arguments forwarded to the learner's fitting
-  routine (for example `list(num.trees = 500)` for `"ranger"`).
+  routine (for example `list(num.trees = 500)` for `"ranger"`, or
+  `list(alpha = 0.5, s = "lambda.1se")` for `"glmnet"`, which predicts
+  at `lambda.min` by default).
 
 - seed:
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## survalis 2.4.2
+
+- The `"glmnet"` learner gains `s` (passed through `spec`): predict at
+  `"lambda.min"` (default, as before), `"lambda.1se"` or a given penalty
+  value.
+- The `"ranger"` and `"orsf"` learners now accept transformed terms in
+  the formula, such as `log1p(bili)` or `I(age^2)`; they failed before
+  with an “illegal column names” error from the engine.
+
 ## survalis 2.4.1
 
 - [`cv()`](https://elbadisyimad.com/survalis/reference/resampling.md)
