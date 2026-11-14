@@ -14,6 +14,10 @@
 #'     \item \code{0} for ridge penalty
 #'     \item between 0 and 1 for elastic net
 #'   }
+#' @param s Penalty used for prediction: \code{"lambda.min"} (default, the
+#'   value with the best cross-validated deviance), \code{"lambda.1se"} (the
+#'   largest value within one standard error of it, a sparser model), or a
+#'   single positive number.
 #' @param ... Additional arguments passed to \code{cv.glmnet}.
 #'
 #' @return An object of class \code{"mlsurv_model"} containing:
@@ -37,8 +41,9 @@
 #' @keywords internal
 #' @noRd
 
-fit_glmnet <- function(formula, data, alpha = 1, ...) {
+fit_glmnet <- function(formula, data, alpha = 1, s = "lambda.min", ...) {
   stopifnot(requireNamespace("glmnet", quietly = TRUE))
+  s <- .glmnet_check_s(s)
 
   design <- .survalis_design_fit(formula, data)
   x <- .glmnet_pad(design$x)
@@ -60,6 +65,7 @@ fit_glmnet <- function(formula, data, alpha = 1, ...) {
     data = data,
     x_train = x,
     y_train = y,
+    s = s,
     time = all.vars(formula)[1],
     status = all.vars(formula)[2],
     design = design[c("terms", "xlevels", "x_contrasts", "x_cols")]
@@ -86,7 +92,7 @@ fit_glmnet <- function(formula, data, alpha = 1, ...) {
 #' Predictions are computed by:
 #' \enumerate{
 #'   \item Computing the linear predictors for training and new data at
-#'     \code{s = "lambda.min"}.
+#'     the penalty chosen at fit time (\code{s}, default \code{"lambda.min"}).
 #'   \item Estimating the Breslow baseline cumulative hazard from the
 #'     training linear predictors (coefficient fixed at 1).
 #'   \item Reading the baseline as a step function at each \code{times} and
@@ -125,8 +131,9 @@ predict_glmnet <- function(object, newdata, times, ...) {
   y_train <- object$y_train
 
   # predict linear predictors
-  lp_train <- predict(object$model, newx = x_train, s = "lambda.min", type = "link")[, 1]
-  lp_new   <- predict(object$model, newx = x_new,   s = "lambda.min", type = "link")[, 1]
+  s <- if (is.null(object$s)) "lambda.min" else object$s
+  lp_train <- predict(object$model, newx = x_train, s = s, type = "link")[, 1]
+  lp_new   <- predict(object$model, newx = x_new,   s = s, type = "link")[, 1]
   .predict_cox_from_lp(lp_train = lp_train, lp_new = lp_new, y_train = y_train, times = times)
 }
 
@@ -243,6 +250,19 @@ tune_glmnet <- function(formula, data, times,
 
 # glmnet needs at least two columns ("x should be a matrix with 2 or more columns"); a single
 # predictor is padded with a constant zero column, which glmnet ignores.
+## Penalty rule for prediction: "lambda.min", "lambda.1se" or one positive number.
+#' @keywords internal
+#' @noRd
+.glmnet_check_s <- function(s) {
+  ok <- (is.character(s) && length(s) == 1L && s %in% c("lambda.min", "lambda.1se")) ||
+    (is.numeric(s) && length(s) == 1L && is.finite(s) && s > 0)
+  if (!ok) {
+    stop("glmnet: `s` must be \"lambda.min\", \"lambda.1se\" or one positive number.",
+         call. = FALSE)
+  }
+  s
+}
+
 .glmnet_pad <- function(x) {
   if (ncol(x) < 2L) cbind(x, .pad = 0) else x
 }
