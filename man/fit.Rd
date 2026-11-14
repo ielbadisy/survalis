@@ -21,7 +21,9 @@ optional \code{name} element labels it in printed output. A custom learner works
 with every verb.}
 
 \item{spec}{A named list of engine arguments forwarded to the learner's
-fitting routine (for example \code{list(num.trees = 500)} for \code{"ranger"}).}
+fitting routine (for example \code{list(num.trees = 500)} for \code{"ranger"}, or
+\code{list(alpha = 0.5, s = "lambda.1se")} for \code{"glmnet"}, which predicts at
+\code{lambda.min} by default).}
 
 \item{seed}{Optional integer seed set immediately before fitting, for learners
 with a stochastic training step.}

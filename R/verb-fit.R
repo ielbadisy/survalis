@@ -16,7 +16,9 @@
 #'   optional `name` element labels it in printed output. A custom learner works
 #'   with every verb.
 #' @param spec A named list of engine arguments forwarded to the learner's
-#'   fitting routine (for example `list(num.trees = 500)` for `"ranger"`).
+#'   fitting routine (for example `list(num.trees = 500)` for `"ranger"`, or
+#'   `list(alpha = 0.5, s = "lambda.1se")` for `"glmnet"`, which predicts at
+#'   `lambda.min` by default).
 #' @param seed Optional integer seed set immediately before fitting, for learners
 #'   with a stochastic training step.
 #' @param ... Not used; engine arguments passed here give an error. Use `spec`.
