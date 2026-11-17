@@ -1,7 +1,7 @@
 Package: survalis
 Type: Package
 Title: Interpretable Survival Machine Learning Framework
-Version: 2.4.2
+Version: 2.4.3
 Author: Imad El Badisy [aut, cre]
 Maintainer: Imad El Badisy <elbadisyimad@gmail.com>
 Authors@R: 
@@ -49,7 +49,7 @@ Imports:
     fastgbm (>= 0.7.0),
     densemlp,
     rpsurv,
-    nbsurv,
+    nbsurv (>= 0.6.0),
     tvrmst,
     CoxBoost,
     BART,

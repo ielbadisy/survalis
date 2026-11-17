@@ -1,3 +1,10 @@
+# survalis 2.4.3
+
+* `"nbsurv"` predicts all rows in one batch call again (the engine bug that
+  forced row-by-row prediction was fixed in nbsurv 0.5.2); about 100 times
+  faster on 500 rows. Requires nbsurv >= 0.6.0, which models numeric 0/1
+  predictors as categorical.
+
 # survalis 2.4.2
 
 * The `"glmnet"` learner gains `s` (passed through `spec`): predict at
