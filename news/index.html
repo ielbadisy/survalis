@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,13 @@
       <small>Source: <a href="https://github.com/ielbadisy/survalis/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.4.6" id="survalis-246">survalis 2.4.6<a class="anchor" aria-label="anchor" href="#survalis-246"></a></h2>
+<ul><li>
+<code>plot(interpret(method = "pdp"))</code>: the y label read “Survival Probability” (title case, unlike the rest of the package) and the legend showed the raw keys “ice” / “pdp”. It now reads “Survival probability” (“Integrated survival” for the integrated plot) and the legend “Individual (ICE)” / “Average (PDP)” (bug fix).</li>
+<li>
+<code><a href="../reference/kmplot.html">kmplot()</a></code>: the log-rank p-value sat at the bottom left even when curves crossed it there (for example several groups falling to 0 early). The default spot is kept when it is free; otherwise the label goes to the free spot with the fewest crossing curves, up the right column (not the legend corner), then up the left one (bug fix). <code>pval.pos =</code> still sets it by hand.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.4.5" id="survalis-245">survalis 2.4.5<a class="anchor" aria-label="anchor" href="#survalis-245"></a></h2>
 <ul><li>

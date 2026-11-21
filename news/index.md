@@ -1,5 +1,20 @@
 # Changelog
 
+## survalis 2.4.6
+
+- `plot(interpret(method = "pdp"))`: the y label read “Survival
+  Probability” (title case, unlike the rest of the package) and the
+  legend showed the raw keys “ice” / “pdp”. It now reads “Survival
+  probability” (“Integrated survival” for the integrated plot) and the
+  legend “Individual (ICE)” / “Average (PDP)” (bug fix).
+- [`kmplot()`](https://elbadisyimad.com/survalis/reference/kmplot.md):
+  the log-rank p-value sat at the bottom left even when curves crossed
+  it there (for example several groups falling to 0 early). The default
+  spot is kept when it is free; otherwise the label goes to the free
+  spot with the fewest crossing curves, up the right column (not the
+  legend corner), then up the left one (bug fix). `pval.pos =` still
+  sets it by hand.
+
 ## survalis 2.4.5
 
 - [`kmplot()`](https://elbadisyimad.com/survalis/reference/kmplot.md)
