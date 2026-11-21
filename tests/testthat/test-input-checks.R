@@ -18,7 +18,7 @@ test_that("metric requests are validated before any model is fitted", {
   expect_error(evaluate(f, veteran, model = "coxph", times = c(50, 100),
                         metrics = c("cindex", "ece")), "single evaluation time")
   expect_error(compare(f, veteran, models = c("coxph", "rpart"),
-                       times = c(50, 100), metrics = "brier"),
+                       times = c(50, 100), metrics = "ece"),
                "single evaluation time")
   expect_error(tune(f, veteran, model = "rpart", times = c(50, 100),
                     metric = "brier"), "single evaluation time")

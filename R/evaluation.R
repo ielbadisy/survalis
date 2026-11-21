@@ -531,34 +531,46 @@ ece
 }
 
 .score_metrics <- function(surv_obj, pred, times, metrics, digits = NULL) {
-  values <- vapply(metrics, function(m) {
-    th <- .parse_range_metric(m)
-    if (!is.null(th) || m == "survacc") {
-      if (length(times) != 1) stop(m, " requires a single time point.")
-      risk <- 1 - as.matrix(pred)[, 1]
-      wt <- .dw_weight(if (is.null(th)) "survacc" else "range", thresholds = th)
-      loss <- .dw_ipcw(surv_obj, risk, times, wt)
-      return(if (is.null(th)) 1 - loss else loss)
+  values <- unlist(lapply(metrics, function(m) {
+    # "brier" over several times: one value per time, named "brier@<time>"
+    if (m == "brier" && length(times) > 1) {
+      return(stats::setNames(vapply(seq_along(times), function(k)
+        unname(brier(surv_obj, pre_sp = as.matrix(pred)[, k], t_star = times[k])), numeric(1)),
+        paste0("brier@", times)))
     }
-    unname(switch(m,
-      "cindex" = cindex_survmat(surv_obj, predicted = pred, t_star = max(times)),
-      "auc"    = auc_survmat(surv_obj, predicted = pred, t_star = max(times)),
-      "brier"  = {
-        if (length(times) != 1) stop("Brier requires a single time point.")
-        brier(surv_obj, pre_sp = pred[, 1], t_star = times)
-      },
-      "ibs" = ibs_survmat(surv_obj, sp_matrix = pred, times = times),
-      "iae" = iae_survmat(surv_obj, sp_matrix = pred, times = times),
-      "ise" = ise_survmat(surv_obj, sp_matrix = pred, times = times),
-      "ece" = {
-        if (length(times) != 1) stop("ECE requires a single time point.")
-        ece_survmat(surv_obj, sp_matrix = pred, t_star = times)
-      },
-      stop("Unknown metric: ", m)
-    ))
-  }, numeric(1))
+    v <- .score_one(m, surv_obj, pred, times)
+    stats::setNames(v, m)
+  }))
+  data.frame(metric = names(values),
+             value = unname(if (is.null(digits)) values else round(values, digits)),
+             stringsAsFactors = FALSE)
+}
 
-  data.frame(metric = metrics, value = if (is.null(digits)) values else round(values, digits), stringsAsFactors = FALSE)
+.score_one <- function(m, surv_obj, pred, times) {
+  th <- .parse_range_metric(m)
+  if (!is.null(th) || m == "survacc") {
+    if (length(times) != 1) stop(m, " requires a single time point.")
+    risk <- 1 - as.matrix(pred)[, 1]
+    wt <- .dw_weight(if (is.null(th)) "survacc" else "range", thresholds = th)
+    loss <- .dw_ipcw(surv_obj, risk, times, wt)
+    return(if (is.null(th)) 1 - loss else loss)
+  }
+  unname(switch(m,
+    "cindex" = cindex_survmat(surv_obj, predicted = pred, t_star = max(times)),
+    "auc"    = auc_survmat(surv_obj, predicted = pred, t_star = max(times)),
+    "brier"  = {
+      if (length(times) != 1) stop("Brier requires a single time point.")
+      brier(surv_obj, pre_sp = pred[, 1], t_star = times)
+    },
+    "ibs" = ibs_survmat(surv_obj, sp_matrix = pred, times = times),
+    "iae" = iae_survmat(surv_obj, sp_matrix = pred, times = times),
+    "ise" = ise_survmat(surv_obj, sp_matrix = pred, times = times),
+    "ece" = {
+      if (length(times) != 1) stop("ECE requires a single time point.")
+      ece_survmat(surv_obj, sp_matrix = pred, t_star = times)
+    },
+    stop("Unknown metric: ", m)
+  ))
 }
 
 
@@ -578,7 +590,9 @@ ece
 #'   returning a survival-probability matrix/data frame (columns named \code{"t=<time>"}).
 #' @param times Numeric vector of evaluation times (passed to \code{pred_fun}).
 #' @param metrics Character vector of metrics to compute. Supported:
-#'   \code{"cindex"}, \code{"brier"} (single time), \code{"ibs"}, \code{"iae"}, \code{"ise"}, \code{"ece"} (single time).
+#'   \code{"cindex"}, \code{"brier"} (one per time,
+#'   e.g. \code{"brier@365"}, when several \code{times}), \code{"ibs"}, \code{"iae"},
+#'   \code{"ise"}, \code{"ece"} (single time).
 #' @param folds Integer; number of folds (default \code{5}).
 #' @param seed Integer random seed for reproducibility (default \code{123}).
 #' @param verbose Logical; print row-dropping due to missingness (default \code{FALSE}).
@@ -759,21 +773,30 @@ cv_summary <- function(cv_results, digits = NULL) {
 #' @keywords internal
 #' @noRd
 
-cv_plot <- function(cv_results, title) {
-  if (missing(title)) title <- "Cross-Validation Performance"
+cv_plot <- function(cv_results, title = NULL) {
   # one panel per metric with its own axis: cindex/auc near 0.7 and ibs near 0.15 squash on a shared one
   mts <- unique(cv_results$metric)
-  lab <- vapply(mts, function(m) sprintf("%s (%s is better)", m,
-                                         if (.metric_maximize(m)) "higher" else "lower"), character(1))
-  cv_results$metric <- factor(cv_results$metric, mts, lab)
-  p <- ggplot(cv_results, aes(x = value, y = "")) +
+  cv_results$metric <- factor(cv_results$metric, mts, .metric_strip(mts))
+  ggplot(cv_results, aes(x = value, y = "")) +
     geom_boxplot(fill = "grey90", colour = "grey40", outlier.shape = NA, width = 0.5) +
     geom_jitter(width = 0, height = 0.1, alpha = 0.6, size = 1.4, colour = "grey20") +
     facet_wrap(~ metric, scales = "free_x") +
-    labs(x = "Value over resampling splits", y = NULL) +
-    theme_survalis()
-  if (!is.null(title)) p <- p + labs(title = title)
-  p
+    labs(x = "Value over resampling splits", y = NULL, title = title) +
+    theme_survalis() +
+    .value_axis()
+}
+
+# Strip labels: "cindex (higher is better)", "brier@365 (lower is better)"
+.metric_strip <- function(m) {
+  sprintf("%s (%s is better)", m, ifelse(vapply(m, .metric_maximize, logical(1)), "higher", "lower"))
+}
+
+# Value axis of the per-metric panels: few breaks, padding and spacing so the tick labels of
+# adjacent free-x panels neither collide nor clip.
+.value_axis <- function() {
+  list(ggplot2::scale_x_continuous(n.breaks = 4, expand = ggplot2::expansion(mult = 0.12),
+                                   guide = ggplot2::guide_axis(check.overlap = TRUE)),
+       ggplot2::theme(panel.spacing.x = ggplot2::unit(1.5, "lines")))
 }
 
 

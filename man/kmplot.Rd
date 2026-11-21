@@ -21,7 +21,13 @@ kmplot(
   colors = NULL,
   legend.pos = NULL,
   pval.pos = NULL,
-  base_size = 10
+  base_size = 10,
+  conf.type = c("log-log", "log", "plain"),
+  rmst = NULL,
+  naive = FALSE,
+  table.height = NULL,
+  subtitle = NULL,
+  caption = NULL
 )
 }
 \arguments{
@@ -39,8 +45,10 @@ for \eqn{1 - S(t)}, \code{"cumhaz"} for the cumulative hazard
 against \eqn{\log t}, where parallel curves support proportional hazards.
 Competing-risks data take \code{"risk"} only, which is also their default.}
 
-\item{event}{Competing-risks data only: the event whose cumulative
-incidence is drawn. \code{NULL} (default) takes the first event level.}
+\item{event}{Competing-risks data only: the event(s) whose cumulative
+incidence is drawn. \code{NULL} (default) takes the first event level. Several
+events, for example \code{c("relapse", "death")}, are drawn in one panel, one
+colour per event (and group).}
 
 \item{model}{Optional fitted model from \code{\link[=fit]{fit()}}. Its curves are drawn dashed
 over the Kaplan-Meier curves, so that the two can be compared. Not
@@ -73,8 +81,8 @@ time axis is on the log scale.}
 \item{conf.int}{Logical; draw pointwise 95\% confidence bands (default
 \code{FALSE}).}
 
-\item{colors}{Group colours. \code{NULL} (default) uses blue and red for the
-first two groups, then further distinct colours.}
+\item{colors}{Group colours. \code{NULL} (default) uses blue (#0072B2) and
+vermillion (#D55E00) for the first two groups, then the Okabe-Ito colours.}
 
 \item{legend.pos}{Legend position inside the panel, \code{c(x, y)} in \verb{[0, 1]}
 units of the panel. \code{NULL} (default) chooses a corner away from the
@@ -84,11 +92,33 @@ curves.}
 (default) chooses a corner away from the curves.}
 
 \item{base_size}{Base font size (default \code{10}).}
+
+\item{conf.type}{Transformation of the pointwise band, passed to
+\code{\link[survival:survfit]{survival::survfit()}}: \code{"log-log"} (default), \code{"log"} (the survfit
+default) or \code{"plain"}.}
+
+\item{rmst}{Restricted mean survival time horizon \eqn{\tau}, survival
+curves only. With two groups the area between the curves up to
+\eqn{\tau} (the RMST difference) is shaded; otherwise the area under each
+curve (the RMST). A dashed line marks \eqn{\tau}. \code{NULL} (default) draws
+none.}
+
+\item{naive}{Competing-risks data only: also draw, dashed, the naive
+\eqn{1 - } Kaplan-Meier estimate of each event that censors the competing
+events (default \code{FALSE}), to show how far it overstates the cumulative
+incidence.}
+
+\item{table.height}{Height of the risk table relative to the curve panel.
+\code{NULL} (default) scales it with the number of rows.}
+
+\item{subtitle, caption}{Plot subtitle and caption; \code{NULL} (default) draws
+none.}
 }
 \value{
 A 'patchwork' object (curve over risk table) when the risk table is
 drawn, otherwise a 'ggplot2' object. Panels combine with patchwork
-operators, for example \code{kmplot(...) | kmplot(...)}.
+operators, for example \code{kmplot(...) | kmplot(...)}, and \code{p[[1]]} is the
+curve panel of a patchwork \code{p}, to which layers can be added.
 }
 \description{
 Draws Kaplan-Meier curves in a publication style: step curves with
@@ -109,6 +139,9 @@ d$etime <- ifelse(d$pstat == 1, d$ptime, d$futime)
 d$event <- factor(ifelse(d$pstat == 1, 1, 2 * d$death), 0:2,
                   c("censored", "progression", "death"))
 kmplot(Surv(etime, event) ~ sex, data = d, risk.table = FALSE)
+kmplot(Surv(etime, event) ~ 1, data = d, event = c("progression", "death"),
+       naive = TRUE, risk.table = FALSE)
+kmplot(Surv(time, status) ~ trt, data = veteran, rmst = 365, risk.table = FALSE)
 \donttest{
 if (requireNamespace("patchwork", quietly = TRUE)) {
   kmplot(Surv(time, status) ~ trt, data = veteran,

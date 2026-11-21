@@ -53,7 +53,7 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
   data <- .complete_cases_df(data, all.vars(formula))
   status <- .recode_status_vec(parsed, data)
   times <- .resolve_times(times, data[[parsed$time_col]], status)
-  .check_metrics(metrics, times)
+  .check_metrics(metrics, times, multi = TRUE)
 
   splits <- .make_splits(resampling, data, parsed$status_col)
   tunable <- listlearners(has_tune = TRUE)$learner
@@ -84,6 +84,7 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
   names(se_tbl)[names(se_tbl) == "value"] <- "se"
   leaderboard <- basetable::merge(mean_tbl, se_tbl, by = c("model", "metric"))
   leaderboard <- basetable::orderrows(leaderboard, by = c("metric", "model"))
+  if (any(grepl("@", leaderboard$metric))) leaderboard <- .order_bytime(leaderboard)
   rownames(leaderboard) <- NULL
 
   structure(
@@ -98,7 +99,7 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
 .metric_maximize <- function(metric) {
   if (grepl("^range:", metric)) return(FALSE)
   m <- listmetrics()
-  isTRUE(m$direction[match(metric, m$metric)] == "maximize")
+  isTRUE(m$direction[match(sub("@.*", "", metric), m$metric)] == "maximize")
 }
 
 #' @export
@@ -133,18 +134,18 @@ summary.survalis_compare <- function(object, ...) {
 #' higher or lower is better. Models are ordered by the first metric, best on top.
 #'
 #' @param x A `survalis_compare` object.
-#' @param title Plot title; `NULL` for none.
+#' @param title,subtitle,caption Plot title, subtitle and caption; `NULL`
+#'   (default) draws none.
 #' @param scales Passed to [ggplot2::facet_wrap()]: `"free_x"` (default) gives
 #'   each metric its own value axis, `"fixed"` one shared axis.
 #' @param ... Unused.
 #' @return A ggplot.
 #' @export
-plot.survalis_compare <- function(x, title, scales = "free_x", ...) {
-  if (missing(title)) title <- "Model comparison"
+plot.survalis_compare <- function(x, title = NULL, scales = "free_x", subtitle = NULL,
+                                  caption = NULL, ...) {
   d <- x$per_split
-  lab <- function(m) sprintf("%s (%s is better)", m, if (.metric_maximize(m)) "higher" else "lower")
   mts <- unique(d$metric)
-  d$metric <- factor(d$metric, mts, vapply(mts, lab, character(1)))
+  d$metric <- factor(d$metric, mts, .metric_strip(mts))
   lb <- x$leaderboard[x$leaderboard$metric == mts[1], ]
   # ggplot draws the first factor level at the bottom, so the best model goes last
   d$model <- factor(d$model, lb$model[order(lb$mean, decreasing = !.metric_maximize(mts[1]))])
@@ -152,8 +153,9 @@ plot.survalis_compare <- function(x, title, scales = "free_x", ...) {
     ggplot2::geom_boxplot(fill = "grey90", colour = "grey40", outlier.shape = NA, width = 0.6) +
     ggplot2::geom_jitter(width = 0, height = 0.12, alpha = 0.6, size = 1.4, colour = "grey20") +
     ggplot2::facet_wrap(~ metric, scales = scales) +
-    ggplot2::labs(x = "Value over resampling splits", y = NULL) +
+    ggplot2::labs(x = "Value over resampling splits", y = NULL, title = title,
+                  subtitle = subtitle, caption = caption) +
     theme_survalis()
-  if (!is.null(title)) p <- p + ggplot2::labs(title = title)
+  if (scales %in% c("free", "free_x")) p <- p + .value_axis()
   p
 }

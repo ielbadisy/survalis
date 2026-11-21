@@ -104,22 +104,25 @@ roc_survmat <- function(object, predicted, t_star) {
 }
 
 #' @param x A \code{roc_survmat} object.
-#' @param title Plot title. If missing, an automatically generated title is
-#'   used (includes the AUC). Pass \code{NULL} to omit the title entirely.
+#' @param title,subtitle,caption Plot title, subtitle and caption; \code{NULL}
+#'   (default) draws none.
+#' @param colors Curve colour (default black).
+#' @param auc Logical; print the AUC in the panel (default \code{TRUE}).
 #' @param ... Additional arguments (unused).
 #' @rdname roc_survmat
 #' @export
 #' @noRd
-plot.roc_survmat <- function(x, title, ...) {
-  if (missing(title)) {
-    title <- sprintf("Time-dependent ROC at t = %s (AUC = %.3f)", x$t_star, x$auc)
-  }
+plot.roc_survmat <- function(x, title = NULL, subtitle = NULL, caption = NULL, colors = "black",
+                             auc = TRUE, ...) {
   p <- ggplot2::ggplot(x$curve, ggplot2::aes(x = 1 - specificity, y = sensitivity)) +
     ggplot2::geom_abline(slope = 1, intercept = 0, colour = "grey70", linetype = "dashed") +
-    ggplot2::geom_line(colour = .survalis_palette[1], linewidth = 0.9) +
-    ggplot2::labs(x = "1 - Specificity", y = "Sensitivity") +
+    ggplot2::geom_line(colour = colors[1], linewidth = 0.8) +
+    ggplot2::coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
+    ggplot2::labs(x = "1 - Specificity", y = "Sensitivity", title = title, subtitle = subtitle,
+                  caption = caption) +
     theme_survalis()
-  if (!is.null(title)) p <- p + ggplot2::labs(title = title)
+  if (isTRUE(auc)) p <- p + ggplot2::annotate("text", x = 0.98, y = 0.04, hjust = 1, size = 3.5,
+                                               label = sprintf("AUC = %.3f at t = %s", x$auc, x$t_star))
   p
 }
 

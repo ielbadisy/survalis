@@ -98,38 +98,30 @@ dca_survmat <- function(object, predicted, t_star, thresholds = seq(0.01, 0.99, 
 }
 
 #' @param x A \code{dca_survmat} object.
-#' @param title Plot title. If missing, an automatically generated title is
-#'   used. Pass \code{NULL} to omit the title entirely.
+#' @param title,subtitle,caption Plot title, subtitle and caption; \code{NULL}
+#'   (default) draws none.
+#' @param colors Colours of the model, treat-all and treat-none curves. They are set through the
+#'   theme palette (ggplot2 >= 4.0), so \code{scale_colour_manual()} added afterwards replaces
+#'   them without a message.
 #' @param ... Additional arguments (unused).
 #' @rdname dca_survmat
 #' @export
 #' @noRd
-plot.dca_survmat <- function(x, title, ...) {
+plot.dca_survmat <- function(x, title = NULL, subtitle = NULL, caption = NULL,
+                             colors = c("#0072B2", "grey45", "grey70"), ...) {
   curve <- x$curve
-  long <- data.frame(
-    threshold = rep(curve$threshold, 3L),
-    net_benefit = c(curve$model, curve$treat_all, curve$treat_none),
-    strategy = factor(
-      rep(c("Model", "Treat all", "Treat none"), each = nrow(curve)),
-      levels = c("Model", "Treat all", "Treat none")
-    )
-  )
+  lv <- c("Model", "Treat all", "Treat none")
+  long <- data.frame(threshold = rep(curve$threshold, 3L),
+                     net_benefit = c(curve$model, curve$treat_all, curve$treat_none),
+                     strategy = factor(rep(lv, each = nrow(curve)), lv))
   y_floor <- max(min(curve$model, curve$treat_all, curve$treat_none, na.rm = TRUE), -0.1)
-
-  if (missing(title)) title <- sprintf("Decision curve analysis at t = %s", x$t_star)
-
   p <- ggplot2::ggplot(long, ggplot2::aes(x = threshold, y = net_benefit, colour = strategy)) +
-    ggplot2::geom_hline(yintercept = 0, colour = "grey70", linewidth = 0.3) +
-    ggplot2::geom_line(linewidth = 0.9) +
+    ggplot2::geom_line(linewidth = 0.8) +
     ggplot2::coord_cartesian(ylim = c(y_floor, NA)) +
-    ggplot2::scale_colour_manual(values = stats::setNames(
-      c(.survalis_palette[1], .survalis_palette[2], "grey50"),
-      c("Model", "Treat all", "Treat none")
-    )) +
-    ggplot2::labs(x = "Threshold probability", y = "Net benefit", colour = NULL) +
+    ggplot2::labs(x = "Threshold probability", y = "Net benefit", colour = NULL, title = title,
+                  subtitle = subtitle, caption = caption) +
     theme_survalis()
-  if (!is.null(title)) p <- p + ggplot2::labs(title = title)
-  p
+  .colour_palette(p, colors)
 }
 
 #' @param x A \code{dca_survmat} object.
