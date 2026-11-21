@@ -223,13 +223,13 @@ plot_pdp <- function(pdp_ice_output, feature,
         geom_point(data = pdp_integrated, aes(x = .data[[feature]], y = .data$integrated_surv),
                             shape = 21, size = 3, fill = "black") +
         theme_survalis() +
-        labs(x = feature, y = "Integrated Survival")
+        labs(x = feature, y = "Integrated survival")
       if (!is.null(title)) p <- p + labs(title = title)
       return(p)
     } else {
       p <- ggplot(pdp_integrated, aes(x = .data[[feature]], y = .data$integrated_surv)) +
         theme_survalis() +
-        labs(x = feature, y = "Integrated Survival")
+        labs(x = feature, y = "Integrated survival")
       if (!is.null(title)) p <- p + labs(title = title)
       if (smooth) {
         p <- p + geom_smooth(method = "loess", se = FALSE, color = colors[2], linewidth = 1.2)
@@ -251,15 +251,17 @@ plot_pdp <- function(pdp_ice_output, feature,
   if (!is.null(ids) && "ice" %in% plot_data$type) {
     plot_data <- plot_data[plot_data$type != "ice" | plot_data$.id %in% ids, , drop = FALSE]
   }
+  keys <- c(ice = "Individual (ICE)", pdp = "Average (PDP)")
+  plot_data$key <- factor(keys[plot_data$type], levels = keys[names(keys) %in% plot_data$type])
 
   if (is_categorical) {
-    p <- ggplot(plot_data, aes(x = .data[[feature]], y = surv_prob, fill = type)) +
+    p <- ggplot(plot_data, aes(x = .data[[feature]], y = surv_prob, fill = key)) +
       theme_survalis() +
       facet_wrap(~ time, labeller = .time_labeller(time.labels)) +
       coord_cartesian(ylim = c(0, 1)) +
       labs(
         x = feature,
-        y = "Survival Probability",
+        y = "Survival probability",
         fill = "Type"
       )
     if (!is.null(title)) p <- p + labs(title = title)
@@ -283,7 +285,7 @@ plot_pdp <- function(pdp_ice_output, feature,
         x = .data[[feature]],
         y = surv_prob,
         group = interaction(.id, time),
-        color = type
+        color = key
       )
     ) +
       theme_survalis() +
@@ -291,7 +293,7 @@ plot_pdp <- function(pdp_ice_output, feature,
       coord_cartesian(ylim = c(0, 1)) +
       labs(
         x = feature,
-        y = "Survival Probability",
+        y = "Survival probability",
         color = NULL
       ) +
       guides(color = guide_legend(override.aes = list(alpha = 1)))

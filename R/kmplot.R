@@ -394,7 +394,23 @@ kmplot <- function(formula, data,
     if (type == "cumhaz") yr[1] <- 0
     return(c(0.98 * xlim[2], yr[1] + 0.05 * diff(yr), 1))
   }
-  c(0.02 * xlim[2], if (type == "risk") 0.92 else 0.08, 0)
+  # Bottom left (top left for risk) unless curves cross the label there: then the first spot with the
+  # fewest crossings, going up the free right column (not the legend corner), then up the left one.
+  ys <- c(0.08, 0.15, 0.22, 0.29, 0.36); if (type == "risk") ys <- 1 - ys
+  lg <- legend.pos[1] > 0.5 && (legend.pos[2] > 0.5) == (type == "risk")
+  cand <- c(list(c(0.02 * xlim[2], ys[1], 0)), if (!lg) lapply(ys, function(y) c(0.98 * xlim[2], y, 1)),
+            lapply(ys[-1], function(y) c(0.02 * xlim[2], y, 0)))
+  w <- 0.35 * xlim[2]
+  segs <- lapply(split(curve[c("time", "est")], curve$group), function(g) {
+    n <- nrow(g)
+    data.frame(a = g$time[-n], b = g$time[-1], lo = pmin(g$est[-n], g$est[-1]), hi = pmax(g$est[-n], g$est[-1]))
+  })
+  hits <- vapply(cand, function(c) {
+    x0 <- if (c[3] == 0) c[1] else c[1] - w
+    sum(vapply(segs, function(s) any(s$b >= x0 & s$a <= x0 + w & s$hi >= c[2] - 0.05 & s$lo <= c[2] + 0.05,
+                                     na.rm = TRUE), logical(1)))
+  }, numeric(1))
+  cand[[which.min(hits)]]
 }
 
 # Model curves on a grid of 100 times, one per Kaplan-Meier group: the mean
