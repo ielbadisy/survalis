@@ -25,10 +25,12 @@ reference:
   - fit
   - predict.survalis_fit
   - evaluate
+  - plot.survalis_eval
   - compare
   - plot.survalis_compare
   - tune
   - interpret
+  - plot.survalis_interpret
   - estimate
   - survalis-tidiers
   - survalis-package
