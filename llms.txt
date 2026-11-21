@@ -676,6 +676,8 @@ your own, goes in `model`.
   : Predict from a fitted survival learner
 - [`evaluate()`](https://elbadisyimad.com/survalis/reference/evaluate.md)
   : Performance of a survival learner
+- [`plot(`*`<survalis_eval>`*`)`](https://elbadisyimad.com/survalis/reference/plot.survalis_eval.md)
+  : Plot an evaluation
 - [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md)
   : Compare several survival learners on shared resampling folds
 - [`plot(`*`<survalis_compare>`*`)`](https://elbadisyimad.com/survalis/reference/plot.survalis_compare.md)
@@ -684,6 +686,8 @@ your own, goes in `model`.
   a survival learner over a hyperparameter grid
 - [`interpret()`](https://elbadisyimad.com/survalis/reference/interpret.md)
   : Interpret a fitted survival learner
+- [`plot(`*`<survalis_interpret>`*`)`](https://elbadisyimad.com/survalis/reference/plot.survalis_interpret.md)
+  : Plot an interpretation
 - [`estimate()`](https://elbadisyimad.com/survalis/reference/estimate.md)
   : Standardised causal-style contrast for a binary treatment
 - [`as.data.frame(`*`<survmat>`*`)`](https://elbadisyimad.com/survalis/reference/survalis-tidiers.md)

@@ -9,7 +9,7 @@ metric, best on top.
 
 ``` r
 # S3 method for class 'survalis_compare'
-plot(x, title, scales = "free_x", ...)
+plot(x, title = NULL, scales = "free_x", subtitle = NULL, caption = NULL, ...)
 ```
 
 ## Arguments
@@ -18,9 +18,9 @@ plot(x, title, scales = "free_x", ...)
 
   A `survalis_compare` object.
 
-- title:
+- title, subtitle, caption:
 
-  Plot title; `NULL` for none.
+  Plot title, subtitle and caption; `NULL` (default) draws none.
 
 - scales:
 

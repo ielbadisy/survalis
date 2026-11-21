@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,37 @@
       <small>Source: <a href="https://github.com/ielbadisy/survalis/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.4.5" id="survalis-245">survalis 2.4.5<a class="anchor" aria-label="anchor" href="#survalis-245"></a></h2>
+<ul><li>
+<code><a href="../reference/kmplot.html">kmplot()</a></code> gains <code>conf.type</code> (default <code>"log-log"</code>, also <code>"log"</code> and <code>"plain"</code>), passed to <code><a href="https://rdrr.io/pkg/survival/man/survfit.html" class="external-link">survival::survfit()</a></code>. Plot default change: the band was the <code>"log"</code> band of <code>survfit()</code> before.</li>
+<li>
+<code><a href="../reference/kmplot.html">kmplot()</a></code> risk table no longer repeats the time axis (bug fix): the curve panel keeps the axis, the table shows only the counts.</li>
+<li>
+<code><a href="../reference/kmplot.html">kmplot()</a></code> risk table height scales with the number of groups (bug fix: it took a fixed third of the figure). New argument <code>table.height</code> to set it.</li>
+<li>
+<code><a href="../reference/kmplot.html">kmplot()</a></code> puts the linetype legend of model or naive curves above the panel (bug fix: it overlapped the curves).</li>
+<li>
+<code><a href="../reference/kmplot.html">kmplot()</a></code> gains <code>rmst = tau</code>: shades the area between two survival curves (or under each curve) up to <code>tau</code>, the restricted mean survival time.</li>
+<li>
+<code><a href="../reference/kmplot.html">kmplot()</a></code> takes several competing events in one call (<code>event = c("a", "b")</code>), and gains <code>naive = TRUE</code> to add the naive 1 - Kaplan-Meier curve next to the Aalen-Johansen estimate.</li>
+<li>
+<code><a href="../reference/kmplot.html">kmplot()</a></code> gains <code>subtitle</code> and <code>caption</code>; default colours are Okabe-Ito.</li>
+<li>
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on <code><a href="../reference/evaluate.html">evaluate()</a></code> and <code><a href="../reference/compare.html">compare()</a></code> results thins the value-axis tick labels and spaces the panels (bug fix: labels overlapped). No automatic title any more (<code>title = NULL</code>); new <code>subtitle</code> and <code>caption</code>.</li>
+<li>
+<code><a href="../reference/evaluate.html">evaluate()</a></code> and <code><a href="../reference/compare.html">compare()</a></code> score <code>"brier"</code> at several <code>times</code>, as one metric per time (<code>"brier@365"</code>, …), in time order. One time gives <code>"brier"</code> as before.</li>
+<li>
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on an <code><a href="../reference/evaluate.html">evaluate()</a></code> result gains <code>type = "time"</code>: time-specific metrics against time, with an optional <code>reference</code> evaluation (for example a Kaplan-Meier benchmark), <code>labels</code>, <code>xlab</code> and <code>time.labels</code>.</li>
+<li>
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on ROC and DCA results sets colours through the theme palette, so <code>scale_colour_manual()</code> added afterwards replaces them without the “Scale for colour is already present” message (bug fix). New <code>colors</code>, <code>subtitle</code>, <code>caption</code>, and <code>auc</code> for ROC. No automatic title.</li>
+<li>
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on PDP, ICE and ALE results gains <code>time.labels</code>: a unit (<code>"days"</code>) or a function of the time (<code>function(t) paste(t / 365, "years")</code>) for the panel and legend labels (bug fix: panels showed raw times). New <code>colors</code> for PDP and ICE. No automatic title. ALE times are ordered numerically (bug fix: they were ordered as text).</li>
+<li>
+<code>compute_ale()</code> handles empty bins of the quantile grid (bug fix: on a discrete feature, an empty bin shifted the local effects of the next bins and gave a recycling warning). ALE values change in that case only.</li>
+<li>
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on <code><a href="../reference/interpret.html">interpret()</a></code> and <code><a href="../reference/evaluate.html">evaluate()</a></code> results is documented.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.4.4" id="survalis-244">survalis 2.4.4<a class="anchor" aria-label="anchor" href="#survalis-244"></a></h2>
 <ul><li>

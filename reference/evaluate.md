@@ -90,10 +90,12 @@ evaluate(object, y, times = NULL, metrics = c("cindex", "ibs"), ...)
 
 - metrics:
 
-  Character vector from `listmetrics()$metric`. `"brier"`, `"ece"`,
-  `"survacc"` and range scores such as `"range:0.05-0.20"` require a
-  single `times` value (see
+  Character vector from `listmetrics()$metric`. `"ece"`, `"survacc"` and
+  range scores such as `"range:0.05-0.20"` require a single `times`
+  value (see
   [`dwscore()`](https://elbadisyimad.com/survalis/reference/dwscore.md)).
+  `"brier"` with several `times` gives one metric per time,
+  `"brier@<time>"`; with one time it is `"brier"`.
 
 - ncores:
 

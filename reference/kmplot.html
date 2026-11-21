@@ -19,7 +19,7 @@ or covariate-adjusted curves, dashed, over the Kaplan-Meier curves."><meta prope
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -86,7 +86,13 @@ or covariate-adjusted curves, dashed, over the Kaplan-Meier curves.</p>
 <span>  colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  legend.pos <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pval.pos <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  base_size <span class="op">=</span> <span class="fl">10</span></span>
+<span>  base_size <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  conf.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log-log"</span>, <span class="st">"log"</span>, <span class="st">"plain"</span><span class="op">)</span>,</span>
+<span>  rmst <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  naive <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  table.height <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  subtitle <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  caption <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -115,8 +121,10 @@ Competing-risks data take <code>"risk"</code> only, which is also their default.
 
 
 <dt id="arg-event">event<a class="anchor" aria-label="anchor" href="#arg-event"></a></dt>
-<dd><p>Competing-risks data only: the event whose cumulative
-incidence is drawn. <code>NULL</code> (default) takes the first event level.</p></dd>
+<dd><p>Competing-risks data only: the event(s) whose cumulative
+incidence is drawn. <code>NULL</code> (default) takes the first event level. Several
+events, for example <code>c("relapse", "death")</code>, are drawn in one panel, one
+colour per event (and group).</p></dd>
 
 
 <dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
@@ -167,8 +175,8 @@ time axis is on the log scale.</p></dd>
 
 
 <dt id="arg-colors">colors<a class="anchor" aria-label="anchor" href="#arg-colors"></a></dt>
-<dd><p>Group colours. <code>NULL</code> (default) uses blue and red for the
-first two groups, then further distinct colours.</p></dd>
+<dd><p>Group colours. <code>NULL</code> (default) uses blue (#0072B2) and
+vermillion (#D55E00) for the first two groups, then the Okabe-Ito colours.</p></dd>
 
 
 <dt id="arg-legend-pos">legend.pos<a class="anchor" aria-label="anchor" href="#arg-legend-pos"></a></dt>
@@ -185,12 +193,44 @@ curves.</p></dd>
 <dt id="arg-base-size">base_size<a class="anchor" aria-label="anchor" href="#arg-base-size"></a></dt>
 <dd><p>Base font size (default <code>10</code>).</p></dd>
 
+
+<dt id="arg-conf-type">conf.type<a class="anchor" aria-label="anchor" href="#arg-conf-type"></a></dt>
+<dd><p>Transformation of the pointwise band, passed to
+<code><a href="https://rdrr.io/pkg/survival/man/survfit.html" class="external-link">survival::survfit()</a></code>: <code>"log-log"</code> (default), <code>"log"</code> (the survfit
+default) or <code>"plain"</code>.</p></dd>
+
+
+<dt id="arg-rmst">rmst<a class="anchor" aria-label="anchor" href="#arg-rmst"></a></dt>
+<dd><p>Restricted mean survival time horizon \(\tau\), survival
+curves only. With two groups the area between the curves up to
+\(\tau\) (the RMST difference) is shaded; otherwise the area under each
+curve (the RMST). A dashed line marks \(\tau\). <code>NULL</code> (default) draws
+none.</p></dd>
+
+
+<dt id="arg-naive">naive<a class="anchor" aria-label="anchor" href="#arg-naive"></a></dt>
+<dd><p>Competing-risks data only: also draw, dashed, the naive
+\(1 - \) Kaplan-Meier estimate of each event that censors the competing
+events (default <code>FALSE</code>), to show how far it overstates the cumulative
+incidence.</p></dd>
+
+
+<dt id="arg-table-height">table.height<a class="anchor" aria-label="anchor" href="#arg-table-height"></a></dt>
+<dd><p>Height of the risk table relative to the curve panel.
+<code>NULL</code> (default) scales it with the number of rows.</p></dd>
+
+
+<dt id="arg-subtitle-caption">subtitle, caption<a class="anchor" aria-label="anchor" href="#arg-subtitle-caption"></a></dt>
+<dd><p>Plot subtitle and caption; <code>NULL</code> (default) draws
+none.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A 'patchwork' object (curve over risk table) when the risk table is
 drawn, otherwise a 'ggplot2' object. Panels combine with patchwork
-operators, for example <code>kmplot(...) | kmplot(...)</code>.</p>
+operators, for example <code>kmplot(...) | kmplot(...)</code>, and <code>p[[1]]</code> is the
+curve panel of a patchwork <code>p</code>, to which layers can be added.</p>
     </div>
 
     <div class="section level2">
@@ -207,6 +247,11 @@ operators, for example <code>kmplot(...) | kmplot(...)</code>.</p>
 <span class="r-in"><span>                  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"censored"</span>, <span class="st">"progression"</span>, <span class="st">"death"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">kmplot</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">etime</span>, <span class="va">event</span><span class="op">)</span> <span class="op">~</span> <span class="va">sex</span>, data <span class="op">=</span> <span class="va">d</span>, risk.table <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="kmplot-3.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">kmplot</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">etime</span>, <span class="va">event</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>, data <span class="op">=</span> <span class="va">d</span>, event <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"progression"</span>, <span class="st">"death"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>       naive <span class="op">=</span> <span class="cn">TRUE</span>, risk.table <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="kmplot-4.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">kmplot</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">trt</span>, data <span class="op">=</span> <span class="va">veteran</span>, rmst <span class="op">=</span> <span class="fl">365</span>, risk.table <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="kmplot-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"patchwork"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="fu">kmplot</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">trt</span>, data <span class="op">=</span> <span class="va">veteran</span>,</span></span>
@@ -219,7 +264,7 @@ operators, for example <code>kmplot(...) | kmplot(...)</code>.</p>
 <span class="r-in"><span>  <span class="fu">kmplot</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">trt</span>, data <span class="op">=</span> <span class="va">veteran</span>, model <span class="op">=</span> <span class="va">m</span>,</span></span>
 <span class="r-in"><span>         model.curve <span class="op">=</span> <span class="st">"adjusted"</span>, breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1000</span>, <span class="fl">200</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-plt img"><img src="kmplot-4.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="kmplot-6.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

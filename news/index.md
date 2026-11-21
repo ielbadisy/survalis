@@ -1,5 +1,69 @@
 # Changelog
 
+## survalis 2.4.5
+
+- [`kmplot()`](https://elbadisyimad.com/survalis/reference/kmplot.md)
+  gains `conf.type` (default `"log-log"`, also `"log"` and `"plain"`),
+  passed to
+  [`survival::survfit()`](https://rdrr.io/pkg/survival/man/survfit.html).
+  Plot default change: the band was the `"log"` band of `survfit()`
+  before.
+- [`kmplot()`](https://elbadisyimad.com/survalis/reference/kmplot.md)
+  risk table no longer repeats the time axis (bug fix): the curve panel
+  keeps the axis, the table shows only the counts.
+- [`kmplot()`](https://elbadisyimad.com/survalis/reference/kmplot.md)
+  risk table height scales with the number of groups (bug fix: it took a
+  fixed third of the figure). New argument `table.height` to set it.
+- [`kmplot()`](https://elbadisyimad.com/survalis/reference/kmplot.md)
+  puts the linetype legend of model or naive curves above the panel (bug
+  fix: it overlapped the curves).
+- [`kmplot()`](https://elbadisyimad.com/survalis/reference/kmplot.md)
+  gains `rmst = tau`: shades the area between two survival curves (or
+  under each curve) up to `tau`, the restricted mean survival time.
+- [`kmplot()`](https://elbadisyimad.com/survalis/reference/kmplot.md)
+  takes several competing events in one call (`event = c("a", "b")`),
+  and gains `naive = TRUE` to add the naive 1 - Kaplan-Meier curve next
+  to the Aalen-Johansen estimate.
+- [`kmplot()`](https://elbadisyimad.com/survalis/reference/kmplot.md)
+  gains `subtitle` and `caption`; default colours are Okabe-Ito.
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on
+  [`evaluate()`](https://elbadisyimad.com/survalis/reference/evaluate.md)
+  and
+  [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md)
+  results thins the value-axis tick labels and spaces the panels (bug
+  fix: labels overlapped). No automatic title any more (`title = NULL`);
+  new `subtitle` and `caption`.
+- [`evaluate()`](https://elbadisyimad.com/survalis/reference/evaluate.md)
+  and
+  [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md)
+  score `"brier"` at several `times`, as one metric per time
+  (`"brier@365"`, …), in time order. One time gives `"brier"` as before.
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on an
+  [`evaluate()`](https://elbadisyimad.com/survalis/reference/evaluate.md)
+  result gains `type = "time"`: time-specific metrics against time, with
+  an optional `reference` evaluation (for example a Kaplan-Meier
+  benchmark), `labels`, `xlab` and `time.labels`.
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on ROC and
+  DCA results sets colours through the theme palette, so
+  `scale_colour_manual()` added afterwards replaces them without the
+  “Scale for colour is already present” message (bug fix). New `colors`,
+  `subtitle`, `caption`, and `auc` for ROC. No automatic title.
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on PDP, ICE
+  and ALE results gains `time.labels`: a unit (`"days"`) or a function
+  of the time (`function(t) paste(t / 365, "years")`) for the panel and
+  legend labels (bug fix: panels showed raw times). New `colors` for PDP
+  and ICE. No automatic title. ALE times are ordered numerically (bug
+  fix: they were ordered as text).
+- `compute_ale()` handles empty bins of the quantile grid (bug fix: on a
+  discrete feature, an empty bin shifted the local effects of the next
+  bins and gave a recycling warning). ALE values change in that case
+  only.
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on
+  [`interpret()`](https://elbadisyimad.com/survalis/reference/interpret.md)
+  and
+  [`evaluate()`](https://elbadisyimad.com/survalis/reference/evaluate.md)
+  results is documented.
+
 ## survalis 2.4.4
 
 - [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a

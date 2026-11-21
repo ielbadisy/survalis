@@ -29,7 +29,13 @@ kmplot(
   colors = NULL,
   legend.pos = NULL,
   pval.pos = NULL,
-  base_size = 10
+  base_size = 10,
+  conf.type = c("log-log", "log", "plain"),
+  rmst = NULL,
+  naive = FALSE,
+  table.height = NULL,
+  subtitle = NULL,
+  caption = NULL
 )
 ```
 
@@ -58,8 +64,10 @@ kmplot(
 
 - event:
 
-  Competing-risks data only: the event whose cumulative incidence is
-  drawn. `NULL` (default) takes the first event level.
+  Competing-risks data only: the event(s) whose cumulative incidence is
+  drawn. `NULL` (default) takes the first event level. Several events,
+  for example `c("relapse", "death")`, are drawn in one panel, one
+  colour per event (and group).
 
 - model:
 
@@ -111,8 +119,8 @@ kmplot(
 
 - colors:
 
-  Group colours. `NULL` (default) uses blue and red for the first two
-  groups, then further distinct colours.
+  Group colours. `NULL` (default) uses blue (#0072B2) and vermillion
+  (#D55E00) for the first two groups, then the Okabe-Ito colours.
 
 - legend.pos:
 
@@ -128,11 +136,41 @@ kmplot(
 
   Base font size (default `10`).
 
+- conf.type:
+
+  Transformation of the pointwise band, passed to
+  [`survival::survfit()`](https://rdrr.io/pkg/survival/man/survfit.html):
+  `"log-log"` (default), `"log"` (the survfit default) or `"plain"`.
+
+- rmst:
+
+  Restricted mean survival time horizon \\\tau\\, survival curves only.
+  With two groups the area between the curves up to \\\tau\\ (the RMST
+  difference) is shaded; otherwise the area under each curve (the RMST).
+  A dashed line marks \\\tau\\. `NULL` (default) draws none.
+
+- naive:
+
+  Competing-risks data only: also draw, dashed, the naive \\1 - \\
+  Kaplan-Meier estimate of each event that censors the competing events
+  (default `FALSE`), to show how far it overstates the cumulative
+  incidence.
+
+- table.height:
+
+  Height of the risk table relative to the curve panel. `NULL` (default)
+  scales it with the number of rows.
+
+- subtitle, caption:
+
+  Plot subtitle and caption; `NULL` (default) draws none.
+
 ## Value
 
 A 'patchwork' object (curve over risk table) when the risk table is
 drawn, otherwise a 'ggplot2' object. Panels combine with patchwork
-operators, for example `kmplot(...) | kmplot(...)`.
+operators, for example `kmplot(...) | kmplot(...)`, and `p[[1]]` is the
+curve panel of a patchwork `p`, to which layers can be added.
 
 ## Examples
 
@@ -148,6 +186,11 @@ d$etime <- ifelse(d$pstat == 1, d$ptime, d$futime)
 d$event <- factor(ifelse(d$pstat == 1, 1, 2 * d$death), 0:2,
                   c("censored", "progression", "death"))
 kmplot(Surv(etime, event) ~ sex, data = d, risk.table = FALSE)
+
+kmplot(Surv(etime, event) ~ 1, data = d, event = c("progression", "death"),
+       naive = TRUE, risk.table = FALSE)
+
+kmplot(Surv(time, status) ~ trt, data = veteran, rmst = 365, risk.table = FALSE)
 
 # \donttest{
 if (requireNamespace("patchwork", quietly = TRUE)) {
