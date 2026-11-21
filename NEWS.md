@@ -1,3 +1,15 @@
+# survalis 2.4.4
+
+* `plot()` on a `compare()` result gives each metric panel its own value axis
+  (bug fix: `coord_flip()` with `scales = "free_y"` freed the model axis
+  instead, so all metrics shared one axis and were squashed). New argument
+  `scales` (default `"free_x"`; `"fixed"` for one shared axis). Strips say
+  whether higher or lower is better, models are ordered by the first metric
+  (best on top), and the boxes are grey.
+* `plot()` on an `evaluate()` result draws one panel per metric with its own
+  value axis (bug fix: all metrics shared one axis) and the same direction
+  labels.
+
 # survalis 2.4.3
 
 * `"nbsurv"` predicts all rows in one batch call again (the engine bug that

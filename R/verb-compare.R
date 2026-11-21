@@ -126,16 +126,33 @@ summary.survalis_compare <- function(object, ...) {
                     names = "metric", values = "mean", idcols = "model")
 }
 
+#' Plot a model comparison
+#'
+#' One panel per metric, with the per-split values of each model as a box plot
+#' and points. Each panel has its own value axis, and its strip says whether
+#' higher or lower is better. Models are ordered by the first metric, best on top.
+#'
+#' @param x A `survalis_compare` object.
+#' @param title Plot title; `NULL` for none.
+#' @param scales Passed to [ggplot2::facet_wrap()]: `"free_x"` (default) gives
+#'   each metric its own value axis, `"fixed"` one shared axis.
+#' @param ... Unused.
+#' @return A ggplot.
 #' @export
-plot.survalis_compare <- function(x, title, ...) {
+plot.survalis_compare <- function(x, title, scales = "free_x", ...) {
   if (missing(title)) title <- "Model comparison"
-  p <- ggplot2::ggplot(x$per_split,
-                       ggplot2::aes(x = stats::reorder(model, value), y = value)) +
-    ggplot2::geom_boxplot(fill = .survalis_palette[1], alpha = 0.3, outlier.shape = NA) +
-    ggplot2::geom_jitter(width = 0.12, alpha = 0.5) +
-    ggplot2::facet_wrap(~ metric, scales = "free_y") +
-    ggplot2::labs(x = "Model", y = "Value") +
-    ggplot2::coord_flip() +
+  d <- x$per_split
+  lab <- function(m) sprintf("%s (%s is better)", m, if (.metric_maximize(m)) "higher" else "lower")
+  mts <- unique(d$metric)
+  d$metric <- factor(d$metric, mts, vapply(mts, lab, character(1)))
+  lb <- x$leaderboard[x$leaderboard$metric == mts[1], ]
+  # ggplot draws the first factor level at the bottom, so the best model goes last
+  d$model <- factor(d$model, lb$model[order(lb$mean, decreasing = !.metric_maximize(mts[1]))])
+  p <- ggplot2::ggplot(d, ggplot2::aes(x = value, y = model)) +
+    ggplot2::geom_boxplot(fill = "grey90", colour = "grey40", outlier.shape = NA, width = 0.6) +
+    ggplot2::geom_jitter(width = 0, height = 0.12, alpha = 0.6, size = 1.4, colour = "grey20") +
+    ggplot2::facet_wrap(~ metric, scales = scales) +
+    ggplot2::labs(x = "Value over resampling splits", y = NULL) +
     theme_survalis()
   if (!is.null(title)) p <- p + ggplot2::labs(title = title)
   p

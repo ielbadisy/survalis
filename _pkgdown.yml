@@ -26,6 +26,7 @@ reference:
   - predict.survalis_fit
   - evaluate
   - compare
+  - plot.survalis_compare
   - tune
   - interpret
   - estimate
