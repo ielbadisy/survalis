@@ -1,5 +1,27 @@
 # Changelog
 
+## survalis 2.4.4
+
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a
+  [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md)
+  result gives each metric panel its own value axis (bug fix:
+  `coord_flip()` with `scales = "free_y"` freed the model axis instead,
+  so all metrics shared one axis and were squashed). New argument
+  `scales` (default `"free_x"`; `"fixed"` for one shared axis). Strips
+  say whether higher or lower is better, models are ordered by the first
+  metric (best on top), and the boxes are grey.
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on an
+  [`evaluate()`](https://elbadisyimad.com/survalis/reference/evaluate.md)
+  result draws one panel per metric with its own value axis (bug fix:
+  all metrics shared one axis) and the same direction labels.
+
+## survalis 2.4.3
+
+- `"nbsurv"` predicts all rows in one batch call again (the engine bug
+  that forced row-by-row prediction was fixed in nbsurv 0.5.2); about
+  100 times faster on 500 rows. Requires nbsurv \>= 0.6.0, which models
+  numeric 0/1 predictors as categorical.
+
 ## survalis 2.4.2
 
 - The `"glmnet"` learner gains `s` (passed through `spec`): predict at
@@ -10,6 +32,8 @@
   with an “illegal column names” error from the engine.
 
 ## survalis 2.4.1
+
+CRAN release: 2026-11-14
 
 - [`cv()`](https://elbadisyimad.com/survalis/reference/resampling.md)
   and

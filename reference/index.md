@@ -14,6 +14,8 @@ your own, goes in `model`.
   : Performance of a survival learner
 - [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md)
   : Compare several survival learners on shared resampling folds
+- [`plot(`*`<survalis_compare>`*`)`](https://elbadisyimad.com/survalis/reference/plot.survalis_compare.md)
+  : Plot a model comparison
 - [`tune()`](https://elbadisyimad.com/survalis/reference/tune.md) : Tune
   a survival learner over a hyperparameter grid
 - [`interpret()`](https://elbadisyimad.com/survalis/reference/interpret.md)
