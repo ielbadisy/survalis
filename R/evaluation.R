@@ -761,10 +761,16 @@ cv_summary <- function(cv_results, digits = NULL) {
 
 cv_plot <- function(cv_results, title) {
   if (missing(title)) title <- "Cross-Validation Performance"
-  p <- ggplot(cv_results, aes(x = metric, y = value)) +
-    geom_boxplot(fill = .survalis_palette[1], outlier.shape = NA, alpha = 0.3) +
-    geom_jitter(width = 0.15, alpha = 0.5) +
-    labs(x = "Metric", y = "Value") +
+  # one panel per metric with its own axis: cindex/auc near 0.7 and ibs near 0.15 squash on a shared one
+  mts <- unique(cv_results$metric)
+  lab <- vapply(mts, function(m) sprintf("%s (%s is better)", m,
+                                         if (.metric_maximize(m)) "higher" else "lower"), character(1))
+  cv_results$metric <- factor(cv_results$metric, mts, lab)
+  p <- ggplot(cv_results, aes(x = value, y = "")) +
+    geom_boxplot(fill = "grey90", colour = "grey40", outlier.shape = NA, width = 0.5) +
+    geom_jitter(width = 0, height = 0.1, alpha = 0.6, size = 1.4, colour = "grey20") +
+    facet_wrap(~ metric, scales = "free_x") +
+    labs(x = "Value over resampling splits", y = NULL) +
     theme_survalis()
   if (!is.null(title)) p <- p + labs(title = title)
   p
