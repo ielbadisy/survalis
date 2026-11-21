@@ -101,7 +101,7 @@ utils::globalVariables(c(
   # data.table-esque
   ".id","lower","upper","n.risk","strata","surv",
   # others seen in notes
-  "splits","ale","integrated_ale","type","change_label","hjust",
+  "splits","ale","integrated_ale","type","key","change_label","hjust",
   # new in 1.1.0: dca_survmat/roc_survmat/plot_rmst/plot_shap_beeswarm
   "threshold","net_benefit","strategy","specificity","sensitivity",
   "tau","estimate","lo","hi","scaled_value",
