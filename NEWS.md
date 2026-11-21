@@ -1,3 +1,43 @@
+# survalis 2.4.5
+
+* `kmplot()` gains `conf.type` (default `"log-log"`, also `"log"` and
+  `"plain"`), passed to `survival::survfit()`. Plot default change: the band
+  was the `"log"` band of `survfit()` before.
+* `kmplot()` risk table no longer repeats the time axis (bug fix): the curve
+  panel keeps the axis, the table shows only the counts.
+* `kmplot()` risk table height scales with the number of groups (bug fix: it
+  took a fixed third of the figure). New argument `table.height` to set it.
+* `kmplot()` puts the linetype legend of model or naive curves above the panel
+  (bug fix: it overlapped the curves).
+* `kmplot()` gains `rmst = tau`: shades the area between two survival curves
+  (or under each curve) up to `tau`, the restricted mean survival time.
+* `kmplot()` takes several competing events in one call (`event = c("a", "b")`),
+  and gains `naive = TRUE` to add the naive 1 - Kaplan-Meier curve next to the
+  Aalen-Johansen estimate.
+* `kmplot()` gains `subtitle` and `caption`; default colours are Okabe-Ito.
+* `plot()` on `evaluate()` and `compare()` results thins the value-axis tick
+  labels and spaces the panels (bug fix: labels overlapped). No automatic
+  title any more (`title = NULL`); new `subtitle` and `caption`.
+* `evaluate()` and `compare()` score `"brier"` at several `times`, as one
+  metric per time (`"brier@365"`, ...), in time order. One time gives
+  `"brier"` as before.
+* `plot()` on an `evaluate()` result gains `type = "time"`: time-specific
+  metrics against time, with an optional `reference` evaluation (for example a
+  Kaplan-Meier benchmark), `labels`, `xlab` and `time.labels`.
+* `plot()` on ROC and DCA results sets colours through the theme palette, so
+  `scale_colour_manual()` added afterwards replaces them without the "Scale
+  for colour is already present" message (bug fix). New `colors`, `subtitle`,
+  `caption`, and `auc` for ROC. No automatic title.
+* `plot()` on PDP, ICE and ALE results gains `time.labels`: a unit (`"days"`)
+  or a function of the time (`function(t) paste(t / 365, "years")`) for the
+  panel and legend labels (bug fix: panels showed raw times). New `colors`
+  for PDP and ICE. No automatic title. ALE times are ordered numerically (bug
+  fix: they were ordered as text).
+* `compute_ale()` handles empty bins of the quantile grid (bug fix: on a
+  discrete feature, an empty bin shifted the local effects of the next bins
+  and gave a recycling warning). ALE values change in that case only.
+* `plot()` on `interpret()` and `evaluate()` results is documented.
+
 # survalis 2.4.4
 
 * `plot()` on a `compare()` result gives each metric panel its own value axis

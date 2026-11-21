@@ -19,8 +19,10 @@
 #'   \eqn{H(t) = -\log S(t)}, or `"cloglog"` for \eqn{\log\{-\log S(t)\}}
 #'   against \eqn{\log t}, where parallel curves support proportional hazards.
 #'   Competing-risks data take `"risk"` only, which is also their default.
-#' @param event Competing-risks data only: the event whose cumulative
-#'   incidence is drawn. `NULL` (default) takes the first event level.
+#' @param event Competing-risks data only: the event(s) whose cumulative
+#'   incidence is drawn. `NULL` (default) takes the first event level. Several
+#'   events, for example `c("relapse", "death")`, are drawn in one panel, one
+#'   colour per event (and group).
 #' @param model Optional fitted model from [fit()]. Its curves are drawn dashed
 #'   over the Kaplan-Meier curves, so that the two can be compared. Not
 #'   available for competing-risks data.
@@ -44,18 +46,35 @@
 #'   time axis is on the log scale.
 #' @param conf.int Logical; draw pointwise 95% confidence bands (default
 #'   `FALSE`).
-#' @param colors Group colours. `NULL` (default) uses blue and red for the
-#'   first two groups, then further distinct colours.
+#' @param conf.type Transformation of the pointwise band, passed to
+#'   [survival::survfit()]: `"log-log"` (default), `"log"` (the survfit
+#'   default) or `"plain"`.
+#' @param colors Group colours. `NULL` (default) uses blue (#0072B2) and
+#'   vermillion (#D55E00) for the first two groups, then the Okabe-Ito colours.
 #' @param legend.pos Legend position inside the panel, `c(x, y)` in `[0, 1]`
 #'   units of the panel. `NULL` (default) chooses a corner away from the
 #'   curves.
 #' @param pval.pos P-value position, `c(time, y)` in data units. `NULL`
 #'   (default) chooses a corner away from the curves.
 #' @param base_size Base font size (default `10`).
+#' @param rmst Restricted mean survival time horizon \eqn{\tau}, survival
+#'   curves only. With two groups the area between the curves up to
+#'   \eqn{\tau} (the RMST difference) is shaded; otherwise the area under each
+#'   curve (the RMST). A dashed line marks \eqn{\tau}. `NULL` (default) draws
+#'   none.
+#' @param naive Competing-risks data only: also draw, dashed, the naive
+#'   \eqn{1 - } Kaplan-Meier estimate of each event that censors the competing
+#'   events (default `FALSE`), to show how far it overstates the cumulative
+#'   incidence.
+#' @param table.height Height of the risk table relative to the curve panel.
+#'   `NULL` (default) scales it with the number of rows.
+#' @param subtitle,caption Plot subtitle and caption; `NULL` (default) draws
+#'   none.
 #'
 #' @return A 'patchwork' object (curve over risk table) when the risk table is
 #'   drawn, otherwise a 'ggplot2' object. Panels combine with patchwork
-#'   operators, for example `kmplot(...) | kmplot(...)`.
+#'   operators, for example `kmplot(...) | kmplot(...)`, and `p[[1]]` is the
+#'   curve panel of a patchwork `p`, to which layers can be added.
 #'
 #' @examples
 #' kmplot(Surv(time, status) ~ trt, data = veteran, risk.table = FALSE)
@@ -67,6 +86,9 @@
 #' d$event <- factor(ifelse(d$pstat == 1, 1, 2 * d$death), 0:2,
 #'                   c("censored", "progression", "death"))
 #' kmplot(Surv(etime, event) ~ sex, data = d, risk.table = FALSE)
+#' kmplot(Surv(etime, event) ~ 1, data = d, event = c("progression", "death"),
+#'        naive = TRUE, risk.table = FALSE)
+#' kmplot(Surv(time, status) ~ trt, data = veteran, rmst = 365, risk.table = FALSE)
 #' \donttest{
 #' if (requireNamespace("patchwork", quietly = TRUE)) {
 #'   kmplot(Surv(time, status) ~ trt, data = veteran,
@@ -88,9 +110,12 @@ kmplot <- function(formula, data,
                    title = NULL, xlab = "Time", ylab = NULL,
                    breaks = NULL, pval = TRUE, risk.table = TRUE,
                    conf.int = FALSE, colors = NULL, legend.pos = NULL,
-                   pval.pos = NULL, base_size = 10) {
+                   pval.pos = NULL, base_size = 10,
+                   conf.type = c("log-log", "log", "plain"), rmst = NULL, naive = FALSE,
+                   table.height = NULL, subtitle = NULL, caption = NULL) {
   stopifnot(is.data.frame(data))
-  fit <- survival::survfit(formula, data = data)
+  conf.type <- match.arg(conf.type)
+  fit <- survival::survfit(formula, data = data, conf.type = conf.type)
   multi <- inherits(fit, "survfitms")
   if (multi && missing(type)) type <- "risk"
   type <- match.arg(type)
@@ -103,21 +128,25 @@ kmplot <- function(formula, data,
       stop("`model` curves are not available for competing-risks data.", call. = FALSE)
     events <- fit$states[-1]
     if (is.null(event)) event <- events[1]
-    if (!event %in% events)
+    if (!all(event %in% events))
       stop("`event` must be one of: ", paste(events, collapse = ", "), ".", call. = FALSE)
-  }
+  } else if (isTRUE(naive)) stop("`naive` applies to competing-risks data only.", call. = FALSE)
+  if (!is.null(rmst) && (multi || type != "survival"))
+    stop("`rmst` shading needs survival curves (`type = \"survival\"`).", call. = FALSE)
   loglog <- type == "cloglog"
   if (loglog) risk.table <- FALSE
   if (is.null(ylab)) {
     ylab <- switch(type, survival = "Survival", cumhaz = "Cumulative hazard",
                    cloglog = "log(-log survival)",
-                   risk = if (multi) paste("Cumulative incidence of", event) else "Risk")
+                   risk = if (!multi) "Risk" else if (length(event) == 1)
+                     paste("Cumulative incidence of", event) else "Cumulative incidence")
   }
 
-  curve <- .kmplot_curve(fit, type, event)
-  groups <- levels(curve$group)
+  curve <- .kmplot_events(fit, type, event)
+  groups <- levels(.kmplot_curve(fit, type, event[1])$group)
+  keys <- levels(curve$group)
   ng <- length(groups)
-  pal <- .kmplot_colors(ng, colors)
+  pal <- .kmplot_colors(length(keys), colors)
 
   tmax <- max(fit$time)
   if (is.null(breaks)) breaks <- pretty(c(0, tmax), n = 6)
@@ -127,25 +156,32 @@ kmplot <- function(formula, data,
   mc <- NULL
   if (!is.null(model)) mc <- .kmplot_model(model, formula, data, fit, groups,
                                            type, model.curve)
-  lt <- c("Kaplan-Meier", if (model.curve == "adjusted") "Adjusted" else "Predicted")
+  if (isTRUE(naive)) mc <- .kmplot_naive(formula, data, event, conf.type)
+  lt <- c(if (multi) "Aalen-Johansen" else "Kaplan-Meier",
+          if (multi) "1 - Kaplan-Meier" else if (model.curve == "adjusted") "Adjusted" else "Predicted")
 
   p <- ggplot2::ggplot(curve, ggplot2::aes(.data$time, .data$est,
                                            colour = .data$group))
+  if (!is.null(rmst)) p <- p + .kmplot_rmst(curve, rmst, pal, base_size)
   if (isTRUE(conf.int)) {
     p <- p + ggplot2::geom_ribbon(
       data = .kmplot_stepband(curve),
       ggplot2::aes(ymin = .data$lo, ymax = .data$hi, fill = .data$group),
       alpha = 0.12, colour = NA
-    ) + ggplot2::scale_fill_manual(values = pal, guide = "none")
+    )
   }
+  if (isTRUE(conf.int) || (!is.null(rmst) && ng != 2))
+    p <- p + ggplot2::scale_fill_manual(values = pal, guide = "none")
   if (is.null(mc)) {
     p <- p + ggplot2::geom_step(linewidth = 0.6)
   } else {
     p <- p +
       ggplot2::geom_step(ggplot2::aes(linetype = lt[1]), linewidth = 0.6) +
-      ggplot2::geom_line(data = mc, ggplot2::aes(linetype = lt[2]), linewidth = 0.6) +
+      (if (multi) ggplot2::geom_step else ggplot2::geom_line)(
+        data = mc, ggplot2::aes(linetype = lt[2]), linewidth = 0.6) +
       ggplot2::scale_linetype_manual(values = stats::setNames(c("solid", "22"), lt),
-                                     breaks = lt)
+                                     breaks = lt,
+                                     guide = ggplot2::guide_legend(position = "top"))
   }
   if (!loglog) {
     p <- p + ggplot2::geom_point(data = curve[curve$cens > 0, , drop = FALSE],
@@ -161,18 +197,19 @@ kmplot <- function(formula, data,
     ggplot2::scale_x_continuous(breaks = breaks, limits = xlim)
   p <- p +
     ggplot2::scale_colour_manual(values = pal) +
-    ggplot2::labs(x = if (isTRUE(risk.table)) NULL else xlab, y = ylab,
-                  title = title, linetype = NULL) +
+    ggplot2::labs(x = xlab, y = ylab, title = title, subtitle = subtitle, caption = caption,
+                  linetype = NULL) +
     ggplot2::theme_classic(base_size = base_size) +
     ggplot2::theme(
-      legend.position = if (ng > 1 || !is.null(mc)) "inside" else "none",
+      legend.position = if (length(keys) > 1 || !is.null(mc)) "inside" else "none",
       legend.position.inside = legend.pos,
       legend.justification = legend.pos,
       legend.title = ggplot2::element_blank(),
       legend.background = ggplot2::element_blank(),
-      legend.key.width = ggplot2::unit(1.6, "lines")
+      legend.key.width = ggplot2::unit(1.6, "lines"),
+      legend.margin = ggplot2::margin(0, 0, 0, 0)
     )
-  if (ng < 2) p <- p + ggplot2::guides(colour = "none")
+  if (length(keys) < 2) p <- p + ggplot2::guides(colour = "none")
 
   if ((multi || loglog) && !is.character(pval)) pval <- FALSE
   label <- .kmplot_pval(pval, formula, data, ng)
@@ -187,7 +224,7 @@ kmplot <- function(formula, data,
   if (!requireNamespace("patchwork", quietly = TRUE)) {
     warning("Package 'patchwork' is needed for the risk table; returning the curve only.",
             call. = FALSE)
-    return(p + ggplot2::labs(x = xlab))
+    return(p)
   }
 
   nr <- summary(fit, times = breaks, extend = TRUE)
@@ -197,17 +234,89 @@ kmplot <- function(formula, data,
     group = if (is.null(nr$strata)) "All" else .kmplot_labels(as.character(nr$strata))
   )
   tab$group <- factor(tab$group, levels = rev(groups))
+  # rows take the curve colours when the colours code the groups only
+  tcol <- if (identical(keys, groups)) rev(pal) else rep("grey20", ng)
   r <- ggplot2::ggplot(tab, ggplot2::aes(.data$time, .data$group,
                                          label = .data$n, colour = .data$group)) +
     ggplot2::geom_text(size = base_size * 0.3) +
     ggplot2::scale_x_continuous(breaks = breaks, limits = xlim) +
-    ggplot2::scale_colour_manual(values = rev(pal)) +
-    ggplot2::labs(x = xlab, y = NULL) +
+    ggplot2::scale_colour_manual(values = tcol) +
+    ggplot2::labs(x = NULL, y = NULL, subtitle = "Number at risk") +
     ggplot2::theme_classic(base_size = base_size - 1) +
     ggplot2::theme(legend.position = "none",
-                   axis.line.y = ggplot2::element_blank(),
-                   axis.ticks.y = ggplot2::element_blank())
-  p / r + patchwork::plot_layout(heights = c(4, 1))
+                   plot.subtitle = ggplot2::element_text(size = base_size - 1),
+                   axis.line = ggplot2::element_blank(),
+                   axis.ticks = ggplot2::element_blank(),
+                   axis.text.x = ggplot2::element_blank())
+  # the curve panel carries the time axis; the table needs only its rows
+  if (is.null(table.height)) table.height <- 0.08 + 0.07 * ng
+  p / r + patchwork::plot_layout(heights = c(1, table.height))
+}
+
+# Curves of one or several competing events. With several, the colour key is the event
+# (one group) or "group, event".
+.kmplot_events <- function(fit, type, event) {
+  if (length(event) < 2) return(.kmplot_curve(fit, type, event))
+  d <- lapply(event, function(e) {
+    x <- .kmplot_curve(fit, type, e)
+    x$event <- e
+    x
+  })
+  d <- do.call(rbind, d)
+  ng <- nlevels(d$group)
+  key <- if (ng == 1) d$event else paste(d$group, d$event, sep = ", ")
+  lev <- if (ng == 1) event else paste(rep(levels(d$group), each = length(event)), event, sep = ", ")
+  d$group <- factor(key, lev)
+  d$event <- NULL
+  d
+}
+
+# Naive 1 - Kaplan-Meier of each event, censoring the competing events, keyed as the
+# Aalen-Johansen curves.
+.kmplot_naive <- function(formula, data, event, conf.type) {
+  data$.kmt <- eval(formula[[2]][[2]], data, environment(formula))
+  st <- eval(formula[[2]][[3]], data, environment(formula))
+  f <- formula
+  f[[2]] <- quote(survival::Surv(.kmt, .kme))
+  d <- do.call(rbind, lapply(event, function(e) {
+    data$.kme <- as.integer(st == e)
+    x <- .kmplot_curve(survival::survfit(f, data = data, conf.type = conf.type), "risk")
+    x$event <- e
+    x
+  }))
+  ng <- nlevels(d$group)
+  if (length(event) > 1)
+    d$group <- if (ng == 1) d$event else paste(d$group, d$event, sep = ", ")
+  d$event <- NULL
+  d
+}
+
+# RMST shading up to tau: between the curves for two groups, under each curve otherwise,
+# plus a dashed line at tau.
+.kmplot_rmst <- function(curve, tau, pal, base_size) {
+  sf <- lapply(split(curve, curve$group), function(x) {
+    x <- x[x$time <= tau, , drop = FALSE]
+    function(t) x$est[findInterval(t, x$time)]
+  })
+  u <- sort(unique(c(curve$time[curve$time <= tau], tau)))
+  # step form: the value at u[k] holds on [u[k], u[k + 1])
+  step <- function(f) rep(f(u[-length(u)]), each = 2)
+  xs <- rep(u, each = 2)[-c(1, 2 * length(u))]
+  vline <- list(ggplot2::geom_vline(xintercept = tau, linetype = 2, colour = "grey50"),
+                ggplot2::annotate("text", x = tau, y = 0.02, hjust = -0.1, size = base_size * 0.28,
+                                  label = paste("tau ==", tau), parse = TRUE, colour = "grey30"))
+  if (length(sf) == 2) {
+    a <- step(sf[[1]]); b <- step(sf[[2]])
+    d <- data.frame(time = xs, lo = pmin(a, b), hi = pmax(a, b))
+    return(c(list(ggplot2::geom_ribbon(data = d, ggplot2::aes(.data$time, ymin = .data$lo,
+                                                               ymax = .data$hi),
+                                       inherit.aes = FALSE, fill = "grey60", alpha = 0.35)), vline))
+  }
+  d <- do.call(rbind, lapply(names(sf), function(g)
+    data.frame(time = xs, hi = step(sf[[g]]), group = factor(g, levels(curve$group)))))
+  c(list(ggplot2::geom_ribbon(data = d, ggplot2::aes(.data$time, ymin = 0, ymax = .data$hi,
+                                                     fill = .data$group),
+                              inherit.aes = FALSE, alpha = 0.15)), vline)
 }
 
 # Step data for each group, with a row at time 0 so every curve starts at
@@ -359,9 +468,7 @@ kmplot <- function(formula, data,
     if (length(colors) < n) stop("`colors` needs at least ", n, " values.", call. = FALSE)
     return(unname(colors[seq_len(n)]))
   }
-  base <- c("#1b6ca8", "#c0392b", "#2e8b57", "#d68910", "#6c3483",
-            "#17a2b8", "#7f8c8d", "#8b4513")
-  if (n <= length(base)) base[seq_len(n)] else grDevices::colorRampPalette(base)(n)
+  .okabe(n)
 }
 
 .kmplot_pval <- function(pval, formula, data, ng) {

@@ -129,7 +129,7 @@ test_that("compare() reports the real error when a metric fails on parallel work
   tm <- c(23.5, 62, 145.75)
   msg <- function(nc) tryCatch(
     compare(vet_form, d, models = c("coxph", "rsf"), times = tm, resampling = cv(v = 3, seed = 1),
-            metrics = c("cindex", "brier"), ncores = nc),
+            metrics = c("cindex", "ece"), ncores = nc),
     error = function(e) conditionMessage(e)
   )
   expect_match(msg(1), "single evaluation time")

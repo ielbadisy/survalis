@@ -4,12 +4,13 @@
 \alias{plot.survalis_compare}
 \title{Plot a model comparison}
 \usage{
-\method{plot}{survalis_compare}(x, title, scales = "free_x", ...)
+\method{plot}{survalis_compare}(x, title = NULL, scales = "free_x", subtitle = NULL, caption = NULL, ...)
 }
 \arguments{
 \item{x}{A \code{survalis_compare} object.}
 
-\item{title}{Plot title; \code{NULL} for none.}
+\item{title, subtitle, caption}{Plot title, subtitle and caption; \code{NULL}
+(default) draws none.}
 
 \item{scales}{Passed to \code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}}: \code{"free_x"} (default) gives
 each metric its own value axis, \code{"fixed"} one shared axis.}

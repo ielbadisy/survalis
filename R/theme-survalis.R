@@ -71,3 +71,32 @@ scale_color_survalis <- function(...) {
 scale_fill_survalis <- function(...) {
   ggplot2::discrete_scale("fill", palette = .survalis_pal, ...)
 }
+
+# Discrete colours through the theme palette (ggplot2 >= 4.0) rather than a scale, so that a
+# scale_colour_manual() added by the user replaces them without the "Scale for colour is
+# already present" message. Older ggplot2 falls back to a scale.
+.colour_palette <- function(p, values, fill = FALSE) {
+  if (utils::packageVersion("ggplot2") >= "4.0.0") {
+    th <- if (fill) ggplot2::theme(palette.fill.discrete = values) else
+      ggplot2::theme(palette.colour.discrete = values)
+    return(p + th)
+  }
+  p + if (fill) ggplot2::scale_fill_manual(values = values) else
+    ggplot2::scale_colour_manual(values = values)
+}
+
+# Labels of times: `NULL` gives "t = 365", a string is the unit ("t = 365 days"), a function maps
+# the times to labels. `.time_labeller()` wraps it for facet_wrap().
+.time_lab <- function(time.labels, t) {
+  if (is.function(time.labels)) return(as.character(time.labels(t)))
+  paste0("t = ", t, if (!is.null(time.labels)) paste0(" ", time.labels))
+}
+.time_labeller <- function(time.labels) {
+  ggplot2::as_labeller(function(t) .time_lab(time.labels, as.numeric(t)))
+}
+
+# Blue and vermillion first, then the rest of the Okabe-Ito palette, then black.
+.okabe <- function(n) {
+  v <- c("#0072B2", "#D55E00", "#009E73", "#E69F00", "#CC79A7", "#56B4E9", "#F0E442", "#000000")
+  if (n <= length(v)) v[seq_len(n)] else grDevices::colorRampPalette(v)(n)
+}

@@ -84,7 +84,11 @@ compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
   diffs <- as.matrix(predict_function(model, hi, times = times)) -
     as.matrix(predict_function(model, lo, times = times))
   nk <- tabulate(bin, K)
-  local <- rowsum(diffs, factor(bin, levels = seq_len(K))) / pmax(nk, 1L)
+  # rowsum() drops empty bins (a quantile grid on a discrete feature), so place its rows by bin
+  r <- rowsum(diffs, bin)
+  local <- matrix(0, K, n_times)
+  local[as.integer(rownames(r)), ] <- r
+  local <- local / pmax(nk, 1L)
   ale_mat <- rbind(0, matrix(apply(local, 2L, cumsum), nrow = K, ncol = n_times))
   # centre with the bin-count weights, using the mid-bin value of each bin
   mids <- (ale_mat[-1, , drop = FALSE] + ale_mat[-(K + 1L), , drop = FALSE]) / 2
@@ -116,9 +120,8 @@ compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
 #'   `"integrated"` to plot the time-averaged ALE (requires multiple `times`).
 #' @param smooth Logical; if `TRUE`, overlays a LOESS smooth on the plotted
 #'   curve(s).
-#' @param title Plot title. If missing, an automatically generated title is
-#'   used. Pass `NULL` to omit the title entirely (e.g., for journals
-#'   requiring caption-only figures).
+#' @param title Plot title; `NULL` (default) draws none.
+#' @param time.labels Legend labels of the times, as in `plot_pdp()`.
 #'
 #' @details
 #' Per-time plots show how the feature's local effect varies across different
@@ -142,22 +145,23 @@ compute_ale <- function(model, newdata, feature, times, grid.size = 20) {
 #' @seealso `compute_ale()`, `compute_pdp()`, `plot_pdp()`
 #' @noRd
 
-plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), smooth = FALSE, title) {
+plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), smooth = FALSE,
+                     title = NULL, time.labels = NULL) {
   which <- match.arg(which)
 
   if (which == "per_time") {
     df <- ale_result$ale
     df_long <- basetable::tolong(df, cols = names(df)[-1], names = "time",
                                  values = "ale", idcols = "feature_value")
-    df_long$time <- gsub("t=", "", df_long$time)
-    if (missing(title)) title <- paste("ALE curves for", feature)
+    tt <- as.numeric(gsub("t=", "", df_long$time))
+    df_long$time <- factor(tt, sort(unique(tt)), .time_lab(time.labels, sort(unique(tt))))
 
     p <- ggplot(df_long, aes(x = feature_value, y = ale, color = time, group = time)) +
       geom_hline(yintercept = 0, linetype = "dashed", color = "gray40") +
       geom_line() +
-      scale_color_survalis() +
-      labs(x = feature, y = "ALE effect") +
+      labs(x = feature, y = "ALE effect", color = NULL) +
       theme_survalis()
+    p <- .colour_palette(p, .okabe(nlevels(df_long$time)))
     if (!is.null(title)) p <- p + labs(title = title)
     if (smooth) p <- p + geom_smooth(se = FALSE, method = "loess")
     return(p)
@@ -165,16 +169,15 @@ plot_ale <- function(ale_result, feature, which = c("per_time", "integrated"), s
 
   if (which == "integrated" && !is.null(ale_result$integrated)) {
     df <- ale_result$integrated
-    if (missing(title)) title <- paste("Integrated ALE curve for", feature)
 
     p <- ggplot(df, aes(x = feature_value, y = integrated_ale)) +
       geom_hline(yintercept = 0, linetype = "dashed", color = "gray40") +
-      geom_line(color = .survalis_palette[1]) +
-      geom_point(color = .survalis_palette[1]) +
+      geom_line(color = "#0072B2") +
+      geom_point(color = "#0072B2") +
       labs(x = feature, y = "Integrated ALE") +
       theme_survalis()
     if (!is.null(title)) p <- p + labs(title = title)
-    if (smooth) p <- p + geom_smooth(se = FALSE, method = "loess", color = .survalis_palette[2])
+    if (smooth) p <- p + geom_smooth(se = FALSE, method = "loess", color = "#D55E00")
     return(p)
   }
 

@@ -50,9 +50,10 @@ names of the form \code{"t=<time>"}.}
 \item{resampling}{A resampling spec from \code{\link[=cv]{cv()}}, \code{\link[=holdout]{holdout()}}, \code{\link[=groupcv]{groupcv()}} or
 \code{\link[=bootstrap]{bootstrap()}} (default \code{cv()}).}
 
-\item{metrics}{Character vector from \code{listmetrics()$metric}. \code{"brier"},
-\code{"ece"}, \code{"survacc"} and range scores such as \code{"range:0.05-0.20"} require
-a single \code{times} value (see \code{\link[=dwscore]{dwscore()}}).}
+\item{metrics}{Character vector from \code{listmetrics()$metric}. \code{"ece"},
+\code{"survacc"} and range scores such as \code{"range:0.05-0.20"} require a single
+\code{times} value (see \code{\link[=dwscore]{dwscore()}}). \code{"brier"} with several \code{times} gives one
+metric per time, \code{"brier@<time>"}; with one time it is \code{"brier"}.}
 
 \item{ncores}{Cores for the split loop (default \code{1}).}
 

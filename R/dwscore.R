@@ -196,16 +196,17 @@ dwscore <- function(object, y, times = NULL,
 
 ## Validate metric ids against the time grid before any model is fitted, so a
 ## bad request fails at once rather than after a full resampling run.
+## `multi = TRUE` (evaluate, compare): "brier" over several times scores each time.
 #' @keywords internal
 #' @noRd
-.check_metrics <- function(metrics, times) {
+.check_metrics <- function(metrics, times, multi = FALSE) {
   bad <- metrics[!.is_metric(metrics)]
   if (length(bad)) {
     stop("Unknown metric(s): ", paste(sQuote(bad), collapse = ", "),
          ". See listmetrics().", call. = FALSE)
   }
   for (m in metrics[grepl("^range:", metrics)]) .parse_range_metric(m)
-  single <- metrics[metrics %in% c("brier", "ece", "survacc") |
+  single <- metrics[metrics %in% c(if (!multi) "brier", "ece", "survacc") |
                       grepl("^range:", metrics)]
   if (length(single) && length(times) != 1L) {
     stop("Metric(s) ", paste(sQuote(single), collapse = ", "),

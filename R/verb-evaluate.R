@@ -28,9 +28,10 @@
 #'   names of the form `"t=<time>"`.
 #' @param resampling A resampling spec from [cv()], [holdout()], [groupcv()] or
 #'   [bootstrap()] (default `cv()`).
-#' @param metrics Character vector from `listmetrics()$metric`. `"brier"`,
-#'   `"ece"`, `"survacc"` and range scores such as `"range:0.05-0.20"` require
-#'   a single `times` value (see [dwscore()]).
+#' @param metrics Character vector from `listmetrics()$metric`. `"ece"`,
+#'   `"survacc"` and range scores such as `"range:0.05-0.20"` require a single
+#'   `times` value (see [dwscore()]). `"brier"` with several `times` gives one
+#'   metric per time, `"brier@<time>"`; with one time it is `"brier"`.
 #' @param ncores Cores for the split loop (default `1`).
 #' @param ... Unused.
 #'
@@ -69,7 +70,7 @@ evaluate.survalis_fit <- function(object, newdata = NULL, times = NULL,
            paste(sQuote(need), collapse = ", "), ".", call. = FALSE)
     }
     newdata <- .complete_cases_df(newdata, all.vars(object$formula))
-    if (!is.null(times)) .check_metrics(metrics, times)
+    if (!is.null(times)) .check_metrics(metrics, times, multi = TRUE)
     S <- predict(object, newdata = newdata, times = times)
     y <- survival::Surv(newdata[[parsed$time_col]], .recode_status_vec(parsed, newdata))
     out <- evaluate.matrix(S, y = y, times = attr(S, "times"), metrics = metrics)
@@ -99,7 +100,7 @@ evaluate.matrix <- function(object, y, times = NULL,
   if (!inherits(y, "Surv")) stop("`y` must be a Surv() object.", call. = FALSE)
   inp <- .survmat_input(object, NROW(y), times)
   P <- inp$S; times <- inp$times
-  .check_metrics(metrics, times)
+  .check_metrics(metrics, times, multi = TRUE)
   colnames(P) <- paste0("t=", times)
   sc <- .score_metrics(y, as.data.frame(P), times, metrics)
   per <- data.frame(id = "supplied", metric = sc$metric, value = sc$value,
@@ -163,12 +164,12 @@ evaluate.matrix <- function(object, y, times = NULL,
   data <- .complete_cases_df(data, all.vars(formula))
   status <- .recode_status_vec(parsed, data)
   times <- .resolve_times(times, data[[parsed$time_col]], status)
-  .check_metrics(metrics, times)
+  .check_metrics(metrics, times, multi = TRUE)
 
   splits <- .make_splits(resampling, data, parsed$status_col)
   per <- .evaluate_splits(splits, formula, data, model, as.list(spec), times,
                           metrics, parsed, ncores)
-  summ <- cv_summary(per)
+  summ <- .order_bytime(cv_summary(per))
 
   structure(
     list(per_split = per, summary = as.data.frame(summ), times = times,
@@ -204,8 +205,96 @@ print.survalis_eval <- function(x, ...) {
 #' @export
 summary.survalis_eval <- function(object, ...) object$summary
 
+#' Plot an evaluation
+#'
+#' `type = "metrics"` draws one panel per metric with the per-split values as a
+#' box plot and points; each panel has its own value axis and its strip says
+#' whether higher or lower is better. `type = "time"` draws the time-specific
+#' metrics (`"brier"` evaluated at several `times`, stored as `"brier@<time>"`)
+#' against time: the mean over the splits with its 95% interval, or the single
+#' value when the predictions were scored once.
+#'
+#' @param x A `survalis_eval` object.
+#' @param type `"metrics"` (default) or `"time"`.
+#' @param reference For `type = "time"`: an optional second `survalis_eval` on
+#'   the same times, drawn dashed in grey, for example the Kaplan-Meier curve
+#'   given to everyone (`evaluate()` on a matrix).
+#' @param labels For `type = "time"`: legend labels of `x` and `reference`.
+#'   `NULL` uses their model names.
+#' @param xlab For `type = "time"`: the time axis label.
+#' @param time.labels For `type = "time"`: `NULL` labels the evaluation times as
+#'   they are; a function maps them to labels, e.g. `function(t) t / 365`.
+#' @param title,subtitle,caption Plot title, subtitle and caption; `NULL`
+#'   (default) draws none.
+#' @param ... Unused.
+#' @return A ggplot.
+#' @examples
+#' m <- fit(Surv(time, status) ~ age + karno, veteran, "coxph")
+#' ev <- evaluate(m, times = c(30, 90, 180), resampling = cv(3, seed = 1),
+#'                metrics = c("cindex", "brier"))
+#' plot(ev)
+#' km <- summary(survival::survfit(Surv(time, status) ~ 1, veteran), times = c(30, 90, 180))$surv
+#' ref <- evaluate(matrix(km, nrow(veteran), 3, byrow = TRUE),
+#'                 y = Surv(veteran$time, veteran$status), times = c(30, 90, 180),
+#'                 metrics = "brier")
+#' plot(ev, type = "time", reference = ref, labels = c("Cox model", "Kaplan-Meier"),
+#'      xlab = "Days")
 #' @export
-plot.survalis_eval <- function(x, title, ...) {
-  if (missing(title)) title <- sprintf("Resampled performance: %s", x$model)
-  cv_plot(x$per_split, title = title)
+plot.survalis_eval <- function(x, type = c("metrics", "time"), reference = NULL, labels = NULL,
+                               xlab = "Time", time.labels = NULL, title = NULL,
+                               subtitle = NULL, caption = NULL, ...) {
+  type <- match.arg(type)
+  if (type == "metrics") {
+    return(cv_plot(x$per_split, title = title) + ggplot2::labs(subtitle = subtitle, caption = caption))
+  }
+  d <- .eval_bytime(x)
+  if (!nrow(d)) stop("`type = \"time\"` needs a metric scored at several times, such as ",
+                     "`metrics = \"brier\"` with several `times`.", call. = FALSE)
+  if (is.null(labels)) labels <- c(x$model, reference$model)
+  if (!is.null(reference)) {
+    if (labels[1] == labels[2]) labels <- c("Model", "Reference")
+    r <- .eval_bytime(reference)
+    d <- rbind(cbind(d, curve = labels[1]), cbind(r, curve = labels[2]))
+  } else d$curve <- labels[1]
+  labels <- labels[seq_len(1 + !is.null(reference))]
+  d$curve <- factor(d$curve, labels)
+  col <- stats::setNames(c("black", "grey55")[seq_along(labels)], labels)
+  p <- ggplot2::ggplot(d, ggplot2::aes(.data$time, .data$mean, colour = .data$curve,
+                                       linetype = .data$curve, shape = .data$curve))
+  if (any(is.finite(d$lower))) {
+    p <- p + ggplot2::geom_errorbar(ggplot2::aes(ymin = .data$lower, ymax = .data$upper),
+                                    width = 0, linetype = "solid", na.rm = TRUE)
+  }
+  p + ggplot2::geom_line() + ggplot2::geom_point(size = 2, fill = "white") +
+    ggplot2::scale_colour_manual(values = col) +
+    ggplot2::scale_linetype_manual(values = stats::setNames(c("solid", "22")[seq_along(labels)], labels)) +
+    ggplot2::scale_shape_manual(values = stats::setNames(c(19, 21)[seq_along(labels)], labels)) +
+    ggplot2::scale_y_continuous(limits = c(0, NA)) +
+    ggplot2::scale_x_continuous(breaks = unique(d$time),
+                                labels = if (is.null(time.labels)) ggplot2::waiver() else time.labels) +
+    ggplot2::facet_wrap(~ metric, scales = "free_y") +
+    ggplot2::labs(x = xlab, y = if (length(unique(d$metric)) == 1) .metric_name(d$metric[1]) else NULL,
+                  colour = NULL, linetype = NULL, shape = NULL,
+                  title = title, subtitle = subtitle, caption = caption) +
+    theme_survalis() +
+    ggplot2::theme(strip.text = if (length(unique(d$metric)) == 1) ggplot2::element_blank() else
+      ggplot2::element_text(face = "bold"),
+      legend.position = if (is.null(reference)) "none" else "bottom")
 }
+
+# "brier@365" before "brier@1095": time-specific rows in time order, the rest as before.
+.order_bytime <- function(s) {
+  tt <- suppressWarnings(as.numeric(sub("^[^@]*@?", "", s$metric)))
+  s <- s[order(sub("@.*", "", s$metric), tt), , drop = FALSE]
+  rownames(s) <- NULL
+  s
+}
+
+# Time-specific metrics ("brier@365") of an evaluation: metric, time, mean, lower, upper.
+.eval_bytime <- function(x) {
+  s <- x$summary[grepl("@", x$summary$metric), , drop = FALSE]
+  data.frame(metric = sub("@.*", "", s$metric), time = as.numeric(sub(".*@", "", s$metric)),
+             mean = s$mean, lower = s$lower, upper = s$upper)
+}
+
+.metric_name <- function(m) switch(m, brier = "Brier score", m)
