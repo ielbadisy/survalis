@@ -11,6 +11,12 @@
   OpenMP thread each (which also stops thread oversubscription), loading
   the caller’s attached packages (bug fix). A custom learner run with
   `ncores > 1` must not rely on other objects of the global environment.
+- `predict(type = "rmst")` and the RMST route of
+  [`estimate()`](https://elbadisyimad.com/survalis/reference/estimate.md)
+  called the deprecated
+  [`tvrmst::as_survmat()`](https://rdrr.io/pkg/tvrmst/man/tvrmst-deprecated.html)
+  / `rmst_dynamic()` (one warning per call); they now use `assurvmat()`
+  / `rmstdynamic()` and need tvrmst \>= 0.0.9 (bug fix).
 
 ## survalis 2.4.6
 
@@ -690,7 +696,7 @@ datasets.
   interpolating into it. For example, on a grid of `0:5`, `tau = 3.5`
   returned the same value as `tau = 3` (wrong). RMST computation is now
   delegated to
-  [`tvrmst::rmst_dynamic()`](https://rdrr.io/pkg/tvrmst/man/rmst_dynamic.html),
+  [`tvrmst::rmst_dynamic()`](https://rdrr.io/pkg/tvrmst/man/tvrmst-deprecated.html),
   with per-subject linear interpolation to `tau` on top of its
   cumulative trapezoidal curve. Values for `tau` that already land
   exactly on a grid point are unchanged; values for off-grid `tau` are
