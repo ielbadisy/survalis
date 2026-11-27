@@ -49,3 +49,13 @@ test_that("verbs warn when they drop incomplete rows", {
   expect_equal(nrow(m$data), 134L)
   expect_silent(fit(Surv(time, status) ~ karno, d, model = "coxph"))
 })
+
+test_that("fit(seed =) reaches survmetalearner's fold seed", {
+  skip_on_cran()
+  f <- Surv(time, status) ~ age + karno; d <- survival::veteran
+  sp <- list(learners = c("coxph", "rpart"), times = c(50, 100, 200))
+  w <- function(s, spec = sp) fit(f, d, model = "survmetalearner", spec = spec, seed = s)$weights
+  expect_equal(w(1), w(1))
+  expect_false(isTRUE(all.equal(w(1), w(2))))
+  expect_equal(w(1, c(sp, seed = 123L)), w(2, c(sp, seed = 123L)))
+})

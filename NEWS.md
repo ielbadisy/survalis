@@ -39,6 +39,9 @@
   header; it now shows one block per horizon (`brier@50`, `brier@100`, ...).
 * `interpret(method = "shap_matrix")` gains a `value` column with each feature value as text, so
   factors show their labels; `raw_value` stays numeric (level codes for factors) for the beeswarm.
+* `fit(model = "survmetalearner", seed = )` now sets the cross-fitting fold seed too; before, the
+  learner always used its own `seed = 123`, so `fit(seed =)` had no effect on the folds. Without
+  `seed`, or with `spec = list(seed = )`, results are unchanged.
 
 # survalis 2.4.6
 

@@ -21,7 +21,8 @@
 #'   `list(alpha = 0.5, s = "lambda.1se")` for `"glmnet"`, which predicts at
 #'   `lambda.min` by default).
 #' @param seed Optional integer seed set immediately before fitting, for learners
-#'   with a stochastic training step.
+#'   with a stochastic training step. For `"survmetalearner"` it also sets the
+#'   cross-fitting fold seed, unless `spec` gives one.
 #' @param ... Not used; engine arguments passed here give an error. Use `spec`.
 #'
 #' @return An object of class `c("survalis_fit", "mlsurv_model")` with elements
@@ -75,8 +76,13 @@ fit <- function(formula, data, model, spec = list(), seed = NULL, ...) {
   if (!nrow(data)) stop("No complete rows for the variables in `formula`.", call. = FALSE)
 
   if (!is.null(seed)) set.seed(as.integer(seed))
+  # survmetalearner sets its own fold seed, so hand it `seed` too
+  args <- spec
+  if (!is.null(seed) && identical(lrn$id, "survmetalearner") && is.null(args$seed)) {
+    args$seed <- as.integer(seed)
+  }
 
-  mlobj <- do.call(lrn$fit, c(list(formula = formula, data = data), spec))
+  mlobj <- do.call(lrn$fit, c(list(formula = formula, data = data), args))
 
   out <- .as_survalis_fit(mlobj, model_id = lrn$id, spec = spec,
                           formula = formula, data = data, parsed = parsed)
