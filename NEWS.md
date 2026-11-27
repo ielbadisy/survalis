@@ -51,6 +51,9 @@
 * Docs: `evaluate()` now says that the default grid is built on the full data before splitting,
   that its split `se` and interval treat overlapping splits as independent, and that `bootstrap()`
   reports the out-of-bag score with no `.632` or optimism correction.
+* The `"rpart"` learner gains `prune = c("none", "min", "1se")` to prune the tree at the cp chosen by
+  its internal cross-validation (`xval`), which was computed but unused. The default `"none"` keeps
+  the previous tree.
 
 # survalis 2.4.6
 

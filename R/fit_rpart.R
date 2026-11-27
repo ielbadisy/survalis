@@ -16,6 +16,9 @@
 #' @param xval Number of cross-validations to perform in `rpart`. Default is `10`.
 #' @param surrogatestyle Controls selection of surrogate splits. Default is `0`.
 #' @param maxdepth Maximum depth of any node of the final tree. Default is `30`.
+#' @param prune Pruning of the grown tree with its internal cross-validation (`xval`):
+#'   `"none"` (default, the tree grown with `cp`), `"min"` (the `cp` of minimum
+#'   cross-validated error) or `"1se"` (the smallest tree within one standard error of it).
 #'
 #' @return An object of class `"mlsurv_model"` containing:
 #' \itemize{
@@ -49,7 +52,8 @@ fit_rpart <- function(formula, data,
                       usesurrogate = 2,
                       xval = 10,
                       surrogatestyle = 0,
-                      maxdepth = 30) {
+                      maxdepth = 30,
+                      prune = c("none", "min", "1se")) {
   stopifnot(requireNamespace("rpart", quietly = TRUE))
 
   method <- "exp"  # fixed to survival tree with exponential splitting
@@ -66,6 +70,12 @@ fit_rpart <- function(formula, data,
     ),
     model = TRUE, x = TRUE, y = TRUE
   )
+  prune <- match.arg(prune)
+  if (prune != "none" && xval > 0) {
+    ct <- model$cptable; i <- which.min(ct[, "xerror"])
+    if (prune == "1se") i <- which(ct[, "xerror"] <= ct[i, "xerror"] + ct[i, "xstd"])[1]
+    model <- rpart::prune(model, cp = ct[i, "CP"])
+  }
 
   structure(list(
     model = model,
