@@ -36,8 +36,9 @@
 #' per-timepoint SurvSHAP(t) panel.
 #'
 #' @return A long data.frame with columns \code{observation}, \code{feature},
-#'   \code{phi} (time-integrated SHAP value), and \code{raw_value} (the
-#'   observation's value for that feature).
+#'   \code{phi} (time-integrated SHAP value), \code{raw_value} (the
+#'   observation's value for that feature, as a number: level code for a factor)
+#'   and \code{value} (the value as text, e.g. the factor label).
 #'
 #' @seealso `compute_shap()`, `plot_shap_beeswarm()`
 #'
@@ -75,6 +76,8 @@ compute_shap_matrix <- function(model, newdata, baseline_data, times, sample.siz
       phi = phi_df$phi,
       raw_value = vapply(phi_df$feature, function(f)
         suppressWarnings(as.numeric(newdata[[f]][i])), numeric(1), USE.NAMES = FALSE),
+      value = vapply(phi_df$feature, function(f) as.character(newdata[[f]][i]), "",
+                     USE.NAMES = FALSE),
       stringsAsFactors = FALSE
     )
   })

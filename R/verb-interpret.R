@@ -38,7 +38,10 @@
 #'   `time`, `ale`), and for `"calibration"` the binned table with its
 #'   `eval_time`. For `"pdp"` and `"ale"`, `as.data.frame(x, what =
 #'   "integrated")` returns the curve integrated over time instead (`feature`,
-#'   `feature_value`, `integrated`).
+#'   `feature_value`, `integrated`). For `"shap_matrix"` it is one row per
+#'   observation and feature: `observation`, `feature`, `phi`, `raw_value`
+#'   (numeric; the level code for a factor, used to colour the beeswarm) and
+#'   `value` (the value as text, e.g. the factor label).
 #'
 #' @seealso For scalar summaries use [evaluate()]: `metrics = "ece"` summarises
 #'   calibration and `metrics = "auc"` summarises the ROC curve.
