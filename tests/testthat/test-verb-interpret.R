@@ -196,3 +196,14 @@ test_that("every interpret() method prints and has a tidy data frame form", {
   r$result <- list(a = 1:2, b = 1:3)
   expect_error(as.data.frame(r), "No data frame form")
 })
+
+test_that("interpret(seed =) makes sampling methods reproducible", {
+  skip_verb()
+  m <- mk()
+  sh <- function(...) as.data.frame(interpret(m, "shap", newdata = veteran[5, ], times = c(90, 180),
+                                              sample.size = 5, ...))
+  expect_identical(sh(seed = 3), sh(seed = 3))
+  set.seed(9); a <- sh(); set.seed(9); expect_identical(a, sh())
+  v <- function() as.data.frame(interpret(m, "varimp", times = c(90, 180), seed = 2))
+  expect_identical(v(), v())
+})

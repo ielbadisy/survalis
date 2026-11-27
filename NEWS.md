@@ -56,6 +56,8 @@
   the previous tree.
 * The `"coxboost"` learner gains `cv = FALSE, K = 10`: with `cv = TRUE` the number of boosting steps
   is chosen by `CoxBoost::cv.CoxBoost()` up to `stepno`. The default keeps the fixed `stepno = 100`.
+* `interpret()` gains `seed = NULL` (after `...`), set before the method runs, so sampling methods
+  (`"shap"`, `"interaction"`, `"varimp"`, ...) are reproducible.
 
 # survalis 2.4.6
 
