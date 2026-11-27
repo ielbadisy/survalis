@@ -46,6 +46,17 @@
 #'   (numeric; the level code for a factor, used to colour the beeswarm) and
 #'   `value` (the value as text, e.g. the factor label).
 #'
+#' @details
+#' `"shap"`, `"counterfactual"` and `"surrogate"` explain one observation: pass a
+#' one-row `newdata` (use `"shap_matrix"` for SHAP values of many rows).
+#' `"surrogate"` is a locally weighted lasso fitted to predicted survival at one
+#' `target_time`; it is not SurvLIME, which explains the whole cumulative hazard.
+#' `"counterfactual"` changes one feature at a time, prices a numeric change in the
+#' feature's raw units, and by default may change any predictor, immutable ones
+#' included: restrict it with `features_to_change`. The integrated PDP and the SHAP
+#' `"integral"` run from the first to the last of `times`, not from 0, and the
+#' integrated ALE and SHAP `"meanabs"` are unweighted means over the grid points.
+#'
 #' @seealso For scalar summaries use [evaluate()]: `metrics = "ece"` summarises
 #'   calibration and `metrics = "auc"` summarises the ROC curve.
 #'

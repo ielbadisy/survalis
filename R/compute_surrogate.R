@@ -8,6 +8,9 @@
 #' penalized (lasso) or unpenalized linear model is fit to approximate the model's
 #' predicted survival probability at \code{target_time}.
 #'
+#' The explanation is for that single time only. It is not SurvLIME, which fits a
+#' local Cox model to the whole predicted cumulative hazard curve.
+#'
 #' @param model An \code{mlsurv_model} fitted via \code{fit_*()}, containing a valid
 #'   \code{$learner} so that \code{predict_<learner>} can be dispatched.
 #' @param newdata A one-row data frame: the instance to explain (must have the same

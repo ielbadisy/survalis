@@ -207,3 +207,11 @@ test_that("interpret(seed =) makes sampling methods reproducible", {
   v <- function() as.data.frame(interpret(m, "varimp", times = c(90, 180), seed = 2))
   expect_identical(v(), v())
 })
+
+test_that("interpret() rejects multi-row newdata for one-observation methods", {
+  skip_verb()
+  m <- mk()
+  expect_error(interpret(m, "shap", newdata = veteran[1:2, ], times = c(90, 180)), "one row")
+  expect_error(interpret(m, "surrogate", newdata = veteran[1:2, ], times = c(90, 180),
+                         target_time = 90), "one row")
+})
