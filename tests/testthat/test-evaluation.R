@@ -82,7 +82,11 @@ test_that("timeroc_survmat agrees numerically with timeROC::timeROC()", {
     cause = 1, times = times, weighting = "marginal"
   )
 
-  expect_equal(ours$auc, unname(ref$AUC), tolerance = 1e-3)
+  # timeROC drops an event exactly at t; survalis counts it as a case, so they agree
+  # only at times with no event on them
+  ok <- !times %in% veteran$time[veteran$status == 1]
+  expect_equal(ours$auc[ok], unname(ref$AUC)[ok], tolerance = 1e-3)
+  expect_true(any(!ok))
 })
 
 test_that("brier reduces to unweighted score when no censoring; checks length", {
@@ -252,4 +256,18 @@ test_that("evaluate() summary matches its documented se and interval", {
   v <- e$per_split$value[e$per_split$metric == "cindex"]
   expect_equal(e$summary$se, sd(v) / sqrt(4))
   expect_equal(e$summary$upper, mean(v) + 1.96 * sd(v) / sqrt(4))
+})
+
+test_that("auc and roc count an event exactly at the horizon as a case", {
+  d <- survival::veteran; t0 <- 100; expect_true(any(d$time == t0 & d$status == 1))
+  m <- fit(Surv(time, status) ~ age + karno + celltype, d, "coxph")
+  S <- as.data.frame(predict(m, d, times = t0)); r <- 1 - S[, 1]; y <- Surv(d$time, d$status)
+  G <- survival::survfit(Surv(time, 1 - status) ~ 1, d)
+  ca <- which(d$time <= t0 & d$status == 1); co <- which(d$time > t0)
+  w <- 1 / c(1, G$surv)[findInterval(d$time[ca], G$time, left.open = TRUE) + 1]
+  hand <- sum(w * rowSums(outer(r[ca], r[co], ">") + 0.5 * outer(r[ca], r[co], "=="))) /
+    (sum(w) * length(co))
+  expect_equal(unname(auc_survmat(y, S)), hand)
+  cv <- roc_survmat(y, S, t0)$curve
+  expect_equal(cv$sensitivity, vapply(cv$threshold, function(c_) sum(w[r[ca] >= c_]) / sum(w), 0))
 })
