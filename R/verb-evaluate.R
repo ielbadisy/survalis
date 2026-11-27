@@ -32,7 +32,10 @@
 #'   `"survacc"` and range scores such as `"range:0.05-0.20"` require a single
 #'   `times` value (see [dwscore()]). `"brier"` with several `times` gives one
 #'   metric per time, `"brier@<time>"`; with one time it is `"brier"`.
-#' @param ncores Cores for the split loop (default `1`).
+#' @param ncores Number of parallel workers for the split loop (default `1`). Workers are
+#'   fresh R sessions (PSOCK), each with one OpenMP thread, so parallel runs are safe after an
+#'   OpenMP engine (xgboost, rsf) ran in the session. A custom learner must therefore not rely
+#'   on objects of the global environment other than its own arguments.
 #' @param ... Unused.
 #'
 #' @return A `survalis_eval` object: `per_split` (long data frame), `summary`
@@ -146,12 +149,7 @@ evaluate.matrix <- function(object, y, times = NULL,
                stringsAsFactors = FALSE)
   }
 
-  parts <- if (ncores > 1) {
-    functionals::fmapn(list(sp = splits, seed = seeds), function(sp, seed) one(sp, seed),
-                       ncores = ncores, pb = FALSE)
-  } else {
-    Map(one, splits, seeds)
-  }
+  parts <- .pmap(list(splits, seeds), one, ncores)
   .abort_on_worker_error(parts)
   basetable::rbindfill(unname(parts), fill = TRUE)
 }

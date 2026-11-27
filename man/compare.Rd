@@ -40,7 +40,10 @@ data (its default grid) and the winning configuration is then evaluated on
 the shared folds. This is not nested CV, so the tuned results are optimistic;
 a message is emitted. Default \code{FALSE}.}
 
-\item{ncores}{Cores for the split loop (default \code{1}).}
+\item{ncores}{Number of parallel workers for the split loop (default \code{1}). Workers are
+fresh R sessions (PSOCK), each with one OpenMP thread, so parallel runs are safe after an
+OpenMP engine (xgboost, rsf) ran in the session. A custom learner must therefore not rely
+on objects of the global environment other than its own arguments.}
 
 \item{...}{Unused.}
 }

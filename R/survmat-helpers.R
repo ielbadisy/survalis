@@ -502,7 +502,7 @@ plot_survmat <- function(S,
   if (is.null(dim(x))) matrix(x, ncol = 1L) else t(x)
 }
 
-# functionals::fmapn() returns a "try-error" object for a worker that failed instead of
+# .pmap() returns a "try-error" object for a worker that failed instead of
 # raising the error. Left alone, these are dropped downstream and the real message is lost.
 .abort_on_worker_error <- function(parts) {
   bad <- vapply(parts, function(x) inherits(x, "try-error") || inherits(x, "error"), logical(1))
@@ -514,6 +514,39 @@ plot_survmat <- function(S,
   }
   invisible(parts)
 }
+
+# Parallel Map over the elements of `l`. Forked workers (mclapply) hang when the parent has
+# already used OpenMP (xgboost, randomForestSRC, ...): libgomp's thread pool does not survive
+# fork(). Workers are therefore fresh PSOCK sessions, started with one OpenMP/BLAS thread each
+# (no oversubscription). Workers opened by an outer call (tune() over a grid) are reused.
+.par <- new.env(parent = emptyenv())
+.start_workers <- function(ncores) {
+  if (ncores <= 1 || !is.null(.par$cl)) return(FALSE)
+  thr <- c(OMP_NUM_THREADS = "1", OPENBLAS_NUM_THREADS = "1", MKL_NUM_THREADS = "1")
+  old <- Sys.getenv(names(thr), unset = NA)
+  do.call(Sys.setenv, as.list(thr))
+  .par$cl <- parallel::makePSOCKcluster(ncores)
+  for (nm in names(old)) if (is.na(old[[nm]])) Sys.unsetenv(nm) else
+    do.call(Sys.setenv, as.list(old[nm]))
+  # same library paths and attached packages as the caller: formulas and custom learners
+  # are evaluated in the global environment (Surv() needs survival on the search path)
+  parallel::clusterCall(.par$cl, function(lib, pkgs) {
+    .libPaths(lib)
+    for (p in rev(pkgs)) suppressPackageStartupMessages(library(p, character.only = TRUE))
+  }, .libPaths(), .packages())
+  TRUE
+}
+.stop_workers <- function() {
+  parallel::stopCluster(.par$cl); .par$cl <- NULL
+}
+.pmap <- function(l, f, ncores = 1) {
+  if (ncores <= 1) return(do.call(Map, c(list(f), l)))
+  if (.start_workers(ncores)) on.exit(.stop_workers(), add = TRUE)
+  do.call(parallel::clusterMap, c(list(.par$cl, .try_call(f)), l,
+                                  list(SIMPLIFY = FALSE, .scheduling = "dynamic")))
+}
+# built here so the worker function carries only `f`, not the caller's frame
+.try_call <- function(f) function(...) try(f(...), silent = TRUE)
 
 ## Read a step survival curve at new times. `S` holds the curves on the grid
 ## `grid` (rows = observations, columns = grid times, `grid` increasing);

@@ -44,3 +44,16 @@ test_that("summary() returns a wide model-by-metric table and plot() a ggplot", 
   expect_true("model" %in% names(s))
   expect_s3_class(plot(cmp), "ggplot")
 })
+
+test_that("compare(ncores = 2) runs after an OpenMP learner was fitted in the session", {
+  skip_on_cran()
+  d <- na.omit(survival::veteran)
+  f <- Surv(time, status) ~ age + karno
+  fit(f, d, model = "xgboost")
+  run <- function(nc) compare(f, d, models = c("rsf", "xgboost"), times = c(50, 100),
+                              resampling = cv(v = 2, seed = 1), ncores = nc)$per_split
+  r1 <- run(1); r2 <- run(2)
+  # the first learner sees the same split seeds whatever `ncores`
+  expect_equal(r2$value[r2$model == "rsf"], r1$value[r1$model == "rsf"], tolerance = 1e-8)
+  expect_true(all(is.finite(r2$value)))
+})

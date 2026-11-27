@@ -39,7 +39,10 @@ is \code{NULL} or has exactly the columns of the built-in grid; any other
 
 \item{metric}{A single metric to optimise (default \code{"ibs"}).}
 
-\item{ncores}{Cores for the inner CV (default \code{1}).}
+\item{ncores}{Number of parallel workers for the split loop (default \code{1}). Workers are
+fresh R sessions (PSOCK), each with one OpenMP thread, so parallel runs are safe after an
+OpenMP engine (xgboost, rsf) ran in the session. A custom learner must therefore not rely
+on objects of the global environment other than its own arguments.}
 
 \item{...}{Fixed learner arguments: forwarded to the built-in tuner, or
 added to every configuration of a supplied \code{grid}.}

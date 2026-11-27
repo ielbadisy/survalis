@@ -55,7 +55,10 @@ names of the form \code{"t=<time>"}.}
 \code{times} value (see \code{\link[=dwscore]{dwscore()}}). \code{"brier"} with several \code{times} gives one
 metric per time, \code{"brier@<time>"}; with one time it is \code{"brier"}.}
 
-\item{ncores}{Cores for the split loop (default \code{1}).}
+\item{ncores}{Number of parallel workers for the split loop (default \code{1}). Workers are
+fresh R sessions (PSOCK), each with one OpenMP thread, so parallel runs are safe after an
+OpenMP engine (xgboost, rsf) ran in the session. A custom learner must therefore not rely
+on objects of the global environment other than its own arguments.}
 
 \item{data}{When \code{object} is a formula: the data frame.}
 
