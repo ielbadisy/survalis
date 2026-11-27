@@ -52,3 +52,16 @@ test_that("tune_rpart() returns a fitted model when refit_best is TRUE", {
   expect_identical(mod$learner, "rpart")
   expect_true(!is.null(attr(mod, "tuning_results")))
 })
+
+test_that("fit_rpart(prune =) prunes at the cross-validated cp", {
+  skip_if_not_installed("rpart")
+  d <- survival::veteran; f <- Surv(time, status) ~ age + karno + diagtime + celltype
+  set.seed(1); a <- fit_rpart(f, d, cp = 0.001)
+  set.seed(1); b <- fit_rpart(f, d, cp = 0.001, prune = "min")
+  set.seed(1); c1 <- fit_rpart(f, d, cp = 0.001, prune = "1se")
+  ct <- a$model$cptable; i <- which.min(ct[, "xerror"])
+  expect_equal(nrow(b$model$frame), nrow(rpart::prune(a$model, cp = ct[i, "CP"])$frame))
+  expect_lte(nrow(c1$model$frame), nrow(b$model$frame))
+  expect_lt(nrow(b$model$frame), nrow(a$model$frame))
+  set.seed(1); expect_equal(fit_rpart(f, d)$model$frame, fit(f, d, "rpart", seed = 1)$model$frame)
+})
