@@ -69,7 +69,11 @@ compare(
 
 - ncores:
 
-  Cores for the split loop (default `1`).
+  Number of parallel workers for the split loop (default `1`). Workers
+  are fresh R sessions (PSOCK), each with one OpenMP thread, so parallel
+  runs are safe after an OpenMP engine (xgboost, rsf) ran in the
+  session. A custom learner must therefore not rely on objects of the
+  global environment other than its own arguments.
 
 - ...:
 

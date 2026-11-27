@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,11 @@
       <small>Source: <a href="https://github.com/ielbadisy/survalis/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.4.7" id="survalis-247">survalis 2.4.7<a class="anchor" aria-label="anchor" href="#survalis-247"></a></h2>
+<ul><li>
+<code><a href="../reference/compare.html">compare()</a></code>, <code><a href="../reference/evaluate.html">evaluate()</a></code> and <code><a href="../reference/tune.html">tune()</a></code> with <code>ncores &gt; 1</code> hung when an OpenMP engine (xgboost, rsf) had run earlier in the session: forked workers cannot use the parent’s OpenMP thread pool. Parallel splits now run in fresh PSOCK workers with one OpenMP thread each (which also stops thread oversubscription), loading the caller’s attached packages (bug fix). A custom learner run with <code>ncores &gt; 1</code> must not rely on other objects of the global environment.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.4.6" id="survalis-246">survalis 2.4.6<a class="anchor" aria-label="anchor" href="#survalis-246"></a></h2>
 <ul><li>
