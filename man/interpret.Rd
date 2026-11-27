@@ -68,6 +68,17 @@ A single entry point to the package's model-agnostic explanation and
 diagnostic methods. \code{listmethods()} lists the \code{method} ids
 with a one-line description of each.
 }
+\details{
+\code{"shap"}, \code{"counterfactual"} and \code{"surrogate"} explain one observation: pass a
+one-row \code{newdata} (use \code{"shap_matrix"} for SHAP values of many rows).
+\code{"surrogate"} is a locally weighted lasso fitted to predicted survival at one
+\code{target_time}; it is not SurvLIME, which explains the whole cumulative hazard.
+\code{"counterfactual"} changes one feature at a time, prices a numeric change in the
+feature's raw units, and by default may change any predictor, immutable ones
+included: restrict it with \code{features_to_change}. The integrated PDP and the SHAP
+\code{"integral"} run from the first to the last of \code{times}, not from 0, and the
+integrated ALE and SHAP \code{"meanabs"} are unweighted means over the grid points.
+}
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 m <- fit(Surv(time, status) ~ age + karno + celltype, veteran, "ranger",

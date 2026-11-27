@@ -33,6 +33,13 @@
 #' corresponding \code{predict_*} function inferred from \code{model$learner}
 #' (e.g., \code{predict_coxph} for \code{learner = "coxph"}).
 #'
+#' Each row changes one feature alone, holding the others fixed; joint changes are
+#' not searched. The cost of a numeric change is its absolute size in the feature's
+#' raw units (not scaled), so \code{cost_penalty} weighs features measured on
+#' different scales unequally; a categorical change costs 1. By default every
+#' predictor may change, including immutable ones such as age or sex: restrict
+#' the search with \code{features_to_change}.
+#'
 #' @examples
 #' df <- veteran
 #' df$A <- df$trt
