@@ -20,8 +20,9 @@
 #' @param aggregate Logical; if \code{TRUE}, aggregate contributions across
 #'   \code{times} into a single value per feature (see \code{method}).
 #' @param method Character; aggregation method if \code{aggregate=TRUE}:
-#'   \code{"meanabs"} (mean absolute contribution) or \code{"integral"}
-#'   (trapezoidal integral over time). Default \code{"meanabs"}.
+#'   \code{"meanabs"} (mean absolute contribution, unweighted over the grid points)
+#'   or \code{"integral"} (signed trapezoidal integral from the first to the last of
+#'   \code{times}, not from 0). Default \code{"meanabs"}.
 #'
 #' @return
 #' If \code{aggregate = FALSE}: a data frame with columns \code{feature}, \code{phi},

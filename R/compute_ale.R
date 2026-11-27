@@ -30,7 +30,8 @@
 #'   time (`"t=<time>"`) containing centered ALE effects.}
 #'   \item{integrated}{If multiple times were provided, a data frame with
 #'   columns `feature_value` and `integrated_ale` equal to the mean of per-time
-#'   ALE effects across `times`; otherwise `NULL`.}
+#'   ALE effects across `times` (an unweighted mean over the grid points, so
+#'   unevenly spaced times are not weighted by interval length); otherwise `NULL`.}
 #' }
 #'
 #' @examples

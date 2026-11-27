@@ -33,7 +33,8 @@
 #'     \code{surv_prob}, \code{time}, \code{type} (pdp/ice),
 #'     \code{.id} (row id for ICE), and the analyzed \code{feature}.}
 #'   \item{pdp_integrated}{(Optional) Data frame with \code{feature} and
-#'     \code{integrated_surv} (time-integrated PDP), present only if
+#'     \code{integrated_surv} (trapezoidal integral of the PDP from the first to
+#'     the last of \code{times}, not from 0, so it is not an RMST), present only if
 #'     \code{length(times) > 1} and PDP was requested.}
 #' }
 #'
