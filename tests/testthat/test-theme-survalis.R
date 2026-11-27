@@ -19,3 +19,10 @@ test_that(".survalis_pal() recycles/interpolates beyond the base palette length"
   expect_length(.survalis_pal(12), 12)
   expect_true(all(grepl("^#", .survalis_pal(12))))
 })
+
+test_that("single-time ALE and ICE-only plots build (one discrete colour)", {
+  m <- fit(Surv(time, status) ~ age + karno, survival::veteran, model = "coxph")
+  p1 <- plot(interpret(m, "ale", feature = "karno", times = 100))
+  p2 <- plot(interpret(m, "ice", feature = "karno", times = c(50, 100)))
+  for (p in list(p1, p2)) expect_s3_class(ggplot2::ggplot_build(p), "ggplot_built")
+})

@@ -77,8 +77,10 @@ scale_fill_survalis <- function(...) {
 # already present" message. Older ggplot2 falls back to a scale.
 .colour_palette <- function(p, values, fill = FALSE) {
   if (utils::packageVersion("ggplot2") >= "4.0.0") {
-    th <- if (fill) ggplot2::theme(palette.fill.discrete = values) else
-      ggplot2::theme(palette.colour.discrete = values)
+    # a palette function: a single colour string would be read as a palette name
+    pal <- function(n) rep_len(unname(values), n)
+    th <- if (fill) ggplot2::theme(palette.fill.discrete = pal) else
+      ggplot2::theme(palette.colour.discrete = pal)
     return(p + th)
   }
   p + if (fill) ggplot2::scale_fill_manual(values = values) else
