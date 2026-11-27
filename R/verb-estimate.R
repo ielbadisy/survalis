@@ -28,6 +28,7 @@ NO_INTERACT <- c("rpart", "ranger", "orsf", "survsvm")
 #'   **confounders** (the treatment is added by the function, with
 #'   treatment-by-confounder interactions).
 #' @param data A data frame.
+#'   Rows with a missing value in a model variable are dropped with a warning.
 #' @param model A learner id (`listlearners()$learner`) or a custom
 #'   learner (see [fit()]).
 #' @param estimand One of `"RMST_diff"` (default), `"RMST_ratio"`,
@@ -76,7 +77,7 @@ estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio
   parsed <- .parse_surv_formula(formula, data)
   # expand a `.` so the confounder list below is explicit
   formula <- stats::formula(stats::terms(formula, data = data))
-  data <- .complete_cases_df(data, unique(c(all.vars(formula), treatment)))
+  data <- .complete_cases_df(data, unique(c(all.vars(formula), treatment)), warn = TRUE)
 
   lv <- sort(unique(data[[treatment]]))
   if (length(lv) != 2L) stop("`treatment` must have exactly two distinct values.", call. = FALSE)

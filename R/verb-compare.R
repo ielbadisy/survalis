@@ -6,6 +6,7 @@
 #'
 #' @param formula A survival formula.
 #' @param data A data frame.
+#'   Rows with a missing value in a model variable are dropped with a warning.
 #' @param models Character vector of learner ids, or a list mixing ids and
 #'   custom learners (see [fit()]). List names, when given, label the learners.
 #' @param specs Named list of engine-argument lists, keyed by learner label
@@ -53,7 +54,7 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
 
 
   parsed <- .parse_surv_formula(formula, data)
-  data <- .complete_cases_df(data, all.vars(formula))
+  data <- .complete_cases_df(data, all.vars(formula), warn = TRUE)
   status <- .recode_status_vec(parsed, data)
   times <- .resolve_times(times, data[[parsed$time_col]], status)
   .check_metrics(metrics, times, multi = TRUE)

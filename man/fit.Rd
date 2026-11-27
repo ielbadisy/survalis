@@ -10,7 +10,8 @@ fit(formula, data, model, spec = list(), seed = NULL, ...)
 \item{formula}{A survival formula with a \code{Surv()} outcome on the left-hand
 side, e.g. \code{Surv(time, status) ~ age + karno}.}
 
-\item{data}{A data frame containing the formula variables.}
+\item{data}{A data frame containing the formula variables.
+Rows with a missing value in a model variable are dropped with a warning.}
 
 \item{model}{A learner id from \code{listlearners()$learner} (for example
 \code{"coxph"}, \code{"ranger"}, \code{"densemlp"}), or a custom learner: a list with

@@ -20,7 +20,8 @@ compare(
 \arguments{
 \item{formula}{A survival formula.}
 
-\item{data}{A data frame.}
+\item{data}{A data frame.
+Rows with a missing value in a model variable are dropped with a warning.}
 
 \item{models}{Character vector of learner ids, or a list mixing ids and
 custom learners (see \code{\link[=fit]{fit()}}). List names, when given, label the learners.}

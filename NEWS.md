@@ -29,6 +29,9 @@
   printed a "not used" warning at every fit. Predictions are unchanged.
 * `predict()` now passes the arguments of the learner's own prediction function, such as `dist` and
   `shape` for `"survsvm"`; they were silently ignored before (bug fix).
+* `fit()`, `evaluate()`, `compare()`, `tune()` and `estimate()` now warn when they drop rows with
+  missing values in the model variables (complete-case analysis); the drop was silent before.
+  Results are unchanged.
 
 # survalis 2.4.6
 

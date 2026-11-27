@@ -15,6 +15,7 @@
 #' @param object A `survalis_fit` from [fit()], a survival `formula`, or a
 #'   numeric matrix of survival probabilities (rows = subjects, columns = times).
 #' @param data When `object` is a formula: the data frame.
+#'   Rows with a missing value in a model variable are dropped with a warning.
 #' @param model When `object` is a formula: a learner id
 #'   (`listlearners()$learner`) or a custom learner (see [fit()]).
 #' @param spec When `object` is a formula: engine arguments (named list).
@@ -72,7 +73,7 @@ evaluate.survalis_fit <- function(object, newdata = NULL, times = NULL,
       stop("`newdata` must contain the outcome columns ",
            paste(sQuote(need), collapse = ", "), ".", call. = FALSE)
     }
-    newdata <- .complete_cases_df(newdata, all.vars(object$formula))
+    newdata <- .complete_cases_df(newdata, all.vars(object$formula), warn = TRUE)
     if (!is.null(times)) .check_metrics(metrics, times, multi = TRUE)
     S <- predict(object, newdata = newdata, times = times)
     y <- survival::Surv(newdata[[parsed$time_col]], .recode_status_vec(parsed, newdata))
@@ -159,7 +160,7 @@ evaluate.matrix <- function(object, y, times = NULL,
                            metrics, ncores = 1) {
   .resolve_learner(model)
   parsed <- .parse_surv_formula(formula, data)
-  data <- .complete_cases_df(data, all.vars(formula))
+  data <- .complete_cases_df(data, all.vars(formula), warn = TRUE)
   status <- .recode_status_vec(parsed, data)
   times <- .resolve_times(times, data[[parsed$time_col]], status)
   .check_metrics(metrics, times, multi = TRUE)

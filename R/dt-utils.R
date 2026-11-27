@@ -37,11 +37,16 @@
   basetable::asbasetable(out)
 }
 
-.complete_cases_df <- function(data, vars) {
+.complete_cases_df <- function(data, vars, warn = FALSE) {
   # a `.` in the formula stands for every column
   if ("." %in% vars) vars <- names(data)
   vars <- intersect(vars, names(data))
-  data[stats::complete.cases(data[, vars, drop = FALSE]), , drop = FALSE]
+  ok <- stats::complete.cases(data[, vars, drop = FALSE])
+  if (warn && !all(ok)) {
+    warning("Dropped ", sum(!ok), " of ", length(ok), " rows with missing values in the model ",
+            "variables (complete-case analysis).", call. = FALSE)
+  }
+  data[ok, , drop = FALSE]
 }
 
 .tune_config_failed <- function(learner, params, e) {
