@@ -35,6 +35,8 @@
 * `fit_aftgee()` gains `B` (default 100, as before) and `...`, passed to `aftgee::aftgee()`. The
   resamples only serve the coefficient variance, so `spec = list(B = 0)` gives the same predictions
   much faster.
+* `print()` of a `compare()` result listed time-specific metrics such as `"brier"` under an empty
+  header; it now shows one block per horizon (`brier@50`, `brier@100`, ...).
 
 # survalis 2.4.6
 
