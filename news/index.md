@@ -17,6 +17,14 @@
   [`tvrmst::as_survmat()`](https://rdrr.io/pkg/tvrmst/man/tvrmst-deprecated.html)
   / `rmst_dynamic()` (one warning per call); they now use `assurvmat()`
   / `rmstdynamic()` and need tvrmst \>= 0.0.9 (bug fix).
+- aalen learner: the predicted curve exp(-x’B(t)), which need not
+  decrease, was made monotone by a running minimum over the requested
+  `times` only, so S(t) depended on the other times asked for (S(8) =
+  0.889 with `times = c(2, 5, 8)` but 0.915 alone on rotterdam). The
+  running minimum now runs over the model’s own jump times, so S(t) is
+  the same for any grid (bug fix; values can change). Prediction also
+  skips timereg’s standard-error computation, which it never used
+  (faster).
 
 ## survalis 2.4.6
 
