@@ -11,7 +11,8 @@
 #'   `"surrogate"`, `"tree_surrogate"`, `"calibration"`, `"roc"`, `"dca"`,
 #'   `"survcluster"`.
 #' @param newdata Instances to explain (SHAP, ALE, counterfactual, surrogate,
-#'   survcluster) or to assess (`roc`, `dca`; these need the outcome columns).
+#'   survcluster) or to assess (`roc`, `dca`, `varimp` / `permute`; these need the outcome
+#'   columns).
 #'   Defaults to `data`, so `roc` and `dca` are apparent unless you pass
 #'   held-out data.
 #' @param data Background data for the method. Defaults to the training data.
@@ -151,10 +152,10 @@ interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..
         baseline_data = data, times = times), dots))
     }),
     varimp = list(plot = "plot_varimp", run = function(fit, newdata, data, times, dots) {
-      do.call(compute_varimp, c(list(model = fit, times = times), dots))
+      do.call(compute_varimp, c(list(model = fit, times = times, data = newdata), dots))
     }),
     permute = list(plot = "plot_varimp", run = function(fit, newdata, data, times, dots) {
-      do.call(compute_varimp, c(list(model = fit, times = times), dots))
+      do.call(compute_varimp, c(list(model = fit, times = times, data = newdata), dots))
     }),
     interaction = list(plot = "plot_interactions", run = function(fit, newdata, data, times, dots) {
       do.call(compute_interactions, c(list(model = fit, data = data, times = times), dots))

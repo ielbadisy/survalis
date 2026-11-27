@@ -16,7 +16,8 @@ interpret(fit, method, newdata = NULL, data = NULL, times = NULL, ...)
 \code{"survcluster"}.}
 
 \item{newdata}{Instances to explain (SHAP, ALE, counterfactual, surrogate,
-survcluster) or to assess (\code{roc}, \code{dca}; these need the outcome columns).
+survcluster) or to assess (\code{roc}, \code{dca}, \code{varimp} / \code{permute}; these need the outcome
+columns).
 Defaults to \code{data}, so \code{roc} and \code{dca} are apparent unless you pass
 held-out data.}
 

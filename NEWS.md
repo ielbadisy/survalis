@@ -13,6 +13,9 @@
   (S(8) = 0.889 with `times = c(2, 5, 8)` but 0.915 alone on rotterdam). The running minimum now runs
   over the model's own jump times, so S(t) is the same for any grid (bug fix; values can change).
   Prediction also skips timereg's standard-error computation, which it never used (faster).
+* `interpret(method = "varimp")` / `"permute"` ignored `newdata` and `data` and always permuted the
+  training data. They now score on `newdata` (default `data`, default the training data), so
+  held-out importance is possible (bug fix).
 
 # survalis 2.4.6
 

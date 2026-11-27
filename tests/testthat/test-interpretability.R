@@ -235,3 +235,17 @@ test_that("interpretability plotting helpers return plot objects", {
   expect_s3_class(plot_varimp(varimp), "ggplot")
   expect_s3_class(plot_calibration(calibration), "ggplot")
 })
+
+test_that("interpret(method = 'varimp'/'permute') scores on `newdata`", {
+  d <- survival::veteran
+  m <- fit(Surv(time, status) ~ age + karno, d[1:100, ], model = "coxph")
+  te <- d[101:137, ]
+  m2 <- m; m2$data <- te
+  ref <- compute_varimp(m2, times = c(50, 100), seed = 1)
+  for (meth in c("varimp", "permute")) {
+    a <- as.data.frame(interpret(m, meth, newdata = te, times = c(50, 100), seed = 1))
+    expect_equal(a$importance, ref$importance)
+  }
+  tr <- as.data.frame(interpret(m, "varimp", times = c(50, 100), seed = 1))
+  expect_false(isTRUE(all.equal(tr$importance, ref$importance)))
+})
