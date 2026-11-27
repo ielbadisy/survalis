@@ -61,7 +61,7 @@ roc_survmat <- function(object, predicted, t_star) {
   surv_prob <- if (is.matrix(predicted)) predicted[, t_name] else predicted[[t_name]]
   risk_score <- 1 - surv_prob
 
-  cases <- which(time < t_star & status == 1)
+  cases <- which(time <= t_star & status == 1)
   controls <- which(time > t_star)
   if (!length(cases) || !length(controls)) {
     stop("ROC curve is undefined because no comparable case/control pairs are available.")

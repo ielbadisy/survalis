@@ -54,9 +54,11 @@ test_that("C-index and AUC agree with survival and timeROC", {
   ref <- survival::concordance(survival::coxph(f_vet, vet))$concordance
   expect_equal(unname(cindex_survmat(y, p, t_star = 90)), ref, tolerance = 1e-8)
   skip_if_not_installed("timeROC")
-  tr <- timeROC::timeROC(vet$time, vet$status, 1 - p[, "t=90"], cause = 1,
-                         times = 90, weighting = "marginal")
-  expect_equal(unname(auc_survmat(y, p, t_star = 90)), unname(tr$AUC[2]),
+  # no event at 180; at 90 timeROC drops the event on the horizon, survalis counts it
+  expect_false(any(vet$time == 180 & vet$status == 1))
+  tr <- timeROC::timeROC(vet$time, vet$status, 1 - p[, "t=180"], cause = 1,
+                         times = 180, weighting = "marginal")
+  expect_equal(unname(auc_survmat(y, p, t_star = 180)), unname(tr$AUC[2]),
                tolerance = 1e-4)
   expect_equal(roc_survmat(y, p, t_star = 90)$auc,
                unname(auc_survmat(y, p, t_star = 90)))

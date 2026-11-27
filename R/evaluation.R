@@ -63,7 +63,8 @@ cindex_survmat <- function(object, predicted, t_star = NULL) {
 #' probabilities at a specified time point (or the last column if \code{t_star}
 #' is \code{NULL}), following the Uno et al. (2007) / Heagerty and Zheng (2005)
 #' estimator as implemented in the \pkg{timeROC} package. Cases are subjects
-#' with an observed event strictly before \code{t_star}; controls are subjects
+#' with an observed event at or before \code{t_star} (as for the Brier score;
+#' \pkg{timeROC} drops an event exactly at \code{t_star}); controls are subjects
 #' known to survive beyond \code{t_star}. Subjects censored before \code{t_star}
 #' are handled through IPCW weighting.
 #'
@@ -112,7 +113,7 @@ auc_survmat <- function(object, predicted, t_star = NULL) {
   }
 
   risk_score <- 1 - surv_prob
-  cases <- which(time < t_star & status == 1)
+  cases <- which(time <= t_star & status == 1)
   controls <- which(time > t_star)
 
   if (!length(cases) || !length(controls)) {
@@ -156,7 +157,7 @@ auc_survmat <- function(object, predicted, t_star = NULL) {
 #' is a thin vectorized wrapper around \code{auc_survmat} that returns
 #' a full \eqn{AUC(t)} curve instead of a single time point, matching the
 #' quantity reported by \code{timeROC::timeROC()} with
-#' \code{weighting = "marginal"}.
+#' \code{weighting = "marginal"}, except that an event exactly at a time counts as a case.
 #'
 #' @param object A \code{Surv} object of length \eqn{n}.
 #' @param predicted An \code{n x k} matrix or data frame of survival probabilities
