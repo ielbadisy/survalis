@@ -63,6 +63,11 @@
   [`aftgee::aftgee()`](https://rdrr.io/pkg/aftgee/man/aftgee.html). The
   resamples only serve the coefficient variance, so `spec = list(B = 0)`
   gives the same predictions much faster.
+- [`print()`](https://rdrr.io/r/base/print.html) of a
+  [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md)
+  result listed time-specific metrics such as `"brier"` under an empty
+  header; it now shows one block per horizon (`brier@50`, `brier@100`,
+  …).
 
 ## survalis 2.4.6
 
