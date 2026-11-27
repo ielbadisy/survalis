@@ -45,6 +45,9 @@
 * `survmetalearner` weighted subjects event-free at the horizon `t` by `1 / G(t-)` instead of the
   Graf weight `1 / G(t)` used by the Brier score. The weights change only when a censoring time
   equals a weight time exactly (bug fix).
+* Docs: `listmetrics()` and `evaluate()` now say that `"cindex"` and `"auc"` use the last time of
+  the grid only, that `"iae"`/`"ise"` measure calibration in the large (mean predicted curve
+  against Kaplan-Meier), and that `"ece"` bins by deciles of predicted survival.
 
 # survalis 2.4.6
 
