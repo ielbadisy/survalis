@@ -8,6 +8,9 @@
 #' @param data A data.frame containing the variables in the model.
 #' @param corstr Working correlation structure; one of \code{"independence"},
 #'   \code{"exchangeable"}, or \code{"ar1"}. Default: \code{"independence"}.
+#' @param B Number of resamples for the variance of the coefficients (default \code{100}, as
+#'   in \code{aftgee::aftgee()}). Predictions do not use it; \code{B = 0} is much faster.
+#' @param ... Further arguments to \code{aftgee::aftgee()}, e.g. \code{binit} or \code{control}.
 #'
 #' @details
 #' The AFT model assumes \eqn{\log(T) = X \beta + \epsilon}, where \eqn{T} is survival time,
@@ -41,7 +44,7 @@
 #' @keywords internal
 #' @noRd
 
-fit_aftgee <- function(formula, data, corstr = "independence") {
+fit_aftgee <- function(formula, data, corstr = "independence", B = 100, ...) {
   stopifnot(requireNamespace("aftgee", quietly = TRUE))
 
   # expand `.` and record the training encoding (terms, factor levels,
@@ -53,7 +56,7 @@ fit_aftgee <- function(formula, data, corstr = "independence") {
     formula = formula,
     data = data,
     id = NULL, ## explicitly no clustering supported <=> one observation per subject
-    corstr = corstr
+    corstr = corstr, B = B, ...
   )
 
   out <- structure(list(

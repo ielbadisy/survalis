@@ -125,3 +125,14 @@ test_that("fit_aftgee() works with missing covariates and default times use the 
   expect_true(all(S >= 0 & S <= 1))
   expect_equal(dim(predict_aftgee(m, lung[1:3, c("age", "ph.ecog")])), c(3L, 20L))
 })
+
+test_that("fit_aftgee() takes B and passes ... to aftgee()", {
+  skip_on_cran()
+  d <- survival::veteran; tt <- c(50, 100, 200)
+  set.seed(1); a <- fit(Surv(time, status) ~ age + karno, d, model = "aftgee")
+  b <- fit(Surv(time, status) ~ age + karno, d, model = "aftgee", spec = list(B = 0))
+  expect_null(b$model$beta.resmp); expect_true(NROW(a$model$beta.resmp) > 0)
+  expect_equal(as.matrix(predict(a, d, times = tt)), as.matrix(predict(b, d, times = tt)))
+  c <- fit_aftgee(Surv(time, status) ~ age + karno, d, B = 0, binit = "lm")
+  expect_equal(c$model$binit, "lm")
+})
