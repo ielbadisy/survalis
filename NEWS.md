@@ -27,6 +27,8 @@
   time, which avoids a column mix-up in fastgbm < 0.7.5.
 * `fit_xgboost(objective = "survival:cox")` no longer passes the AFT parameters to xgboost, which
   printed a "not used" warning at every fit. Predictions are unchanged.
+* `predict()` now passes the arguments of the learner's own prediction function, such as `dist` and
+  `shape` for `"survsvm"`; they were silently ignored before (bug fix).
 
 # survalis 2.4.6
 

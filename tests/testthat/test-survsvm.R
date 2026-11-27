@@ -133,3 +133,16 @@ test_that("fit_survsvm() stores the outcome column names", {
   s <- fit_survsvm(survival::Surv(time, status) ~ age + karno, survival::veteran)
   expect_identical(c(s$time, s$status), c("time", "status"))
 })
+
+test_that("predict() passes dist and shape to predict_survsvm()", {
+  skip_on_cran()
+  m <- fit(Surv(time, status) ~ age + karno, survival::veteran, model = "survsvm")
+  tt <- c(50, 100, 200); nd <- survival::veteran[1:4, ]
+  for (d in c("lognormal", "weibull")) {
+    p <- predict(m, nd, times = tt, dist = d, shape = 1.5)
+    expect_equal(unname(as.matrix(p)),
+                 unname(as.matrix(predict_survsvm(m, nd, tt, dist = d, shape = 1.5))))
+  }
+  expect_false(isTRUE(all.equal(as.matrix(predict(m, nd, times = tt, dist = "lognormal")),
+                                as.matrix(predict(m, nd, times = tt)))))
+})
