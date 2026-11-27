@@ -121,15 +121,20 @@ predict_aalen <- function(object, newdata, times) {
   stopifnot(inherits(object, "mlsurv_model"))
   stopifnot(identical(object$learner, "aalen"))
 
+  # exp(-x'B(t)) need not decrease. It is made monotone on the model's own jump times
+  # up to max(times), then read at `times`, so S(t) does not depend on the requested grid.
+  jt <- object$model$cum[, 1]
+  grid <- sort(unique(c(jt[jt <= max(times)], times)))
   pred <- timereg::predict.aalen(
     object$model,
     newdata = .aalen_scale(.aalen_relevel(newdata, object$xlevels), object$scaling),
-    times   = times
+    times   = grid, se = FALSE, uniform = FALSE
   )
 
   if (is.null(pred$S0))
     stop("timereg::predict.aalen() did not return S0 (survival probabilities).")
 
-  .finalize_survmat(pred$S0, times = pred$time)
+  S <- .finalize_survmat(pred$S0, times = pred$time)
+  S[, match(times, pred$time), drop = FALSE] |> stats::setNames(paste0("t=", times))
 }
 
