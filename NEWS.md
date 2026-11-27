@@ -5,6 +5,9 @@
   Parallel splits now run in fresh PSOCK workers with one OpenMP thread each (which also stops
   thread oversubscription), loading the caller's attached packages (bug fix). A custom learner
   run with `ncores > 1` must not rely on other objects of the global environment.
+* `predict(type = "rmst")` and the RMST route of `estimate()` called the deprecated
+  `tvrmst::as_survmat()` / `rmst_dynamic()` (one warning per call); they now use `assurvmat()` /
+  `rmstdynamic()` and need tvrmst >= 0.0.9 (bug fix).
 
 # survalis 2.4.6
 

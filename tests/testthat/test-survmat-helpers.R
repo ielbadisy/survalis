@@ -94,3 +94,11 @@ test_that(".loglinear_surv interpolates log survival between grid points", {
   expect_equal(out[, 4], sqrt(c(0.8 * 0.4, 0.9 * 0.81)))
   expect_equal(out[, 6], c(0.4, 0.81))                 # held beyond the grid
 })
+
+test_that("RMST route uses the current tvrmst API (no deprecation warnings)", {
+  S <- matrix(c(1, 0.8, 0.5, 1, 0.9, 0.7), nrow = 2, byrow = TRUE)
+  expect_no_warning(r <- survmat_to_rmst(S, c(1, 2, 3), tau = 3))
+  expect_equal(r, c(1 + 0.9 + 0.65, 1 + 0.95 + 0.8), tolerance = 1e-8)
+  m <- fit(Surv(time, status) ~ age + karno, survival::veteran, model = "coxph")
+  expect_no_warning(predict(m, survival::veteran[1:3, ], times = c(30, 90), type = "rmst"))
+})
