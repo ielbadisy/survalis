@@ -107,7 +107,8 @@ evaluate(object, y, times = NULL, metrics = c("cindex", "ibs"), ...)
 
 - data:
 
-  When `object` is a formula: the data frame.
+  When `object` is a formula: the data frame. Rows with a missing value
+  in a model variable are dropped with a warning.
 
 - model:
 

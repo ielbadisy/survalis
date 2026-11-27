@@ -26,7 +26,8 @@ fit(formula, data, model, spec = list(), seed = NULL, ...)
 
 - data:
 
-  A data frame containing the formula variables.
+  A data frame containing the formula variables. Rows with a missing
+  value in a model variable are dropped with a warning.
 
 - model:
 

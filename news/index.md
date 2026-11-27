@@ -51,6 +51,14 @@
 - [`predict()`](https://rdrr.io/r/stats/predict.html) now passes the
   arguments of the learner’s own prediction function, such as `dist` and
   `shape` for `"survsvm"`; they were silently ignored before (bug fix).
+- [`fit()`](https://elbadisyimad.com/survalis/reference/fit.md),
+  [`evaluate()`](https://elbadisyimad.com/survalis/reference/evaluate.md),
+  [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md),
+  [`tune()`](https://elbadisyimad.com/survalis/reference/tune.md) and
+  [`estimate()`](https://elbadisyimad.com/survalis/reference/estimate.md)
+  now warn when they drop rows with missing values in the model
+  variables (complete-case analysis); the drop was silent before.
+  Results are unchanged.
 
 ## survalis 2.4.6
 

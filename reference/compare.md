@@ -29,7 +29,8 @@ compare(
 
 - data:
 
-  A data frame.
+  A data frame. Rows with a missing value in a model variable are
+  dropped with a warning.
 
 - models:
 
