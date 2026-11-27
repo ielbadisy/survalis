@@ -56,3 +56,9 @@ test_that("predict() rejects newdata with missing model values", {
   nd$age[2] <- NA
   expect_error(predict(m, nd, times = 90), "missing values in model variable")
 })
+
+test_that("predict() returns risk, chf and hazard visibly", {
+  m <- fit(Surv(time, status) ~ age + karno, survival::veteran, "coxph")
+  for (ty in c("survival", "risk", "chf", "hazard"))
+    expect_true(withVisible(predict(m, survival::veteran[1:2, ], times = c(30, 90), type = ty))$visible)
+})

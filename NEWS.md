@@ -64,6 +64,8 @@
 * Docs: `interpret()` gains a Details section: `"shap"`, `"counterfactual"` and `"surrogate"` take a
   one-row `newdata`; `"surrogate"` explains one time (not SurvLIME); `"counterfactual"` changes one
   feature at a time, in raw units, and may change immutable features unless `features_to_change` is set.
+* `predict(type = "risk")`, `"chf"` and `"hazard"` returned their result invisibly, so it did not
+  print at the console; they now return it visibly (bug fix).
 
 # survalis 2.4.6
 
