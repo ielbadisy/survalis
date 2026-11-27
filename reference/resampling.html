@@ -122,7 +122,8 @@ event indicator by default.</p></li>
 <li><p><code>groupcv()</code> – k-fold cross-validation where whole groups (e.g. centres,
 subjects with repeated rows) are held out together.</p></li>
 <li><p><code>bootstrap()</code> – resampling with replacement; the out-of-bag rows form the
-assessment set (Efron-Tibshirani style, suitable for <code>.632</code> reporting).</p></li>
+assessment set. The reported score is this out-of-bag estimate; no <code>.632</code>,
+<code>.632+</code> or optimism correction is applied.</p></li>
 </ul></div>
 
     <div class="section level2">

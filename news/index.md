@@ -87,6 +87,13 @@
   only, that `"iae"`/`"ise"` measure calibration in the large (mean
   predicted curve against Kaplan-Meier), and that `"ece"` bins by
   deciles of predicted survival.
+- Docs:
+  [`evaluate()`](https://elbadisyimad.com/survalis/reference/evaluate.md)
+  now says that the default grid is built on the full data before
+  splitting, that its split `se` and interval treat overlapping splits
+  as independent, and that
+  [`bootstrap()`](https://elbadisyimad.com/survalis/reference/resampling.md)
+  reports the out-of-bag score with no `.632` or optimism correction.
 
 ## survalis 2.4.6
 

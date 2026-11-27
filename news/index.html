@@ -76,6 +76,7 @@
 <li>
 <code>survmetalearner</code> weighted subjects event-free at the horizon <code>t</code> by <code>1 / G(t-)</code> instead of the Graf weight <code>1 / G(t)</code> used by the Brier score. The weights change only when a censoring time equals a weight time exactly (bug fix).</li>
 <li>Docs: <code><a href="../reference/listmetrics.html">listmetrics()</a></code> and <code><a href="../reference/evaluate.html">evaluate()</a></code> now say that <code>"cindex"</code> and <code>"auc"</code> use the last time of the grid only, that <code>"iae"</code>/<code>"ise"</code> measure calibration in the large (mean predicted curve against Kaplan-Meier), and that <code>"ece"</code> bins by deciles of predicted survival.</li>
+<li>Docs: <code><a href="../reference/evaluate.html">evaluate()</a></code> now says that the default grid is built on the full data before splitting, that its split <code>se</code> and interval treat overlapping splits as independent, and that <code><a href="../reference/resampling.html">bootstrap()</a></code> reports the out-of-bag score with no <code>.632</code> or optimism correction.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.4.6" id="survalis-246">survalis 2.4.6<a class="anchor" aria-label="anchor" href="#survalis-246"></a></h2>

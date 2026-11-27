@@ -71,8 +71,8 @@ An object of class `survalis_resampling`.
   centres, subjects with repeated rows) are held out together.
 
 - `bootstrap()` – resampling with replacement; the out-of-bag rows form
-  the assessment set (Efron-Tibshirani style, suitable for `.632`
-  reporting).
+  the assessment set. The reported score is this out-of-bag estimate; no
+  `.632`, `.632+` or optimism correction is applied.
 
 ## Examples
 

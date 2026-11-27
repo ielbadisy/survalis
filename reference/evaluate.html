@@ -150,7 +150,8 @@ ignored.</p></dd>
 
 <dt id="arg-times">times<a class="anchor" aria-label="anchor" href="#arg-times"></a></dt>
 <dd><p>Evaluation grid. <code>NULL</code> picks a grid from the data quantiles and
-records it; for a matrix, <code>NULL</code> reads the <code>"times"</code> attribute or column
+records it (for resampling, from the full data before splitting, so every split
+shares one grid); for a matrix, <code>NULL</code> reads the <code>"times"</code> attribute or column
 names of the form <code>"t=&lt;time&gt;"</code>.</p></dd>
 
 
@@ -199,7 +200,11 @@ entry per row of <code>object</code>.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <code>survalis_eval</code> object: <code>per_split</code> (long data frame), <code>summary</code>
 (mean / sd / se / 95% interval per metric), <code>times</code>, <code>resampling</code> (<code>NULL</code>
-when scored once), <code>metrics</code>, <code>model</code>.</p>
+when scored once), <code>metrics</code>, <code>model</code>. The <code>se</code> is the split standard
+deviation over the square root of the number of splits and the interval is
+mean +/- 1.96 se; this treats the splits as independent, which they are not
+(training sets overlap), so the interval is too narrow. <code><a href="resampling.html">bootstrap()</a></code> scores
+the out-of-bag rows only, with no .632 or optimism correction.</p>
     </div>
 
     <div class="section level2">

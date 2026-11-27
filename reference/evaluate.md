@@ -74,8 +74,9 @@ evaluate(object, y, times = NULL, metrics = c("cindex", "ibs"), ...)
 - times:
 
   Evaluation grid. `NULL` picks a grid from the data quantiles and
-  records it; for a matrix, `NULL` reads the `"times"` attribute or
-  column names of the form `"t=<time>"`.
+  records it (for resampling, from the full data before splitting, so
+  every split shares one grid); for a matrix, `NULL` reads the `"times"`
+  attribute or column names of the form `"t=<time>"`.
 
 - resampling:
 
@@ -135,7 +136,12 @@ evaluate(object, y, times = NULL, metrics = c("cindex", "ibs"), ...)
 
 A `survalis_eval` object: `per_split` (long data frame), `summary` (mean
 / sd / se / 95% interval per metric), `times`, `resampling` (`NULL` when
-scored once), `metrics`, `model`.
+scored once), `metrics`, `model`. The `se` is the split standard
+deviation over the square root of the number of splits and the interval
+is mean +/- 1.96 se; this treats the splits as independent, which they
+are not (training sets overlap), so the interval is too narrow.
+[`bootstrap()`](https://elbadisyimad.com/survalis/reference/resampling.md)
+scores the out-of-bag rows only, with no .632 or optimism correction.
 
 ## Examples
 
