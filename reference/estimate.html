@@ -3,11 +3,15 @@
 binary treatment by G-computation (outcome standardisation): a survival
 model is fitted for Surv(time, status) ~ treatment * (confounders), every
 subject's outcome is predicted under both treatment levels, and the
-counterfactual mean survival curves are contrasted."><meta property="og:description" content="Estimates a covariate-adjusted marginal contrast between the two levels of a
+counterfactual mean survival curves are contrasted. The tree learners &quot;rpart&quot;,
+&quot;ranger&quot; and &quot;orsf&quot;, and &quot;survsvm&quot;, cannot take interaction terms; they are fitted
+on treatment + confounders and model any treatment-by-confounder interaction themselves."><meta property="og:description" content="Estimates a covariate-adjusted marginal contrast between the two levels of a
 binary treatment by G-computation (outcome standardisation): a survival
 model is fitted for Surv(time, status) ~ treatment * (confounders), every
 subject's outcome is predicted under both treatment levels, and the
-counterfactual mean survival curves are contrasted."><meta property="og:image" content="https://elbadisyimad.com/survalis/logo.svg"></head><body>
+counterfactual mean survival curves are contrasted. The tree learners &quot;rpart&quot;,
+&quot;ranger&quot; and &quot;orsf&quot;, and &quot;survsvm&quot;, cannot take interaction terms; they are fitted
+on treatment + confounders and model any treatment-by-confounder interaction themselves."><meta property="og:image" content="https://elbadisyimad.com/survalis/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -58,7 +62,9 @@ counterfactual mean survival curves are contrasted."><meta property="og:image" c
 binary <code>treatment</code> by G-computation (outcome standardisation): a survival
 model is fitted for <code>Surv(time, status) ~ treatment * (confounders)</code>, every
 subject's outcome is predicted under both treatment levels, and the
-counterfactual mean survival curves are contrasted.</p>
+counterfactual mean survival curves are contrasted. The tree learners <code>"rpart"</code>,
+<code>"ranger"</code> and <code>"orsf"</code>, and <code>"survsvm"</code>, cannot take interaction terms; they are fitted
+on <code>treatment + confounders</code> and model any treatment-by-confounder interaction themselves.</p>
     </div>
 
     <div class="section level2">

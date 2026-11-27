@@ -55,6 +55,8 @@
 <code>interpret(method = "varimp")</code> / <code>"permute"</code> ignored <code>newdata</code> and <code>data</code> and always permuted the training data. They now score on <code>newdata</code> (default <code>data</code>, default the training data), so held-out importance is possible (bug fix).</li>
 <li>
 <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> of a single-time ALE and of an ICE-only <code><a href="../reference/interpret.html">interpret()</a></code> result failed with “Unknown palette” under ggplot2 4.0: the one colour was read as a palette name. The theme palette is now a function (bug fix).</li>
+<li>
+<code><a href="../reference/estimate.html">estimate()</a></code> failed with <code>model = "ranger"</code> (and <code>"rpart"</code>, <code>"orsf"</code>, <code>"survsvm"</code>): their engines cannot take the <code>treatment * (confounders)</code> interaction terms. These learners are now fitted on <code>treatment + confounders</code> and model the interactions themselves (bug fix).</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.4.6" id="survalis-246">survalis 2.4.6<a class="anchor" aria-label="anchor" href="#survalis-246"></a></h2>

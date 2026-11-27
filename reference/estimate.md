@@ -5,7 +5,10 @@ of a binary `treatment` by G-computation (outcome standardisation): a
 survival model is fitted for
 `Surv(time, status) ~ treatment * (confounders)`, every subject's
 outcome is predicted under both treatment levels, and the counterfactual
-mean survival curves are contrasted.
+mean survival curves are contrasted. The tree learners `"rpart"`,
+`"ranger"` and `"orsf"`, and `"survsvm"`, cannot take interaction terms;
+they are fitted on `treatment + confounders` and model any
+treatment-by-confounder interaction themselves.
 
 ## Usage
 

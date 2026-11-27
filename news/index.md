@@ -35,6 +35,11 @@
   result failed with “Unknown palette” under ggplot2 4.0: the one colour
   was read as a palette name. The theme palette is now a function (bug
   fix).
+- [`estimate()`](https://elbadisyimad.com/survalis/reference/estimate.md)
+  failed with `model = "ranger"` (and `"rpart"`, `"orsf"`, `"survsvm"`):
+  their engines cannot take the `treatment * (confounders)` interaction
+  terms. These learners are now fitted on `treatment + confounders` and
+  model the interactions themselves (bug fix).
 
 ## survalis 2.4.6
 
