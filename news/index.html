@@ -65,6 +65,8 @@
 <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> now passes the arguments of the learner’s own prediction function, such as <code>dist</code> and <code>shape</code> for <code>"survsvm"</code>; they were silently ignored before (bug fix).</li>
 <li>
 <code><a href="../reference/fit.html">fit()</a></code>, <code><a href="../reference/evaluate.html">evaluate()</a></code>, <code><a href="../reference/compare.html">compare()</a></code>, <code><a href="../reference/tune.html">tune()</a></code> and <code><a href="../reference/estimate.html">estimate()</a></code> now warn when they drop rows with missing values in the model variables (complete-case analysis); the drop was silent before. Results are unchanged.</li>
+<li>
+<code>fit_aftgee()</code> gains <code>B</code> (default 100, as before) and <code>...</code>, passed to <code><a href="https://rdrr.io/pkg/aftgee/man/aftgee.html" class="external-link">aftgee::aftgee()</a></code>. The resamples only serve the coefficient variance, so <code>spec = list(B = 0)</code> gives the same predictions much faster.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.4.6" id="survalis-246">survalis 2.4.6<a class="anchor" aria-label="anchor" href="#survalis-246"></a></h2>

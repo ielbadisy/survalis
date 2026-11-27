@@ -59,6 +59,10 @@
   now warn when they drop rows with missing values in the model
   variables (complete-case analysis); the drop was silent before.
   Results are unchanged.
+- `fit_aftgee()` gains `B` (default 100, as before) and `...`, passed to
+  [`aftgee::aftgee()`](https://rdrr.io/pkg/aftgee/man/aftgee.html). The
+  resamples only serve the coefficient variance, so `spec = list(B = 0)`
+  gives the same predictions much faster.
 
 ## survalis 2.4.6
 
