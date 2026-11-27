@@ -45,6 +45,9 @@
   curves; it stopped with an error before. Multi-time `"aft"`
   predictions are made one time at a time, which avoids a column mix-up
   in fastgbm \< 0.7.5.
+- `fit_xgboost(objective = "survival:cox")` no longer passes the AFT
+  parameters to xgboost, which printed a “not used” warning at every
+  fit. Predictions are unchanged.
 
 ## survalis 2.4.6
 
