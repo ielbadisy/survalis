@@ -40,6 +40,11 @@
   their engines cannot take the `treatment * (confounders)` interaction
   terms. These learners are now fitted on `treatment + confounders` and
   model the interactions themselves (bug fix).
+- [`predict()`](https://rdrr.io/r/stats/predict.html) on a `fastgbm`
+  model fitted with `objective = "cox"` or `"aft"` now returns survival
+  curves; it stopped with an error before. Multi-time `"aft"`
+  predictions are made one time at a time, which avoids a column mix-up
+  in fastgbm \< 0.7.5.
 
 ## survalis 2.4.6
 

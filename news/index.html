@@ -57,6 +57,8 @@
 <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> of a single-time ALE and of an ICE-only <code><a href="../reference/interpret.html">interpret()</a></code> result failed with “Unknown palette” under ggplot2 4.0: the one colour was read as a palette name. The theme palette is now a function (bug fix).</li>
 <li>
 <code><a href="../reference/estimate.html">estimate()</a></code> failed with <code>model = "ranger"</code> (and <code>"rpart"</code>, <code>"orsf"</code>, <code>"survsvm"</code>): their engines cannot take the <code>treatment * (confounders)</code> interaction terms. These learners are now fitted on <code>treatment + confounders</code> and model the interactions themselves (bug fix).</li>
+<li>
+<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> on a <code>fastgbm</code> model fitted with <code>objective = "cox"</code> or <code>"aft"</code> now returns survival curves; it stopped with an error before. Multi-time <code>"aft"</code> predictions are made one time at a time, which avoids a column mix-up in fastgbm &lt; 0.7.5.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.4.6" id="survalis-246">survalis 2.4.6<a class="anchor" aria-label="anchor" href="#survalis-246"></a></h2>
