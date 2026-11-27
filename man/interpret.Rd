@@ -4,7 +4,15 @@
 \alias{interpret}
 \title{Interpret a fitted survival learner}
 \usage{
-interpret(fit, method, newdata = NULL, data = NULL, times = NULL, ...)
+interpret(
+  fit,
+  method,
+  newdata = NULL,
+  data = NULL,
+  times = NULL,
+  ...,
+  seed = NULL
+)
 }
 \arguments{
 \item{fit}{A \code{survalis_fit} (from \code{\link[=fit]{fit()}}), a \code{survalis_tune}, or a legacy
@@ -31,6 +39,10 @@ Methods that need a single time (\code{calibration}, \code{roc}, \code{dca}) tak
 \code{target_time} (counterfactual, surrogate), \code{eval_time} (calibration, roc,
 dca), \code{thresholds} (dca), \code{K} (survcluster). For \code{"shap"}, the aggregation
 over time (\code{"meanabs"} or \code{"integral"}) is passed as \code{shap_method}.}
+
+\item{seed}{Optional integer seed set before the method runs, for the methods that
+sample (\code{"shap"}, \code{"shap_matrix"}, \code{"interaction"}, \code{"varimp"}, ...), so results
+are reproducible. Default \code{NULL} leaves the RNG alone.}
 }
 \value{
 A \code{survalis_interpret} object holding the method's \code{result}, with

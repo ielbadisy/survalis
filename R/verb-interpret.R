@@ -23,6 +23,9 @@
 #'   `target_time` (counterfactual, surrogate), `eval_time` (calibration, roc,
 #'   dca), `thresholds` (dca), `K` (survcluster). For `"shap"`, the aggregation
 #'   over time (`"meanabs"` or `"integral"`) is passed as `shap_method`.
+#' @param seed Optional integer seed set before the method runs, for the methods that
+#'   sample (`"shap"`, `"shap_matrix"`, `"interaction"`, `"varimp"`, ...), so results
+#'   are reproducible. Default `NULL` leaves the RNG alone.
 #'
 #' @return A `survalis_interpret` object holding the method's `result`, with
 #'   `method`, `times`, and a `plot()` method. `as.data.frame()` returns the
@@ -53,7 +56,7 @@
 #' interpret(m, "varimp", times = c(90, 180))
 #' plot(interpret(m, "roc", eval_time = 180))
 #' @export
-interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ...) {
+interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..., seed = NULL) {
   if (inherits(fit, "survalis_tune")) fit <- fit$fit
   if (!inherits(fit, "mlsurv_model")) {
     stop("`fit` must come from fit() / tune().", call. = FALSE)
@@ -73,6 +76,7 @@ interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..
   times <- .resolve_times(times, fit$data[[parsed$time_col]], status)
 
   dots <- list(...)
+  if (!is.null(seed)) set.seed(as.integer(seed))
   result <- entry$run(fit, newdata = newdata, data = data, times = times, dots = dots)
 
   structure(
