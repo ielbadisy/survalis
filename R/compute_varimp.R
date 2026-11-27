@@ -10,6 +10,8 @@
 #' @param n_repetitions Integer; number of permutations per feature.
 #' @param seed Optional integer seed for reproducibility.
 #' @param subset Optional row indices or logical vector to subset \code{model$data}.
+#' @param data Optional data frame (with the outcome columns) on which the permutation
+#'   loss is computed, e.g. held-out data; defaults to the training data.
 #' @param importance_type One of \code{"delta"} (default) or \code{"mean"}; see Details.
 #'
 #' @return A data.frame with columns:
@@ -57,13 +59,16 @@ compute_varimp <- function(model, times,
                            n_repetitions = 10,
                            seed = NULL,
                            subset = NULL,
-                           importance_type = c("delta", "mean")) {
+                           importance_type = c("delta", "mean"),
+                           data = NULL) {
   importance_type <- match.arg(importance_type)
 
   if (!is.list(model)) stop("Model must be a list-like object.")
 
-  # Retrieve training data
-  data <- if (!is.null(model$data)) {
+  # Retrieve training data unless scoring data were given
+  data <- if (!is.null(data)) {
+    data
+  } else if (!is.null(model$data)) {
     model$data
   } else if (!is.null(model$fit) && !is.null(model$fit$data)) {
     model$fit$data
