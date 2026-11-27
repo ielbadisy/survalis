@@ -102,6 +102,10 @@
   the number of boosting steps is chosen by
   [`CoxBoost::cv.CoxBoost()`](https://rdrr.io/pkg/CoxBoost/man/cv.CoxBoost.html)
   up to `stepno`. The default keeps the fixed `stepno = 100`.
+- [`interpret()`](https://elbadisyimad.com/survalis/reference/interpret.md)
+  gains `seed = NULL` (after `...`), set before the method runs, so
+  sampling methods (`"shap"`, `"interaction"`, `"varimp"`, …) are
+  reproducible.
 
 ## survalis 2.4.6
 

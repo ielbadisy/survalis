@@ -57,7 +57,15 @@ with a one-line description of each.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">interpret</span><span class="op">(</span><span class="va">fit</span>, <span class="va">method</span>, newdata <span class="op">=</span> <span class="cn">NULL</span>, data <span class="op">=</span> <span class="cn">NULL</span>, times <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">interpret</span><span class="op">(</span></span>
+<span>  <span class="va">fit</span>,</span>
+<span>  <span class="va">method</span>,</span>
+<span>  newdata <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  times <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span>,</span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -99,6 +107,12 @@ Methods that need a single time (<code>calibration</code>, <code>roc</code>, <co
 <code>target_time</code> (counterfactual, surrogate), <code>eval_time</code> (calibration, roc,
 dca), <code>thresholds</code> (dca), <code>K</code> (survcluster). For <code>"shap"</code>, the aggregation
 over time (<code>"meanabs"</code> or <code>"integral"</code>) is passed as <code>shap_method</code>.</p></dd>
+
+
+<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
+<dd><p>Optional integer seed set before the method runs, for the methods that
+sample (<code>"shap"</code>, <code>"shap_matrix"</code>, <code>"interaction"</code>, <code>"varimp"</code>, ...), so results
+are reproducible. Default <code>NULL</code> leaves the RNG alone.</p></dd>
 
 </dl></div>
     <div class="section level2">

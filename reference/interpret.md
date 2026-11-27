@@ -8,7 +8,15 @@ lists the `method` ids with a one-line description of each.
 ## Usage
 
 ``` r
-interpret(fit, method, newdata = NULL, data = NULL, times = NULL, ...)
+interpret(
+  fit,
+  method,
+  newdata = NULL,
+  data = NULL,
+  times = NULL,
+  ...,
+  seed = NULL
+)
 ```
 
 ## Arguments
@@ -50,6 +58,12 @@ interpret(fit, method, newdata = NULL, data = NULL, times = NULL, ...)
   roc, dca), `thresholds` (dca), `K` (survcluster). For `"shap"`, the
   aggregation over time (`"meanabs"` or `"integral"`) is passed as
   `shap_method`.
+
+- seed:
+
+  Optional integer seed set before the method runs, for the methods that
+  sample (`"shap"`, `"shap_matrix"`, `"interaction"`, `"varimp"`, ...),
+  so results are reproducible. Default `NULL` leaves the RNG alone.
 
 ## Value
 
