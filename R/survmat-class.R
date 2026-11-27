@@ -74,7 +74,7 @@ validate_survmat <- function(x) {
 #' @rdname survmat
 #' @keywords internal
 as_survmat <- function(x, times, quantity = "survival") {
-  validate_survmat(new_survmat(x, times, quantity))
+  x <- new_survmat(x, times, quantity); validate_survmat(x); x
 }
 
 #' @keywords internal
