@@ -145,5 +145,6 @@ summary.survalis_fit <- function(object, ...) {
 #' @export
 plot.survalis_fit <- function(x, times = NULL, group = NULL, ...) {
   S <- predict(x, newdata = x$data, times = times, type = "survival")
+  if (is.character(group) && length(group) == 1L && group %in% names(x$data)) group <- x$data[[group]]
   plot_survmat(as.data.frame(S), times = attr(S, "times"), group = group, ...)
 }
