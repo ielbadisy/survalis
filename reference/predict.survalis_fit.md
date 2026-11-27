@@ -74,6 +74,8 @@ predict(
 - ...:
 
   Type-specific arguments: `tau` for `"rmst"`, `probs` for `"quantile"`.
+  Arguments of the learner's own prediction function are passed on, e.g.
+  `dist` and `shape` for `"survsvm"`.
 
 ## Value
 

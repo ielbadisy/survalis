@@ -61,6 +61,8 @@
 <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> on a <code>fastgbm</code> model fitted with <code>objective = "cox"</code> or <code>"aft"</code> now returns survival curves; it stopped with an error before. Multi-time <code>"aft"</code> predictions are made one time at a time, which avoids a column mix-up in fastgbm &lt; 0.7.5.</li>
 <li>
 <code>fit_xgboost(objective = "survival:cox")</code> no longer passes the AFT parameters to xgboost, which printed a “not used” warning at every fit. Predictions are unchanged.</li>
+<li>
+<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> now passes the arguments of the learner’s own prediction function, such as <code>dist</code> and <code>shape</code> for <code>"survsvm"</code>; they were silently ignored before (bug fix).</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.4.6" id="survalis-246">survalis 2.4.6<a class="anchor" aria-label="anchor" href="#survalis-246"></a></h2>
