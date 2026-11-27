@@ -116,7 +116,10 @@ with the number of <code>splits</code> on it and the tree's <code>r_squared</cod
 <code>"ale"</code> one row per feature value and time (<code>feature</code>, <code>feature_value</code>,
 <code>time</code>, <code>ale</code>), and for <code>"calibration"</code> the binned table with its
 <code>eval_time</code>. For <code>"pdp"</code> and <code>"ale"</code>, <code>as.data.frame(x, what = "integrated")</code> returns the curve integrated over time instead (<code>feature</code>,
-<code>feature_value</code>, <code>integrated</code>).</p>
+<code>feature_value</code>, <code>integrated</code>). For <code>"shap_matrix"</code> it is one row per
+observation and feature: <code>observation</code>, <code>feature</code>, <code>phi</code>, <code>raw_value</code>
+(numeric; the level code for a factor, used to colour the beeswarm) and
+<code>value</code> (the value as text, e.g. the factor label).</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

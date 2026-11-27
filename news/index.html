@@ -69,6 +69,8 @@
 <code>fit_aftgee()</code> gains <code>B</code> (default 100, as before) and <code>...</code>, passed to <code><a href="https://rdrr.io/pkg/aftgee/man/aftgee.html" class="external-link">aftgee::aftgee()</a></code>. The resamples only serve the coefficient variance, so <code>spec = list(B = 0)</code> gives the same predictions much faster.</li>
 <li>
 <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> of a <code><a href="../reference/compare.html">compare()</a></code> result listed time-specific metrics such as <code>"brier"</code> under an empty header; it now shows one block per horizon (<code>brier@50</code>, <code>brier@100</code>, …).</li>
+<li>
+<code>interpret(method = "shap_matrix")</code> gains a <code>value</code> column with each feature value as text, so factors show their labels; <code>raw_value</code> stays numeric (level codes for factors) for the beeswarm.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.4.6" id="survalis-246">survalis 2.4.6<a class="anchor" aria-label="anchor" href="#survalis-246"></a></h2>

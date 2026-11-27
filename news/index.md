@@ -68,6 +68,9 @@
   result listed time-specific metrics such as `"brier"` under an empty
   header; it now shows one block per horizon (`brier@50`, `brier@100`,
   …).
+- `interpret(method = "shap_matrix")` gains a `value` column with each
+  feature value as text, so factors show their labels; `raw_value` stays
+  numeric (level codes for factors) for the beeswarm.
 
 ## survalis 2.4.6
 
