@@ -55,3 +55,24 @@ test_that("as.data.frame() of an estimate has plain column names", {
   expect_false(any(grepl("[.=]", names(d))))
   expect_true(all(c("estimate", "conf_low", "conf_high") %in% names(d)))
 })
+
+test_that("estimate() works with tree learners (numeric or factor treatment)", {
+  skip_on_cran()
+  d <- survival::veteran; d$trt <- d$trt - 1
+  tt <- c(50, 100, 200)
+  e <- estimate(Surv(time, status) ~ age + karno, d, model = "ranger", treatment = "trt",
+                tau = 200, times = tt, R = 2, seed = 1, spec = list(num.trees = 50))
+  # point estimate = G-computation with the main-effects ranger fit
+  lrn <- .resolve_learner("ranger")
+  set.seed(1)
+  m <- lrn$fit(Surv(time, status) ~ trt + age + karno, d, num.trees = 50)
+  S <- function(a) { x <- d; x$trt <- a; colMeans(as.matrix(lrn$predict(m, x, tt))) }
+  ref <- survmat_to_rmst(matrix(S(1), 1), tt, 200) - survmat_to_rmst(matrix(S(0), 1), tt, 200)
+  expect_equal(e$estimate, ref, tolerance = 1e-10)
+  d$trt <- factor(d$trt); d$celltype <- factor(d$celltype)
+  for (l in c("ranger", "rpart", "orsf")) {
+    e <- estimate(Surv(time, status) ~ age + karno + celltype, d, model = l, treatment = "trt",
+                  tau = 200, times = tt, R = 2, seed = 1)
+    expect_true(is.finite(e$estimate))
+  }
+})
