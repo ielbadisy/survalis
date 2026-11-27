@@ -112,7 +112,10 @@ print.survalis_compare <- function(x, ...) {
   cat(sprintf("<survalis_compare> %d models%s\n", length(x$models),
               if (x$tuned) " (tuned, non-nested)" else ""))
   print(x$resampling)
-  for (mt in x$metrics) {
+  # time-specific metrics are stored per horizon, e.g. "brier@100"
+  lb <- unique(x$leaderboard$metric)
+  mts <- union(unlist(lapply(x$metrics, function(m) lb[lb == m | startsWith(lb, paste0(m, "@"))])), lb)
+  for (mt in mts) {
     sub <- x$leaderboard[x$leaderboard$metric == mt, , drop = FALSE]
     ord <- order(sub$mean, decreasing = .metric_maximize(mt))
     sub <- sub[ord, , drop = FALSE]

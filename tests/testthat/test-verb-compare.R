@@ -57,3 +57,12 @@ test_that("compare(ncores = 2) runs after an OpenMP learner was fitted in the se
   expect_equal(r2$value[r2$model == "rsf"], r1$value[r1$model == "rsf"], tolerance = 1e-8)
   expect_true(all(is.finite(r2$value)))
 })
+
+test_that("print.survalis_compare shows time-specific metrics", {
+  cc <- compare(Surv(time, status) ~ age + karno, survival::veteran, models = c("coxph", "aalen"),
+                metrics = c("cindex", "brier"), times = c(50, 100), seed = 1)
+  out <- capture.output(print(cc))
+  expect_true(any(grepl("brier@50 \\(lower", out)))
+  expect_true(any(grepl("brier@100 \\(lower", out)))
+  expect_equal(sum(grepl("^   [* ] (coxph|aalen)", out)), 6L)
+})
