@@ -44,7 +44,8 @@ outcome columns. If given, the fit is scored on it once and \code{resampling} is
 ignored.}
 
 \item{times}{Evaluation grid. \code{NULL} picks a grid from the data quantiles and
-records it; for a matrix, \code{NULL} reads the \code{"times"} attribute or column
+records it (for resampling, from the full data before splitting, so every split
+shares one grid); for a matrix, \code{NULL} reads the \code{"times"} attribute or column
 names of the form \code{"t=<time>"}.}
 
 \item{resampling}{A resampling spec from \code{\link[=cv]{cv()}}, \code{\link[=holdout]{holdout()}}, \code{\link[=groupcv]{groupcv()}} or
@@ -77,7 +78,11 @@ entry per row of \code{object}.}
 \value{
 A \code{survalis_eval} object: \code{per_split} (long data frame), \code{summary}
 (mean / sd / se / 95\% interval per metric), \code{times}, \code{resampling} (\code{NULL}
-when scored once), \code{metrics}, \code{model}.
+when scored once), \code{metrics}, \code{model}. The \code{se} is the split standard
+deviation over the square root of the number of splits and the interval is
+mean +/- 1.96 se; this treats the splits as independent, which they are not
+(training sets overlap), so the interval is too narrow. \code{\link[=bootstrap]{bootstrap()}} scores
+the out-of-bag rows only, with no .632 or optimism correction.
 }
 \description{
 Scores survival predictions in one of three ways:

@@ -245,3 +245,11 @@ test_that("listmetrics() states what cindex, auc, iae, ise and ece measure", {
   expect_equal(evaluate(S, y = y, metrics = "cindex")$summary$mean,
                evaluate(S[, 2, drop = FALSE], y = y, times = 300, metrics = "cindex")$summary$mean)
 })
+
+test_that("evaluate() summary matches its documented se and interval", {
+  e <- evaluate(Surv(time, status) ~ age + karno, survival::veteran, model = "coxph",
+                resampling = cv(4, seed = 1), metrics = "cindex")
+  v <- e$per_split$value[e$per_split$metric == "cindex"]
+  expect_equal(e$summary$se, sd(v) / sqrt(4))
+  expect_equal(e$summary$upper, mean(v) + 1.96 * sd(v) / sqrt(4))
+})

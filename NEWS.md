@@ -48,6 +48,9 @@
 * Docs: `listmetrics()` and `evaluate()` now say that `"cindex"` and `"auc"` use the last time of
   the grid only, that `"iae"`/`"ise"` measure calibration in the large (mean predicted curve
   against Kaplan-Meier), and that `"ece"` bins by deciles of predicted survival.
+* Docs: `evaluate()` now says that the default grid is built on the full data before splitting,
+  that its split `se` and interval treat overlapping splits as independent, and that `bootstrap()`
+  reports the out-of-bag score with no `.632` or optimism correction.
 
 # survalis 2.4.6
 
