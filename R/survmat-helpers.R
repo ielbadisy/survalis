@@ -365,7 +365,8 @@ survmat_to_quantile <- function(S, times, p = 0.5) {
 #'   of \code{S}. If omitted, times are inferred from column names of the form
 #'   \code{"t=<time>"}.
 #' @param group Optional vector of group labels of length \code{nrow(S)}. When
-#'   supplied, grouped summary curves are plotted.
+#'   supplied, grouped summary curves are plotted. \code{plot()} on a fitted model
+#'   also accepts the name of a column of its training data.
 #' @param ids Optional integer vector of row ids to subset before plotting.
 #' @param summary_fun Aggregation for grouped curves; one of \code{"mean"}
 #'   (default) or \code{"median"}.

@@ -66,6 +66,8 @@
   feature at a time, in raw units, and may change immutable features unless `features_to_change` is set.
 * `predict(type = "risk")`, `"chf"` and `"hazard"` returned their result invisibly, so it did not
   print at the console; they now return it visibly (bug fix).
+* `plot()` on a fitted model now also accepts `group` as the name of a column of the training data
+  (a vector of labels still works).
 
 # survalis 2.4.6
 

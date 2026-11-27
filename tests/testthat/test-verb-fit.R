@@ -59,3 +59,11 @@ test_that("fit(seed =) reaches survmetalearner's fold seed", {
   expect_false(isTRUE(all.equal(w(1), w(2))))
   expect_equal(w(1, c(sp, seed = 123L)), w(2, c(sp, seed = 123L)))
 })
+
+test_that("plot() on a fit takes group as a column name or a vector", {
+  m <- fit(Surv(time, status) ~ age + celltype, survival::veteran, "coxph")
+  a <- ggplot2::ggplot_build(plot(m, times = c(30, 90), group = "celltype"))$data[[1]]
+  b <- ggplot2::ggplot_build(plot(m, times = c(30, 90), group = survival::veteran$celltype))$data[[1]]
+  expect_equal(a, b)
+  expect_equal(length(unique(a$group)), 4L)
+})
