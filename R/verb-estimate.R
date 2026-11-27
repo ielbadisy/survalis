@@ -4,7 +4,9 @@
 #' binary `treatment` by G-computation (outcome standardisation): a survival
 #' model is fitted for `Surv(time, status) ~ treatment * (confounders)`, every
 #' subject's outcome is predicted under both treatment levels, and the
-#' counterfactual mean survival curves are contrasted.
+#' counterfactual mean survival curves are contrasted. The tree learners `"rpart"`,
+#' `"ranger"` and `"orsf"`, and `"survsvm"`, cannot take interaction terms; they are fitted
+#' on `treatment + confounders` and model any treatment-by-confounder interaction themselves.
 #'
 #' Uncertainty is a nonparametric bootstrap over subjects; by default the model
 #' is refitted in each replicate (`refit = TRUE`), which propagates model
@@ -51,6 +53,9 @@
 #'                 treatment = "trt", tau = 300, R = 50, seed = 1)
 #' est
 #' @export
+# learners whose engine cannot take interaction terms in the formula
+NO_INTERACT <- c("rpart", "ranger", "orsf", "survsvm")
+
 estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio",
                                                         "survival_diff", "survival_ratio"),
                      treatment, tau, times = NULL, spec = list(),
@@ -79,7 +84,9 @@ estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio
 
   confounders <- setdiff(attr(stats::terms(formula), "term.labels"), treatment)
   lhs <- deparse(formula[[2]])
-  rhs <- if (length(confounders)) {
+  rhs <- if (length(confounders) && !isTRUE(lrn$custom) && lrn$id %in% NO_INTERACT) {
+    paste(c(treatment, confounders), collapse = " + ")
+  } else if (length(confounders)) {
     sprintf("%s * (%s)", treatment, paste(confounders, collapse = " + "))
   } else treatment
   work_formula <- stats::as.formula(paste(lhs, "~", rhs))
