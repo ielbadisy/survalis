@@ -56,7 +56,8 @@ event indicator by default.
 \item \code{groupcv()} -- k-fold cross-validation where whole groups (e.g. centres,
 subjects with repeated rows) are held out together.
 \item \code{bootstrap()} -- resampling with replacement; the out-of-bag rows form the
-assessment set (Efron-Tibshirani style, suitable for \code{.632} reporting).
+assessment set. The reported score is this out-of-bag estimate; no \code{.632},
+\verb{.632+} or optimism correction is applied.
 }
 }
 \examples{

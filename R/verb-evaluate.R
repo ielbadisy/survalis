@@ -25,7 +25,8 @@
 #' @param y When `object` is a matrix: a [survival::Surv()] object with one
 #'   entry per row of `object`.
 #' @param times Evaluation grid. `NULL` picks a grid from the data quantiles and
-#'   records it; for a matrix, `NULL` reads the `"times"` attribute or column
+#'   records it (for resampling, from the full data before splitting, so every split
+#'   shares one grid); for a matrix, `NULL` reads the `"times"` attribute or column
 #'   names of the form `"t=<time>"`.
 #' @param resampling A resampling spec from [cv()], [holdout()], [groupcv()] or
 #'   [bootstrap()] (default `cv()`).
@@ -44,7 +45,11 @@
 #'
 #' @return A `survalis_eval` object: `per_split` (long data frame), `summary`
 #'   (mean / sd / se / 95% interval per metric), `times`, `resampling` (`NULL`
-#'   when scored once), `metrics`, `model`.
+#'   when scored once), `metrics`, `model`. The `se` is the split standard
+#'   deviation over the square root of the number of splits and the interval is
+#'   mean +/- 1.96 se; this treats the splits as independent, which they are not
+#'   (training sets overlap), so the interval is too narrow. [bootstrap()] scores
+#'   the out-of-bag rows only, with no .632 or optimism correction.
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE)
 #' m <- fit(Surv(time, status) ~ age + karno + celltype, veteran, "ranger",

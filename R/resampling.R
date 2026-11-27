@@ -11,7 +11,8 @@
 #' * `groupcv()` -- k-fold cross-validation where whole groups (e.g. centres,
 #'   subjects with repeated rows) are held out together.
 #' * `bootstrap()` -- resampling with replacement; the out-of-bag rows form the
-#'   assessment set (Efron-Tibshirani style, suitable for `.632` reporting).
+#'   assessment set. The reported score is this out-of-bag estimate; no `.632`,
+#'   `.632+` or optimism correction is applied.
 #'
 #' @param v Integer number of folds (default `5`).
 #' @param repeats Integer number of times the whole v-fold scheme is repeated
