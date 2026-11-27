@@ -262,3 +262,14 @@ test_that("shap_matrix reports factor values by label", {
   expect_equal(ct$raw_value, as.numeric(d$celltype[c(1, 100)]))
   expect_equal(sm$value[sm$feature == "age"], as.character(d$age[c(1, 100)]))
 })
+
+test_that("PDP and ALE time summaries match their documented definitions", {
+  d <- survival::veteran; tt <- c(30, 90, 300)
+  m <- fit(Surv(time, status) ~ age + karno, d, "coxph")
+  p <- compute_pdp(m, d, "karno", tt, method = "pdp", grid.size = 4)
+  r <- p$results[p$results$type == "pdp", ]; r1 <- r[r$karno == r$karno[1], ]; r1 <- r1[order(r1$time), ]
+  trap <- sum((head(r1$surv_prob, -1) + tail(r1$surv_prob, -1)) / 2 * diff(tt))
+  expect_equal(p$pdp_integrated$integrated_surv[p$pdp_integrated$karno == r$karno[1]], trap)
+  a <- compute_ale(m, d, "karno", tt, grid.size = 5)
+  expect_equal(a$integrated$integrated_ale, unname(rowMeans(a$ale[, -1])))
+})
