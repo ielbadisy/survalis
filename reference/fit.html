@@ -96,7 +96,8 @@ fitting routine (for example <code>list(num.trees = 500)</code> for <code>"range
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
 <dd><p>Optional integer seed set immediately before fitting, for learners
-with a stochastic training step.</p></dd>
+with a stochastic training step. For <code>"survmetalearner"</code> it also sets the
+cross-fitting fold seed, unless <code>spec</code> gives one.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

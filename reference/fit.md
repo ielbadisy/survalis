@@ -49,7 +49,8 @@ fit(formula, data, model, spec = list(), seed = NULL, ...)
 - seed:
 
   Optional integer seed set immediately before fitting, for learners
-  with a stochastic training step.
+  with a stochastic training step. For `"survmetalearner"` it also sets
+  the cross-fitting fold seed, unless `spec` gives one.
 
 - ...:
 
