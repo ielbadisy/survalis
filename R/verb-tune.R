@@ -22,7 +22,10 @@
 #'   is `NULL` or has exactly the columns of the built-in grid; any other
 #'   `grid` is scored on shared splits and accepts any spec.
 #' @param metric A single metric to optimise (default `"ibs"`).
-#' @param ncores Cores for the inner CV (default `1`).
+#' @param ncores Number of parallel workers for the split loop (default `1`). Workers are
+#'   fresh R sessions (PSOCK), each with one OpenMP thread, so parallel runs are safe after an
+#'   OpenMP engine (xgboost, rsf) ran in the session. A custom learner must therefore not rely
+#'   on objects of the global environment other than its own arguments.
 #' @param ... Fixed learner arguments: forwarded to the built-in tuner, or
 #'   added to every configuration of a supplied `grid`.
 #'
@@ -72,6 +75,7 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
   status <- .recode_status_vec(parsed, data)
   times <- .resolve_times(times, data[[parsed$time_col]], status)
   .check_metrics(metric, times)
+  if (.start_workers(ncores)) on.exit(.stop_workers(), add = TRUE)
 
   tuned_names <- if (!is.null(grid)) names(grid) else if (builtin) .builtin_grid_names(lrn$tune)
   clash <- intersect(names(list(...)), tuned_names)

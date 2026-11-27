@@ -1,3 +1,11 @@
+# survalis 2.4.7
+
+* `compare()`, `evaluate()` and `tune()` with `ncores > 1` hung when an OpenMP engine (xgboost,
+  rsf) had run earlier in the session: forked workers cannot use the parent's OpenMP thread pool.
+  Parallel splits now run in fresh PSOCK workers with one OpenMP thread each (which also stops
+  thread oversubscription), loading the caller's attached packages (bug fix). A custom learner
+  run with `ncores > 1` must not rely on other objects of the global environment.
+
 # survalis 2.4.6
 
 * `plot(interpret(method = "pdp"))`: the y label read "Survival Probability" (title case, unlike the rest

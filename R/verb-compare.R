@@ -18,7 +18,10 @@
 #'   data (its default grid) and the winning configuration is then evaluated on
 #'   the shared folds. This is not nested CV, so the tuned results are optimistic;
 #'   a message is emitted. Default `FALSE`.
-#' @param ncores Cores for the split loop (default `1`).
+#' @param ncores Number of parallel workers for the split loop (default `1`). Workers are
+#'   fresh R sessions (PSOCK), each with one OpenMP thread, so parallel runs are safe after an
+#'   OpenMP engine (xgboost, rsf) ran in the session. A custom learner must therefore not rely
+#'   on objects of the global environment other than its own arguments.
 #' @param ... Unused.
 #'
 #' @return A `survalis_compare` object: `leaderboard` (model x metric, mean and
@@ -54,6 +57,7 @@ compare <- function(formula, data, models, specs = list(), times = NULL,
   status <- .recode_status_vec(parsed, data)
   times <- .resolve_times(times, data[[parsed$time_col]], status)
   .check_metrics(metrics, times, multi = TRUE)
+  if (.start_workers(ncores)) on.exit(.stop_workers(), add = TRUE)
 
   splits <- .make_splits(resampling, data, parsed$status_col)
   tunable <- listlearners(has_tune = TRUE)$learner

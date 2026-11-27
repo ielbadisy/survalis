@@ -575,12 +575,11 @@ ece
 
 
 
-#' Cross-Validate a Survival Learner (fold-mapped with \code{fmapn})
+#' Cross-Validate a Survival Learner
 #'
 #' Runs k-fold cross-validation for any pair of \code{fit_fun}/\code{pred_fun}
 #' that follow the package's learner contracts, and returns tidy per-fold metric values.
-#' Fold iteration is handled by \code{functionals::fmapn()} with optional parallel
-#' execution and a progress bar.
+#' Folds run in parallel PSOCK workers when \code{ncores > 1}.
 #'
 #' @param formula A survival formula \code{Surv(time, status) ~ predictors}.
 #' @param data A data frame containing all variables in \code{formula}.
@@ -596,10 +595,8 @@ ece
 #' @param folds Integer; number of folds (default \code{5}).
 #' @param seed Integer random seed for reproducibility (default \code{123}).
 #' @param verbose Logical; print row-dropping due to missingness (default \code{FALSE}).
-#' @param ncores Integer; number of CPU cores for \code{fmapn} parallel mapping
-#'   (default \code{1}). Set \code{> 1} to enable parallelism.
-#' @param pb Logical; show a progress bar during fold mapping (default
-#'   \code{interactive()}).
+#' @param ncores Integer; number of parallel PSOCK workers (default \code{1}).
+#' @param pb Ignored (kept for compatibility).
 #' @param ... Additional arguments forwarded to \code{fit_fun}.
 #'
 #' @details
@@ -612,9 +609,7 @@ ece
 #' \item For each fold: fits on the analysis set, predicts on the assessment set, and computes metrics.
 #' }
 #'
-#' Fold iteration is performed via \code{functionals::fmapn()}, which preserves
-#' per-fold identifiers (\code{id}, \code{fold}) and returns a list ready for
-#' base R's `rbind()`.
+#' The per-fold identifiers (\code{id}, \code{fold}) are kept in the result.
 #'
 #' @return A \code{data.frame} with columns: \code{splits} (rsample split object),
 #'   \code{id}, \code{fold}, \code{metric}, and \code{value}.
@@ -676,8 +671,8 @@ data[[status_col]] <- as.integer(data[[status_col]] == event_value)
 set.seed(seed)
 folds_data <- rsample::vfold_cv(data, v = folds, strata = !!rlang::sym(status_col))
 
-# cross-validation loop via fmapn
-results <- functionals::fmapn(
+# cross-validation loop (PSOCK workers when ncores > 1, see .pmap())
+results <- .pmap(
 list(split = folds_data$splits, id = folds_data$id, fold = seq_along(folds_data$splits)),
 function(split, id, fold) {
 train <- rsample::analysis(split)
@@ -699,7 +694,7 @@ data.frame(
   metric = scored$metric,
   value = scored$value,
   stringsAsFactors = FALSE
-)}, ncores = ncores, pb = pb)
+)}, ncores = ncores)
   .abort_on_worker_error(results)
   .rbind_fill_dt(results)
 }
