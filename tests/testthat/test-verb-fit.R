@@ -42,3 +42,10 @@ test_that("fit(seed=) makes stochastic learners reproducible", {
   p2 <- predict(m2, veteran[1:10, ], times = c(90, 180))
   expect_equal(unclass(as.matrix(p1)), unclass(as.matrix(p2)), ignore_attr = TRUE)
 })
+
+test_that("verbs warn when they drop incomplete rows", {
+  d <- survival::veteran; d$age[1:3] <- NA
+  expect_warning(m <- fit(Surv(time, status) ~ age + karno, d, model = "coxph"), "Dropped 3 of 137")
+  expect_equal(nrow(m$data), 134L)
+  expect_silent(fit(Surv(time, status) ~ karno, d, model = "coxph"))
+})

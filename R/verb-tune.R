@@ -9,6 +9,7 @@
 #'
 #' @param formula A survival formula.
 #' @param data A data frame.
+#'   Rows with a missing value in a model variable are dropped with a warning.
 #' @param model A learner id (`listlearners()$learner`) or a custom
 #'   learner.
 #' @param grid A data frame of hyperparameter combinations (one row per
@@ -71,7 +72,7 @@ tune <- function(formula, data, model, grid = NULL, times = NULL,
 
 
   parsed <- .parse_surv_formula(formula, data)
-  data <- .complete_cases_df(data, all.vars(formula))
+  data <- .complete_cases_df(data, all.vars(formula), warn = TRUE)
   status <- .recode_status_vec(parsed, data)
   times <- .resolve_times(times, data[[parsed$time_col]], status)
   .check_metrics(metric, times)

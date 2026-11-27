@@ -60,7 +60,8 @@ fresh R sessions (PSOCK), each with one OpenMP thread, so parallel runs are safe
 OpenMP engine (xgboost, rsf) ran in the session. A custom learner must therefore not rely
 on objects of the global environment other than its own arguments.}
 
-\item{data}{When \code{object} is a formula: the data frame.}
+\item{data}{When \code{object} is a formula: the data frame.
+Rows with a missing value in a model variable are dropped with a warning.}
 
 \item{model}{When \code{object} is a formula: a learner id
 (\code{listlearners()$learner}) or a custom learner (see \code{\link[=fit]{fit()}}).}

@@ -8,6 +8,7 @@
 #' @param formula A survival formula with a `Surv()` outcome on the left-hand
 #'   side, e.g. `Surv(time, status) ~ age + karno`.
 #' @param data A data frame containing the formula variables.
+#'   Rows with a missing value in a model variable are dropped with a warning.
 #' @param model A learner id from `listlearners()$learner` (for example
 #'   `"coxph"`, `"ranger"`, `"densemlp"`), or a custom learner: a list with
 #'   `fit = function(formula, data, ...)` returning any fitted object and
@@ -70,7 +71,7 @@ fit <- function(formula, data, model, spec = list(), seed = NULL, ...) {
   # Rows with a missing outcome or predictor are dropped once, here, so the
   # stored data, the printed counts and every later verb see the rows the
   # model was fitted on.
-  data <- .complete_cases_df(data, all.vars(formula))
+  data <- .complete_cases_df(data, all.vars(formula), warn = TRUE)
   if (!nrow(data)) stop("No complete rows for the variables in `formula`.", call. = FALSE)
 
   if (!is.null(seed)) set.seed(as.integer(seed))

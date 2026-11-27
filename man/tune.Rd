@@ -19,7 +19,8 @@ tune(
 \arguments{
 \item{formula}{A survival formula.}
 
-\item{data}{A data frame.}
+\item{data}{A data frame.
+Rows with a missing value in a model variable are dropped with a warning.}
 
 \item{model}{A learner id (\code{listlearners()$learner}) or a custom
 learner.}
