@@ -94,6 +94,10 @@
   as independent, and that
   [`bootstrap()`](https://elbadisyimad.com/survalis/reference/resampling.md)
   reports the out-of-bag score with no `.632` or optimism correction.
+- The `"rpart"` learner gains `prune = c("none", "min", "1se")` to prune
+  the tree at the cp chosen by its internal cross-validation (`xval`),
+  which was computed but unused. The default `"none"` keeps the previous
+  tree.
 
 ## survalis 2.4.6
 
