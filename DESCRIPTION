@@ -50,7 +50,7 @@ Imports:
     densemlp,
     rpsurv,
     nbsurv (>= 0.6.0),
-    tvrmst,
+    tvrmst (>= 0.0.9),
     CoxBoost,
     BART,
     flexsurv,
@@ -80,4 +80,5 @@ RoxygenNote: 7.3.3
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Remotes:
-    ielbadisy/nbsurv
+    ielbadisy/nbsurv,
+    ielbadisy/tvrmst

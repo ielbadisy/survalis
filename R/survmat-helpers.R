@@ -294,11 +294,11 @@ survmat_to_rmst <- function(S, times, tau = max(times)) {
   }
 
   # Clamp to [0,1] to guard against floating-point drift before handing to
-  # tvrmst::as_survmat(), which enforces the bound strictly.
+  # tvrmst::assurvmat(), which enforces the bound strictly.
   S2 <- pmin(pmax(S2, 0), 1)
 
-  x <- tvrmst::as_survmat(S2, times2)
-  ind <- tvrmst::rmst_dynamic(x)$individual
+  x <- tvrmst::assurvmat(S2, times2)
+  ind <- tvrmst::rmstdynamic(x)$individual
 
   # Per-subject linear interpolation of the cumulative RMST curve at tau
   # (rule = 2 holds the value flat beyond the last grid point, i.e. no
