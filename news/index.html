@@ -81,6 +81,7 @@
 <li>The <code>"coxboost"</code> learner gains <code>cv = FALSE, K = 10</code>: with <code>cv = TRUE</code> the number of boosting steps is chosen by <code><a href="https://rdrr.io/pkg/CoxBoost/man/cv.CoxBoost.html" class="external-link">CoxBoost::cv.CoxBoost()</a></code> up to <code>stepno</code>. The default keeps the fixed <code>stepno = 100</code>.</li>
 <li>
 <code><a href="../reference/interpret.html">interpret()</a></code> gains <code>seed = NULL</code> (after <code>...</code>), set before the method runs, so sampling methods (<code>"shap"</code>, <code>"interaction"</code>, <code>"varimp"</code>, …) are reproducible.</li>
+<li>Docs: the time summaries of <code>compute_ale()</code> (<code>integrated</code>), <code>compute_pdp()</code> (<code>pdp_integrated</code>) and <code>compute_shap()</code> (<code>"meanabs"</code>, <code>"integral"</code>) now say they are unweighted over the grid or run from the first grid time, not from 0.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.4.6" id="survalis-246">survalis 2.4.6<a class="anchor" aria-label="anchor" href="#survalis-246"></a></h2>

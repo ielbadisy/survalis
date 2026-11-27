@@ -106,6 +106,10 @@
   gains `seed = NULL` (after `...`), set before the method runs, so
   sampling methods (`"shap"`, `"interaction"`, `"varimp"`, …) are
   reproducible.
+- Docs: the time summaries of `compute_ale()` (`integrated`),
+  `compute_pdp()` (`pdp_integrated`) and `compute_shap()` (`"meanabs"`,
+  `"integral"`) now say they are unweighted over the grid or run from
+  the first grid time, not from 0.
 
 ## survalis 2.4.6
 
