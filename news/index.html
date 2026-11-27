@@ -53,6 +53,8 @@
 <li>aalen learner: the predicted curve exp(-x’B(t)), which need not decrease, was made monotone by a running minimum over the requested <code>times</code> only, so S(t) depended on the other times asked for (S(8) = 0.889 with <code>times = c(2, 5, 8)</code> but 0.915 alone on rotterdam). The running minimum now runs over the model’s own jump times, so S(t) is the same for any grid (bug fix; values can change). Prediction also skips timereg’s standard-error computation, which it never used (faster).</li>
 <li>
 <code>interpret(method = "varimp")</code> / <code>"permute"</code> ignored <code>newdata</code> and <code>data</code> and always permuted the training data. They now score on <code>newdata</code> (default <code>data</code>, default the training data), so held-out importance is possible (bug fix).</li>
+<li>
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> of a single-time ALE and of an ICE-only <code><a href="../reference/interpret.html">interpret()</a></code> result failed with “Unknown palette” under ggplot2 4.0: the one colour was read as a palette name. The theme palette is now a function (bug fix).</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.4.6" id="survalis-246">survalis 2.4.6<a class="anchor" aria-label="anchor" href="#survalis-246"></a></h2>

@@ -29,6 +29,12 @@
   `data` and always permuted the training data. They now score on
   `newdata` (default `data`, default the training data), so held-out
   importance is possible (bug fix).
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of a
+  single-time ALE and of an ICE-only
+  [`interpret()`](https://elbadisyimad.com/survalis/reference/interpret.md)
+  result failed with “Unknown palette” under ggplot2 4.0: the one colour
+  was read as a palette name. The theme palette is now a function (bug
+  fix).
 
 ## survalis 2.4.6
 
