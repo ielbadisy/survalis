@@ -34,7 +34,8 @@ default \code{max(times)}.}
 }}
 
 \item{...}{Type-specific arguments: \code{tau} for \code{"rmst"}, \code{probs} for
-\code{"quantile"}.}
+\code{"quantile"}. Arguments of the learner's own prediction function are passed
+on, e.g. \code{dist} and \code{shape} for \code{"survsvm"}.}
 }
 \value{
 A \code{survmat} for \code{"survival"}, \code{"risk"}, \code{"chf"}, \code{"hazard"}; a numeric

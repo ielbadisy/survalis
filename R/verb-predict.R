@@ -23,7 +23,8 @@
 #'     \item{`"median"`}{median survival time (`probs = 0.5`).}
 #'   }
 #' @param ... Type-specific arguments: `tau` for `"rmst"`, `probs` for
-#'   `"quantile"`.
+#'   `"quantile"`. Arguments of the learner's own prediction function are passed
+#'   on, e.g. `dist` and `shape` for `"survsvm"`.
 #'
 #' @return A `survmat` for `"survival"`, `"risk"`, `"chf"`, `"hazard"`; a numeric
 #'   vector for `"rmst"`, `"median"` and scalar-`probs` `"quantile"`; an
@@ -62,7 +63,8 @@ predict.survalis_fit <- function(object, newdata = NULL, times = NULL,
   }
 
   pred_fun <- .predict_fun(object)
-  raw <- pred_fun(object, newdata = newdata, times = times)
+  eng <- dots[intersect(names(dots), setdiff(names(formals(pred_fun)), c("object", "newdata", "times")))]
+  raw <- do.call(pred_fun, c(list(object, newdata = newdata, times = times), eng))
   S <- as_survmat(as.matrix(raw), times = times, quantity = "survival")
   Sdf <- as.data.frame(S)
 
