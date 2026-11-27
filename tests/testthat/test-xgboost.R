@@ -37,3 +37,11 @@ test_that("predict_xgboost() returns LP when times=NULL and survival when times 
   diffs <- t(apply(M[, ord, drop = FALSE], 1, diff))
   expect_true(all(diffs <= 1e-8))
 })
+
+test_that("survival:cox does not pass the AFT parameters to xgboost", {
+  skip_on_cran()
+  skip_if_not_installed("xgboost")
+  out <- capture.output(fit_xgboost(Surv(time, status) ~ age + karno, survival::veteran,
+                                    objective = "survival:cox", nrounds = 5), type = "message")
+  expect_false(any(grepl("not used", out)))
+})

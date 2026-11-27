@@ -85,16 +85,11 @@ fit_xgboost <- function(formula, data,
     stop("Unsupported objective.")
   }
 
-  params <- list(
-    booster = booster,
-    objective = objective,
-    aft_loss_distribution = aft_loss_distribution,
-    aft_loss_distribution_scale = aft_loss_distribution_scale,
-    max_depth = max_depth,
-    eta = eta,
-    eval_metric = "cox-nloglik"
-  )
+  params <- list(booster = booster, objective = objective, max_depth = max_depth, eta = eta,
+                 eval_metric = if (objective == "survival:cox") "cox-nloglik" else "aft-nloglik")
   if (objective == "survival:aft") {
+    params$aft_loss_distribution <- aft_loss_distribution
+    params$aft_loss_distribution_scale <- aft_loss_distribution_scale
     # The AFT margin is log(time) and base_score is on the time scale; the
     # xgboost default (0.5) starts every fit near log(0.5), far from the data.
     # Start from the geometric mean observed time instead. For survival:cox
