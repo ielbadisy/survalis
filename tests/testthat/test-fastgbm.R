@@ -28,11 +28,21 @@ test_that("fastgbm plugs into the verb interface", {
   expect_s3_class(S, "survmat")
 })
 
-test_that("predict_fastgbm() rejects a non-pexp objective", {
+test_that("predict_fastgbm() works for the cox and aft objectives", {
   testthat::skip_on_cran()
   testthat::skip_if_not_installed("fastgbm")
-  mod <- fit_fastgbm(Surv(time, status) ~ age, veteran, objective = "cox", ntrees = 20)
-  expect_error(predict_fastgbm(mod, veteran[1:2, ], times = 90), "objective = 'pexp'")
+  tt <- c(30, 90, 180)
+  for (o in c("cox", "aft")) {
+    mod <- fit_fastgbm(Surv(time, status) ~ age + karno, veteran, objective = o, ntrees = 20)
+    S <- as.matrix(predict_fastgbm(mod, veteran[1:4, ], times = tt))
+    expect_equal(dim(S), c(4L, 3L))
+    # each column equals the engine's single-time prediction for those subjects
+    for (j in seq_along(tt)) {
+      ref <- predict(mod$model, newdata = veteran[1:4, ], type = "survival", times = tt[j])
+      expect_equal(unname(S[, j]), as.vector(ref), tolerance = 1e-8)
+    }
+    expect_true(all(diff(t(S)) <= 0))
+  }
 })
 
 test_that("predict_fastgbm() works without outcome columns and for one row", {

@@ -10,9 +10,8 @@
 #' @param formula A survival formula \code{Surv(time, status) ~ predictors}.
 #' @param data A \code{data.frame} containing the formula variables.
 #' @param objective fastgbm survival objective: \code{"pexp"} (default),
-#'   \code{"cox"}, or \code{"aft"}. Only \code{"pexp"} supports
-#'   \code{predict(type = "survival")} at arbitrary times and is required for the
-#'   survalis prediction contract.
+#'   \code{"cox"} (Breslow baseline), or \code{"aft"} (normal error). All three give
+#'   survival curves at arbitrary times.
 #' @param ntrees Number of boosting rounds (default \code{200}).
 #' @param learning_rate Shrinkage (default \code{0.1}).
 #' @param max_depth Maximum tree depth (default \code{5}).
@@ -63,7 +62,7 @@ fit_fastgbm <- function(formula, data, objective = c("pexp", "cox", "aft"),
 #' Predict Survival Probabilities from a fastgbm Model
 #'
 #' Generates predicted survival probabilities at the requested \code{times} for a
-#' model fitted with \code{fit_fastgbm} (piecewise-exponential objective).
+#' model fitted with \code{fit_fastgbm}, for any of its objectives.
 #'
 #' @param object An \code{"mlsurv_model"} from \code{fit_fastgbm}.
 #' @param newdata A \code{data.frame} of predictors.
@@ -86,10 +85,6 @@ predict_fastgbm <- function(object, newdata, times) {
     warning("Object passed to predict_fastgbm() may not come from fit_fastgbm().")
   }
   stopifnot(requireNamespace("fastgbm", quietly = TRUE))
-  if (!is.null(object$objective) && object$objective != "pexp") {
-    stop("predict_fastgbm() needs objective = 'pexp'; refit with fit_fastgbm(..., objective = 'pexp').")
-  }
-
   newdata <- as.data.frame(newdata)
   parsed <- .parse_surv_formula(object$formula, object$data)
   # The engine rebuilds the model frame from the formula, so the outcome columns
@@ -97,7 +92,9 @@ predict_fastgbm <- function(object, newdata, times) {
   for (col in c(parsed$time_col, parsed$status_col)) {
     if (!col %in% names(newdata)) newdata[[col]] <- 1
   }
-  pred <- stats::predict(object$model, newdata = newdata, type = "survival", times = times)
-  if (is.null(dim(pred))) pred <- matrix(pred, nrow = 1)
+  sv <- function(t) stats::predict(object$model, newdata = newdata, type = "survival", times = t)
+  # fastgbm < 0.7.5 scrambles multi-time "aft" predictions; one time at a time is correct
+  pred <- if (identical(object$objective, "aft")) vapply(times, sv, numeric(nrow(newdata))) else sv(times)
+  pred <- matrix(pred, nrow = nrow(newdata))
   .finalize_survmat(pred, times = times)
 }
