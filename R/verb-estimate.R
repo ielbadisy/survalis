@@ -1,3 +1,6 @@
+# learners whose engine cannot take interaction terms in the formula
+NO_INTERACT <- c("rpart", "ranger", "orsf", "survsvm")
+
 #' Standardised causal-style contrast for a binary treatment
 #'
 #' Estimates a covariate-adjusted marginal contrast between the two levels of a
@@ -53,9 +56,6 @@
 #'                 treatment = "trt", tau = 300, R = 50, seed = 1)
 #' est
 #' @export
-# learners whose engine cannot take interaction terms in the formula
-NO_INTERACT <- c("rpart", "ranger", "orsf", "survsvm")
-
 estimate <- function(formula, data, model, estimand = c("RMST_diff", "RMST_ratio",
                                                         "survival_diff", "survival_ratio"),
                      treatment, tau, times = NULL, spec = list(),
