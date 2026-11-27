@@ -249,3 +249,16 @@ test_that("interpret(method = 'varimp'/'permute') scores on `newdata`", {
   tr <- as.data.frame(interpret(m, "varimp", times = c(50, 100), seed = 1))
   expect_false(isTRUE(all.equal(tr$importance, ref$importance)))
 })
+
+test_that("shap_matrix reports factor values by label", {
+  skip_on_cran()
+  d <- survival::veteran; d$celltype <- factor(d$celltype)
+  m <- fit(Surv(time, status) ~ age + celltype, d, model = "coxph")
+  set.seed(1)
+  sm <- interpret(m, method = "shap_matrix", newdata = d[c(1, 100), ], data = d,
+                  times = c(50, 100), sample.size = 5)$result
+  ct <- sm[sm$feature == "celltype", ]
+  expect_equal(ct$value, as.character(d$celltype[c(1, 100)]))
+  expect_equal(ct$raw_value, as.numeric(d$celltype[c(1, 100)]))
+  expect_equal(sm$value[sm$feature == "age"], as.character(d$age[c(1, 100)]))
+})

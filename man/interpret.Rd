@@ -46,7 +46,10 @@ with the number of \code{splits} on it and the tree's \code{r_squared}. For
 \code{"ale"} one row per feature value and time (\code{feature}, \code{feature_value},
 \code{time}, \code{ale}), and for \code{"calibration"} the binned table with its
 \code{eval_time}. For \code{"pdp"} and \code{"ale"}, \code{as.data.frame(x, what = "integrated")} returns the curve integrated over time instead (\code{feature},
-\code{feature_value}, \code{integrated}).
+\code{feature_value}, \code{integrated}). For \code{"shap_matrix"} it is one row per
+observation and feature: \code{observation}, \code{feature}, \code{phi}, \code{raw_value}
+(numeric; the level code for a factor, used to colour the beeswarm) and
+\code{value} (the value as text, e.g. the factor label).
 }
 \description{
 A single entry point to the package's model-agnostic explanation and
