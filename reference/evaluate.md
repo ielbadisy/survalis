@@ -95,7 +95,12 @@ evaluate(object, y, times = NULL, metrics = c("cindex", "ibs"), ...)
   value (see
   [`dwscore()`](https://elbadisyimad.com/survalis/reference/dwscore.md)).
   `"brier"` with several `times` gives one metric per time,
-  `"brier@<time>"`; with one time it is `"brier"`.
+  `"brier@<time>"`; with one time it is `"brier"`. `"cindex"` and
+  `"auc"` use the last time of `times` only, so their value depends on
+  the grid. `"iae"` and `"ise"` compare the mean predicted curve with
+  the Kaplan-Meier curve (calibration in the large), and `"ece"` bins
+  subjects by deciles of predicted survival (see
+  [`listmetrics()`](https://elbadisyimad.com/survalis/reference/listmetrics.md)).
 
 - ncores:
 

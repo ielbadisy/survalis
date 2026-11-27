@@ -46,16 +46,16 @@ listmetrics()
 #> 7                   ece  minimize
 #> 8               survacc  maximize
 #> 9 range:<lower>-<upper>  minimize
-#>                                                                                                        summary
-#> 1                                                    Harrell-style concordance index for survival predictions.
-#> 2                                         Cumulative/dynamic time-dependent AUC at a selected evaluation time.
-#> 3                                     Brier Score at specified evaluation time(s) (IPCW-weighted when needed).
-#> 4                                         Integrated Brier Score over an evaluation time grid (IPCW-weighted).
-#> 5                                                    Integrated absolute error against the Kaplan-Meier curve.
-#> 6                                                     Integrated squared error against the Kaplan-Meier curve.
-#> 7                                                      Expected calibration error at a single evaluation time.
-#> 8                           SurvAcc: spherical decision-weighted score at a single time (IPCW), see dwscore().
-#> 9 Decision-weighted loss over a risk-threshold range, e.g. "range:0.05-0.20", at a single time, see dwscore().
+#>                                                                                                                                         summary
+#> 1                                                   Harrell's concordance of 1 - S(t) at the last time of the grid, so it depends on that time.
+#> 2                                                                    Cumulative/dynamic time-dependent AUC (IPCW) at the last time of the grid.
+#> 3                                                                      Brier Score at specified evaluation time(s) (IPCW-weighted when needed).
+#> 4                                                                          Integrated Brier Score over an evaluation time grid (IPCW-weighted).
+#> 5      Integrated absolute gap between the mean predicted curve and the Kaplan-Meier curve (calibration-in-the-large, not an individual error).
+#> 6       Integrated squared gap between the mean predicted curve and the Kaplan-Meier curve (calibration-in-the-large, not an individual error).
+#> 7 Expected calibration error at a single time: size-weighted mean |predicted - Kaplan-Meier| over deciles of predicted survival (no smoothing).
+#> 8                                                            SurvAcc: spherical decision-weighted score at a single time (IPCW), see dwscore().
+#> 9                                  Decision-weighted loss over a risk-threshold range, e.g. "range:0.05-0.20", at a single time, see dwscore().
 #>                        range
 #> 1  [0, 1] (higher is better)
 #> 2  [0, 1] (higher is better)

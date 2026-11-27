@@ -84,16 +84,16 @@ for example <code>"range:0.05-0.20"</code>.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 7                   ece  minimize</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 8               survacc  maximize</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 9 range:&lt;lower&gt;-&lt;upper&gt;  minimize</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                                        summary</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                    Harrell-style concordance index for survival predictions.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                         Cumulative/dynamic time-dependent AUC at a selected evaluation time.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                     Brier Score at specified evaluation time(s) (IPCW-weighted when needed).</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                         Integrated Brier Score over an evaluation time grid (IPCW-weighted).</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                    Integrated absolute error against the Kaplan-Meier curve.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                                     Integrated squared error against the Kaplan-Meier curve.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                                                      Expected calibration error at a single evaluation time.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8                           SurvAcc: spherical decision-weighted score at a single time (IPCW), see dwscore().</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9 Decision-weighted loss over a risk-threshold range, e.g. "range:0.05-0.20", at a single time, see dwscore().</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                                                                         summary</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                   Harrell's concordance of 1 - S(t) at the last time of the grid, so it depends on that time.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                                    Cumulative/dynamic time-dependent AUC (IPCW) at the last time of the grid.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                                      Brier Score at specified evaluation time(s) (IPCW-weighted when needed).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                                                          Integrated Brier Score over an evaluation time grid (IPCW-weighted).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5      Integrated absolute gap between the mean predicted curve and the Kaplan-Meier curve (calibration-in-the-large, not an individual error).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       Integrated squared gap between the mean predicted curve and the Kaplan-Meier curve (calibration-in-the-large, not an individual error).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7 Expected calibration error at a single time: size-weighted mean |predicted - Kaplan-Meier| over deciles of predicted survival (no smoothing).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8                                                            SurvAcc: spherical decision-weighted score at a single time (IPCW), see dwscore().</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9                                  Decision-weighted loss over a risk-threshold range, e.g. "range:0.05-0.20", at a single time, see dwscore().</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                        range</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1  [0, 1] (higher is better)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2  [0, 1] (higher is better)</span>
