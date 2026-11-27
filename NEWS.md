@@ -54,6 +54,8 @@
 * The `"rpart"` learner gains `prune = c("none", "min", "1se")` to prune the tree at the cp chosen by
   its internal cross-validation (`xval`), which was computed but unused. The default `"none"` keeps
   the previous tree.
+* The `"coxboost"` learner gains `cv = FALSE, K = 10`: with `cv = TRUE` the number of boosting steps
+  is chosen by `CoxBoost::cv.CoxBoost()` up to `stepno`. The default keeps the fixed `stepno = 100`.
 
 # survalis 2.4.6
 

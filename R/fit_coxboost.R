@@ -17,6 +17,10 @@
 #' @param criterion Selection criterion for each boosting step: one of
 #'   \code{"pscore"} (default), \code{"score"}, \code{"hpscore"}, \code{"hscore"}.
 #' @param stepsize.factor Numeric step-size factor (default \code{1}).
+#' @param cv Logical; if \code{TRUE}, choose the number of steps by \code{K}-fold
+#'   cross-validation (\code{CoxBoost::cv.CoxBoost()}) up to \code{stepno}. Default
+#'   \code{FALSE} (fixed \code{stepno}).
+#' @param K Number of folds when \code{cv = TRUE} (default \code{10}).
 #'
 #' @return An object of class \code{mlsurv_model}:
 #' \describe{
@@ -52,7 +56,8 @@ fit_coxboost <- function(formula, data,
                          stepno = 100,
                          penalty = NULL,
                          criterion = "pscore",
-                         stepsize.factor = 1) {
+                         stepsize.factor = 1,
+                         cv = FALSE, K = 10) {
   stopifnot(requireNamespace("CoxBoost", quietly = TRUE))
 
   design <- .survalis_design_fit(formula, data)
@@ -66,6 +71,12 @@ fit_coxboost <- function(formula, data,
     penalty <- 9 * sum(y_status == 1)
   }
 
+  if (cv) {
+    # stepno becomes the largest number of steps tried; keep the cross-validated optimum
+    stepno <- CoxBoost::cv.CoxBoost(time = y_time, status = y_status, x = x, maxstepno = stepno,
+                                    K = K, penalty = penalty, criterion = criterion,
+                                    stepsize.factor = stepsize.factor)$optimal.step
+  }
   model <- CoxBoost::CoxBoost(
     time = y_time,
     status = y_status,
