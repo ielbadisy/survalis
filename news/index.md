@@ -123,6 +123,10 @@
 - [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on a fitted
   model now also accepts `group` as the name of a column of the training
   data (a vector of labels still works).
+- The `"auc"` metric and the ROC curve of `interpret(method = "roc")`
+  now count an event exactly at the evaluation time as a case (`T <= t`,
+  as the Brier score does); it was dropped before, as in timeROC. Values
+  change only when an event falls exactly at an evaluation time.
 
 ## survalis 2.4.6
 
