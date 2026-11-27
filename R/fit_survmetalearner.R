@@ -39,7 +39,8 @@
 #' \deqn{\min_{w \ge 0} \| Y - S w \|_2^2}
 #' where \eqn{Y = I(T > t)} and \eqn{S} is the matrix of base survival
 #' probabilities at \eqn{t}. Only subjects with \eqn{T > t} or an observed event
-#' by \eqn{t} enter, each weighted by \eqn{1 / G(\min(T, t)-)} with \eqn{G} the
+#' by \eqn{t} enter, weighted as in the Brier score (Graf et al. 1999): \eqn{1 / G(t)}
+#' if \eqn{T > t} and \eqn{1 / G(T-)} otherwise, with \eqn{G} the
 #' reverse Kaplan-Meier estimate of the censoring distribution; the weights enter
 #' the NNLS fit by \eqn{\sqrt{w}} row scaling. The NNLS solution from \pkg{nnls} is renormalized
 #' to sum to 1 afterwards (if the solution is all zeros, equal weights are used).
@@ -137,21 +138,17 @@ fit_survmetalearner <- function(base_preds = NULL, time = NULL, status = NULL, t
   weight_matrix <- matrix(NA_real_, nrow = length(learners), ncol = T,
                           dimnames = list(learners, paste0("t=", times)))
 
-  # Reverse Kaplan-Meier of censoring, left limit G(u-) = P(C >= u).
-  cens_km <- survival::survfit(survival::Surv(time, 1 - status) ~ 1)
-  G_left <- function(u) c(1, cens_km$surv)[findInterval(u, cens_km$time, left.open = TRUE) + 1L]
-
+  y <- survival::Surv(time, status)
   for (j in seq_along(times)) {
     t_star <- times[j]
-    # Keep subjects whose status at t* is known (still at risk, or event by t*), and
-    # weight them by IPCW 1 / G(min(T, t*)-).
-    G <- G_left(pmin(time, t_star))
-    keep <- (time > t_star | status == 1) & G > 0
+    # Graf IPCW, as in the Brier score: 1 / G(t*) if event-free at t*, 1 / G(T-) if event by t*
+    iw <- .ipcw_weights(y, t_star)
+    wt <- if (is.null(iw)) numeric(length(time)) else iw$w0 + iw$w1
     X <- sapply(base_preds, function(S) S[, j])
     X <- matrix(X, ncol = length(base_preds))
-    keep <- keep & stats::complete.cases(X)
+    keep <- wt > 0 & stats::complete.cases(X)
     Y <- as.numeric(time[keep] > t_star)
-    sw <- sqrt(1 / G[keep])
+    sw <- sqrt(wt[keep])
     fit <- nnls::nnls(X[keep, , drop = FALSE] * sw, Y * sw)
     w <- coef(fit)
     # all-zero NNLS solution: fall back to equal weights rather than 0/0

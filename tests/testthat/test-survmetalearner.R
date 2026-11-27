@@ -134,3 +134,18 @@ test_that("fit_survmetalearner() ignores subjects censored before t*", {
   expect_equal(unname(colSums(m$weights)), rep(1, length(times)))
   expect_gt(min(m$weights["a", ]), 0.99)
 })
+
+test_that("stacking weights use Graf IPCW (G(t*) for subjects event-free at t*)", {
+  set.seed(1)
+  n <- 200; time <- round(rexp(n, 0.1), 1); status <- rbinom(n, 1, 0.6)
+  ts <- 5; time[1:5] <- ts; status[1:5] <- 0  # censoring tied at the horizon
+  P <- list(a = matrix(runif(n), n), b = matrix(runif(n), n))
+  m <- fit_survmetalearner(base_preds = P, time = time, status = status, times = ts,
+                           base_models = list(), data = data.frame(time, status))
+  km <- survival::survfit(survival::Surv(time, 1 - status) ~ 1)
+  G <- function(u, left) stats::stepfun(km$time, c(1, km$surv), right = left)(u)
+  w <- ifelse(time > ts, 1 / G(ts, FALSE), ifelse(status == 1, 1 / G(time, TRUE), 0))
+  k <- w > 0; X <- cbind(P$a, P$b)[k, ]; sw <- sqrt(w[k])
+  ref <- coef(nnls::nnls(X * sw, (time[k] > ts) * sw))
+  expect_equal(unname(m$weights[, 1]), ref / sum(ref))
+})
