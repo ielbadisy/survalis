@@ -27,7 +27,8 @@ fitting routine (for example \code{list(num.trees = 500)} for \code{"ranger"}, o
 \code{lambda.min} by default).}
 
 \item{seed}{Optional integer seed set immediately before fitting, for learners
-with a stochastic training step.}
+with a stochastic training step. For \code{"survmetalearner"} it also sets the
+cross-fitting fold seed, unless \code{spec} gives one.}
 
 \item{...}{Not used; engine arguments passed here give an error. Use \code{spec}.}
 }
