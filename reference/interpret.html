@@ -136,6 +136,18 @@ observation and feature: <code>observation</code>, <code>feature</code>, <code>p
 <code>value</code> (the value as text, e.g. the factor label).</p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p><code>"shap"</code>, <code>"counterfactual"</code> and <code>"surrogate"</code> explain one observation: pass a
+one-row <code>newdata</code> (use <code>"shap_matrix"</code> for SHAP values of many rows).
+<code>"surrogate"</code> is a locally weighted lasso fitted to predicted survival at one
+<code>target_time</code>; it is not SurvLIME, which explains the whole cumulative hazard.
+<code>"counterfactual"</code> changes one feature at a time, prices a numeric change in the
+feature's raw units, and by default may change any predictor, immutable ones
+included: restrict it with <code>features_to_change</code>. The integrated PDP and the SHAP
+<code>"integral"</code> run from the first to the last of <code>times</code>, not from 0, and the
+integrated ALE and SHAP <code>"meanabs"</code> are unweighted means over the grid points.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>For scalar summaries use <code><a href="evaluate.html">evaluate()</a></code>: <code>metrics = "ece"</code> summarises
 calibration and <code>metrics = "auc"</code> summarises the ROC curve.</p></div>

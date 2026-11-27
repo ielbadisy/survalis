@@ -110,6 +110,13 @@
   `compute_pdp()` (`pdp_integrated`) and `compute_shap()` (`"meanabs"`,
   `"integral"`) now say they are unweighted over the grid or run from
   the first grid time, not from 0.
+- Docs:
+  [`interpret()`](https://elbadisyimad.com/survalis/reference/interpret.md)
+  gains a Details section: `"shap"`, `"counterfactual"` and
+  `"surrogate"` take a one-row `newdata`; `"surrogate"` explains one
+  time (not SurvLIME); `"counterfactual"` changes one feature at a time,
+  in raw units, and may change immutable features unless
+  `features_to_change` is set.
 
 ## survalis 2.4.6
 
