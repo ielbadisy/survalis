@@ -230,3 +230,18 @@ test_that("cv_survlearner returns the same results with one or multiple cores", 
   expect_identical(cv1$metric, cv2$metric)
   expect_identical(cv1$fold, cv2$fold)
 })
+
+test_that("listmetrics() states what cindex, auc, iae, ise and ece measure", {
+  s <- with(listmetrics(), setNames(summary, metric))
+  expect_match(s[["cindex"]], "last time of the grid")
+  expect_match(s[["auc"]], "last time of the grid")
+  expect_match(s[["iae"]], "calibration-in-the-large")
+  expect_match(s[["ise"]], "calibration-in-the-large")
+  expect_match(s[["ece"]], "deciles")
+  # cindex really uses the last grid time only
+  m <- fit(Surv(time, status) ~ age + karno, survival::veteran, model = "coxph")
+  S <- predict(m, survival::veteran, times = c(30, 300))
+  y <- survival::Surv(survival::veteran$time, survival::veteran$status)
+  expect_equal(evaluate(S, y = y, metrics = "cindex")$summary$mean,
+               evaluate(S[, 2, drop = FALSE], y = y, times = 300, metrics = "cindex")$summary$mean)
+})

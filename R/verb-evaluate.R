@@ -32,7 +32,10 @@
 #' @param metrics Character vector from `listmetrics()$metric`. `"ece"`,
 #'   `"survacc"` and range scores such as `"range:0.05-0.20"` require a single
 #'   `times` value (see [dwscore()]). `"brier"` with several `times` gives one
-#'   metric per time, `"brier@<time>"`; with one time it is `"brier"`.
+#'   metric per time, `"brier@<time>"`; with one time it is `"brier"`. `"cindex"` and `"auc"`
+#'   use the last time of `times` only, so their value depends on the grid. `"iae"` and `"ise"`
+#'   compare the mean predicted curve with the Kaplan-Meier curve (calibration in the large),
+#'   and `"ece"` bins subjects by deciles of predicted survival (see [listmetrics()]).
 #' @param ncores Number of parallel workers for the split loop (default `1`). Workers are
 #'   fresh R sessions (PSOCK), each with one OpenMP thread, so parallel runs are safe after an
 #'   OpenMP engine (xgboost, rsf) ran in the session. A custom learner must therefore not rely

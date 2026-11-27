@@ -53,7 +53,10 @@ names of the form \code{"t=<time>"}.}
 \item{metrics}{Character vector from \code{listmetrics()$metric}. \code{"ece"},
 \code{"survacc"} and range scores such as \code{"range:0.05-0.20"} require a single
 \code{times} value (see \code{\link[=dwscore]{dwscore()}}). \code{"brier"} with several \code{times} gives one
-metric per time, \code{"brier@<time>"}; with one time it is \code{"brier"}.}
+metric per time, \code{"brier@<time>"}; with one time it is \code{"brier"}. \code{"cindex"} and \code{"auc"}
+use the last time of \code{times} only, so their value depends on the grid. \code{"iae"} and \code{"ise"}
+compare the mean predicted curve with the Kaplan-Meier curve (calibration in the large),
+and \code{"ece"} bins subjects by deciles of predicted survival (see \code{\link[=listmetrics]{listmetrics()}}).}
 
 \item{ncores}{Number of parallel workers for the split loop (default \code{1}). Workers are
 fresh R sessions (PSOCK), each with one OpenMP thread, so parallel runs are safe after an
