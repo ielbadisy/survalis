@@ -29,9 +29,9 @@ interpret(fit, method, newdata = NULL, data = NULL, times = NULL, ...)
 - newdata:
 
   Instances to explain (SHAP, ALE, counterfactual, surrogate,
-  survcluster) or to assess (`roc`, `dca`; these need the outcome
-  columns). Defaults to `data`, so `roc` and `dca` are apparent unless
-  you pass held-out data.
+  survcluster) or to assess (`roc`, `dca`, `varimp` / `permute`; these
+  need the outcome columns). Defaults to `data`, so `roc` and `dca` are
+  apparent unless you pass held-out data.
 
 - data:
 
