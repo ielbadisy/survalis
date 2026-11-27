@@ -144,6 +144,13 @@ vector for <code>"rmst"</code>, <code>"median"</code> and scalar-<code>probs</co
 <span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 0.7375774 0.3164041 0.1609650</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 0.8691375 0.3258824 0.2514397</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">m</span>, <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="op">]</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">180</span>, <span class="fl">365</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"risk"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;survmat&gt; risk  |  5 obs x 3 times  [90, 365]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            t=90     t=180     t=365</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.70896089 0.7748446 0.7952497</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.09069146 0.5629135 0.6610121</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.19628609 0.5325915 0.7422809</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 0.26242265 0.6835959 0.8390350</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 0.13086253 0.6741176 0.7485603</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">m</span>, <span class="va">veteran</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="op">]</span>, type <span class="op">=</span> <span class="st">"rmst"</span>, tau <span class="op">=</span> <span class="fl">365</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        1        2        3        4        5 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 126.9180 218.6376 182.2984 168.1643 185.9864 </span>

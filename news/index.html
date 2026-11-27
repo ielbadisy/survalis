@@ -83,6 +83,8 @@
 <code><a href="../reference/interpret.html">interpret()</a></code> gains <code>seed = NULL</code> (after <code>...</code>), set before the method runs, so sampling methods (<code>"shap"</code>, <code>"interaction"</code>, <code>"varimp"</code>, …) are reproducible.</li>
 <li>Docs: the time summaries of <code>compute_ale()</code> (<code>integrated</code>), <code>compute_pdp()</code> (<code>pdp_integrated</code>) and <code>compute_shap()</code> (<code>"meanabs"</code>, <code>"integral"</code>) now say they are unweighted over the grid or run from the first grid time, not from 0.</li>
 <li>Docs: <code><a href="../reference/interpret.html">interpret()</a></code> gains a Details section: <code>"shap"</code>, <code>"counterfactual"</code> and <code>"surrogate"</code> take a one-row <code>newdata</code>; <code>"surrogate"</code> explains one time (not SurvLIME); <code>"counterfactual"</code> changes one feature at a time, in raw units, and may change immutable features unless <code>features_to_change</code> is set.</li>
+<li>
+<code>predict(type = "risk")</code>, <code>"chf"</code> and <code>"hazard"</code> returned their result invisibly, so it did not print at the console; they now return it visibly (bug fix).</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.4.6" id="survalis-246">survalis 2.4.6<a class="anchor" aria-label="anchor" href="#survalis-246"></a></h2>
