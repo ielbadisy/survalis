@@ -280,8 +280,11 @@ tune_glmnet <- function(formula, data, times,
   mf <- stats::model.frame(tt, data)
   x <- stats::model.matrix(tt, mf)
   x_contrasts <- attr(x, "contrasts")
+  assign <- attr(x, "assign")
   if (!intercept) {
-    x <- x[, colnames(x) != "(Intercept)", drop = FALSE]
+    keep <- colnames(x) != "(Intercept)"
+    x <- x[, keep, drop = FALSE]
+    assign <- assign[keep]
   }
   list(
     x = x,
@@ -290,7 +293,8 @@ tune_glmnet <- function(formula, data, times,
     terms = stats::delete.response(tt),
     xlevels = stats::.getXlevels(tt, mf),
     x_contrasts = x_contrasts,
-    x_cols = colnames(x)
+    x_cols = colnames(x),
+    assign = assign
   )
 }
 

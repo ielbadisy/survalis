@@ -1,3 +1,12 @@
+# survalis 2.4.9
+
+* coxboost learner: `spec` gains `unpen.index`, the mandatory (unpenalised) covariates, given by
+  predictor name (all dummies of a factor), design-column name or position, and `folds`, fixed folds
+  for the cross-validated number of steps (a fold label per row or a list of row indices, as
+  `cv.CoxBoost(folds = )`; given folds imply `cv = TRUE`). Other arguments are passed to
+  `CoxBoost()`. With `cv = TRUE` the fit keeps the `cv.CoxBoost()` result as `$cv`
+  (`optimal.step`, `mean.logplik`, ...).
+
 # survalis 2.4.8
 
 * `tune(model = "fastgbm")` now works without a `grid`: the learner has a built-in grid over

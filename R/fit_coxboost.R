@@ -18,9 +18,19 @@
 #'   \code{"pscore"} (default), \code{"score"}, \code{"hpscore"}, \code{"hscore"}.
 #' @param stepsize.factor Numeric step-size factor (default \code{1}).
 #' @param cv Logical; if \code{TRUE}, choose the number of steps by \code{K}-fold
-#'   cross-validation (\code{CoxBoost::cv.CoxBoost()}) up to \code{stepno}. Default
-#'   \code{FALSE} (fixed \code{stepno}).
+#'   cross-validation of the partial log-likelihood (\code{CoxBoost::cv.CoxBoost()})
+#'   up to \code{stepno}. Default \code{FALSE} (fixed \code{stepno}).
 #' @param K Number of folds when \code{cv = TRUE} (default \code{10}).
+#' @param folds Fixed folds for \code{cv = TRUE}: a fold label per row of the data
+#'   used in the fit, or a list of row-index vectors (one per fold), as
+#'   \code{cv.CoxBoost(folds = )}. \code{NULL} (default) draws \code{K} random
+#'   folds. Given folds set \code{cv = TRUE} and override \code{K}.
+#' @param unpen.index Covariates left unpenalised (mandatory): names of predictors
+#'   of the formula (every design column of a factor), names of design columns,
+#'   or column positions in the design matrix. They are updated by an unpenalised
+#'   step before each boosting step, as \code{CoxBoost(unpen.index = )}.
+#' @param ... Further arguments to \code{CoxBoost::CoxBoost()}, such as
+#'   \code{standardize} or \code{sf.scheme}.
 #'
 #' @return An object of class \code{mlsurv_model}:
 #' \describe{
@@ -31,6 +41,9 @@
 #'   \item{terms}{Response-free \code{terms} (with any \code{.} expanded).}
 #'   \item{design}{Training terms, factor levels, contrasts and design columns,
 #'     reused so prediction uses the exact same encoding as training.}
+#'   \item{cv}{With \code{cv = TRUE}, the \code{cv.CoxBoost()} result
+#'     (\code{optimal.step}, \code{mean.logplik}, \code{se.logplik}, \code{folds});
+#'     \code{NULL} otherwise.}
 #' }
 #'
 #' @details
@@ -57,35 +70,37 @@ fit_coxboost <- function(formula, data,
                          penalty = NULL,
                          criterion = "pscore",
                          stepsize.factor = 1,
-                         cv = FALSE, K = 10) {
+                         cv = FALSE, K = 10, folds = NULL, unpen.index = NULL, ...) {
   stopifnot(requireNamespace("CoxBoost", quietly = TRUE))
 
   design <- .survalis_design_fit(formula, data)
   y <- design$y
   x <- design$x
-
   y_time <- y[, "time"]
   y_status <- as.integer(y[, "status"] == 1)
+  if (is.null(penalty)) penalty <- 9 * sum(y_status == 1)
+  unpen <- .coxboost_unpen(unpen.index, design)
 
-  if (is.null(penalty)) {
-    penalty <- 9 * sum(y_status == 1)
+  cvres <- NULL
+  if (!is.null(folds)) {
+    if (!is.list(folds)) {
+      if (length(folds) != nrow(x)) {
+        stop("`folds` must give one fold label per row of the data (", nrow(x), ").", call. = FALSE)
+      }
+      folds <- unname(split(seq_len(nrow(x)), folds))
+    }
+    cv <- TRUE; K <- length(folds)
   }
-
   if (cv) {
     # stepno becomes the largest number of steps tried; keep the cross-validated optimum
-    stepno <- CoxBoost::cv.CoxBoost(time = y_time, status = y_status, x = x, maxstepno = stepno,
-                                    K = K, penalty = penalty, criterion = criterion,
-                                    stepsize.factor = stepsize.factor)$optimal.step
+    cvres <- CoxBoost::cv.CoxBoost(time = y_time, status = y_status, x = x, maxstepno = stepno,
+                                   K = K, folds = folds, penalty = penalty, criterion = criterion,
+                                   stepsize.factor = stepsize.factor, unpen.index = unpen, ...)
+    stepno <- cvres$optimal.step
   }
-  model <- CoxBoost::CoxBoost(
-    time = y_time,
-    status = y_status,
-    x = x,
-    stepno = stepno,
-    penalty = penalty,
-    criterion = criterion,
-    stepsize.factor = stepsize.factor
-  )
+  model <- CoxBoost::CoxBoost(time = y_time, status = y_status, x = x, unpen.index = unpen,
+                              stepno = stepno, penalty = penalty, criterion = criterion,
+                              stepsize.factor = stepsize.factor, ...)
 
   structure(list(
     model = model,
@@ -95,8 +110,24 @@ fit_coxboost <- function(formula, data,
     time = all.vars(formula)[1],
     status = all.vars(formula)[2],
     terms = design$terms,
-    design = design[c("terms", "xlevels", "x_contrasts", "x_cols")]
+    design = design[c("terms", "xlevels", "x_contrasts", "x_cols")],
+    cv = cvres
   ), class = "mlsurv_model", engine = "coxboost")
+}
+
+# Design-column positions of the unpenalised covariates: positions as given, design column names,
+# or predictor names (all columns of a factor's dummies).
+.coxboost_unpen <- function(u, design) {
+  if (is.null(u) || is.numeric(u)) return(u)
+  asg <- design$assign
+  lab <- attr(design$terms, "term.labels")
+  idx <- lapply(u, function(v) {
+    j <- if (v %in% design$x_cols) match(v, design$x_cols) else which(lab[asg] == v)
+    if (!length(j)) stop("`unpen.index`: ", sQuote(v), " is neither a predictor nor a design column.",
+                         call. = FALSE)
+    j
+  })
+  sort(unique(unlist(idx)))
 }
 
 #' Predict Survival with CoxBoost
