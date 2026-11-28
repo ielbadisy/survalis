@@ -139,9 +139,15 @@ A `survalis_eval` object: `per_split` (long data frame), `summary` (mean
 scored once), `metrics`, `model`. The `se` is the split standard
 deviation over the square root of the number of splits and the interval
 is mean +/- 1.96 se; this treats the splits as independent, which they
-are not (training sets overlap), so the interval is too narrow.
-[`bootstrap()`](https://elbadisyimad.com/survalis/reference/resampling.md)
-scores the out-of-bag rows only, with no .632 or optimism correction.
+are not (training sets overlap), so the interval is too narrow. With
+`bootstrap(estimator = ".632", ".632+" or "optimism")` the `mean` is
+that estimate, `sd`, `se` and the interval are `NA`, and a `bootstrap`
+element holds, per metric, the apparent, out-of-bag and no-information
+scores, the relative overfitting rate `R`, the .632+ weight `w` and the
+three corrected estimates (see
+[`bootstrap()`](https://elbadisyimad.com/survalis/reference/resampling.md));
+`per_split` then also has each fit's score on all rows (`on_full`) and
+on its own resample (`on_inbag`).
 
 ## Examples
 

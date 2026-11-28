@@ -13,7 +13,7 @@ models to obtain paired comparisons (identical folds via a shared seed)."><meta 
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,7 +66,12 @@ models to obtain paired comparisons (identical folds via a shared <code>seed</co
 <span></span>
 <span><span class="fu">groupcv</span><span class="op">(</span><span class="va">group</span>, v <span class="op">=</span> <span class="fl">5</span>, seed <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">bootstrap</span><span class="op">(</span>times <span class="op">=</span> <span class="fl">25</span>, seed <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">bootstrap</span><span class="op">(</span></span>
+<span>  times <span class="op">=</span> <span class="fl">25</span>,</span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  estimator <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"oob"</span>, <span class="st">".632"</span>, <span class="st">".632+"</span>, <span class="st">"optimism"</span><span class="op">)</span>,</span>
+<span>  nperm <span class="op">=</span> <span class="fl">20</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -108,6 +113,18 @@ together in <code>groupcv()</code>.</p></dd>
 <dt id="arg-times">times<a class="anchor" aria-label="anchor" href="#arg-times"></a></dt>
 <dd><p>Integer number of bootstrap resamples (default <code>25</code>).</p></dd>
 
+
+<dt id="arg-estimator">estimator<a class="anchor" aria-label="anchor" href="#arg-estimator"></a></dt>
+<dd><p>Bootstrap estimate that <code><a href="evaluate.html">evaluate()</a></code> reports as the <code>mean</code> of
+its summary: <code>"oob"</code> (out-of-bag, default), <code>".632"</code>, <code>".632+"</code> or
+<code>"optimism"</code>. Any choice other than <code>"oob"</code> costs one extra fit on all the data
+and a prediction of all the rows by each bootstrap fit.</p></dd>
+
+
+<dt id="arg-nperm">nperm<a class="anchor" aria-label="anchor" href="#arg-nperm"></a></dt>
+<dd><p>Number of random permutations for the no-information score of the
+metrics other than the Brier scores (default <code>20</code>).</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -122,9 +139,40 @@ event indicator by default.</p></li>
 <li><p><code>groupcv()</code> – k-fold cross-validation where whole groups (e.g. centres,
 subjects with repeated rows) are held out together.</p></li>
 <li><p><code>bootstrap()</code> – resampling with replacement; the out-of-bag rows form the
-assessment set. The reported score is this out-of-bag estimate; no <code>.632</code>,
-<code>.632+</code> or optimism correction is applied.</p></li>
-</ul></div>
+assessment set. <code><a href="evaluate.html">evaluate()</a></code> reports the out-of-bag estimate or, with
+<code>estimator</code>, the .632, .632+ or optimism-corrected estimate (see Details).</p></li>
+</ul><p>Bootstrap estimators. Let \(\overline{err}\) be the apparent score (the
+learner fitted and scored on all the data), \(Err^{(1)}\) the out-of-bag
+score (mean over the resamples of the score of fit \(b\) on the rows left out
+of resample \(b\)) and \(\gamma\) the no-information score, the score of the
+full-data predictions paired with outcomes at random, averaged over all
+\(n^2\) pairs (Efron and Tibshirani 1997, eq. 27). For the Brier score and the
+integrated Brier score \(\gamma\) is computed exactly at each time (the score
+is quadratic in the prediction, with IPCW weights that follow the outcome, as in
+Gerds and Schumacher 2007); for the other metrics it is the mean score over
+<code>nperm</code> random permutations of the prediction rows, an unbiased estimate of
+the \(n^2\)-pair mean. Then</p><ul><li><p><code>".632"</code>: \(0.368\,\overline{err} + 0.632\,Err^{(1)}\).</p></li>
+<li><p><code>".632+"</code>: \((1 - w)\,\overline{err} + w\,Err^{(1)}\) with
+\(w = 0.632 / (1 - 0.368 R)\) and relative overfitting rate
+\(R = (Err^{(1)} - \overline{err}) / (\gamma - \overline{err})\), set to 0 when
+\(Err^{(1)} \le \overline{err}\) or \(\gamma \le \overline{err}\) and to 1
+when \(Err^{(1)} \ge \gamma\) (Efron and Tibshirani 1997, eqs. 28-32; the
+censored-data version of Gerds and Schumacher 2007, Section 4). With
+\(R = 1\) the estimate is \(Err^{(1)}\).</p></li>
+<li><p><code>"optimism"</code>: \(\overline{err}\) plus the mean over resamples of the score
+of fit \(b\) on all the data minus its score on its own resample (Harrell's
+optimism bootstrap).</p></li>
+</ul><p>Each estimator is applied to each metric separately (per time for
+<code>"brier@&lt;time&gt;"</code>, to the integrated score for <code>"ibs"</code>). For a metric where
+higher is better (<code>"cindex"</code>, <code>"auc"</code>) the formulas are applied to its negative,
+so the inequalities are reversed. The same bootstrap resamples serve all four
+estimators, and <code><a href="evaluate.html">evaluate()</a></code> returns all of them in its <code>bootstrap</code> element.
+<code><a href="tune.html">tune()</a></code> and <code><a href="compare.html">compare()</a></code> score the out-of-bag rows only.</p>
+<p>References: Efron B, Tibshirani R (1997). Improvements on cross-validation: the
+.632+ bootstrap method. JASA 92, 548-560. Gerds TA, Schumacher M (2007).
+Efron-type measures of prediction error for survival analysis. Biometrics 63,
+1283-1287.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -135,7 +183,9 @@ assessment set. The reported score is this out-of-bag estimate; no <code>.632</c
 <span class="r-in"><span><span class="fu">holdout</span><span class="op">(</span>prop <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;survalis_resampling&gt; holdout (80% train), strata = status</span>
 <span class="r-in"><span><span class="fu">bootstrap</span><span class="op">(</span>times <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;survalis_resampling&gt; bootstrap (50 resamples, OOB assessment)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;survalis_resampling&gt; bootstrap (50 resamples, oob estimate)</span>
+<span class="r-in"><span><span class="fu">bootstrap</span><span class="op">(</span>times <span class="op">=</span> <span class="fl">50</span>, estimator <span class="op">=</span> <span class="st">".632+"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;survalis_resampling&gt; bootstrap (50 resamples, .632+ estimate)</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

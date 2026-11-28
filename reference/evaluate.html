@@ -41,7 +41,7 @@ for example by another package.
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -203,8 +203,13 @@ entry per row of <code>object</code>.</p></dd>
 when scored once), <code>metrics</code>, <code>model</code>. The <code>se</code> is the split standard
 deviation over the square root of the number of splits and the interval is
 mean +/- 1.96 se; this treats the splits as independent, which they are not
-(training sets overlap), so the interval is too narrow. <code><a href="resampling.html">bootstrap()</a></code> scores
-the out-of-bag rows only, with no .632 or optimism correction.</p>
+(training sets overlap), so the interval is too narrow. With
+<code>bootstrap(estimator = ".632", ".632+" or "optimism")</code> the <code>mean</code> is that
+estimate, <code>sd</code>, <code>se</code> and the interval are <code>NA</code>, and a <code>bootstrap</code> element holds,
+per metric, the apparent, out-of-bag and no-information scores, the relative
+overfitting rate <code>R</code>, the .632+ weight <code>w</code> and the three corrected estimates
+(see <code><a href="resampling.html">bootstrap()</a></code>); <code>per_split</code> then also has each fit's score on all rows
+(<code>on_full</code>) and on its own resample (<code>on_inbag</code>).</p>
     </div>
 
     <div class="section level2">

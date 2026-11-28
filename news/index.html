@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,11 @@
       <small>Source: <a href="https://github.com/ielbadisy/survalis/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.4.10" id="survalis-2410">survalis 2.4.10<a class="anchor" aria-label="anchor" href="#survalis-2410"></a></h2>
+<ul><li>
+<code><a href="../reference/resampling.html">bootstrap()</a></code> gains <code>estimator = c("oob", ".632", ".632+", "optimism")</code> and <code>nperm</code>. With a corrected estimator <code><a href="../reference/evaluate.html">evaluate()</a></code> also fits on all the data (apparent score), scores the no-information rate (predictions and outcomes paired at random: exact over all n^2 pairs for the Brier and integrated Brier scores, <code>nperm</code> permutations otherwise), reports the chosen estimate as the summary <code>mean</code> and returns all of them with <code>R</code> and the .632+ weight in <code>$bootstrap</code> (Efron and Tibshirani 1997; Gerds and Schumacher 2007). The default stays out-of-bag; <code><a href="../reference/tune.html">tune()</a></code> and <code><a href="../reference/compare.html">compare()</a></code> score out-of-bag rows only.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.4.9" id="survalis-249">survalis 2.4.9<a class="anchor" aria-label="anchor" href="#survalis-249"></a></h2>
 <ul><li>coxboost learner: <code>spec</code> gains <code>unpen.index</code>, the mandatory (unpenalised) covariates, given by predictor name (all dummies of a factor), design-column name or position, and <code>folds</code>, fixed folds for the cross-validated number of steps (a fold label per row or a list of row indices, as <code>cv.CoxBoost(folds = )</code>; given folds imply <code>cv = TRUE</code>). Other arguments are passed to <code>CoxBoost()</code>. With <code>cv = TRUE</code> the fit keeps the <code>cv.CoxBoost()</code> result as <code>$cv</code> (<code>optimal.step</code>, <code>mean.logplik</code>, …).</li>

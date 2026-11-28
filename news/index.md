@@ -1,5 +1,22 @@
 # Changelog
 
+## survalis 2.4.10
+
+- [`bootstrap()`](https://elbadisyimad.com/survalis/reference/resampling.md)
+  gains `estimator = c("oob", ".632", ".632+", "optimism")` and `nperm`.
+  With a corrected estimator
+  [`evaluate()`](https://elbadisyimad.com/survalis/reference/evaluate.md)
+  also fits on all the data (apparent score), scores the no-information
+  rate (predictions and outcomes paired at random: exact over all n^2
+  pairs for the Brier and integrated Brier scores, `nperm` permutations
+  otherwise), reports the chosen estimate as the summary `mean` and
+  returns all of them with `R` and the .632+ weight in `$bootstrap`
+  (Efron and Tibshirani 1997; Gerds and Schumacher 2007). The default
+  stays out-of-bag;
+  [`tune()`](https://elbadisyimad.com/survalis/reference/tune.md) and
+  [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md)
+  score out-of-bag rows only.
+
 ## survalis 2.4.9
 
 - coxboost learner: `spec` gains `unpen.index`, the mandatory
