@@ -11,7 +11,7 @@ with a one-line description of each."><meta property="og:image" content="https:/
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.11</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -105,7 +105,7 @@ Methods that need a single time (<code>calibration</code>, <code>roc</code>, <co
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Method-specific arguments, e.g. <code>feature</code> (pdp / ice / ale),
 <code>target_time</code> (counterfactual, surrogate), <code>eval_time</code> (calibration, roc,
-dca), <code>thresholds</code> (dca), <code>K</code> (survcluster). For <code>"shap"</code>, the aggregation
+dca), <code>thresholds</code> (dca), <code>K</code> (survcluster), <code>holdout</code> (tree_surrogate). For <code>"shap"</code>, the aggregation
 over time (<code>"meanabs"</code> or <code>"integral"</code>) is passed as <code>shap_method</code>.</p></dd>
 
 
@@ -124,7 +124,9 @@ observation and time: <code>id</code> (row of <code>newdata</code>), <code>clust
 for the cluster's medoid curve), <code>time</code> and predicted survival <code>surv</code>.
 For <code>"roc"</code> and <code>"dca"</code> it is the curve with an <code>eval_time</code> column (and
 <code>auc</code> for <code>"roc"</code>); for <code>"tree_surrogate"</code> one row per time and feature
-with the number of <code>splits</code> on it and the tree's <code>r_squared</code>. For
+with the number of <code>splits</code> on it and the tree's fidelity <code>r_squared</code> (in sample) and
+<code>r_squared_test</code> (on <code>newdata</code> when given, or on a random <code>holdout</code> fraction of <code>data</code>
+kept out of the tree, else <code>NA</code>). For
 <code>"pdp"</code> / <code>"ice"</code> it is one row per curve point (<code>feature</code>,
 <code>feature_value</code>, <code>id</code> (<code>NA</code> on PDP rows), <code>time</code>, <code>surv</code>, <code>type</code>), for
 <code>"ale"</code> one row per feature value and time (<code>feature</code>, <code>feature_value</code>,

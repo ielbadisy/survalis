@@ -55,9 +55,9 @@ interpret(
 
   Method-specific arguments, e.g. `feature` (pdp / ice / ale),
   `target_time` (counterfactual, surrogate), `eval_time` (calibration,
-  roc, dca), `thresholds` (dca), `K` (survcluster). For `"shap"`, the
-  aggregation over time (`"meanabs"` or `"integral"`) is passed as
-  `shap_method`.
+  roc, dca), `thresholds` (dca), `K` (survcluster), `holdout`
+  (tree_surrogate). For `"shap"`, the aggregation over time (`"meanabs"`
+  or `"integral"`) is passed as `shap_method`.
 
 - seed:
 
@@ -76,12 +76,14 @@ observation and time: `id` (row of `newdata`), `cluster`, `medoid`
 (`TRUE` for the cluster's medoid curve), `time` and predicted survival
 `surv`. For `"roc"` and `"dca"` it is the curve with an `eval_time`
 column (and `auc` for `"roc"`); for `"tree_surrogate"` one row per time
-and feature with the number of `splits` on it and the tree's
-`r_squared`. For `"pdp"` / `"ice"` it is one row per curve point
-(`feature`, `feature_value`, `id` (`NA` on PDP rows), `time`, `surv`,
-`type`), for `"ale"` one row per feature value and time (`feature`,
-`feature_value`, `time`, `ale`), and for `"calibration"` the binned
-table with its `eval_time`. For `"pdp"` and `"ale"`,
+and feature with the number of `splits` on it and the tree's fidelity
+`r_squared` (in sample) and `r_squared_test` (on `newdata` when given,
+or on a random `holdout` fraction of `data` kept out of the tree, else
+`NA`). For `"pdp"` / `"ice"` it is one row per curve point (`feature`,
+`feature_value`, `id` (`NA` on PDP rows), `time`, `surv`, `type`), for
+`"ale"` one row per feature value and time (`feature`, `feature_value`,
+`time`, `ale`), and for `"calibration"` the binned table with its
+`eval_time`. For `"pdp"` and `"ale"`,
 `as.data.frame(x, what = "integrated")` returns the curve integrated
 over time instead (`feature`, `feature_value`, `integrated`). For
 `"shap_matrix"` it is one row per observation and feature:
