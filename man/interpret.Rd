@@ -37,7 +37,7 @@ Methods that need a single time (\code{calibration}, \code{roc}, \code{dca}) tak
 
 \item{...}{Method-specific arguments, e.g. \code{feature} (pdp / ice / ale),
 \code{target_time} (counterfactual, surrogate), \code{eval_time} (calibration, roc,
-dca), \code{thresholds} (dca), \code{K} (survcluster). For \code{"shap"}, the aggregation
+dca), \code{thresholds} (dca), \code{K} (survcluster), \code{holdout} (tree_surrogate). For \code{"shap"}, the aggregation
 over time (\code{"meanabs"} or \code{"integral"}) is passed as \code{shap_method}.}
 
 \item{seed}{Optional integer seed set before the method runs, for the methods that
@@ -52,7 +52,9 @@ observation and time: \code{id} (row of \code{newdata}), \code{cluster}, \code{m
 for the cluster's medoid curve), \code{time} and predicted survival \code{surv}.
 For \code{"roc"} and \code{"dca"} it is the curve with an \code{eval_time} column (and
 \code{auc} for \code{"roc"}); for \code{"tree_surrogate"} one row per time and feature
-with the number of \code{splits} on it and the tree's \code{r_squared}. For
+with the number of \code{splits} on it and the tree's fidelity \code{r_squared} (in sample) and
+\code{r_squared_test} (on \code{newdata} when given, or on a random \code{holdout} fraction of \code{data}
+kept out of the tree, else \code{NA}). For
 \code{"pdp"} / \code{"ice"} it is one row per curve point (\code{feature},
 \code{feature_value}, \code{id} (\code{NA} on PDP rows), \code{time}, \code{surv}, \code{type}), for
 \code{"ale"} one row per feature value and time (\code{feature}, \code{feature_value},

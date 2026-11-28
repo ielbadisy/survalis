@@ -1,3 +1,10 @@
+# survalis 2.4.11
+
+* `interpret(method = "tree_surrogate")` measures the tree's fidelity out of sample: on `newdata`
+  when it differs from `data`, or on a random `holdout` fraction of `data` kept out of the tree.
+  The result gains `r_squared_test` (`NA` when neither is given). Fidelity R^2 is now written as
+  1 - SSE/SST (unchanged in sample).
+
 # survalis 2.4.10
 
 * `bootstrap()` gains `estimator = c("oob", ".632", ".632+", "optimism")` and `nperm`. With a

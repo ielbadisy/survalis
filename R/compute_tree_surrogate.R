@@ -14,13 +14,19 @@
 #' @param minsplit Minimum number of observations required to attempt a split in the surrogate tree.
 #'                 Passed to `rpart::rpart.control()`.
 #' @param cp Complexity parameter for the surrogate tree. Passed to `rpart::rpart.control()`.
+#' @param newdata Optional data frame of other rows on which to measure the tree's fidelity
+#'   out of sample (`r_squared_test`).
+#' @param holdout Fraction of the rows of `data` held out at random (before fitting the tree)
+#'   to measure fidelity out of sample when `newdata` is not given; `0` (default) holds none.
 #'
 #' @details
 #' For each evaluation time, the function:
 #' 1. Predicts survival probabilities from the fitted model.
 #' 2. Excludes survival outcome columns (`time`, `status`, `event`) from the predictors.
 #' 3. Fits a decision tree to approximate the predicted probabilities.
-#' 4. Computes the R between the model predictions and the surrogate predictions.
+#' 4. Computes the fidelity R^2 = 1 - SSE/SST of the tree's predictions against the model's,
+#'    on the rows the tree was grown on (`r_squared`) and, with `newdata` or `holdout`, on
+#'    other rows (`r_squared_test`, SST about their own mean).
 #' 5. Counts the number of splits per feature.
 #'
 #' If multiple `times` are provided, results are stored for each time point.
@@ -30,7 +36,8 @@
 #' - `times`: the evaluation times.
 #' - `results`: a list with one element per time, each containing:
 #'   - `tree`: the fitted `rpart` object.
-#'   - `r_squared`: the R of the surrogate model vs. the original predictions.
+#'   - `r_squared`: the in-sample fidelity R^2 of the tree vs. the model's predictions.
+#'   - `r_squared_test`: the out-of-sample fidelity R^2 (`NA` without `newdata` or `holdout`).
 #'   - `split_count`: a table of feature split counts.
 #' - `dynamic`: logical indicating if more than one time was used.
 #'
@@ -46,7 +53,8 @@
 #'
 #' @noRd
 
-compute_tree_surrogate <- function(model, data, times, minsplit = 10, cp = 0.01) {
+compute_tree_surrogate <- function(model, data, times, minsplit = 10, cp = 0.01, newdata = NULL,
+                                   holdout = 0) {
   if (!requireNamespace("rpart", quietly = TRUE)) stop("Please install 'rpart'.")
   if (!requireNamespace("partykit", quietly = TRUE)) stop("Please install 'partykit'.")
 
@@ -59,20 +67,23 @@ compute_tree_surrogate <- function(model, data, times, minsplit = 10, cp = 0.01)
   predict_function <- .predict_fun(model)
 
   is_dynamic <- length(times) > 1
+  if (is.null(newdata) && holdout > 0) {
+    i <- sample.int(nrow(data), round(holdout * nrow(data)))
+    newdata <- data[i, , drop = FALSE]
+    data <- data[-i, , drop = FALSE]
+  }
+  covariates <- .model_features(model, names(data))
+  r2 <- function(y, yhat) 1 - sum((y - yhat)^2) / sum((y - mean(y))^2)
+  surv_at <- function(d, time) {
+    preds <- predict_function(model, newdata = d, times = time)
+    col_match <- grep(paste0("^t=*", time, "$"), colnames(preds))
+    if (length(col_match) == 1) return(preds[[col_match]])
+    warning(sprintf("Could not find a single matching column for time = %s. Using first column.", time))
+    if (is.data.frame(preds)) preds[[1]] else preds[, 1]
+  }
 
   results <- lapply(times, function(time) {
-    preds <- predict_function(model, newdata = data, times = time)
-
-    # Handle multiple formats (data.frame, matrix, etc.)
-    col_match <- grep(paste0("^t=*", time, "$"), colnames(preds))
-    if (length(col_match) != 1) {
-      warning(sprintf("Could not find a single matching column for time = %s. Using first column.", time))
-      y <- if (is.data.frame(preds)) preds[[1]] else preds[, 1]
-    } else {
-      y <- preds[[col_match]]
-    }
-
-    covariates <- .model_features(model, names(data))
+    y <- surv_at(data, time)
     dat <- cbind(data[, covariates, drop = FALSE], surv_prob = y)
 
     # Fit surrogate tree
@@ -82,17 +93,16 @@ compute_tree_surrogate <- function(model, data, times, minsplit = 10, cp = 0.01)
       control = rpart::rpart.control(minsplit = minsplit, cp = cp)
     )
 
-    yhat <- predict(tree_fit, newdata = dat)
-    sst <- var(y)
-    sse <- var(y - yhat)
-    r2 <- 1 - sse / sst
+    r2_test <- if (is.null(newdata)) NA_real_ else
+      r2(surv_at(newdata, time), predict(tree_fit, newdata = newdata[, covariates, drop = FALSE]))
 
     split_count <- table(tree_fit$frame$var[tree_fit$frame$var != "<leaf>"])
 
     list(
       time = time,
       tree = tree_fit,
-      r_squared = r2,
+      r_squared = r2(y, predict(tree_fit, newdata = dat)),
+      r_squared_test = r2_test,
       split_count = split_count
     )
   })
@@ -155,7 +165,9 @@ plot_tree_surrogate <- function(tree_surrogate, type = c("tree", "importance"), 
       party_tree <- partykit::as.party(res$tree)
       plot(
         party_tree,
-        main = paste0("Surrogate Tree at time = ", res$time, ", R = ", round(res$r_squared, 2))
+        main = paste0("Surrogate Tree at time = ", res$time, ", R2 = ", round(res$r_squared, 2),
+                      if (!is.na(.null_default(res$r_squared_test, NA)))
+                        paste0(" (out of sample ", round(res$r_squared_test, 2), ")"))
       )
     }
   } else if (type == "importance") {
