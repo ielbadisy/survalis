@@ -1,5 +1,14 @@
 # Changelog
 
+## survalis 2.4.8
+
+- `tune(model = "fastgbm")` now works without a `grid`: the learner has
+  a built-in grid over `ntrees` (100, 300), `learning_rate` (0.03, 0.1),
+  `max_depth` (3, 5) and `min_node_size` (10, 30), and
+  `listlearners(has_tune = TRUE)` lists it. Fixed engine arguments such
+  as `objective` go in `...` of
+  [`tune()`](https://elbadisyimad.com/survalis/reference/tune.md).
+
 ## survalis 2.4.7
 
 - [`compare()`](https://elbadisyimad.com/survalis/reference/compare.md),

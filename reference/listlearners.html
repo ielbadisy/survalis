@@ -9,7 +9,7 @@ compare(), tune() and estimate()."><meta property="og:image" content="https://el
 
     <a class="navbar-brand me-2" href="../index.html">survalis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -70,7 +70,7 @@ with a built-in tuning grid, so that <code><a href="tune.html">tune()</a></code>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A data frame with columns <code>learner</code> (the id) and <code>tunable</code> (whether
 a built-in tuning grid exists). A learner with <code>tunable = FALSE</code> (for
-example <code>"fastgbm"</code>) can still be tuned by passing a <code>grid</code> to <code><a href="tune.html">tune()</a></code>.</p>
+example <code>"densemlp"</code>) can still be tuned by passing a <code>grid</code> to <code><a href="tune.html">tune()</a></code>.</p>
     </div>
 
     <div class="section level2">
@@ -88,7 +88,7 @@ example <code>"fastgbm"</code>) can still be tuned by passing a <code>grid</code
 <span class="r-out co"><span class="r-pr">#&gt;</span> 9             bart    TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 10         xgboost    TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 11        coxboost    TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12         fastgbm   FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12         fastgbm    TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 13          ranger    TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 14             rsf    TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 15         cforest    TRUE</span>
@@ -109,12 +109,13 @@ example <code>"fastgbm"</code>) can still be tuned by passing a <code>grid</code
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6         bart    TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 7      xgboost    TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 8     coxboost    TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9       ranger    TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10         rsf    TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11     cforest    TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12  blackboost    TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13     survsvm    TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14        orsf    TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9      fastgbm    TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10      ranger    TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11         rsf    TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12     cforest    TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13  blackboost    TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14     survsvm    TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15        orsf    TRUE</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -26,7 +26,7 @@ listlearners(has_tune = FALSE)
 
 A data frame with columns `learner` (the id) and `tunable` (whether a
 built-in tuning grid exists). A learner with `tunable = FALSE` (for
-example `"fastgbm"`) can still be tuned by passing a `grid` to
+example `"densemlp"`) can still be tuned by passing a `grid` to
 [`tune()`](https://elbadisyimad.com/survalis/reference/tune.md).
 
 ## Examples
@@ -45,7 +45,7 @@ listlearners()
 #> 9             bart    TRUE
 #> 10         xgboost    TRUE
 #> 11        coxboost    TRUE
-#> 12         fastgbm   FALSE
+#> 12         fastgbm    TRUE
 #> 13          ranger    TRUE
 #> 14             rsf    TRUE
 #> 15         cforest    TRUE
@@ -66,10 +66,11 @@ listlearners(has_tune = TRUE)
 #> 6         bart    TRUE
 #> 7      xgboost    TRUE
 #> 8     coxboost    TRUE
-#> 9       ranger    TRUE
-#> 10         rsf    TRUE
-#> 11     cforest    TRUE
-#> 12  blackboost    TRUE
-#> 13     survsvm    TRUE
-#> 14        orsf    TRUE
+#> 9      fastgbm    TRUE
+#> 10      ranger    TRUE
+#> 11         rsf    TRUE
+#> 12     cforest    TRUE
+#> 13  blackboost    TRUE
+#> 14     survsvm    TRUE
+#> 15        orsf    TRUE
 ```
