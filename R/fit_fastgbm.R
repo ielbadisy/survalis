@@ -98,3 +98,39 @@ predict_fastgbm <- function(object, newdata, times) {
   pred <- matrix(pred, nrow = nrow(newdata))
   .finalize_survmat(pred, times = times)
 }
+
+#' Tune fastgbm survival hyperparameters by cross-validation
+#'
+#' Scores every row of `param_grid` by `folds`-fold cross-validation and returns
+#' the grid with one column per metric, best first. The default grid crosses the
+#' number of boosting rounds, the learning rate, the tree depth and the minimum
+#' leaf size: `ntrees` 100, 300; `learning_rate` 0.03, 0.1; `max_depth` 3, 5;
+#' `min_node_size` 10, 30 (16 configurations). Any other `fastgbm::fastgbm()`
+#' argument can be a grid column (for example `max_leaves`, `subsample`,
+#' `lambda`, `pexp_bins`), and fixed arguments such as `objective` go in `...`.
+#'
+#' @param formula,data,times Survival formula, data and evaluation times.
+#' @param param_grid Data frame of configurations (one row each).
+#' @param metrics Metrics to report; the first orders the result.
+#' @param folds,seed Number of folds and fold seed.
+#' @param ncores Workers for the fold loop.
+#' @param ... Fixed arguments passed to `fit_fastgbm()`.
+#' @return A data frame: the grid columns and one column per metric.
+#' @keywords internal
+#' @noRd
+tune_fastgbm <- function(formula, data, times,
+                         param_grid = expand.grid(ntrees = c(100, 300), learning_rate = c(0.03, 0.1),
+                                                  max_depth = c(3, 5), min_node_size = c(10, 30)),
+                         metrics = c("cindex", "ibs"), folds = 5, seed = 123, ncores = 1, ...) {
+  # spell out a `.` so cv_survlearner() does not warn about it
+  formula <- stats::formula(stats::terms(formula, data = data))
+  fixed <- list(...)
+  res <- .pmap_rbind_dt(param_grid, function(...) {
+    p <- list(...)
+    cvr <- do.call(cv_survlearner, c(list(formula = formula, data = data, fit_fun = fit_fastgbm,
+                                          pred_fun = predict_fastgbm, times = times, metrics = metrics,
+                                          folds = folds, seed = seed, ncores = ncores), p, fixed))
+    .wide_metric_row(p, cv_summary(cvr))
+  }, learner = "fastgbm")
+  .arrange_by_metric_dt(res, metrics[1], .metric_maximize(metrics[1]))
+}

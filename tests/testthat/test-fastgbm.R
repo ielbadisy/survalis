@@ -58,3 +58,19 @@ test_that("predict_fastgbm() works without outcome columns and for one row", {
   one <- as.matrix(predict_fastgbm(mod, nd[1, , drop = FALSE], times = tt))
   expect_equal(unname(one[1, ]), unname(b[1, ]))
 })
+
+test_that("tune() searches a default fastgbm grid", {
+  testthat::skip_on_cran()
+  testthat::skip_if_not_installed("fastgbm")
+  expect_true("fastgbm" %in% listlearners(has_tune = TRUE)$learner)
+  g <- eval(formals(tune_fastgbm)$param_grid)
+  expect_true(all(names(g) %in% names(formals(fastgbm::fastgbm))))
+  small <- expand.grid(ntrees = c(20, 40), learning_rate = 0.1, max_depth = 2, min_node_size = 10)
+  tu <- tune(Surv(time, status) ~ ., veteran, "fastgbm", grid = small, times = c(60, 120),
+             resampling = cv(3, seed = 1), objective = "cox")
+  expect_s3_class(tu, "survalis_tune")
+  expect_equal(nrow(tu$results), 2L)
+  expect_true(all(diff(tu$results$ibs) >= 0))
+  expect_identical(tu$fit$spec$objective, "cox")
+  expect_s3_class(predict(tu, veteran[1:3, ], times = c(60, 120)), "survmat")
+})

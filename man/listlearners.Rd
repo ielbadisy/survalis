@@ -13,7 +13,7 @@ with a built-in tuning grid, so that \code{\link[=tune]{tune()}} works without a
 \value{
 A data frame with columns \code{learner} (the id) and \code{tunable} (whether
 a built-in tuning grid exists). A learner with \code{tunable = FALSE} (for
-example \code{"fastgbm"}) can still be tuned by passing a \code{grid} to \code{\link[=tune]{tune()}}.
+example \code{"densemlp"}) can still be tuned by passing a \code{grid} to \code{\link[=tune]{tune()}}.
 }
 \description{
 The ids accepted by the \code{model} argument of \code{\link[=fit]{fit()}}, \code{\link[=evaluate]{evaluate()}},

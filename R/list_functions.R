@@ -15,7 +15,7 @@
 #'
 #' @return A data frame with columns `learner` (the id) and `tunable` (whether
 #'   a built-in tuning grid exists). A learner with `tunable = FALSE` (for
-#'   example `"fastgbm"`) can still be tuned by passing a `grid` to [tune()].
+#'   example `"densemlp"`) can still be tuned by passing a `grid` to [tune()].
 #'
 #' @examples
 #' listlearners()
