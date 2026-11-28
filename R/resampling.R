@@ -11,8 +11,44 @@
 #' * `groupcv()` -- k-fold cross-validation where whole groups (e.g. centres,
 #'   subjects with repeated rows) are held out together.
 #' * `bootstrap()` -- resampling with replacement; the out-of-bag rows form the
-#'   assessment set. The reported score is this out-of-bag estimate; no `.632`,
-#'   `.632+` or optimism correction is applied.
+#'   assessment set. [evaluate()] reports the out-of-bag estimate or, with
+#'   `estimator`, the .632, .632+ or optimism-corrected estimate (see Details).
+#'
+#' @details
+#' Bootstrap estimators. Let \eqn{\overline{err}} be the apparent score (the
+#' learner fitted and scored on all the data), \eqn{Err^{(1)}} the out-of-bag
+#' score (mean over the resamples of the score of fit \eqn{b} on the rows left out
+#' of resample \eqn{b}) and \eqn{\gamma} the no-information score, the score of the
+#' full-data predictions paired with outcomes at random, averaged over all
+#' \eqn{n^2} pairs (Efron and Tibshirani 1997, eq. 27). For the Brier score and the
+#' integrated Brier score \eqn{\gamma} is computed exactly at each time (the score
+#' is quadratic in the prediction, with IPCW weights that follow the outcome, as in
+#' Gerds and Schumacher 2007); for the other metrics it is the mean score over
+#' `nperm` random permutations of the prediction rows, an unbiased estimate of
+#' the \eqn{n^2}-pair mean. Then
+#' * `".632"`: \eqn{0.368\,\overline{err} + 0.632\,Err^{(1)}}.
+#' * `".632+"`: \eqn{(1 - w)\,\overline{err} + w\,Err^{(1)}} with
+#'   \eqn{w = 0.632 / (1 - 0.368 R)} and relative overfitting rate
+#'   \eqn{R = (Err^{(1)} - \overline{err}) / (\gamma - \overline{err})}, set to 0 when
+#'   \eqn{Err^{(1)} \le \overline{err}} or \eqn{\gamma \le \overline{err}} and to 1
+#'   when \eqn{Err^{(1)} \ge \gamma} (Efron and Tibshirani 1997, eqs. 28-32; the
+#'   censored-data version of Gerds and Schumacher 2007, Section 4). With
+#'   \eqn{R = 1} the estimate is \eqn{Err^{(1)}}.
+#' * `"optimism"`: \eqn{\overline{err}} plus the mean over resamples of the score
+#'   of fit \eqn{b} on all the data minus its score on its own resample (Harrell's
+#'   optimism bootstrap).
+#'
+#' Each estimator is applied to each metric separately (per time for
+#' `"brier@<time>"`, to the integrated score for `"ibs"`). For a metric where
+#' higher is better (`"cindex"`, `"auc"`) the formulas are applied to its negative,
+#' so the inequalities are reversed. The same bootstrap resamples serve all four
+#' estimators, and [evaluate()] returns all of them in its `bootstrap` element.
+#' [tune()] and [compare()] score the out-of-bag rows only.
+#'
+#' References: Efron B, Tibshirani R (1997). Improvements on cross-validation: the
+#' .632+ bootstrap method. JASA 92, 548-560. Gerds TA, Schumacher M (2007).
+#' Efron-type measures of prediction error for survival analysis. Biometrics 63,
+#' 1283-1287.
 #'
 #' @param v Integer number of folds (default `5`).
 #' @param repeats Integer number of times the whole v-fold scheme is repeated
@@ -27,6 +63,12 @@
 #' @param group Column name whose distinct values define the groups held out
 #'   together in `groupcv()`.
 #' @param times Integer number of bootstrap resamples (default `25`).
+#' @param estimator Bootstrap estimate that [evaluate()] reports as the `mean` of
+#'   its summary: `"oob"` (out-of-bag, default), `".632"`, `".632+"` or
+#'   `"optimism"`. Any choice other than `"oob"` costs one extra fit on all the data
+#'   and a prediction of all the rows by each bootstrap fit.
+#' @param nperm Number of random permutations for the no-information score of the
+#'   metrics other than the Brier scores (default `20`).
 #' @param seed Optional integer seed. Set it (and keep it equal across models)
 #'   for paired resampling.
 #'
@@ -37,6 +79,7 @@
 #' cv(v = 10, repeats = 3, seed = 1)
 #' holdout(prop = 0.8)
 #' bootstrap(times = 50)
+#' bootstrap(times = 50, estimator = ".632+")
 #' @name resampling
 NULL
 
@@ -76,10 +119,12 @@ groupcv <- function(group, v = 5, seed = NULL) {
 
 #' @rdname resampling
 #' @export
-bootstrap <- function(times = 25, seed = NULL) {
+bootstrap <- function(times = 25, seed = NULL, estimator = c("oob", ".632", ".632+", "optimism"),
+                      nperm = 20) {
   times <- as.integer(times)
   if (times < 1L) stop("`times` must be >= 1.", call. = FALSE)
-  .new_resampling("bootstrap", list(times = times, seed = seed))
+  .new_resampling("bootstrap", list(times = times, seed = seed, estimator = match.arg(estimator),
+                                    nperm = as.integer(nperm)))
 }
 
 #' @export
@@ -90,7 +135,8 @@ print.survalis_resampling <- function(x, ...) {
                  if (p$repeats > 1L) sprintf(" x %d repeats", p$repeats) else ""),
     holdout = sprintf("holdout (%.0f%% train)", 100 * p$prop),
     groupcv = sprintf("%d-fold grouped CV on '%s'", p$v, p$group),
-    bootstrap = sprintf("bootstrap (%d resamples, OOB assessment)", p$times),
+    bootstrap = sprintf("bootstrap (%d resamples, %s estimate)", p$times,
+                        .null_default(p$estimator, "oob")),
     x$type
   )
   strata <- p$strata

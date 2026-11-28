@@ -81,8 +81,13 @@ A \code{survalis_eval} object: \code{per_split} (long data frame), \code{summary
 when scored once), \code{metrics}, \code{model}. The \code{se} is the split standard
 deviation over the square root of the number of splits and the interval is
 mean +/- 1.96 se; this treats the splits as independent, which they are not
-(training sets overlap), so the interval is too narrow. \code{\link[=bootstrap]{bootstrap()}} scores
-the out-of-bag rows only, with no .632 or optimism correction.
+(training sets overlap), so the interval is too narrow. With
+\verb{bootstrap(estimator = ".632", ".632+" or "optimism")} the \code{mean} is that
+estimate, \code{sd}, \code{se} and the interval are \code{NA}, and a \code{bootstrap} element holds,
+per metric, the apparent, out-of-bag and no-information scores, the relative
+overfitting rate \code{R}, the .632+ weight \code{w} and the three corrected estimates
+(see \code{\link[=bootstrap]{bootstrap()}}); \code{per_split} then also has each fit's score on all rows
+(\code{on_full}) and on its own resample (\code{on_inbag}).
 }
 \description{
 Scores survival predictions in one of three ways:

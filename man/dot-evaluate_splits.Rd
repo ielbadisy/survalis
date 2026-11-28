@@ -13,7 +13,8 @@
   times,
   metrics,
   parsed,
-  ncores = 1
+  ncores = 1,
+  full = FALSE
 )
 }
 \description{
