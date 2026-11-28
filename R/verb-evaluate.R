@@ -48,8 +48,13 @@
 #'   when scored once), `metrics`, `model`. The `se` is the split standard
 #'   deviation over the square root of the number of splits and the interval is
 #'   mean +/- 1.96 se; this treats the splits as independent, which they are not
-#'   (training sets overlap), so the interval is too narrow. [bootstrap()] scores
-#'   the out-of-bag rows only, with no .632 or optimism correction.
+#'   (training sets overlap), so the interval is too narrow. With
+#'   `bootstrap(estimator = ".632", ".632+" or "optimism")` the `mean` is that
+#'   estimate, `sd`, `se` and the interval are `NA`, and a `bootstrap` element holds,
+#'   per metric, the apparent, out-of-bag and no-information scores, the relative
+#'   overfitting rate `R`, the .632+ weight `w` and the three corrected estimates
+#'   (see [bootstrap()]); `per_split` then also has each fit's score on all rows
+#'   (`on_full`) and on its own resample (`on_inbag`).
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE)
 #' m <- fit(Surv(time, status) ~ age + karno + celltype, veteran, "ranger",
@@ -138,7 +143,7 @@ evaluate.matrix <- function(object, y, times = NULL,
 #' Shared split-loop used by evaluate() and compare()
 #' @keywords internal
 .evaluate_splits <- function(splits, formula, data, model, spec, times, metrics,
-                             parsed, ncores = 1) {
+                             parsed, ncores = 1, full = FALSE) {
   lrn <- .resolve_learner(model)
   fit_fun  <- lrn$fit
   pred_fun <- lrn$predict
@@ -154,8 +159,15 @@ evaluate.matrix <- function(object, y, times = NULL,
     p  <- .finalize_survmat(pred_fun(m, newdata = te, times = times), times = times)
     surv <- survival::Surv(te[[parsed$time_col]], .recode_status_vec(parsed, te))
     sc <- .score_metrics(surv, p, times, metrics)
-    data.frame(id = sp$id, metric = sc$metric, value = sc$value,
-               stringsAsFactors = FALSE)
+    out <- data.frame(id = sp$id, metric = sc$metric, value = sc$value,
+                      stringsAsFactors = FALSE)
+    if (full) {
+      # scores of this fit on all rows and on its own (in-bag) rows, for the optimism bootstrap
+      pf <- .finalize_survmat(pred_fun(m, newdata = data, times = times), times = times)
+      out$on_full <- .score_rows(pf, data, parsed, times, metrics)
+      out$on_inbag <- .score_rows(pf, data, parsed, times, metrics, sp$analysis)
+    }
+    out
   }
 
   parts <- .pmap(list(splits, seeds), one, ncores)
@@ -174,16 +186,84 @@ evaluate.matrix <- function(object, y, times = NULL,
   .check_metrics(metrics, times, multi = TRUE)
 
   splits <- .make_splits(resampling, data, parsed$status_col)
+  est <- if (resampling$type == "bootstrap") .null_default(resampling$params$estimator, "oob") else "oob"
   per <- .evaluate_splits(splits, formula, data, model, as.list(spec), times,
-                          metrics, parsed, ncores)
-  summ <- .order_bytime(cv_summary(per))
+                          metrics, parsed, ncores, full = est != "oob")
+  summ <- as.data.frame(.order_bytime(cv_summary(per[c("id", "metric", "value")])))
+  boot <- NULL
+  if (est != "oob") {
+    boot <- .boot_estimates(per, formula, data, model, as.list(spec), times, metrics, parsed,
+                            .null_default(resampling$params$nperm, 20L))
+    i <- match(summ$metric, boot$metric)
+    summ$mean <- boot[[est]][i]
+    # the resamples give no simple standard error for a corrected estimate
+    summ[c("sd", "se", "lower", "upper")] <- NA_real_
+  }
 
   structure(
-    list(per_split = per, summary = as.data.frame(summ), times = times,
+    list(per_split = per, summary = summ, times = times,
          resampling = resampling, metrics = metrics, model = .learner_label(model),
-         formula = formula),
+         formula = formula, bootstrap = boot),
     class = "survalis_eval"
   )
+}
+
+# Metric values of prediction matrix P scored on rows `i` of data (all rows by default).
+.score_rows <- function(P, data, parsed, times, metrics, i = seq_len(nrow(data))) {
+  d <- data[i, , drop = FALSE]
+  y <- survival::Surv(d[[parsed$time_col]], .recode_status_vec(parsed, d))
+  .score_metrics(y, P[i, , drop = FALSE], times, metrics)$value
+}
+
+# Apparent, out-of-bag, no-information, .632, .632+ and optimism estimates per metric
+# (see ?bootstrap). `per` holds the out-of-bag scores and the scores on all and on in-bag rows.
+.boot_estimates <- function(per, formula, data, model, spec, times, metrics, parsed, nperm) {
+  lrn <- .resolve_learner(model)
+  set.seed(sample.int(.Machine$integer.max, 1L))
+  m <- do.call(lrn$fit, c(list(formula = formula, data = data), spec))
+  S <- .finalize_survmat(lrn$predict(m, newdata = data, times = times), times = times)
+  y <- survival::Surv(data[[parsed$time_col]], .recode_status_vec(parsed, data))
+  app <- .score_metrics(y, S, times, metrics)
+  ni <- .noinf_scores(y, as.matrix(S), times, metrics, app$metric, nperm)
+  agg <- function(v) tapply(v, factor(per$metric, app$metric), mean, na.rm = TRUE)[app$metric]
+  e1 <- unname(agg(per$value))
+  sg <- ifelse(vapply(app$metric, .metric_maximize, logical(1)), -1, 1)
+  # on the loss scale (sign sg): R = 0 without overfitting or information, 1 at no information
+  a <- sg * app$value; b <- sg * e1; g <- sg * ni
+  R <- ifelse(b <= a | g <= a, 0, pmin((b - a) / (g - a), 1))
+  w <- 0.632 / (1 - 0.368 * R)
+  data.frame(metric = app$metric, apparent = app$value, oob = e1, noinf = ni, R = R, w = w,
+             `.632` = 0.368 * app$value + 0.632 * e1, `.632+` = (1 - w) * app$value + w * e1,
+             optimism = app$value + unname(agg(per$on_full - per$on_inbag)),
+             check.names = FALSE, stringsAsFactors = FALSE)
+}
+
+# No-information score of each metric: predictions and outcomes paired at random over all n^2
+# pairs. The IPCW Brier score is quadratic in a common prediction c, B(c) = k0 - 2 k1 c + k2 c^2
+# with weights that follow the outcome, so its n^2-pair mean is k0 - 2 k1 mean(s) + k2 mean(s^2),
+# exact; other metrics average `nperm` random row permutations.
+.noinf_scores <- function(y, S, times, metrics, labels, nperm) {
+  n <- nrow(S)
+  bk <- function(k) {
+    B <- vapply(c(0, 0.5, 1), function(c) unname(brier(y, rep(c, n), times[k])), 0)
+    k2 <- 2 * (B[3] + B[1] - 2 * B[2]); k1 <- (B[1] - B[3] + k2) / 2
+    B[1] - 2 * k1 * mean(S[, k]) + k2 * mean(S[, k]^2)
+  }
+  nb <- NULL
+  perm <- NULL
+  out <- lapply(metrics, function(mt) {
+    if (mt %in% c("brier", "ibs")) {
+      if (is.null(nb)) nb <<- vapply(seq_along(times), bk, 0)
+      if (mt == "ibs" && length(times) > 1) {
+        o <- order(times)
+        return(sum(nb[o][-length(times)] * diff(times[o])) / diff(range(times)))
+      }
+      return(nb)
+    }
+    if (is.null(perm)) perm <<- replicate(nperm, sample.int(n))
+    mean(apply(perm, 2, function(p) .score_one(mt, y, S[p, , drop = FALSE], times)))
+  })
+  unlist(out)
 }
 
 #' @export
@@ -199,7 +279,7 @@ print.survalis_eval <- function(x, ...) {
   s <- x$summary
   lab <- formatC(s$metric, width = -max(7L, nchar(s$metric)))
   for (i in seq_len(nrow(s))) {
-    if (is.null(x$resampling)) {
+    if (is.null(x$resampling) || !is.null(x$bootstrap)) {
       cat(sprintf("  %s %.4f\n", lab[i], s$mean[i]))
     } else {
       cat(sprintf("  %s %.4f  (sd %.4f, 95%% [%.4f, %.4f], n = %d)\n",
