@@ -21,7 +21,7 @@
 #'   `eval_time` in `...` or the sole `times` value.
 #' @param ... Method-specific arguments, e.g. `feature` (pdp / ice / ale),
 #'   `target_time` (counterfactual, surrogate), `eval_time` (calibration, roc,
-#'   dca), `thresholds` (dca), `K` (survcluster). For `"shap"`, the aggregation
+#'   dca), `thresholds` (dca), `K` (survcluster), `holdout` (tree_surrogate). For `"shap"`, the aggregation
 #'   over time (`"meanabs"` or `"integral"`) is passed as `shap_method`.
 #' @param seed Optional integer seed set before the method runs, for the methods that
 #'   sample (`"shap"`, `"shap_matrix"`, `"interaction"`, `"varimp"`, ...), so results
@@ -34,7 +34,9 @@
 #'   for the cluster's medoid curve), `time` and predicted survival `surv`.
 #'   For `"roc"` and `"dca"` it is the curve with an `eval_time` column (and
 #'   `auc` for `"roc"`); for `"tree_surrogate"` one row per time and feature
-#'   with the number of `splits` on it and the tree's `r_squared`. For
+#'   with the number of `splits` on it and the tree's fidelity `r_squared` (in sample) and
+#'   `r_squared_test` (on `newdata` when given, or on a random `holdout` fraction of `data`
+#'   kept out of the tree, else `NA`). For
 #'   `"pdp"` / `"ice"` it is one row per curve point (`feature`,
 #'   `feature_value`, `id` (`NA` on PDP rows), `time`, `surv`, `type`), for
 #'   `"ale"` one row per feature value and time (`feature`, `feature_value`,
@@ -190,7 +192,9 @@ interpret <- function(fit, method, newdata = NULL, data = NULL, times = NULL, ..
         drop_known(dots, "target_time")))
     }),
     tree_surrogate = list(plot = "plot_tree_surrogate", run = function(fit, newdata, data, times, dots) {
-      do.call(compute_tree_surrogate, c(list(model = fit, data = data, times = times), dots))
+      # fidelity out of sample on `newdata` when it differs from `data`
+      nd <- if (identical(newdata, data)) NULL else newdata
+      do.call(compute_tree_surrogate, c(list(model = fit, data = data, times = times, newdata = nd), dots))
     }),
     calibration = list(plot = "plot_calibration", run = function(fit, newdata, data, times, dots) {
       et <- one_time(dots, times, "calibration")
@@ -332,10 +336,11 @@ as.data.frame.survalis_interpret <- function(x, row.names = NULL, optional = FAL
     sc <- r$split_count
     if (!length(sc)) {
       return(data.frame(time = r$time, feature = NA_character_, splits = 0L,
-                        r_squared = r$r_squared, stringsAsFactors = FALSE))
+                        r_squared = r$r_squared, r_squared_test = r$r_squared_test,
+                        stringsAsFactors = FALSE))
     }
     data.frame(time = r$time, feature = names(sc), splits = as.integer(sc),
-               r_squared = r$r_squared, stringsAsFactors = FALSE)
+               r_squared = r$r_squared, r_squared_test = r$r_squared_test, stringsAsFactors = FALSE)
   })
   out <- basetable::rbindfill(parts, fill = TRUE)
   rownames(out) <- NULL

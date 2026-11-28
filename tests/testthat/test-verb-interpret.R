@@ -116,8 +116,27 @@ test_that("as.data.frame() tidies roc, dca and tree_surrogate results", {
   expect_named(dca, c("eval_time", "threshold", "model", "treat_all", "treat_none"))
   testthat::skip_if_not_installed("partykit")
   ts <- as.data.frame(interpret(m, "tree_surrogate", times = c(90, 180)))
-  expect_named(ts, c("time", "feature", "splits", "r_squared"))
+  expect_named(ts, c("time", "feature", "splits", "r_squared", "r_squared_test"))
   expect_setequal(unique(ts$time), c(90, 180))
+  expect_true(all(is.na(ts$r_squared_test)))
+})
+
+test_that("tree_surrogate measures fidelity out of sample on newdata or a holdout", {
+  testthat::skip_if_not_installed("partykit")
+  m <- fit(f, veteran, "coxph")
+  tr <- veteran[1:90, ]; te <- veteran[91:137, ]
+  r <- interpret(m, "tree_surrogate", data = tr, newdata = te, times = 90)$result$results[[1]]
+  s <- as.matrix(predict(m, te, times = 90))[, 1]; sh <- predict(r$tree, te)
+  expect_equal(r$r_squared_test, 1 - sum((s - sh)^2) / sum((s - mean(s))^2))
+  s0 <- as.matrix(predict(m, tr, times = 90))[, 1]
+  expect_equal(r$r_squared, 1 - sum((s0 - predict(r$tree, tr))^2) / sum((s0 - mean(s0))^2))
+  expect_equal(r$tree$frame$n[1], 90)
+  h <- interpret(m, "tree_surrogate", times = c(90, 180), holdout = 0.3, seed = 1)$result$results
+  expect_equal(h[[1]]$tree$frame$n[1], nrow(veteran) - round(0.3 * nrow(veteran)))
+  expect_true(all(vapply(h, function(x) is.finite(x$r_squared_test), TRUE)))
+  h1 <- interpret(m, "tree_surrogate", times = 90, holdout = 0.3, seed = 1)$result$results[[1]]
+  expect_identical(h1$tree$frame,
+                   h[[1]]$tree$frame)
 })
 
 test_that("as.data.frame() tidies pdp, ice, ale, calibration and varimp results", {
